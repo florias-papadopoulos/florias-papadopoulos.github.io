@@ -115,37 +115,36 @@ author_profile: true
     }
   </style>
 
-  <div class="timeline">
-    <div class="outer">
-      <div class="card">
-        <div class="info">
-            <h3 class="title">2023</h3>
-          <ul>
-            <li><a href="/projects/2023/project1/">Project 1</a></li>
-            <li><a href="/projects/2023/project2/">Project 2</a></li>
-            <li><a href="/projects/2023/project3/">Project 3</a></li>
-          </ul>
-        </div>
+<div class="timeline">
+  <div class="outer">
+    <div class="card">
+      <div class="info">
+        <h3 class="title">2023</h3>
+        <ul>
+          <li><a href="/projects/2023/project1.md">Project 1</a></li>
+          <li><a href="/projects/2023/project2.md">Project 2</a></li>
+          <li><a href="/projects/2023/project3.md">Project 3</a></li>
+        </ul>
       </div>
-      <div class="card">
-        <div class="info">
-            <h3 class="title">2022</h3>
-          <ul>
-            <li><a href="/projects/2022/projectA/">Project A</a></li>
-            <li><a href="/projects/2022/projectB/">Project B</a></li>
-            <li><a href="/projects/2022/projectC/">Project C</a></li>
-          </ul>
-        </div>
+    </div>
+    <div class="card">
+      <div class="info">
+        <h3 class="title">2022</h3>
+        <ul>
+          <li><a href="/projects/2022/projectA.md">Project A</a></li>
+          <li><a href="/projects/2022/projectB.md">Project B</a></li>
+          <li><a href="/projects/2022/projectC.md">Project C</a></li>
+        </ul>
       </div>
-      <div class="card">
-        <div class="info">
-            <h3 class="title">2021</h3>
-          <ul>
-            <li><a href="/projects/2021/projectX/">Project X</a></li>
-            <li><a href="/projects/2021/projectY/">Project Y</a></li>
-            <li><a href="/projects/2021/projectZ/">Project Z</a></li>
-          </ul>
-        </div>
+    </div>
+    <div class="card">
+      <div class="info">
+        <h3 class="title">2021</h3>
+        <ul>
+          <li><a href="/projects/2021/projectX.md">Project X</a></li>
+          <li><a href="/projects/2021/projectY.md">Project Y</a></li>
+          <li><a href="/projects/2021/projectZ.md">Project Z</a></li>
+        </ul>
       </div>
     </div>
   </div>
