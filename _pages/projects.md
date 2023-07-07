@@ -5,7 +5,7 @@ permalink: /projects/
 author_profile: true
 ---
 
-<div class="page__content" style="background-color: white;">
+<div class="page__content" style="background-color: white; margin: 0 auto; max-width: 800px; padding: 20px;">
 
   <style>
     /* Custom timeline styles */
@@ -69,7 +69,7 @@ author_profile: true
       display: flex;
       flex-direction: column;
       background: #333;
-      color: gray;
+      color: white;
       border-radius: 10px;
       padding: 10px;
     }
