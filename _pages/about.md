@@ -10,8 +10,6 @@ redirect_from:
 
 
 
-![GIF](./images/gif_one.gif){: .gif-style float-right}
-
 👨🏻‍💻 I'm a final year master student at the Mathematics Department of AUTh, in Theoretical Computer Science and Control Theory.
 
 🔬 My research interests are mainly in Cryptography,
@@ -23,3 +21,5 @@ redirect_from:
    - "Cryptography in the Post-Quantum Era" (bachelor thesis)
 
 📚 I'm currently working towards my Master's Thesis in the field of Lattice Cryptography.
+
+![GIF](./images/gif_one.gif){: .gif-style float-right}
