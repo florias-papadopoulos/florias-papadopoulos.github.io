@@ -69,7 +69,7 @@ author_profile: true
       display: flex;
       flex-direction: column;
       background: white;
-      color: white;
+      color: black;
       border-radius: 10px;
       padding: 10px;
     }
@@ -99,6 +99,11 @@ author_profile: true
 
     .card:nth-child(even) > .info > .title::before {
       right: -45px;
+    }
+    
+    /* Adjust the font size for the prompts */
+    .info p {
+      font-size: 16px;
     }
   </style>
 
