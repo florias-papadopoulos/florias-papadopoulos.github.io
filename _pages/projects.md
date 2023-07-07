@@ -119,37 +119,31 @@ author_profile: true
     <div class="outer">
       <div class="card">
         <div class="info">
-          <a href="../projects/project1.md">
             <h3 class="title">2023</h3>
-          </a>
           <ul>
-            <li><a href="../projects/project1.md">Project 1</a></li>
-            <li><a href="../projects/project2.md">Project 2</a></li>
-            <li><a href="../projects/project3.md">Project 3</a></li>
+            <li><a href="/projects/2023/project1/">Project 1</a></li>
+            <li><a href="/projects/2023/project2/">Project 2</a></li>
+            <li><a href="/projects/2023/project3/">Project 3</a></li>
           </ul>
         </div>
       </div>
       <div class="card">
         <div class="info">
-          <a href="../projects/projectA.md">
             <h3 class="title">2022</h3>
-          </a>
           <ul>
-            <li><a href="../projects/projectA.md">Project A</a></li>
-            <li><a href="../projects/projectB.md">Project B</a></li>
-            <li><a href="../projects/projectC.md">Project C</a></li>
+            <li><a href="/projects/2022/projectA/">Project A</a></li>
+            <li><a href="/projects/2022/projectB/">Project B</a></li>
+            <li><a href="/projects/2022/projectC/">Project C</a></li>
           </ul>
         </div>
       </div>
       <div class="card">
         <div class="info">
-          <a href="../projects/projectX.md">
             <h3 class="title">2021</h3>
-          </a>
           <ul>
-            <li><a href="../projects/projectX.md">Project X</a></li>
-            <li><a href="../projects/projectY.md">Project Y</a></li>
-            <li><a href="../projects/projectZ.md">Project Z</a></li>
+            <li><a href="/projects/2021/projectX/">Project X</a></li>
+            <li><a href="/projects/2021/projectY/">Project Y</a></li>
+            <li><a href="/projects/2021/projectZ/">Project Z</a></li>
           </ul>
         </div>
       </div>
