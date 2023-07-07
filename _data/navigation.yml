@@ -6,7 +6,7 @@ main:
     url: /files/resume.pdf
 
   - title: "Projects"
-    url: /portfolio/
+    url: /projects/
 
  # - title: "Publications"
  #   url: /publications/
