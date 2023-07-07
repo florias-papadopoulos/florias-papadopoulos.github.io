@@ -1,355 +1,144 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<title>Timeline Example</title>
-	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
-	<style>
-		body {	
-			margin: 0;
-			padding: 0;
-			background: rgb(230,230,230);
-			
-			color: rgb(50,50,50);
-			font-family: 'Open Sans', sans-serif;
-			font-size: 112.5%;
-			line-height: 1.6em;
-		}
+---
+layout: single
+title: "Projects" 
+permalink: /projects/
+author_profile: true
+---
 
-		.container {
-			max-width: 960px;
-			margin: 0 auto;
-			padding: 20px;
-		}
+<style>
+/* Insert the CSS code here */
+/* Variables */
+:root {
+  --color-1: black;
+  --color-2: white;
+  --color-3: rgb(168, 50, 121);
+}
 
-		/* ================ The Timeline ================ */
+/* Fonts */
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,700');
 
-		.timeline {
-			position: relative;
-			margin-top: 20px;
-			padding: 1em 0;
-			list-style-type: none;
-		}
+body {
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 1em;
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: 0.05em;
+}
 
-		.timeline:before {
-			position: absolute;
-			left: 50%;
-			top: 0;
-			content: ' ';
-			display: block;
-			width: 6px;
-			height: 100%;
-			margin-left: -3px;
-			background: rgb(80,80,80);
-			background: -moz-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(30,87,153,1)), color-stop(100%,rgba(125,185,232,1)));
-			background: -webkit-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: -o-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: -ms-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: linear-gradient(to bottom, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
+/* Layout */
+* {
+  box-sizing: border-box;
+}
 
-			z-index: 5;
-		}
+/* Styling */
+.timeline {
+  margin: 4em auto;
+  position: relative;
+  max-width: 46em;
+}
 
-		.timeline li {
-			padding: 1em 0;
-		}
+.timeline:before {
+  background-color: var(--color-1);
+  content: '';
+  margin-left: -1px;
+  position: absolute;
+  top: 0;
+  left: 2em;
+  width: 2px;
+  height: 100%;
+}
 
-		.timeline li:after {
-			content: "";
-			display: block;
-			height: 0;
-			clear: both;
-			visibility: hidden;
-		}
+.timeline-event {
+  position: relative;
+}
 
-		.direction-l {
-			position: relative;
-			width: 300px;
-			float: left;
-			text-align: right;
-		}
+.timeline-event:hover .timeline-event-icon {
+  transform: rotate(-45deg);
+  background-color: var(--color-3);
+}
 
-		.direction-r {
-			position: relative;
-			width: 300px;
-			float: right;
-		}
+.timeline-event:hover .timeline-event-thumbnail {
+  box-shadow: inset 40em 0 0 0 var(--color-3);
+}
 
-		.flag-wrapper {
-			position: relative;
-			display: inline-block;
+.timeline-event-copy {
+  padding: 2em;
+  position: relative;
+  top: -1.875em;
+  left: 4em;
+  width: 80%;
+}
 
-			text-align: center;
-		}
+.timeline-event-copy h3 {
+  font-size: 1.75em;
+}
 
-		.flag {
-			position: relative;
-			display: inline;
-			background: rgb(248,248,248);
-			padding: 6px 10px;
-			border-radius: 5px;
+.timeline-event-copy h4 {
+  font-size: 1.2em;
+  margin-bottom: 1.2em;
+}
 
-			font-weight: 600;
-			text-align: left;
-		}
+.timeline-event-copy strong {
+  font-weight: 700;
+}
 
-		.direction-l .flag {
-			-webkit-box-shadow: -1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			-moz-box-shadow: -1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			box-shadow: -1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-		}
+.timeline-event-copy p:not(.timeline-event-thumbnail) {
+  padding-bottom: 1.2em;
+}
 
-		.direction-r .flag {
-			-webkit-box-shadow: 1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			-moz-box-shadow: 1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			box-shadow: 1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-		}
+.timeline-event-icon {
+  transition: transform 0.2s ease-in;
+  transform: rotate(45deg);
+  background-color: var(--color-1);
+  outline: 10px solid var(--color-2);
+  display: block;
+  margin: 0.5em 0.5em 0.5em -0.5em;
+  position: absolute;
+  top: 0;
+  left: 2em;
+  width: 1em;
+  height: 1em;
+}
 
-		.direction-l .flag:before,
-		.direction-r .flag:before {
-			position: absolute;
-			top: 50%;
-			right: -40px;
-			content: ' ';
-			display: block;
-			width: 12px;
-			height: 12px;
-			margin-top: -10px;
-			background: #fff;
-			border-radius: 10px;
-			border: 4px solid rgb(255,80,80);
-			z-index: 10;
-		}
+.timeline-event-thumbnail {
+  transition: box-shadow 0.5s ease-in 0.1s;
+  color: var(--color-2);
+  font-size: 0.75em;
+  background-color: var(--color-1);
+  box-shadow: inset 0 0 0 0em #ef795a;
+  display: inline-block;
+  margin-bottom: 1.2em;
+  padding: 0.25em 1em 0.2em 1em;
+}
+</style>
 
-		.direction-r .flag:before {
-			left: -40px;
-		}
-
-		.direction-l .flag:after {
-			content: "";
-			position: absolute;
-			left: 100%;
-			top: 50%;
-			height: 0;
-			width: 0;
-			margin-top: -8px;
-			border: solid transparent;
-			border-left-color: rgb(248,248,248);
-			border-width: 8px;
-			pointer-events: none;
-		}
-
-		.direction-r .flag:after {
-			content: "";
-			position: absolute;
-			right: 100%;
-			top: 50%;
-			height: 0;
-			width: 0;
-			margin-top: -8px;
-			border: solid transparent;
-			border-right-color: rgb(248,248,248);
-			border-width: 8px;
-			pointer-events: none;
-		}
-
-		.time-wrapper {
-			display: inline;
-
-			line-height: 1em;
-			font-size: 0.66666em;
-			color: rgb(250,80,80);
-			vertical-align: middle;
-		}
-
-		.direction-l .time-wrapper {
-			float: left;
-		}
-
-		.direction-r .time-wrapper {
-			float: right;
-		}
-
-		.time {
-			display: inline-block;
-			paddingHere's the modified code that separates the timeline section from the sidebar and navigation bar:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<title>Timeline Example</title>
-	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
-	<style>
-		body {	
-			margin: 0;
-			padding: 0;
-			background: rgb(230,230,230);
-			
-			color: rgb(50,50,50);
-			font-family: 'Open Sans', sans-serif;
-			font-size: 112.5%;
-			line-height: 1.6em;
-		}
-
-		.container {
-			max-width: 960px;
-			margin: 0 auto;
-			padding: 20px;
-		}
-
-		/* ================ The Timeline ================ */
-
-		.timeline {
-			position: relative;
-			margin-top: 20px;
-			padding: 1em 0;
-			list-style-type: none;
-		}
-
-		.timeline:before {
-			position: absolute;
-			left: 50%;
-			top: 0;
-			content: ' ';
-			display: block;
-			width: 6px;
-			height: 100%;
-			margin-left: -3px;
-			background: rgb(80,80,80);
-			background: -moz-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(30,87,153,1)), color-stop(100%,rgba(125,185,232,1)));
-			background: -webkit-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: -o-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: -ms-linear-gradient(top, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-			background: linear-gradient(to bottom, rgba(80,80,80,0) 0%, rgb(80,80,80) 8%, rgb(80,80,80) 92%, rgba(80,80,80,0) 100%);
-
-			z-index: 5;
-		}
-
-		.timeline li {
-			padding: 1em 0;
-		}
-
-		.timeline li:after {
-			content: "";
-			display: block;
-			height: 0;
-			clear: both;
-			visibility: hidden;
-		}
-
-		.direction-l {
-			position: relative;
-			width: 300px;
-			float: left;
-			text-align: right;
-		}
-
-		.direction-r {
-			position: relative;
-			width: 300px;
-			float: right;
-		}
-
-		.flag-wrapper {
-			position: relative;
-			display: inline-block;
-
-			text-align: center;
-		}
-
-		.flag {
-			position: relative;
-			display: inline;
-			background: rgb(248,248,248);
-			padding: 6px 10px;
-			border-radius: 5px;
-
-			font-weight: 600;
-			text-align: left;
-		}
-
-		.direction-l .flag {
-			-webkit-box-shadow: -1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			-moz-box-shadow: -1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			box-shadow: -1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-		}
-
-		.direction-r .flag {
-			-webkit-box-shadow: 1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			-moz-box-shadow: 1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-			box-shadow: 1px 1px 1px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.15);
-		}
-
-		.direction-l .flag:before,
-		.direction-r .flag:before {
-			position: absolute;
-			top: 50%;
-			right: -40px;
-			content: ' ';
-			display: block;
-			width: 12px;
-			height: 12px;
-			margin-top: -10px;
-			background: #fff;
-			border-radius: 10px;
-			border: 4px solid rgb(255,80,80);
-			z-index: 10;
-		}
-
-		.direction-r .flag:before {
-			left: -40px;
-		}
-
-		.direction-l .flag:after {
-			content: "";
-			position: absolute;
-			left: 100%;
-			top: 50%;
-			height: 0;
-			width: 0;
-			margin-top: -8px;
-			border: solid transparent;
-			border-left-color: rgb(248,248,248);
-			border-width: 8px;
-			pointer-events: none;
-		}
-
-		.direction-r .flag:after {
-			content: "";
-			position: absolute;
-			right: 100%;
-			top: 50%;
-			height: 0;
-			width: 0;
-			margin-top: -8px;
-			border: solid transparent;
-			border-right-color: rgb(248,248,248);
-			border-width: 8px;
-			pointer-events: none;
-		}
-
-		.time-wrapper {
-			display: inline;
-
-			line-height: 1em;
-			font-size: 0.66666em;
-			color: rgb(250,80,80);
-			vertical-align: middle;
-		}
-
-		.direction-l .time-wrapper {
-			float: left;
-		}
-
-		.direction-r .time-wrapper {
-			float: right;
-		}
-
-		.time {
-			display: inline-block;
-			padding: 4px 6px;
-			background: rgb(248
+<ul class="timeline">
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">April 2011 - heute</p>
+      <h3>Geil,Danke! GmbH</h3>
+      <h4>Geschäftsführerin eines Web-Studios</h4>
+      <p><strong>Schwerpunkt: Frontend-Entwicklung</strong><br>Entwickeln von anspruchsvollen, animierten, responsive und adaptive Webseiten mit HTML5, SCSS, jQuery; für alle Browser, optimiert für Desktop, Notebook, Smartphones und Tablets (iOS, Android, Windows).</p>
+      <p><strong>Projektmanagement mit Scrum</strong><br>Ständiges Verbessern des agilen Entwicklungsprozesses beispielsweise durch Grunt, Yeoman, GIT, JIRA und BrowserStack.</p>
+    </div>
+  </li>
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">November 2009 - März 2011</p>
+      <h3>Freelancer</h3>
+      <h4>Designer und Autor</h4>
+      <p>Konzeption, Design und Produktion von Digitalen Magazinen mit InDesign, der Adobe Digital Publishing Suite und HTML5. Co-Autorin der Fachbücher "Digitales Publizieren für Tablets" und "Adobe Digital Publishing Suite" erschienen im dpunkt.verlag.</p>
+    </div>
+  </li>
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">April 2011 - heute</p>
+      <h3>konplan gmbh</h3>
+      <h4>IT-Consultant</h4>
+      <p><strong>Systemarchitektur, Consulting</strong><br>Konzeption und Modellierung von Systemen und APIs für Digital Publishing und Entitlement nach SOA</p>
+    </div>
+  </li>
+</ul>
