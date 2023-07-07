@@ -23,6 +23,7 @@ author_profile: true
     font-family: var(--font);
     display: flex;
     justify-content: center;
+    padding-top: 20px; /* Add padding to prevent overlap with sidebar */
   }
 
   .timeline {
@@ -116,6 +117,12 @@ author_profile: true
 
   .card:nth-child(even) > .info > .title::before {
     right: -45px;
+  }
+  
+  /* Adjust sidebar width to prevent overlap */
+  .sidebar {
+    width: 200px; /* Adjust width as needed */
+    margin-left: 20px;
   }
 </style>
 
