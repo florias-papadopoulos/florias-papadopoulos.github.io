@@ -7,7 +7,7 @@
 
 # Site Settings
 locale                   : "el-GR"
-title                    : "Florias' Homepage"
+title                    : "Homepage"
 title_separator          : "-"
 name                     : &name "Florias Papadopoulos"
 description              : &description "personal description"
