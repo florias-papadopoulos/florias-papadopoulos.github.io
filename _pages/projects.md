@@ -115,19 +115,23 @@ author_profile: true
     }
   </style>
 
-<div class="timeline">
-  <div class="outer">
-    <div class="card">
-      <div class="info">
-        <h3 class="title">2023</h3>
-        <ul>
-          <li id="project1">Project 1</li>
-          <li id="project2">Project 2</li>
-          <li id="project3">Project 3</li>
-        </ul>
+  <div class="timeline">
+    <div class="outer">
+      <div class="card">
+        <div class="info">
+          <h3 class="title">2023</h3>
+          <ul>
+            <li id="project1">Project 1</li>
+            <li id="project2">Project 2</li>
+            <li id="project3">Project 3</li>
+          </ul>
+        </div>
       </div>
     </div>
-    <script>
+  </div>
+</div>
+
+<script>
   document.getElementById("project1").addEventListener("click", function() {
     window.location.href = "/projects/2023/project1.md";
   });
@@ -141,7 +145,3 @@ author_profile: true
   });
   // Add similar event listeners for other projects as needed
 </script>
-
-  </div>
-</div>
-
