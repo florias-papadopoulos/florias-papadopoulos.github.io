@@ -9,80 +9,44 @@ author_profile: true
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    .timeline {
-      position: relative;
-      list-style-type: none;
-      padding: 0;
-    }
-    
-    .timeline:before {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background-color: #ccc;
-      left: 50%;
-      margin-left: -2px;
-    }
-    
-    .timeline-item {
-      margin-bottom: 40px;
-      position: relative;
-    }
-    
-    .timeline-item:before,
-    .timeline-item:after {
-      content: "";
-      display: table;
-    }
-    
-    .timeline-item:after {
-      clear: both;
-    }
-    
-    .timeline-content {
-      padding: 20px;
-      background-color: #f5f5f5;
-      position: relative;
-      border-radius: 6px;
-    }
-    
-    .timeline-date {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    
-    .timeline-description {
-      margin-bottom: 10px;
-    }
-  </style>
+  <link rel="stylesheet" type="text/css" href="css/styles.css">
 </head>
 <body>
 
-<h1>Table of Contents Timeline</h1>
-
-<ul class="timeline">
-  <li class="timeline-item">
-    <div class="timeline-content">
-      <div class="timeline-date">Year 1</div>
-      <div class="timeline-description">Events and milestones for Year 1.</div>
+<div class="timeline">
+  <div class="outer">
+    <div class="card">
+      <div class="info">
+        <h3 class="title">Title 1</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      </div>
     </div>
-  </li>
-  <li class="timeline-item">
-    <div class="timeline-content">
-      <div class="timeline-date">Year 2</div>
-      <div class="timeline-description">Events and milestones for Year 2.</div>
+    <div class="card">
+      <div class="info">
+        <h3 class="title">Title 2</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      </div>
     </div>
-  </li>
-  <li class="timeline-item">
-    <div class="timeline-content">
-      <div class="timeline-date">Year 3</div>
-      <div class="timeline-description">Events and milestones for Year 3.</div>
+    <div class="card">
+      <div class="info">
+        <h3 class="title">Title 3</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      </div>
     </div>
-  </li>
-</ul>
+    <div class="card">
+      <div class="info">
+        <h3 class="title">Title 4</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="info">
+        <h3 class="title">Title 5</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
