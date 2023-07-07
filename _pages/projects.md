@@ -126,42 +126,48 @@ a:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Masters (2nd Semester) </p>
-      <p><strong> Projects of courses </strong><br>
-      - Cryptography
-      - Chaos 
-      </p>
-      <p><strong> Extra Projects </strong><br>
-      - Cryptography
-      - Chaos
-      </p>
+      <p><strong> Projects of courses </strong></p>
+      <ul>
+        <li>Cryptography</li>
+        <li>Chaos</li>
+      </ul>
+      <p><strong> Extra Projects </strong></p>
+      <ul>
+        <li>Cryptography</li>
+        <li>Chaos</li>
+      </ul>
     </div>
   </li>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Master (1st Semester) </p>
-      <p><strong> Projects of courses </strong><br>
-      - Cryptography
-      - Chaos 
-      </p>
-      <p><strong> Extra Projects </strong><br>
-      - Cryptography
-      - Chaos
-      </p>
+      <p><strong> Projects of courses </strong></p>
+      <ul>
+        <li>Cryptography</li>
+        <li>Chaos</li>
+      </ul>
+      <p><strong> Extra Projects </strong></p>
+      <ul>
+        <li>Cryptography</li>
+        <li>Chaos</li>
+      </ul>
     </div>
   </li>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Bachelor </p>
-      <p><strong> Projects of courses </strong><br>
-      - Cryptography
-      - Chaos 
-      </p>
-      <p><strong> Extra Projects </strong><br>
-      - Cryptography
-      - Chaos
-      </p>
+      <p><strong> Projects of courses </strong></p>
+      <ul>
+        <li>Cryptography</li>
+        <li>Chaos</li>
+      </ul>
+      <p><strong> Extra Projects </strong></p>
+      <ul>
+        <li>Cryptography</li>
+        <li>Chaos</li>
+      </ul>
     </div>
   </li>
 </ul>
