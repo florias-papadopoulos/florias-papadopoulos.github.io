@@ -71,7 +71,6 @@ body {
 
 .timeline-event-copy h3 {
   font-size: 1.75em;
-  margin-top: 0; /* Add this line to remove the margin */
 }
 
 .timeline-event-copy h4 {
@@ -120,6 +119,10 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
+ul.timeline-list {
+  margin-top: 0; /* Add this line to remove the top margin */
+}
 </style>
 
 <ul class="timeline">
@@ -128,12 +131,12 @@ a:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Masters (2nd Semester) </p>
       <p><strong> Projects of courses </strong></p>
-      <ul style="margin: 0; padding-left: 1.5em;">
+      <ul class="timeline-list">
         <li>Cryptography</li>
         <li>Chaos</li>
       </ul>
       <p><strong> Extra Projects </strong></p>
-      <ul style="margin: 0; padding-left: 1.5em;">
+      <ul class="timeline-list">
         <li>Cryptography</li>
         <li>Chaos</li>
       </ul>
@@ -144,12 +147,12 @@ a:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Master (1st Semester) </p>
       <p><strong> Projects of courses </strong></p>
-      <ul style="margin: 0; padding-left: 1.5em;">
+      <ul class="timeline-list">
         <li>Cryptography</li>
         <li>Chaos</li>
       </ul>
       <p><strong> Extra Projects </strong></p>
-      <ul style="margin: 0; padding-left: 1.5em;">
+      <ul class="timeline-list">
         <li>Cryptography</li>
         <li>Chaos</li>
       </ul>
@@ -160,12 +163,12 @@ a:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Bachelor </p>
       <p><strong> Projects of courses </strong></p>
-      <ul style="margin: 0; padding-left: 1.5em;">
+      <ul class="timeline-list">
         <li>Cryptography</li>
         <li>Chaos</li>
       </ul>
       <p><strong> Extra Projects </strong></p>
-      <ul style="margin: 0; padding-left: 1.5em;">
+      <ul class="timeline-list">
         <li>Cryptography</li>
         <li>Chaos</li>
       </ul>
