@@ -1,5 +1,5 @@
 ---
-layout: single
+layout: default
 title: "Projects"
 permalink: /projects/
 author_profile: true
@@ -31,13 +31,14 @@ author_profile: true
       content: "";
       position: absolute;
       width: 50%;
+      height: 100%;
       border: solid orangered;
     }
 
     .card:nth-child(odd)::before {
       left: 0px;
-      top: -4.5px;
-      bottom: -4.5px;
+      top: 0;
+      bottom: 0;
       border-width: 5px 0 5px 5px;
       border-radius: 50px 0 0 50px;
     }
@@ -53,16 +54,19 @@ author_profile: true
     .card:first-child::before {
       border-top: 0;
       border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
     }
 
     .card:last-child:nth-child(odd)::before {
       border-bottom: 0;
       border-bottom-left-radius: 0;
+      border-top-left-radius: 0;
     }
 
     .card:last-child:nth-child(even)::before {
       border-bottom: 0;
       border-bottom-right-radius: 0;
+      border-top-right-radius: 0;
     }
 
     .info {
@@ -89,6 +93,8 @@ author_profile: true
       background: white;
       border-radius: 999px;
       border: 3px solid orangered;
+      top: 50%;
+      transform: translateY(-50%);
     }
 
     .card:nth-child(even) > .info > .title {
@@ -96,11 +102,11 @@ author_profile: true
     }
 
     .card:nth-child(odd) > .info > .title::before {
-      left: -45px;
+      left: -25px;
     }
 
     .card:nth-child(even) > .info > .title::before {
-      right: -45px;
+      right: -25px;
     }
     
     /* Adjust the font size for the prompts */
@@ -113,7 +119,9 @@ author_profile: true
     <div class="outer">
       <div class="card">
         <div class="info">
+          <a href="../projects/project1.md">
             <h3 class="title">2023</h3>
+          </a>
           <ul>
             <li><a href="../projects/project1.md">Project 1</a></li>
             <li><a href="../projects/project2.md">Project 2</a></li>
@@ -123,7 +131,9 @@ author_profile: true
       </div>
       <div class="card">
         <div class="info">
+          <a href="../projects/projectA.md">
             <h3 class="title">2022</h3>
+          </a>
           <ul>
             <li><a href="../projects/projectA.md">Project A</a></li>
             <li><a href="../projects/projectB.md">Project B</a></li>
@@ -133,7 +143,9 @@ author_profile: true
       </div>
       <div class="card">
         <div class="info">
+          <a href="../projects/projectX.md">
             <h3 class="title">2021</h3>
+          </a>
           <ul>
             <li><a href="../projects/projectX.md">Project X</a></li>
             <li><a href="../projects/projectY.md">Project Y</a></li>
