@@ -6,24 +6,8 @@ author_profile: true
 ---
 
 <div class="page__content" style="background-color: white; margin: 0 auto; max-width: 800px; padding: 20px;">
+  
   <style>
-    :root {
-      --primary-color: #212121;
-      --background-color: #111;
-      --font: sans-serif;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: var(--background-color);
-      font-family: var(--font);
-      display: flex;
-      justify-content: center;
-    }
 
     /* Timeline Container */
     .timeline {
