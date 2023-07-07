@@ -72,11 +72,13 @@ author_profile: true
       color: black;
       border-radius: 10px;
       padding: 10px;
+      border: 1px solid black;
     }
 
     .title {
       color: orangered;
       position: relative;
+      cursor: pointer; /* Add cursor pointer */
     }
 
     .title::before {
@@ -111,31 +113,37 @@ author_profile: true
     <div class="outer">
       <div class="card">
         <div class="info">
-          <h3 class="title">2023</h3>
+          <a href="/projects/project1.md"> <!-- Link to project1.md -->
+            <h3 class="title">2023</h3>
+          </a>
           <ul>
-            <li>Project 1</li>
-            <li>Project 2</li>
-            <li>Project 3</li>
+            <li><a href="/projects/project1.md">Project 1</a></li>
+            <li><a href="/projects/project2.md">Project 2</a></li>
+            <li><a href="/projects/project3.md">Project 3</a></li>
           </ul>
         </div>
       </div>
       <div class="card">
         <div class="info">
-          <h3 class="title">2022</h3>
+          <a href="/projects/projectA.md"> <!-- Link to projectA.md -->
+            <h3 class="title">2022</h3>
+          </a>
           <ul>
-            <li>Project A</li>
-            <li>Project B</li>
-            <li>Project C</li>
+            <li><a href="/projects/projectA.md">Project A</a></li>
+            <li><a href="/projects/projectB.md">Project B</a></li>
+            <li><a href="/projects/projectC.md">Project C</a></li>
           </ul>
         </div>
       </div>
       <div class="card">
         <div class="info">
-          <h3 class="title">2021</h3>
+          <a href="/projects/projectX.md"> <!-- Link to projectX.md -->
+            <h3 class="title">2021</h3>
+          </a>
           <ul>
-            <li>Project X</li>
-            <li>Project Y</li>
-            <li>Project Z</li>
+            <li><a href="/projects/projectX.md">Project X</a></li>
+            <li><a href="/projects/projectY.md">Project Y</a></li>
+            <li><a href="/projects/projectZ.md">Project Z</a></li>
           </ul>
         </div>
       </div>
