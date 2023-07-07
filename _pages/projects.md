@@ -112,32 +112,32 @@ author_profile: true
     <div class="outer">
       <div class="card">
         <div class="info">
-          <h3 class="title">Title 1</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <h3 class="title">2023</h3>
+          <ul>
+            <li>Project 1</li>
+            <li>Project 2</li>
+            <li>Project 3</li>
+          </ul>
         </div>
       </div>
       <div class="card">
         <div class="info">
-          <h3 class="title">Title 2</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <h3 class="title">2022</h3>
+          <ul>
+            <li>Project A</li>
+            <li>Project B</li>
+            <li>Project C</li>
+          </ul>
         </div>
       </div>
       <div class="card">
         <div class="info">
-          <h3 class="title">Title 3</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="info">
-          <h3 class="title">Title 4</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="info">
-          <h3 class="title">Title 5</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <h3 class="title">2021</h3>
+          <ul>
+            <li>Project X</li>
+            <li>Project Y</li>
+            <li>Project Z</li>
+          </ul>
         </div>
       </div>
     </div>
