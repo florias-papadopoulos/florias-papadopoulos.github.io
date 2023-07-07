@@ -110,12 +110,12 @@ body {
   padding: 0.25em 1em 0.2em 1em;
 }
 
-a {
+a.project-link {
   color: #007bff;
   text-decoration: none;
 }
 
-a:hover {
+a.project-link:hover {
   text-decoration: underline;
 }
 </style>
@@ -124,42 +124,42 @@ a:hover {
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> [Master - Semester 2](/projects/Master%20-%20Semester%202/project1/)</p>
-      <p><strong> <u>Projects of courses</u> </strong><br>
-      [Project1](/projects/Master%20-%20Semester%202/project1/project1.md)<br>
-      [Project2](/projects/Master%20-%20Semester%202/project1/project2.md)
+      <p class="timeline-event-thumbnail">Master - Semester 2</p>
+      <p><strong><u>Projects of courses</u></strong><br>
+      <a href="/projects/Master%20-%20Semester%202/project1/project1.md" class="project-link">Project1</a><br>
+      <a href="/projects/Master%20-%20Semester%202/project1/project2.md" class="project-link">Project2</a>
       </p>
-      <p><strong> <u>Extra Projects</u> </strong><br>
-      [Project1](/projects/Master%20-%20Semester%202/project1/project1.md)<br>
-      [Project2](/projects/Master%20-%20Semester%202/project1/project2.md)
-      </p>
-    </div>
-  </li>
-  <li class="timeline-event">
-    <label class="timeline-event-icon"></label>
-    <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> [Master - Semester 1](/projects/Master%20-%20Semester%201/)</p>
-      <p><strong> <u>Projects of courses</u> </strong><br>
-      [ProjectA](/projects/Master%20-%20Semester%201/projectA/projectA.md)<br>
-      [ProjectB](/projects/Master%20-%20Semester%201/projectA/projectB.md)
-      </p>
-      <p><strong> <u>Extra Projects</u> </strong><br>
-      [ProjectA](/projects/Master%20-%20Semester%201/projectA/projectA.md)<br>
-      [ProjectB](/projects/Master%20-%20Semester%201/projectA/projectB.md)
+      <p><strong><u>Extra Projects</u></strong><br>
+      <a href="/projects/Master%20-%20Semester%202/project1/project1.md" class="project-link">Project1</a><br>
+      <a href="/projects/Master%20-%20Semester%202/project1/project2.md" class="project-link">Project2</a>
       </p>
     </div>
   </li>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> [Bachelor](/projects/Bachelor/)</p>
-      <p><strong> <u>Projects of courses</u> </strong><br>
-      [ProjectX](/projects/Bachelor/projectX/projectX.md)<br>
-      [ProjectY](/projects/Bachelor/projectX/projectY.md)
+      <p class="timeline-event-thumbnail">Master - Semester 1</p>
+      <p><strong><u>Projects of courses</u></strong><br>
+      <a href="/projects/Master%20-%20Semester%201/projectA/projectA.md" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master%20-%20Semester%201/projectA/projectB.md" class="project-link">ProjectB</a>
       </p>
-      <p><strong> <u>Extra Projects</u> </strong><br>
-      [ProjectX](/projects/Bachelor/projectX/projectX.md)<br>
-      [ProjectY](/projects/Bachelor/projectX/projectY.md)
+      <p><strong><u>Extra Projects</u></strong><br>
+      <a href="/projects/Master%20-%20Semester%201/projectA/projectA.md" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master%20-%20Semester%201/projectA/projectB.md" class="project-link">ProjectB</a>
+      </p>
+    </div>
+  </li>
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">Bachelor</p>
+      <p><strong><u>Projects of courses</u></strong><br>
+      <a href="/projects/Bachelor/projectX/projectX.md" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectX/projectY.md" class="project-link">ProjectY</a>
+      </p>
+      <p><strong><u>Extra Projects</u></strong><br>
+      <a href="/projects/Bachelor/projectX/projectX.md" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectX/projectY.md" class="project-link">ProjectY</a>
       </p>
     </div>
   </li>
