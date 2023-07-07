@@ -113,9 +113,7 @@ author_profile: true
     <div class="outer">
       <div class="card">
         <div class="info">
-          <a href="../project1.md">
             <h3 class="title">2023</h3>
-          </a>
           <ul>
             <li><a href="../projects/project1.md">Project 1</a></li>
             <li><a href="../projects/project2.md">Project 2</a></li>
@@ -125,9 +123,7 @@ author_profile: true
       </div>
       <div class="card">
         <div class="info">
-          <a href="../projectA.md">
             <h3 class="title">2022</h3>
-          </a>
           <ul>
             <li><a href="../projects/projectA.md">Project A</a></li>
             <li><a href="../projects/projectB.md">Project B</a></li>
@@ -137,9 +133,7 @@ author_profile: true
       </div>
       <div class="card">
         <div class="info">
-          <a href="../projectX.md">
             <h3 class="title">2021</h3>
-          </a>
           <ul>
             <li><a href="../projects/projectX.md">Project X</a></li>
             <li><a href="../projects/projectY.md">Project Y</a></li>
