@@ -5,13 +5,11 @@ permalink: /projects/
 author_profile: true
 ---
 
-<div class="page__content">
-  <h1>{{ page.title }}</h1>
+<div class="page__content" style="background-color: white;">
 
   <style>
     /* Custom timeline styles */
     .timeline {
-      background: #212121;
       margin: 20px auto;
       padding: 20px;
     }
