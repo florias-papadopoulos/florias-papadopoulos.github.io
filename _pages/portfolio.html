@@ -6,35 +6,81 @@ author_profile: true
 # The Archives of posts.
 ---
 
-# Table of Contents
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .accordion {
+      background-color: #f5f5f5;
+      color: #444;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      text-align: left;
+      border: none;
+      outline: none;
+      transition: 0.4s;
+    }
+    
+    .active, .accordion:hover {
+      background-color: #ddd;
+    }
+    
+    .panel {
+      padding: 0 18px;
+      background-color: white;
+      display: none;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  
+<h1>Table of Contents</h1>
 
-- [Year 1](#year-1)
-- [Year 2](#year-2)
-- [Year 3](#year-3)
+<button class="accordion"><strong>Year 1</strong></button>
+<div class="panel">
+  <ul>
+    <li><a href="_events/year1-event1.md">Event 1</a></li>
+    <li><a href="_events/year1-event2.md">Event 2</a></li>
+    <li><a href="_events/year1-event3.md">Event 3</a></li>
+  </ul>
+</div>
 
-<details>
-  <summary><strong>Year 1</strong></summary>
-  <br>
+<button class="accordion"><strong>Year 2</strong></button>
+<div class="panel">
+  <ul>
+    <li><a href="_events/year2-event1.md">Event 1</a></li>
+    <li><a href="_events/year2-event2.md">Event 2</a></li>
+    <li><a href="_events/year2-event3.md">Event 3</a></li>
+  </ul>
+</div>
 
-  - [Event 1](_events/year1-event1.md)
-  - [Event 2](_events/year1-event2.md)
-  - [Event 3](_events/year1-event3.md)
-</details>
+<button class="accordion"><strong>Year 3</strong></button>
+<div class="panel">
+  <ul>
+    <li><a href="_events/year3-event1.md">Event 1</a></li>
+    <li><a href="_events/year3-event2.md">Event 2</a></li>
+    <li><a href="_events/year3-event3.md">Event 3</a></li>
+  </ul>
+</div>
 
-<details>
-  <summary><strong>Year 2</strong></summary>
-  <br>
+<script>
+  var accordions = document.getElementsByClassName("accordion");
+  var i;
 
-  - [Event 1](_events/year2-event1.md)
-  - [Event 2](_events/year2-event2.md)
-  - [Event 3](_events/year2-event3.md)
-</details>
+  for (i = 0; i < accordions.length; i++) {
+    accordions[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      var panel = this.nextElementSibling;
+      if (panel.style.display === "block") {
+        panel.style.display = "none";
+      } else {
+        panel.style.display = "block";
+      }
+    });
+  }
+</script>
 
-<details>
-  <summary><strong>Year 3</strong></summary>
-  <br>
-
-  - [Event 1](_events/year3-event1.md)
-  - [Event 2](_events/year3-event2.md)
-  - [Event 3](_events/year3-event3.md)
-</details>
+</body>
+</html>
