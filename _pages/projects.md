@@ -121,31 +121,27 @@ author_profile: true
       <div class="info">
         <h3 class="title">2023</h3>
         <ul>
-          <li><a href="/projects/2023/project1.md">Project 1</a></li>
-          <li><a href="/projects/2023/project2.md">Project 2</a></li>
-          <li><a href="/projects/2023/project3.md">Project 3</a></li>
+          <li id="project1">Project 1</li>
+          <li id="project2">Project 2</li>
+          <li id="project3">Project 3</li>
         </ul>
       </div>
     </div>
-    <div class="card">
-      <div class="info">
-        <h3 class="title">2022</h3>
-        <ul>
-          <li><a href="/projects/2022/projectA.md">Project A</a></li>
-          <li><a href="/projects/2022/projectB.md">Project B</a></li>
-          <li><a href="/projects/2022/projectC.md">Project C</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="card">
-      <div class="info">
-        <h3 class="title">2021</h3>
-        <ul>
-          <li><a href="/projects/2021/projectX.md">Project X</a></li>
-          <li><a href="/projects/2021/projectY.md">Project Y</a></li>
-          <li><a href="/projects/2021/projectZ.md">Project Z</a></li>
-        </ul>
-      </div>
-    </div>
+    <script>
+  document.getElementById("project1").addEventListener("click", function() {
+    window.location.href = "/projects/2023/project1.md";
+  });
+
+  document.getElementById("project2").addEventListener("click", function() {
+    window.location.href = "/projects/2023/project2.md";
+  });
+
+  document.getElementById("project3").addEventListener("click", function() {
+    window.location.href = "/projects/2023/project3.md";
+  });
+  // Add similar event listeners for other projects as needed
+</script>
+
   </div>
 </div>
+
