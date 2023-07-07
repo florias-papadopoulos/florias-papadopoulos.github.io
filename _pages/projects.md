@@ -126,11 +126,11 @@ a:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Master (2nd Semester) </p>
-      <p><strong> Projects of courses </strong><br>
+      <p><strong> <u>Projects of courses</u> </strong><br>
       Cryptography<br>
       Chaos 
       </p>
-      <p><strong> Extra Projects </strong><br>
+      <p><strong> <u>Extra Projects</u> </strong><br>
       Cryptography<br>
       Chaos
       </p>
@@ -140,11 +140,11 @@ a:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Master (1st Semester) </p>
-      <p><strong> Projects of courses </strong><br>
+      <p><strong> <u>Projects of courses</u> </strong><br>
       Cryptography<br>
       Chaos
       </p>
-      <p><strong> Extra Projects </strong><br>
+      <p><strong> <u>Extra Projects</u> </strong><br>
       Cryptography<br>
       Chaos
       </p>
@@ -154,13 +154,13 @@ a:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Bachelor </p>
-      <p><strong> Projects of courses </strong><br>
+      <p><strong> <u>Projects of courses</u> </strong><br>
       Cryptography<br>
       Chaos
       </p>
-      <p><strong> Extra Projects </strong><br>
-      - Cryptography
-      - Chaos
+      <p><strong> <u>Extra Projects</u> </strong><br>
+      Cryptography<br>
+      Chaos
       </p>
     </div>
   </li>
