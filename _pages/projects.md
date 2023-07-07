@@ -68,7 +68,7 @@ author_profile: true
     .info {
       display: flex;
       flex-direction: column;
-      background: #333;
+      background: white;
       color: white;
       border-radius: 10px;
       padding: 10px;
