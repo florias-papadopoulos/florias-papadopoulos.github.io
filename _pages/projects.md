@@ -71,6 +71,7 @@ body {
 
 .timeline-event-copy h3 {
   font-size: 1.75em;
+  margin-top: 0; /* Add this line to remove the margin */
 }
 
 .timeline-event-copy h4 {
