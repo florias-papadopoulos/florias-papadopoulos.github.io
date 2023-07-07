@@ -6,9 +6,7 @@ author_profile: true
 ---
 
 <div class="page__content" style="background-color: white; margin: 0 auto; max-width: 800px; padding: 20px;">
-
   <style>
-    /* Custom timeline styles */
     .timeline {
       margin: 20px auto;
       padding: 20px;
@@ -82,7 +80,7 @@ author_profile: true
     .title {
       color: orangered;
       position: relative;
-      cursor: pointer; /* Add cursor pointer */
+      cursor: pointer;
     }
 
     .title::before {
@@ -108,7 +106,7 @@ author_profile: true
     .card:nth-child(even) > .info > .title::before {
       right: -25px;
     }
-    
+
     /* Adjust the font size for the prompts */
     .info p {
       font-size: 16px;
@@ -119,7 +117,7 @@ author_profile: true
     <div class="outer">
       <div class="card">
         <div class="info">
-            <h3 class="title">2023</h3>
+          <h3 class="title">2023</h3>
           <ul>
             <li><a href="/projects/2023/project1/">Project 1</a></li>
             <li><a href="/projects/2023/project2/">Project 2</a></li>
@@ -129,7 +127,7 @@ author_profile: true
       </div>
       <div class="card">
         <div class="info">
-            <h3 class="title">2022</h3>
+          <h3 class="title">2022</h3>
           <ul>
             <li><a href="/projects/2022/projectA/">Project A</a></li>
             <li><a href="/projects/2022/projectB/">Project B</a></li>
@@ -139,7 +137,7 @@ author_profile: true
       </div>
       <div class="card">
         <div class="info">
-            <h3 class="title">2021</h3>
+          <h3 class="title">2021</h3>
           <ul>
             <li><a href="/projects/2021/projectX/">Project X</a></li>
             <li><a href="/projects/2021/projectY/">Project Y</a></li>
