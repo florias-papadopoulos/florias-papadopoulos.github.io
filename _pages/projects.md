@@ -119,10 +119,6 @@ a {
 a:hover {
   text-decoration: underline;
 }
-
-ul.timeline-list {
-  margin-top: 0; /* Add this line to remove the top margin */
-}
 </style>
 
 <ul class="timeline">
@@ -130,48 +126,42 @@ ul.timeline-list {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Masters (2nd Semester) </p>
-      <p><strong> Projects of courses </strong></p>
-      <ul class="timeline-list">
-        <li>Cryptography</li>
-        <li>Chaos</li>
-      </ul>
-      <p><strong> Extra Projects </strong></p>
-      <ul class="timeline-list">
-        <li>Cryptography</li>
-        <li>Chaos</li>
-      </ul>
+      <p><strong> Projects of courses </strong><br>
+      - Cryptography
+      - Chaos 
+      </p>
+      <p><strong> Extra Projects </strong><br>
+      - Cryptography
+      - Chaos
+      </p>
     </div>
   </li>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Master (1st Semester) </p>
-      <p><strong> Projects of courses </strong></p>
-      <ul class="timeline-list">
-        <li>Cryptography</li>
-        <li>Chaos</li>
-      </ul>
-      <p><strong> Extra Projects </strong></p>
-      <ul class="timeline-list">
-        <li>Cryptography</li>
-        <li>Chaos</li>
-      </ul>
+      <p><strong> Projects of courses </strong><br>
+      - Cryptography
+      - Chaos 
+      </p>
+      <p><strong> Extra Projects </strong><br>
+      - Cryptography
+      - Chaos
+      </p>
     </div>
   </li>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail"> Bachelor </p>
-      <p><strong> Projects of courses </strong></p>
-      <ul class="timeline-list">
-        <li>Cryptography</li>
-        <li>Chaos</li>
-      </ul>
-      <p><strong> Extra Projects </strong></p>
-      <ul class="timeline-list">
-        <li>Cryptography</li>
-        <li>Chaos</li>
-      </ul>
+      <p><strong> Projects of courses </strong><br>
+      - Cryptography
+      - Chaos 
+      </p>
+      <p><strong> Extra Projects </strong><br>
+      - Cryptography
+      - Chaos
+      </p>
     </div>
   </li>
 </ul>
