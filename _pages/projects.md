@@ -80,7 +80,6 @@ author_profile: true
     .title {
       color: orangered;
       position: relative;
-      cursor: pointer;
     }
 
     .title::before {
