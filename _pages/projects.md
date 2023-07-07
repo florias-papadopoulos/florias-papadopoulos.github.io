@@ -125,7 +125,7 @@ a:hover {
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> Master (2nd Semester) </p>
+      <p class="timeline-event-thumbnail"> Master - Semester 2 </p>
       <p><strong> <u>Projects of courses</u> </strong><br>
       Cryptography<br>
       Chaos 
@@ -139,7 +139,7 @@ a:hover {
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> Master (1st Semester) </p>
+      <p class="timeline-event-thumbnail"> Master - Semester 1 </p>
       <p><strong> <u>Projects of courses</u> </strong><br>
       Cryptography<br>
       Chaos
