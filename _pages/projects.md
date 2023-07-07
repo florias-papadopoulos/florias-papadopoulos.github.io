@@ -117,9 +117,9 @@ author_profile: true
             <h3 class="title">2023</h3>
           </a>
           <ul>
-            <li><a href="../project1.md">Project 1</a></li>
-            <li><a href="../project2.md">Project 2</a></li>
-            <li><a href="../project3.md">Project 3</a></li>
+            <li><a href="../projects/project1.md">Project 1</a></li>
+            <li><a href="../projects/project2.md">Project 2</a></li>
+            <li><a href="../projects/project3.md">Project 3</a></li>
           </ul>
         </div>
       </div>
@@ -129,9 +129,9 @@ author_profile: true
             <h3 class="title">2022</h3>
           </a>
           <ul>
-            <li><a href="../projectA.md">Project A</a></li>
-            <li><a href="../projectB.md">Project B</a></li>
-            <li><a href="../projectC.md">Project C</a></li>
+            <li><a href="../projects/projectA.md">Project A</a></li>
+            <li><a href="../projects/projectB.md">Project B</a></li>
+            <li><a href="../projects/projectC.md">Project C</a></li>
           </ul>
         </div>
       </div>
@@ -141,9 +141,9 @@ author_profile: true
             <h3 class="title">2021</h3>
           </a>
           <ul>
-            <li><a href="../projectX.md">Project X</a></li>
-            <li><a href="../projectY.md">Project Y</a></li>
-            <li><a href="../projectZ.md">Project Z</a></li>
+            <li><a href="../projects/projectX.md">Project X</a></li>
+            <li><a href="../projects/projectY.md">Project Y</a></li>
+            <li><a href="../projects/projectZ.md">Project Z</a></li>
           </ul>
         </div>
       </div>
