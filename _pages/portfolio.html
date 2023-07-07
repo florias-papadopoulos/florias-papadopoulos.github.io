@@ -10,75 +10,80 @@ author_profile: true
 <html>
 <head>
   <style>
-    .accordion {
+    .timeline {
+      position: relative;
+      list-style-type: none;
+      padding: 0;
+    }
+    
+    .timeline:before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background-color: #ccc;
+      left: 50%;
+      margin-left: -2px;
+    }
+    
+    .timeline-item {
+      margin-bottom: 40px;
+      position: relative;
+    }
+    
+    .timeline-item:before,
+    .timeline-item:after {
+      content: "";
+      display: table;
+    }
+    
+    .timeline-item:after {
+      clear: both;
+    }
+    
+    .timeline-content {
+      padding: 20px;
       background-color: #f5f5f5;
-      color: #444;
-      cursor: pointer;
-      padding: 18px;
-      width: 100%;
-      text-align: left;
-      border: none;
-      outline: none;
-      transition: 0.4s;
+      position: relative;
+      border-radius: 6px;
     }
     
-    .active, .accordion:hover {
-      background-color: #ddd;
+    .timeline-date {
+      font-weight: bold;
+      margin-bottom: 5px;
     }
     
-    .panel {
-      padding: 0 18px;
-      background-color: white;
-      display: none;
-      overflow: hidden;
+    .timeline-description {
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  
-<button class="accordion"><strong>Year 1</strong></button>
-<div class="panel">
-  <ul>
-    <li><a href="_events/year1-event1.md">Event 1</a></li>
-    <li><a href="_events/year1-event2.md">Event 2</a></li>
-    <li><a href="_events/year1-event3.md">Event 3</a></li>
-  </ul>
-</div>
 
-<button class="accordion"><strong>Year 2</strong></button>
-<div class="panel">
-  <ul>
-    <li><a href="_events/year2-event1.md">Event 1</a></li>
-    <li><a href="_events/year2-event2.md">Event 2</a></li>
-    <li><a href="_events/year2-event3.md">Event 3</a></li>
-  </ul>
-</div>
+<h1>Table of Contents Timeline</h1>
 
-<button class="accordion"><strong>Year 3</strong></button>
-<div class="panel">
-  <ul>
-    <li><a href="_events/year3-event1.md">Event 1</a></li>
-    <li><a href="_events/year3-event2.md">Event 2</a></li>
-    <li><a href="_events/year3-event3.md">Event 3</a></li>
-  </ul>
-</div>
-
-<script>
-  var accordions = document.getElementsByClassName("accordion");
-  var i;
-
-  for (i = 0; i < accordions.length; i++) {
-    accordions[i].addEventListener("click", function() {
-      this.classList.toggle("active");
-      var panel = this.nextElementSibling;
-      if (panel.style.display === "block") {
-        panel.style.display = "none";
-      } else {
-        panel.style.display = "block";
-      }
-    });
-  }
-</script>
+<ul class="timeline">
+  <li class="timeline-item">
+    <div class="timeline-content">
+      <div class="timeline-date">Year 1</div>
+      <div class="timeline-description">Events and milestones for Year 1.</div>
+    </div>
+  </li>
+  <li class="timeline-item">
+    <div class="timeline-content">
+      <div class="timeline-date">Year 2</div>
+      <div class="timeline-description">Events and milestones for Year 2.</div>
+    </div>
+  </li>
+  <li class="timeline-item">
+    <div class="timeline-content">
+      <div class="timeline-date">Year 3</div>
+      <div class="timeline-description">Events and milestones for Year 3.</div>
+    </div>
+  </li>
+</ul>
 
 </body>
 </html>
+
