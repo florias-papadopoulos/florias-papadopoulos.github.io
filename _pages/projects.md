@@ -124,42 +124,42 @@ a:hover {
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> Master - Semester 2 </p>
+      <p class="timeline-event-thumbnail"> [Master - Semester 2](/projects/Master%20-%20Semester%202/project1/)</p>
       <p><strong> <u>Projects of courses</u> </strong><br>
-      Project1<br>
-      Project2 
+      [Project1](/projects/Master%20-%20Semester%202/project1/project1.md)<br>
+      [Project2](/projects/Master%20-%20Semester%202/project1/project2.md)
       </p>
       <p><strong> <u>Extra Projects</u> </strong><br>
-      Project1<br>
-      Project2
+      [Project1](/projects/Master%20-%20Semester%202/project1/project1.md)<br>
+      [Project2](/projects/Master%20-%20Semester%202/project1/project2.md)
       </p>
     </div>
   </li>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> Master - Semester 1 </p>
+      <p class="timeline-event-thumbnail"> [Master - Semester 1](/projects/Master%20-%20Semester%201/)</p>
       <p><strong> <u>Projects of courses</u> </strong><br>
-      ProjectA<br>
-      ProjectB
+      [ProjectA](/projects/Master%20-%20Semester%201/projectA/projectA.md)<br>
+      [ProjectB](/projects/Master%20-%20Semester%201/projectA/projectB.md)
       </p>
       <p><strong> <u>Extra Projects</u> </strong><br>
-      ProjectA<br>
-      ProjectB
+      [ProjectA](/projects/Master%20-%20Semester%201/projectA/projectA.md)<br>
+      [ProjectB](/projects/Master%20-%20Semester%201/projectA/projectB.md)
       </p>
     </div>
   </li>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail"> Bachelor </p>
+      <p class="timeline-event-thumbnail"> [Bachelor](/projects/Bachelor/)</p>
       <p><strong> <u>Projects of courses</u> </strong><br>
-      ProjectX<br>
-      ProjectY
+      [ProjectX](/projects/Bachelor/projectX/projectX.md)<br>
+      [ProjectY](/projects/Bachelor/projectX/projectY.md)
       </p>
       <p><strong> <u>Extra Projects</u> </strong><br>
-      ProjectX<br>
-      ProjectY
+      [ProjectX](/projects/Bachelor/projectX/projectX.md)<br>
+      [ProjectY](/projects/Bachelor/projectX/projectY.md)
       </p>
     </div>
   </li>
