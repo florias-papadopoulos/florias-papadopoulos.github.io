@@ -1,4 +1,4 @@
---- 
+---
 layout: single
 title: "Projects"
 permalink: /projects/
@@ -113,37 +113,37 @@ author_profile: true
     <div class="outer">
       <div class="card">
         <div class="info">
-          <a href="/projects/project1.md"> <!-- Link to project1.md -->
+          <a href="../project1.md">
             <h3 class="title">2023</h3>
           </a>
           <ul>
-            <li><a href="/projects/project1.md">Project 1</a></li>
-            <li><a href="/projects/project2.md">Project 2</a></li>
-            <li><a href="/projects/project3.md">Project 3</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="card">
-        <div class="info"> 
-          <a href="/projects/projectA.md"> <!-- Link to projectA.md -->
-            <h3 class="title">2022</h3>
-          </a>
-          <ul>
-            <li><a href="/projects/projectA.md">Project A</a></li>
-            <li><a href="/projects/projectB.md">Project B</a></li>
-            <li><a href="/projects/projectC.md">Project C</a></li>
+            <li><a href="../project1.md">Project 1</a></li>
+            <li><a href="../project2.md">Project 2</a></li>
+            <li><a href="../project3.md">Project 3</a></li>
           </ul>
         </div>
       </div>
       <div class="card">
         <div class="info">
-          <a href="/projects/projectX.md"> <!-- Link to projectX.md -->
+          <a href="../projectA.md">
+            <h3 class="title">2022</h3>
+          </a>
+          <ul>
+            <li><a href="../projectA.md">Project A</a></li>
+            <li><a href="../projectB.md">Project B</a></li>
+            <li><a href="../projectC.md">Project C</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="info">
+          <a href="../projectX.md">
             <h3 class="title">2021</h3>
           </a>
           <ul>
-            <li><a href="/projects/projectX.md">Project X</a></li>
-            <li><a href="/projects/projectY.md">Project Y</a></li>
-            <li><a href="/projects/projectZ.md">Project Z</a></li>
+            <li><a href="../projectX.md">Project X</a></li>
+            <li><a href="../projectY.md">Project Y</a></li>
+            <li><a href="../projectZ.md">Project Z</a></li>
           </ul>
         </div>
       </div>
