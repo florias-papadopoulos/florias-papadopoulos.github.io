@@ -72,7 +72,6 @@ author_profile: true
       color: black;
       border-radius: 10px;
       padding: 10px;
-      border: 1px solid black;
     }
 
     .title {
