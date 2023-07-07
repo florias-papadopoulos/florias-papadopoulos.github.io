@@ -124,7 +124,7 @@ author_profile: true
         </div>
       </div>
       <div class="card">
-        <div class="info">
+        <div class="info"> 
           <a href="/projects/projectA.md"> <!-- Link to projectA.md -->
             <h3 class="title">2022</h3>
           </a>
