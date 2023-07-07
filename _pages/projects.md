@@ -124,6 +124,13 @@ author_profile: true
     width: 200px; /* Adjust width as needed */
     margin-left: 20px;
   }
+
+  /* Apply background style from about.md */
+  .page__content {
+    background: #111;
+    color: #fff;
+    padding: 20px;
+  }
 </style>
 
 <div class="timeline">
@@ -159,5 +166,4 @@ author_profile: true
       </div>
     </div>
   </div>
-</div>
-{% endraw %}
+</div
