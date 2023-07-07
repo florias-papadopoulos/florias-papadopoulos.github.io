@@ -16,8 +16,7 @@ redirect_from:
 
 👨🏻‍💻 I'm a final year master student at the Mathematics Department of AUTh, in Theoretical Computer Science and Control Theory.
 
-🔬 My research interests are mainly in Cryptography,  
-   gaining knowledge on Modern, Quantum and Post-Quantum Cryptography!  
+🔬 My research interests are mainly in Cryptography, gaining knowledge on Modern, Quantum and Post-Quantum Cryptography!  
    * Related courses/work :   
    - Cryptography
    - Elliptic Curve Cryptography
