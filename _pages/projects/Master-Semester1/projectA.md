@@ -1,7 +1,7 @@
 ---
 layout: single
 title: "Project A"
-permalink: /projects/2022/projectA/
+permalink: /projects/Master-Semester1/projectA/
 author_profile: true
 ---
 
