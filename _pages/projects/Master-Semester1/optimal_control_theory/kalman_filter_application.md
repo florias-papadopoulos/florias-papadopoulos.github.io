@@ -9,7 +9,7 @@ author_profile: true
 
 A script was made for an assignment of the class ”Optimal Control Theory” of my master’s program:  
 
-<u>**Exercise.**</u>  
+**<u>Exercise.</u>**
 Perform a simulation of the movement of an object based on <u>Example 2</u>.  
 Give estimations of the states for 20* steps.  
 Assume that $\Delta t$ is stable, e.g. $\Delta t = 0.1$, and choose matrices Q and R of the form
