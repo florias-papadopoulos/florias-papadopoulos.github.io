@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Projects" 
+title: "Projects"
 permalink: /projects/
 author_profile: true
 ---
@@ -120,19 +120,31 @@ a.project-link:hover {
   text-decoration: underline;
 }
 
-/* Dropdown Menu */
-.timeline-event-dropdown {
-  display: none;
-  position: absolute;
-  left: 100%;
-  top: 0;
-  padding: 1em;
-  background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+.dropdown {
+  position: relative;
+  display: inline-block;
 }
 
-.timeline-event:hover .timeline-event-dropdown {
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
   display: block;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
 }
 </style>
 
@@ -141,48 +153,61 @@ a.project-link:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 2</p>
-      <p class="timeline-event-dropdown">
-        <strong><u>Projects of courses</u></strong><br>
-        <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
-        <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
-      </p>
-      <p class="timeline-event-dropdown">
-        <strong><u>Extra Projects</u></strong><br>
-        <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
-        <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
-      </p>
+      <div class="dropdown">
+        <p><strong><u>Projects of courses</u></strong></p>
+        <div class="dropdown-content">
+          <a href="/projects/Master-Semester2/project1/" class="dropdown-item">Project1</a>
+          <a href="/projects/Master-Semester2/project2/" class="dropdown-item">Project2</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <p><strong><u>Extra Projects</u></strong></p>
+        <div class="dropdown-content">
+          <a href="/projects/Master-Semester2/extra-project1/" class="dropdown-item">Extra Project1</a>
+          <a href="/projects/Master-Semester2/extra-project2/" class="dropdown-item">Extra Project2</a>
+        </div>
+      </div>
     </div>
   </li>
-  <li class="timeline-event">
+<li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail">Master - Semester 1</p>
-      <p class="timeline-event-dropdown">
-        <strong><u>Projects of courses</u></strong><br>
-        <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
-        <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
-      </p>
-      <p class="timeline-event-dropdown">
-        <strong><u>Extra Projects</u></strong><br>
-        <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
-        <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
-      </p>
+        <p class="timeline-event-thumbnail">Master - Semester 1</p>
+        <div class="dropdown">
+            <p><strong><u>Projects of courses</u></strong></p>
+            <div class="dropdown-content">
+                <a href="/projects/Master-Semester1/projectA/" class="dropdown-item">ProjectA</a>
+                <a href="/projects/Master-Semester1/projectB/" class="dropdown-item">ProjectB</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <p><strong><u>Extra Projects</u></strong></p>
+            <div class="dropdown-content">
+                <a href="/projects/Master-Semester1/extra-project1/" class="dropdown-item">Extra Project1</a>
+                <a href="/projects/Master-Semester1/extra-project2/" class="dropdown-item">Extra Project2</a>
+            </div>
+        </div>
     </div>
-  </li>
-  <li class="timeline-event">
+</li>
+<li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail">Bachelor</p>
-      <p class="timeline-event-dropdown">
-        <strong><u>Projects of courses</u></strong><br>
-        <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
-        <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
-      </p>
-      <p class="timeline-event-dropdown">
-        <strong><u>Extra Projects</u></strong><br>
-        <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
-        <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
-      </p>
+        <p class="timeline-event-thumbnail">Bachelor</p>
+        <div class="dropdown">
+            <p><strong><u>Projects of courses</u></strong></p>
+            <div class="dropdown-content">
+                <a href="/projects/Bachelor/projectX/" class="dropdown-item">ProjectX</a>
+                <a href="/projects/Bachelor/projectY/" class="dropdown-item">ProjectY</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <p><strong><u>Extra Projects</u></strong></p>
+            <div class="dropdown-content">
+                <a href="/projects/Bachelor/extra-projectX/" class="dropdown-item">Extra ProjectX</a>
+                <a href="/projects/Bachelor/extra-projectY/" class="dropdown-item">Extra ProjectY</a>
+            </div>
+        </
+        </div>
     </div>
-  </li>
+</li>
 </ul>
