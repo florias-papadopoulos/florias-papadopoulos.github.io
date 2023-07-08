@@ -1,5 +1,6 @@
---- 
-layout: single 
+---
+layout: single
+title: "Projects"
 permalink: /projects/
 author_profile: true
 ---
@@ -126,12 +127,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 2</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Master-Semester2/project1.md" class="project-link">Project1</a><br>
-      <a href="/projects/Master-Semester2/project2.md" class="project-link">Project2</a>
+      [Project1](/projects/Master-Semester2/project1/) <br>
+      [Project2](/projects/Master-Semester2/project2/)
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Master-Semester2/project1.md" class="project-link">Project1</a><br>
-      <a href="/projects/Master-Semester2/project2.md" class="project-link">Project2</a>
+      [Project1](/projects/Master-Semester2/project1/) <br>
+      [Project2](/projects/Master-Semester2/project2/)
       </p>
     </div>
   </li>
@@ -140,12 +141,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 1</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Master-Semester1/projectA.md" class="project-link">ProjectA</a><br>
-      <a href="/projects/Master-Semester1/projectB.md" class="project-link">ProjectB</a>
+      [ProjectA](/projects/Master-Semester1/projectA/) <br>
+      [ProjectB](/projects/Master-Semester1/projectB/)
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Master-Semester1/projectA.md" class="project-link">ProjectA</a><br>
-      <a href="/projects/Master-Semester1/projectB.md" class="project-link">ProjectB</a>
+      [ProjectA](/projects/Master-Semester1/projectA/) <br>
+      [ProjectB](/projects/Master-Semester1/projectB/)
       </p>
     </div>
   </li>
@@ -154,12 +155,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Bachelor</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Bachelor/projectX.md" class="project-link">ProjectX</a><br>
-      <a href="/projects/Bachelor/projectY.md" class="project-link">ProjectY</a>
+      [ProjectX](/projects/Bachelor/projectX/) <br>
+      [ProjectY](/projects/Bachelor/projectY/)
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Bachelor/projectX.md" class="project-link">ProjectX</a><br>
-      <a href="/projects/Bachelor/projectY.md" class="project-link">ProjectY</a>
+      [ProjectX](/projects/Bachelor/projectX/) <br>
+      [ProjectY](/projects/Bachelor/projectY/)
       </p>
     </div>
   </li>
