@@ -12,7 +12,8 @@ A script was made for an assignment of the class ”Optimal Control Theory” of
 **<u>Exercise.</u>**
 Perform a simulation of the movement of an object based on <u>Example 2</u>.  
 Give estimations of the states for 20* steps.  
-Assume that $\Delta t$ is stable, e.g. $\Delta t = 0.1$, and choose matrices Q and R of the form
+Assume that $\Delta t$ is stable, e.g. $\Delta t = 0.1$, and choose matrices Q and R of the form  
+
 $$
 Q = \begin{bmatrix}
 \frac{q_1(\Delta t)^3}{3} & 0 & \frac{q_1(\Delta t)^2}{2} & 0 \\
@@ -25,6 +26,7 @@ Q = \begin{bmatrix}
 0 & \sigma_2^2
 \end{bmatrix}
 $$  
+  
 setting "proper" values for the parameters (e.g. $\sigma_1=\sigma_2 = 1/2$ and $q_1=q_2=1$).    
   
 **Note.** The script that i made can be used for any $k_{upper}$ number of steps, with $k_{upper}=20$ being the input in the final "Solving the problem" section.
@@ -70,7 +72,9 @@ A = \begin{bmatrix}
 0 & 0 & 1 & 0 \\
 0 & 0 & 0 & 1
 \end{bmatrix}
-$$, as well as $w_k = (w_{k,1}, w_{k,2}, w_{k,3}, w_{k,4})^T$ and $\nu_k = (\nu_{k,1}, \nu_{k,2})^T$.
+$$  
+
+, as well as $w_k = (w_{k,1}, w_{k,2}, w_{k,3}, w_{k,4})^T$ and $\nu_k = (\nu_{k,1}, \nu_{k,2})^T$.
 
 ---------------------------------------------------------------------------------------------------
 
