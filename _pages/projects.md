@@ -126,12 +126,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 2</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Master-Semester2/project1/project1.md" class="project-link">Project1</a><br>
-      <a href="/projects/Master-Semester2/project1/project2.md" class="project-link">Project2</a>
+      <a href="/projects/Master-Semester2/project1.md" class="project-link">Project1</a><br>
+      <a href="/projects/Master-Semester2/project2.md" class="project-link">Project2</a>
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Master-Semester2/project1/project1.md" class="project-link">Project1</a><br>
-      <a href="/projects/Master-Semester2/project1/project2.md" class="project-link">Project2</a>
+      <a href="/projects/Master-Semester2/project1.md" class="project-link">Project1</a><br>
+      <a href="/projects/Master-Semester2/project2.md" class="project-link">Project2</a>
       </p>
     </div>
   </li>
@@ -140,12 +140,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 1</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Master-Semester1/projectA/projectA.md" class="project-link">ProjectA</a><br>
-      <a href="/projects/Master-Semester1/projectA/projectB.md" class="project-link">ProjectB</a>
+      <a href="/projects/Master-Semester1/projectA.md" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master-Semester1/projectB.md" class="project-link">ProjectB</a>
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Master-Semester1/projectA/projectA.md" class="project-link">ProjectA</a><br>
-      <a href="/projects/Master-Semester1/projectA/projectB.md" class="project-link">ProjectB</a>
+      <a href="/projects/Master-Semester1/projectA.md" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master-Semester1/projectB.md" class="project-link">ProjectB</a>
       </p>
     </div>
   </li>
@@ -154,12 +154,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Bachelor</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Bachelor/projectX/projectX.md" class="project-link">ProjectX</a><br>
-      <a href="/projects/Bachelor/projectX/projectY.md" class="project-link">ProjectY</a>
+      <a href="/projects/Bachelor/projectX.md" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectY.md" class="project-link">ProjectY</a>
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Bachelor/projectX/projectX.md" class="project-link">ProjectX</a><br>
-      <a href="/projects/Bachelor/projectX/projectY.md" class="project-link">ProjectY</a>
+      <a href="/projects/Bachelor/projectX.md" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectY.md" class="project-link">ProjectY</a>
       </p>
     </div>
   </li>
