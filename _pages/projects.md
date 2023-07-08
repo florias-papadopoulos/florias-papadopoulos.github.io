@@ -83,7 +83,6 @@ body {
 
 .timeline-event-copy p:not(.timeline-event-thumbnail) {
   padding-bottom: 0.6em;
-  text-align: center; /* Add this line to center-align the project links */
 }
 
 .timeline-event-icon {
@@ -118,6 +117,12 @@ a.project-link {
 
 a.project-link:hover {
   text-decoration: underline;
+}
+
+.timeline-event-copy p:not(.timeline-event-thumbnail) a.project-link {
+  display: block;
+  text-align: center;
+  font-weight: 700; /* Add this line to make the project links bold */
 }
 </style>
 
