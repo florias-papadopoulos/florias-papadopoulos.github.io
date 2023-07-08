@@ -1,10 +1,8 @@
 ---
 layout: single
-title: "Project A"
-permalink: /projects/2022/projectA/
+title: "Solving Systems of Chaotic Equations"
+permalink: /projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_systems_of_chaotic_equations/
 author_profile: true
 ---
 
-This tutorial will guide you how to write a post in the _Chirpy_ template, and it's worth reading even if you've used Jekyll before, as many features require specific variables to be set.
-
-## Naming and Path
+**Under Construction**
