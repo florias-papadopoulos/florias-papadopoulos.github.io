@@ -125,8 +125,9 @@ a.project-link:hover {
 }
 </style>
 
-This page showcases a selection of projects from my academic journey, encompassing various subjects including cryptography and related fields. <br>
-Each project header acts as a hyperlink, leading to a separate markdown file. Within these files, you will find the corresponding resources associated with each project, which may include PDFs, PowerPoint presentations, markdown files, Python code, or other relevant materials, depending on the specific project. This organized structure allows for easy navigation and access to the specific materials related to each project.
+- This page showcases a carefully curated collection of projects from my academic journey, spanning various subjects, including cryptography and related fields. <br>
+- Each project header acts as an interactive link, guiding you to a dedicated markdown file. <br>
+- Inside these files, you will discover an array of resources associated with each project, ranging from PDFs 📄 and PowerPoint presentations 📊 to markdown files 📝, Python code 🐍, and other relevant materials.
 
 <ul class="timeline">
   <li class="timeline-event">
