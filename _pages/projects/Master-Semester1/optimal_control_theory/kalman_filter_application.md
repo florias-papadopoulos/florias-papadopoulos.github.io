@@ -71,10 +71,10 @@ A = \begin{bmatrix}
 , \quad H = \begin{bmatrix}
 0 & 0 & 1 & 0 \\
 0 & 0 & 0 & 1
-\end{bmatrix}
+\end{bmatrix},
 $$  
 
-, as well as $w_k = (w_{k,1}, w_{k,2}, w_{k,3}, w_{k,4})^T$ and $\nu_k = (\nu_{k,1}, \nu_{k,2})^T$.
+as well as $w_k = (w_{k,1}, w_{k,2}, w_{k,3}, w_{k,4})^T$ and $\nu_k = (\nu_{k,1}, \nu_{k,2})^T$.
 
 ---------------------------------------------------------------------------------------------------
 
