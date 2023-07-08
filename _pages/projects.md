@@ -125,13 +125,13 @@ a.project-link:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 2</p>
-      <p><strong><u>Elliptic Curve Cryptography</u></strong><br>
+      <p><strong><u>❖ Elliptic Curve Cryptography</u></strong><br>
       <a href="/projects/Master-Semester2/elliptic_curve_cryptography/signal_protocol/" class="project-link">Signal Protocol</a>
       </p>
-      <p><strong><u>Quantum Information & Computation</u></strong><br>
+      <p><strong><u>❖ Quantum Information & Computation</u></strong><br>
       <a href="/projects/Master-Semester2/quantum_information_and_computation/semiquantum_cryptography/" class="project-link">Semi-Quantum Cryptography</a>
       </p>
-      <p><strong><u>Machine Learning</u></strong><br>
+      <p><strong><u>❖ Machine Learning</u></strong><br>
       <a href="/projects/Master-Semester2/machine_learning/activity_recognition/" class="project-link">Activity Recognition (team)</a>
       </p>
     </div>
@@ -140,17 +140,17 @@ a.project-link:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 1</p>
-      <p><strong><u>Cryptography</u></strong><br>
+      <p><strong><u>❖ Cryptography</u></strong><br>
       <a href="/projects/Master-Semester1/cryptography/euclid_attack/" class="project-link">Euclid Attack</a><br>
       <a href="/projects/Master-Semester1/cryptography/factoring_and_discrete_logarithm_algorithms/" class="project-link">Factoring & Discrete Logarithm Algorithms</a>
       </p>
-      <p><strong><u>Numerical Methods with Applications to ODE & PDE</u></strong><br>
+      <p><strong><u>❖ Numerical Methods with Applications to ODE & PDE</u></strong><br>
       <a href="/projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_systems_of_chaotic_equations/" class="project-link">Solving Systems of Chaotic Equations</a>
       </p>
-      <p><strong><u>Optimal Control Theory</u></strong><br>
+      <p><strong><u>❖ Optimal Control Theory</u></strong><br>
       <a href="/projects/Master-Semester1/optimal_control_theory/kalman_filter_application/" class="project-link">Kalman Filter Appilcation</a>
       </p>
-      <p><strong><u>Master Seminar 2022</u></strong><br>
+      <p><strong><u>❖ Master Seminar 2022</u></strong><br>
       <a href="/projects/Master-Semester1/mcs_seminar_2022/cryptography_in_the_post_quantum_era/" class="project-link">Cryptography In The Post-Quantum Era</a>
       </p>
     </div>
@@ -159,7 +159,7 @@ a.project-link:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Bachelor</p>
-      <p><strong><u>Bachelor Thesis</u></strong><br>
+      <p><strong><u>❖ Bachelor Thesis</u></strong><br>
       <a href="/projects/Bachelor/bachelor_thesis/cryptography_in_the_post_quantum_era/" class="project-link">Cryptography In The Post-Quantum Era</a><br>
       </p>
     </div>
