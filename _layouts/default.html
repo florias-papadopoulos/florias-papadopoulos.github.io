@@ -32,34 +32,40 @@ layout: compress
         right: 20px;
         z-index: 9999;
       }
+
       #mode-switch label {
         display: inline-block;
-        width: 50px;
-        height: 26px;
+        width: 40px;
+        height: 20px;
         background-color: #ccc;
-        border-radius: 13px;
+        border-radius: 10px;
         position: relative;
         cursor: pointer;
+        transition: background-color 0.3s;
       }
+
       #mode-switch label:after {
-        content: "";
+        content: '';
         position: absolute;
-        width: 22px;
-        height: 22px;
+        width: 18px;
+        height: 18px;
         border-radius: 50%;
+        top: 1px;
+        left: 1px;
         background-color: #fff;
-        top: 2px;
-        left: 2px;
-        transition: transform 0.2s ease-in-out;
+        transition: transform 0.3s;
       }
+
       #mode-switch input[type="checkbox"] {
         display: none;
       }
+
       #mode-switch input[type="checkbox"]:checked + label {
-        background-color: #000;
+        background-color: #333;
       }
+
       #mode-switch input[type="checkbox"]:checked + label:after {
-        transform: translateX(24px);
+        transform: translateX(20px);
       }
     </style>
 
