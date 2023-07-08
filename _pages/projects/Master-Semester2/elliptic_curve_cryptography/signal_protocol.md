@@ -12,8 +12,8 @@ For the assignment, the Signal Protocol (as described in [1](https://signal.org/
 
 ## ❖ Files Included
 
-- [PDF (english)](./ecc_signal_pdf.pdf)
-- [PowerPoint (english)](./ecc_signal_presentation.pptx)
+- [PDF](./ecc_signal_pdf.pdf) (english)
+- [Presentation](./ecc_signal_presentation.pptx) (english)
 
 ## ❖ Keywords
 
