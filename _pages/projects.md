@@ -120,9 +120,8 @@ a.project-link:hover {
 }
 
 .timeline-event-copy p:not(.timeline-event-thumbnail) a.project-link {
-  display: block;
-  text-align: center;
-  font-weight: 700; /* Add this line to make the project links bold */
+  display: inline-block;
+  margin-left: 1em; /* Adjust this value to change the indentation */
 }
 </style>
 
