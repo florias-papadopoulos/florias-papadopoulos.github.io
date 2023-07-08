@@ -1,3 +1,10 @@
+---
+layout: single
+title: "Projects" 
+permalink: /projects/
+author_profile: true
+---
+
 <style>
 /* Insert the CSS code here */
 /* Variables */
