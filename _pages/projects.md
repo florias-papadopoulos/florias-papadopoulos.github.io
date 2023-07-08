@@ -128,9 +128,11 @@ a.project-link:hover {
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #f9f9f9;
+  background-color: var(--color-1);
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
+  padding: 10px;
+  width: auto;
 }
 
 .dropdown:hover .dropdown-content {
@@ -138,13 +140,14 @@ a.project-link:hover {
 }
 
 .dropdown-item {
-  padding: 12px 16px;
+  padding: 5px 0;
   text-decoration: none;
   display: block;
 }
 
 .dropdown-item:hover {
-  background-color: #f1f1f1;
+  background-color: var(--color-3);
+  color: var(--color-2);
 }
 </style>
 
@@ -206,8 +209,8 @@ a.project-link:hover {
                 <a href="/projects/Bachelor/extra-projectX/" class="dropdown-item">Extra ProjectX</a>
                 <a href="/projects/Bachelor/extra-projectY/" class="dropdown-item">Extra ProjectY</a>
             </div>
-        </
         </div>
     </div>
 </li>
 </ul>
+
