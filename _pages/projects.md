@@ -121,47 +121,50 @@ a.project-link:hover {
 }
 </style>
 
-<ul class="timeline">
-  <li class="timeline-event">
-    <label class="timeline-event-icon"></label>
+<div class="timeline">
+  <div class="timeline-event">
+    <h3>Master - Semester 2</h3>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail">Master - Semester 2</p>
-      <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
-      <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
-      </p>
-      <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
-      <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
-      </p>
+      <p class="timeline-event-thumbnail">Projects of courses</p>
+      <div class="project-links">
+        <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a>
+        <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
+      </div>
+      <p class="timeline-event-thumbnail">Extra Projects</p>
+      <div class="project-links">
+        <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a>
+        <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
+      </div>
     </div>
-  </li>
-  <li class="timeline-event">
-    <label class="timeline-event-icon"></label>
+  </div>
+  <div class="timeline-event">
+    <h3>Master - Semester 1</h3>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail">Master - Semester 1</p>
-      <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
-      <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
-      </p>
-      <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
-      <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
-      </p>
+      <p class="timeline-event-thumbnail">Projects of courses</p>
+      <div class="project-links">
+        <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a>
+        <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
+      </div>
+      <p class="timeline-event-thumbnail">Extra Projects</p>
+      <div class="project-links">
+        <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a>
+        <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
+      </div>
     </div>
-  </li>
-  <li class="timeline-event">
-    <label class="timeline-event-icon"></label>
+  </div>
+  <div class="timeline-event">
+    <h3>Bachelor</h3>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail">Bachelor</p>
-      <p><strong><u>Projects of courses</u></strong><br>
-      <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
-      <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
-      </p>
-      <p><strong><u>Extra Projects</u></strong><br>
-      <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
-      <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
-      </p>
+      <p class="timeline-event-thumbnail">Projects of courses</p>
+      <div class="project-links">
+        <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a>
+        <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
+      </div>
+      <p class="timeline-event-thumbnail">Extra Projects</p>
+      <div class="project-links">
+        <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a>
+        <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
+      </div>
     </div>
-  </li>
-</ul>
+  </div>
+</div>
