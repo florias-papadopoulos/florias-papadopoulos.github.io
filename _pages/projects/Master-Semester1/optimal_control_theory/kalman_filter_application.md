@@ -34,7 +34,7 @@ Estimate the position of an object that is moving with steady speed on the plane
 Firstly, we assume that the state vector is the 4-dimensional, $x_k = (x_{k,1}, x_{k,2}, x_{k,3}, x_{k,4})^T$, where the first two components, $x_{k,1}$ and $x_{k,2}$ are the position-components (in a 2-dimensional cartesian coordinates system), and the components $x_{k,3}$ and $x_{k,4}$ are the speed-components. Moreover, we assume that the measurement vector is 2-dimensional, $z_k = (z_{k,1}, z_{k,2})^T$, where $z_k$ gives us the observed position of the moving object in step $k$, $k=1,2,\dots$.  
 Hence, and considering that the object is moving with steady speed, we will have the following relations: 
 
-\[
+$$
 \begin{align*}
 x_{k,1} &= x_{k-1,1} + \Delta t \cdot x_{k-1,3} + w_{k-1,1} \\
 x_{k,2} &= x_{k-1,2} + \Delta t \cdot x_{k-1,4} + w_{k-1,2} \\
@@ -43,16 +43,16 @@ x_{k,4} &= x_{k-1,3} + w_{k-1,4} \\
 z_{k,1} &= x_{k,1} + \nu_{k,1} \\
 z_{k,2} &= x_{k,2} + \nu_{k,2} 
 \end{align*}
-\]
+$$
 
 which can be written in matrix form as
 
-\[
+$$
 \begin{align*}
 x_k & = Ax_{k-1} + w_{k-1} \\
 z_k & = Hx_{k-1} + \nu_{k-1} \\
 \end{align*}
-\]
+$$
 
 with $w_k \sim \mathcal{N}(0,Q)$ and $\nu_k \sim \mathcal{N}(0,R)$,
 
