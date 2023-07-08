@@ -133,7 +133,13 @@ a.project-link:hover {
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
-      <p class="timeline-event-thumbnail dropdown">Master - Semester 2
+      <h3>Master - Semester 2</h3>
+    </div>
+  </li>
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail dropdown">Projects of courses
         <span class="dropdown-content">
           <br>
           <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
