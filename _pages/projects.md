@@ -128,7 +128,7 @@ a.project-link:hover {
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 2</p>
-      <p><strong><u>Elliptic Curve Cryptography</u></strong><br>
+      <p><strong><u>Elliptic-Curve Cryptography</u></strong><br>
       <a href="/projects/Master-Semester2/elliptic_curve_cryptography/signal_protocol/" class="project-link">Signal Protocol</a>
       </p>
       <p><strong><u>Quantum Information & Computation</u></strong><br>
