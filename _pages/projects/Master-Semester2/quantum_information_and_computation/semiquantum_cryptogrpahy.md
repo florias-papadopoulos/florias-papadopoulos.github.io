@@ -7,8 +7,8 @@ author_profile: true
 
 ## ❖ Abstract
 
-Presentation after research made for an assignment of the class ”Quantum Information & Computation” of my master’s. <br>
-The presentation includes references on the last slides, providing additional information on the subject matter.
+I have prepared a presentation on "Semi-Quantum Cryptography" as part of my master's assignment for the class "Quantum Information & Computation". <br>
+For further details and additional information, I have included references on the final slides.
 
 ## ❖ Files Included
 
