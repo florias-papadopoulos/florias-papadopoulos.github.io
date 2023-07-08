@@ -1,7 +1,7 @@
 ---
 layout: single
 title: "Project X"
-permalink: /projects/2021/projectX/
+permalink: /projects/Bachelor/projectX/
 author_profile: true
 ---
 
