@@ -121,7 +121,7 @@ a.project-link:hover {
 
 .timeline-event-copy p:not(.timeline-event-thumbnail) a.project-link {
   display: inline-block;
-  margin-left: 2em; /* Adjust this value to change the indentation */
+  margin-left: 1.3em; /* Adjust this value to change the indentation */
 }
 </style>
 
