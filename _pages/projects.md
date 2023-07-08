@@ -119,6 +119,16 @@ a.project-link {
 a.project-link:hover {
   text-decoration: underline;
 }
+
+.timeline-event h3 {
+  font-size: 1.5em;
+  margin-bottom: 1em;
+}
+
+.timeline-event-copy .project-links {
+  margin-bottom: 1em;
+}
+  
 </style>
 
 <div class="timeline">
