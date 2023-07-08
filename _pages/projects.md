@@ -159,7 +159,7 @@ a.project-link:hover {
       [ProjectY](/projects/Bachelor/projectY/)
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      [ProjectX](/projects/Bachelor/projectX/) <br>
+      [ProjectX](/projects/Bachelor/projectX) <br>
       [ProjectY](/projects/Bachelor/projectY/)
       </p>
     </div>
