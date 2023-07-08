@@ -1,0 +1,12 @@
+{% assign dark_mode_switch_label = site.data.labels.dark_mode_switch_label | default: 'Dark Mode' %}
+{% assign light_mode_switch_label = site.data.labels.light_mode_switch_label | default: 'Light Mode' %}
+
+<div id="mode-switch">
+  <input type="checkbox" id="dark-mode-switch" {% if page.dark_mode %}checked{% endif %} />
+  <label for="dark-mode-switch">
+    <span class="sr-only">{{ dark_mode_switch_label }}</span>
+    <span class="dark-mode-icon"></span>
+    <span class="light-mode-icon"></span>
+    <span class="mode-switch-label" data-dark="{{ dark_mode_switch_label }}" data-light="{{ light_mode_switch_label }}"></span>
+  </label>
+</div>
