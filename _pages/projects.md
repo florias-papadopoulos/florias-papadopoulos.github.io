@@ -119,18 +119,150 @@ a.project-link {
 a.project-link:hover {
   text-decoration: underline;
 }
-
-.timeline-event h3 {
-  font-size: 1.5em;
-  margin-bottom: 1em;
-}
-
-.timeline-event-copy .project-links {
-  margin-bottom: 1em;
-}
-  
 </style>
 
+<ul class="timeline">
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">Master - Semester 2</p>
+      <p><strong><u>Projects of courses</u></strong><br>
+      <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
+      <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
+      </p>
+      <p><strong><u>Extra Projects</u></strong><br>
+      <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
+      <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
+      </p>
+    </div>
+  </li>
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">Master - Semester 1</p>
+      <p><strong><u>Projects of courses</u></strong><br>
+      <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
+      </p>
+      <p><strong><u>Extra Projects</u></strong><br>
+      <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
+      </p>
+    </div>
+  </li>
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">Bachelor</p>
+      <p><strong><u>Projects of courses</u></strong><br>
+      <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
+      </p>
+      <p><strong><u>Extra Projects</u></strong><br>
+      <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
+      </p>
+    </div>
+  </li>
+</ul>
+
+ChatGPT
+
+2 / 2
+
+Apologies for any confusion caused. If I understand correctly, you would like to make the "Projects of courses" and "Extra Projects" sections act as dropdown menus. Here's the updated code:
+
+markdown
+Copy code
+---
+layout: single
+title: "Projects"
+permalink: /projects/
+author_profile: true
+---
+
+<style>
+/* Insert the CSS code here */
+/* Variables */
+:root {
+  --color-1: black;
+  --color-2: white;
+  --color-3: rgb(168, 50, 121);
+}
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,700');
+
+body {
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 1em;
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: 0.05em;
+}
+
+/* Layout */
+* {
+  box-sizing: border-box;
+}
+
+/* Styling */
+.timeline {
+  margin: 4em auto;
+  position: relative;
+  max-width: 46em;
+}
+
+.timeline:before {
+  background-color: var(--color-1);
+  content: '';
+  margin-left: -1px;
+  position: absolute;
+  top: 0;
+  left: 2em;
+  width: 2px;
+  height: 100%;
+}
+
+.timeline-event {
+  position: relative;
+}
+
+.timeline-event:hover .timeline-event-icon {
+  transform: rotate(-45deg);
+  background-color: var(--color-3);
+}
+
+.timeline-event:hover .timeline-event-thumbnail {
+  box-shadow: inset 40em 0 0 0 var(--color-3);
+}
+
+.timeline-event-copy {
+  padding: 2em;
+  position: relative;
+  top: -1.875em;
+  left: 4em;
+  width: 80%;
+}
+
+.timeline-event-copy h3 {
+  font-size: 1.75em;
+}
+
+.timeline-event-copy h4 {
+
+
+
+
+User
+
+send me only the parts i need to change or add
+ChatGPT
+Certainly! Here are the parts you need to change or add in your existing code:
+
+Replace the <ul> and <li> elements with the following code:
+html
+Copy code
 <div class="timeline">
   <div class="timeline-event">
     <h3>Master - Semester 2</h3>
@@ -178,3 +310,79 @@ a.project-link:hover {
     </div>
   </div>
 </div>
+Add the following CSS code to your existing <style> block:
+css
+Copy code
+.timeline-event h3 {
+  font-size: 1.5em;
+  margin-bottom: 1em;
+}
+
+.timeline-event-copy .project-links {
+  margin-bottom: 1em;
+}
+This should give you the desired result with the "Projects of courses" and "Extra Projects" sections acting as dropdown menus.
+
+
+
+
+
+User
+that was completely wrong
+ChatGPT
+Apologies for the misunderstanding. Here's the corrected code to achieve the desired result:
+
+html
+Copy code
+<style>
+/* Insert the CSS code here */
+/* Variables */
+:root {
+  --color-1: black;
+  --color-2: white;
+  --color-3: rgb(168, 50, 121);
+}
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,700');
+
+body {
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 1em;
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: 0.05em;
+}
+
+/* Layout */
+* {
+  box-sizing: border-box;
+}
+
+/* Styling */
+.timeline {
+  margin: 4em auto;
+  position: relative;
+  max-width: 46em;
+}
+
+.timeline:before {
+  background-color: var(--color-1);
+  content: '';
+  margin-left: -1px;
+  position: absolute;
+  top: 0;
+  left: 2em;
+  width: 2px;
+  height: 100%;
+}
+
+.timeline-event {
+  position: relative;
+}
+
+.timeline-event:hover .timeline-event-icon {
+  transform: rotate(-45deg);
+  background
+
+
