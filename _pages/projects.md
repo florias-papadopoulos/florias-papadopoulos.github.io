@@ -82,7 +82,7 @@ body {
 }
 
 .timeline-event-copy p:not(.timeline-event-thumbnail) {
-  padding-bottom: 1.2em;
+  padding-bottom: 0.6em;
 }
 
 .timeline-event-icon {
