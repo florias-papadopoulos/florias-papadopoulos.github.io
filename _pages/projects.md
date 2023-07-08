@@ -127,12 +127,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 2</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      [Project1](/projects/Master-Semester2/project1/) <br>
-      [Project2](/projects/Master-Semester2/project2/)
+      <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
+      <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      [Project1](/projects/Master-Semester2/project1/) <br>
-      [Project2](/projects/Master-Semester2/project2/)
+      <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
+      <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
       </p>
     </div>
   </li>
@@ -141,12 +141,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 1</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      [ProjectA](/projects/Master-Semester1/projectA/) <br>
-      [ProjectB](/projects/Master-Semester1/projectB/)
+      <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      [ProjectA](/projects/Master-Semester1/projectA/) <br>
-      [ProjectB](/projects/Master-Semester1/projectB/)
+      <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
+      <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
       </p>
     </div>
   </li>
@@ -155,12 +155,12 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Bachelor</p>
       <p><strong><u>Projects of courses</u></strong><br>
-      [ProjectX](/projects/Bachelor/projectX/) <br>
-      [ProjectY](/projects/Bachelor/projectY/)
+      <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
       </p>
       <p><strong><u>Extra Projects</u></strong><br>
-      [ProjectX](/projects/Bachelor/projectX) <br>
-      [ProjectY](/projects/Bachelor/projectY/)
+      <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
+      <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
       </p>
     </div>
   </li>
