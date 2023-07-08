@@ -136,14 +136,13 @@ a.project-link:hover {
       <p class="timeline-event-thumbnail dropdown">Master - Semester 2
         <span class="dropdown-content">
           <br>
-          <strong><u>Projects of courses</u></strong><br>
-          <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
-          <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
-          <br><br>
-          <strong><u>Extra Projects</u></strong><br>
           <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
           <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
         </span>
+      </p>
+      <p><strong><u>Extra Projects</u></strong><br>
+        <a href="/projects/Master-Semester2/project1/" class="project-link">Project1</a><br>
+        <a href="/projects/Master-Semester2/project2/" class="project-link">Project2</a>
       </p>
     </div>
   </li>
@@ -153,14 +152,13 @@ a.project-link:hover {
       <p class="timeline-event-thumbnail dropdown">Master - Semester 1
         <span class="dropdown-content">
           <br>
-          <strong><u>Projects of courses</u></strong><br>
-          <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
-          <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
-          <br><br>
-          <strong><u>Extra Projects</u></strong><br>
           <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
           <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
         </span>
+      </p>
+      <p><strong><u>Extra Projects</u></strong><br>
+        <a href="/projects/Master-Semester1/projectA/" class="project-link">ProjectA</a><br>
+        <a href="/projects/Master-Semester1/projectB/" class="project-link">ProjectB</a>
       </p>
     </div>
   </li>
@@ -170,14 +168,13 @@ a.project-link:hover {
       <p class="timeline-event-thumbnail dropdown">Bachelor
         <span class="dropdown-content">
           <br>
-          <strong><u>Projects of courses</u></strong><br>
-          <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
-          <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
-          <br><br>
-          <strong><u>Extra Projects</u></strong><br>
           <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
           <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
         </span>
+      </p>
+      <p><strong><u>Extra Projects</u></strong><br>
+        <a href="/projects/Bachelor/projectX/" class="project-link">ProjectX</a><br>
+        <a href="/projects/Bachelor/projectY/" class="project-link">ProjectY</a>
       </p>
     </div>
   </li>
