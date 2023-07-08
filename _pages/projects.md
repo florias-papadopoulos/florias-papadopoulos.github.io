@@ -118,11 +118,6 @@ a.project-link {
 a.project-link:hover {
   text-decoration: underline;
 }
-
-.timeline-event-copy p:not(.timeline-event-thumbnail) a.project-link {
-  display: inline-block;
-  margin-left: 1.3em; /* Adjust this value to change the indentation */
-}
 </style>
 
 📌 This page showcases a carefully curated collection of projects from my academic journey, spanning various subjects, including cryptography and related fields. <br>
