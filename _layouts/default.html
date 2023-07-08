@@ -7,8 +7,62 @@ layout: compress
 <!doctype html>
 <html lang="{{ site.locale | slice: 0,2 }}" class="no-js">
   <head>
-    {% include head.html %}
-    {% include head/custom.html %}
+    {% if page.layout == 'compress' %}
+      {% capture css_assets %}
+        {% include assets/css/all.css %}
+      {% endcapture %}
+      {% capture js_assets %}
+        {% include assets/js/all.js %}
+      {% endcapture %}
+      {% assign css_assets = css_assets | newline_to_br | remove: '<br />' %}
+      {% assign js_assets = js_assets | newline_to_br | remove: '<br />' %}
+      {% include compressor/css.html content=css_assets %}
+      {% include compressor/js.html content=js_assets %}
+    {% else %}
+      {% include head/custom.html %}
+    {% endif %}
+
+    <link rel="stylesheet" href="{{ "/assets/css/dark-mode.css" | relative_url }}" />
+    <script src="{{ "/assets/js/dark-mode.js" | relative_url }}"></script>
+
+    <style>
+      #mode-switch {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+      }
+      #mode-switch label {
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+        background-color: #ccc;
+        border-radius: 13px;
+        position: relative;
+        cursor: pointer;
+      }
+      #mode-switch label:after {
+        content: "";
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background-color: #fff;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s ease-in-out;
+      }
+      #mode-switch input[type="checkbox"] {
+        display: none;
+      }
+      #mode-switch input[type="checkbox"]:checked + label {
+        background-color: #000;
+      }
+      #mode-switch input[type="checkbox"]:checked + label:after {
+        transform: translateX(24px);
+      }
+    </style>
+
   </head>
 
   <body>
