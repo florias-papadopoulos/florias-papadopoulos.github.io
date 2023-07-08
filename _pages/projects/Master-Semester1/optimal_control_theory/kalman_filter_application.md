@@ -80,7 +80,7 @@ as well as $w_k = (w_{k,1}, w_{k,2}, w_{k,3}, w_{k,4})^T$ and $\nu_k = (\nu_{k,1
 
 ## Files Included
 
-- [Interactive Python Notebook](./kalman_filter.ipynb) (english)
+- [Interactive Python Notebook](https://florias-papadopoulos.github.io/projects/Master-Semester1/optimal_control_theory/kalman_filter_application/) (english)
 
 ## Keywords
 
