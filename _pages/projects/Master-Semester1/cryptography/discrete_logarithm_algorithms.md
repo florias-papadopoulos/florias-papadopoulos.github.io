@@ -20,4 +20,4 @@ In the context of computational exercises assigned in class, we had to use Shank
 
 ## ❖ Keywords
 
-Discrete Logarithm algorithms, Shanks algorithm, Adleman's algorithm, Discrete Pollard's algorithm, Pohlig-Hellman algorithm
+Discrete Logarithm algorithms, Shanks algorithm, Baby-step Giant-step algorithm, Adleman's algorithm, Discrete Pollard's algorithm, Pollard's rho algorithm for logarithms, Pohlig-Hellman algorithm, Index calculus algorithm
