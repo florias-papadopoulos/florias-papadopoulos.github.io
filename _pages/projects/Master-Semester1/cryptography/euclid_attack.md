@@ -14,7 +14,7 @@ This report aims to present a student-friendly and explanatory overview of the p
 
 - [PDF](euclid_attack_theory.pdf) (english)
 - [Interactive Python Notebook](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/cryptography/euclid_attack_script.ipynb) (english)
-- [Presentation](euclid_attack_presentation.pptx)
+- [Presentation](euclid_attack_presentation.pptx) (english)
 
 ## ❖ Keywords
 
