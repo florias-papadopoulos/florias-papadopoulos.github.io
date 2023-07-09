@@ -10,11 +10,11 @@ author_profile: true
 We start by importing the modules that we will use
 
 
-<pre><code class="language-python">
+<code class="language-python">
 import random 
 import numpy as np
 from matplotlib import pyplot as plt
-</code></pre>
+</code>
 
 If one or more modules are missing you can just type the code below in order to install a pip package in the current Jupyter kernel. For example, if numpy is missing, then we can use
 
@@ -496,14 +496,3 @@ table_printer(k_upper, x_noise, z_noise, z_true, x_plus_list, P_minus_list, P_pl
     20 ||   20.0   || 20.0   || 20.4469 || 19.8014 || 0.6174 || 0.5172 || 0.6174 || 0.5172
     21 ||     ||     ||   20.4469 || 19.8014
     
-
-<!-- Include Prism.js library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
-
-<!-- Apply code highlighting -->
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    Prism.highlightAll();
-  });
-</script>
