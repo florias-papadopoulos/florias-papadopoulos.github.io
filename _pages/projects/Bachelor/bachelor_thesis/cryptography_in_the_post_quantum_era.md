@@ -12,7 +12,7 @@ In this thesis, I explore Cryptography in the Post-Quantum era, addressing the i
 ## ❖ Files Included
 
 - [PDF](cryptography_in_the_post_quantum_era_BCsThesis.pdf) (greek)
-- [Presentation](./ecc_signal_presentation_BCsThesis.pptx) (greek)
+- [Presentation](cryptography_in_the_post_quantum_era_BCsThesis.pptx) (greek)
 
 ## ❖ Keywords
 
