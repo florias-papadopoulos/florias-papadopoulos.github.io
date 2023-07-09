@@ -9,7 +9,6 @@ author_profile: true
 
 We start by importing the modules that we will use
 
-
 ```python
 import random 
 import numpy as np
@@ -496,3 +495,11 @@ table_printer(k_upper, x_noise, z_noise, z_true, x_plus_list, P_minus_list, P_pl
     20 ||   20.0   || 20.0   || 20.4469 || 19.8014 || 0.6174 || 0.5172 || 0.6174 || 0.5172
     21 ||     ||     ||   20.4469 || 19.8014
     
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', (event) => {
+  const codeBlocks = document.querySelectorAll('pre.highlight');
+  codeBlocks.forEach((codeBlock) => {
+    codeBlock.classList.add('language-python');
+  });
+});
+</script>
