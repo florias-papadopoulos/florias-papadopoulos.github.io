@@ -496,3 +496,8 @@ table_printer(k_upper, x_noise, z_noise, z_true, x_plus_list, P_minus_list, P_pl
     20 ||   20.0   || 20.0   || 20.4469 || 19.8014 || 0.6174 || 0.5172 || 0.6174 || 0.5172
     21 ||     ||     ||   20.4469 || 19.8014
     
+
+<!-- Include highlight.js library from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
+<script>hljs.initHighlightingOnLoad();</script>
