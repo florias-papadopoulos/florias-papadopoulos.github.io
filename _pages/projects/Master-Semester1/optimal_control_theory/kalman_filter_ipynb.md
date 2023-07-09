@@ -494,6 +494,10 @@ table_printer(k_upper, x_noise, z_noise, z_true, x_plus_list, P_minus_list, P_pl
     19 ||   20.0   || 20.0   || 20.47 || 19.9403 || 0.6174 || 0.5174 || 0.6174 || 0.5174
     20 ||   20.0   || 20.0   || 20.4469 || 19.8014 || 0.6174 || 0.5172 || 0.6174 || 0.5172
     21 ||     ||     ||   20.4469 || 19.8014
+
+<style>
+@import url("https://cdn.jsdelivr.net/npm/jupyter-css@0.1.0/dist/jupyter-css-light.min.css");
+</style>
     
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', (event) => {
