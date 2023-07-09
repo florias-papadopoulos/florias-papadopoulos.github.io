@@ -1,3 +1,10 @@
+---
+layout: single
+title: "Studying steady speed movement with Kalman filter (Solution)"
+permalink: /projects/Master-Semester1/optimal_control_theory/kalman_filter_ipynb/
+author_profile: true
+---
+
 ## Importing modules
 
 We start by importing the modules that we will use
