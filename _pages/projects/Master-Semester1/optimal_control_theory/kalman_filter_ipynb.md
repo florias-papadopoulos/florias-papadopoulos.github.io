@@ -10,11 +10,11 @@ author_profile: true
 We start by importing the modules that we will use
 
 
-``` 
+<pre><code class="language-python">
 import random 
 import numpy as np
 from matplotlib import pyplot as plt
-```
+</code></pre>
 
 If one or more modules are missing you can just type the code below in order to install a pip package in the current Jupyter kernel. For example, if numpy is missing, then we can use
 
