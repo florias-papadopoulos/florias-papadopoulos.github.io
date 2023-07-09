@@ -497,15 +497,13 @@ table_printer(k_upper, x_noise, z_noise, z_true, x_plus_list, P_minus_list, P_pl
     21 ||     ||     ||   20.4469 || 19.8014
     
 
-<!-- Include highlight.js library from CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/atom-one-light.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+<!-- Include Prism.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
 
-<!-- Initialize highlight.js -->
+<!-- Apply code highlighting -->
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll("pre code").forEach(function(block) {
-      hljs.highlightBlock(block);
-    });
+    Prism.highlightAll();
   });
 </script>
