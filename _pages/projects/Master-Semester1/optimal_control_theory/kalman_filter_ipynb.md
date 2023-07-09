@@ -15,8 +15,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 ```  
 
+```markdown
 If one or more modules are missing you can just type the code below in order to install a pip package in the current Jupyter kernel. For example, if numpy is missing, then we can use  
-
+```
 
 ```python
 import sys
