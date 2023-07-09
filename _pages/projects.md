@@ -145,8 +145,8 @@ a.project-link:hover {
       <p class="timeline-event-thumbnail">Master - Semester 1</p>
       <p><strong><u>Cryptography</u></strong><br>
       <a href="/projects/Master-Semester1/cryptography/euclid_attack/" class="project-link">Euclid Attack</a><br>
-      <a href="/projects/Master-Semester1/cryptography/factoring_algorithms/" class="project-link">Factoring Algorithms</a>
-        <a href="/projects/Master-Semester1/cryptography/discrete_logarithm_algorithms/" class="project-link">Discrete Logarithm Algorithms</a>
+      <a href="/projects/Master-Semester1/cryptography/factoring_algorithms/" class="project-link">Factoring Algorithms</a><br>
+      <a href="/projects/Master-Semester1/cryptography/discrete_logarithm_algorithms/" class="project-link">Discrete Logarithm Algorithms</a>
       </p>
       <p><strong><u>Numerical Methods with Applications to ODE & PDE</u></strong><br>
       <a href="/projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_systems_of_chaotic_equations/" class="project-link">Solving Systems of Chaotic Equations</a>
