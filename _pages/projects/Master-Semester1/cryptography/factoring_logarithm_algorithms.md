@@ -14,10 +14,10 @@ In the context of computational exercises assigned in class, we had to use the D
 
 - [Interactive Python Notebook - Dixon Algorithm](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/cryptography/dixonAlgorithm.ipynb) (english)
 - [Interactive Python Notebook - Pollard's p-1 Algorithm](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/cryptography/pollard_p-1_Algorithm.ipynb) (english)
-- [Interactive Python Notebook - Pollard $\rho$ Algorithm](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/cryptography/pollard_rho_Algorithm.ipynb) (english)
+- [Interactive Python Notebook - Pollard's rho Algorithm](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/cryptography/pollard_rho_Algorithm.ipynb) (english)
 
 
 ## ❖ Keywords
 
-Factoring algorithms, Dixon algorithm, Pollard's p-1 algorithm, Pollard $\rho$ algorithm
+Factoring algorithms, Dixon algorithm, Pollard's p-1 algorithm, Pollard rho algorithm
 
