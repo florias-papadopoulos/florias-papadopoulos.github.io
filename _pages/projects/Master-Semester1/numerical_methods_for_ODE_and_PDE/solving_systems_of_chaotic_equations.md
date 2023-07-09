@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Solving Systems of Chaotic Equations"
+title: "Numerical methods for solving systems of chaotic first-order differential equations"
 permalink: /projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_systems_of_chaotic_equations/
 author_profile: true
 ---
