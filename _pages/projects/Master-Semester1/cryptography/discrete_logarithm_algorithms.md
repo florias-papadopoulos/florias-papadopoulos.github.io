@@ -5,9 +5,12 @@ permalink: /projects/Master-Semester1/cryptography/discrete_logarithm_algorithms
 author_profile: true
 ---
 
+<!-- Load MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+
 ## ❖ Abstract
 
-In the context of computational exercises assigned in class, we had to use Shanks' algorithm (also named Baby-step Giant-step algorithm,), Adleman's algorithm, discrete Pollard's algorithm (otherwise known as Pollard's rho algorithm for logarithms) and Pohlig-Hellman algorithm (also named Index calculus algorithm) for calculating the discrete logarithm of a number. My task was to calculate the discrete logarithm $x$ inside $\mathbb{Z}_N = \mathbb{Z}_{1693}$, where $17^x \equiv 101 \, mod \, 1693$.
+In the context of computational exercises assigned in class, we had to use Shanks' algorithm (also named Baby-step Giant-step algorithm), Adleman's algorithm, discrete Pollard's algorithm (otherwise known as Pollard's rho algorithm for logarithms) and Pohlig-Hellman algorithm (also named Index calculus algorithm) for calculating the discrete logarithm of a number. My task was to calculate the discrete logarithm $x$ inside $\mathbb{Z}_N = \mathbb{Z}_{1693}$, where $17^x \equiv 101 \, mod \, 1693$.
 
 
 ## ❖ Files Included
@@ -21,6 +24,3 @@ In the context of computational exercises assigned in class, we had to use Shank
 ## ❖ Keywords
 
 Discrete Logarithm algorithms, Shanks algorithm, Baby-step Giant-step algorithm, Adleman's algorithm, Discrete Pollard's algorithm, Pollard's rho algorithm for logarithms, Pohlig-Hellman algorithm, Index calculus algorithm
-
-<!-- Load MathJax -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
