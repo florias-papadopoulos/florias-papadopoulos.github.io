@@ -10,7 +10,7 @@ author_profile: true
 
 ## ❖ Abstract
 
-In the context of computational exercises assigned in class, we had to use Shanks' algorithm (also named Baby-step Giant-step algorithm), Adleman's algorithm, discrete Pollard's algorithm (otherwise known as Pollard's rho algorithm for logarithms) and Pohlig-Hellman algorithm (also named Index calculus algorithm) for calculating the discrete logarithm of a number. My task was to calculate the discrete logarithm $x$ inside $\mathbb{Z}_N = \mathbb{Z}_{1693}$, where $17^x \equiv 101 \, mod \, 1693$.
+In the context of computational exercises assigned in class, we had to use Shanks' algorithm (also named Baby-step Giant-step algorithm), Adleman's algorithm, discrete Pollard's algorithm (otherwise known as Pollard's rho algorithm for logarithms) and Pohlig-Hellman algorithm (also named Index calculus algorithm) for calculating the discrete logarithm of a number. My task was to calculate the discrete logarithm $x$ inside $Z_N$ = $Z_{1693}$, where 17^x ≡ 101 \, (mod \, 1693)$.
 
 
 ## ❖ Files Included
