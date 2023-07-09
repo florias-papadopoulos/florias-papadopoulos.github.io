@@ -7,7 +7,7 @@ author_profile: true
 
 ## ❖ Abstract
 
-In this thesis, I explore Cryptography in the Post-Quantum era, addressing the impending threat of quantum computers to communication security. I begin by examining Cryptography techniques and gradually delve into Quantum Mechanics, emphasizing Post-Quantum Cryptography as the most promising solution. I analyze two key families: Hash-based Cryptography and Code-Based Cryptography, discussing their schemes, strengths, weaknesses, and security levels. For this purpose, I also provide a concise introduction to Coding Theory. The study concludes by exploring initiatives by organizations like NIST and ANSSI to counter the quantum threat, bridging theory and practical implementation for the future.
+In this thesis, I explore Cryptography in the Post-Quantum era, addressing the impending threat of quantum computers to communication security. I begin by examining Cryptography techniques and gradually delve into Quantum Mechanics and Quantum Computing, emphasizing Post-Quantum Cryptography as the most promising solution. I analyze two key families: <u>Hash-based Cryptography and <u>Code-Based Cryptography, discussing their schemes, strengths, weaknesses, and security levels. For this purpose, I also provide a concise introduction to Coding Theory. The study concludes by exploring initiatives by organizations like NIST and ANSSI to counter the quantum threat, bridging theory and practical implementation for the future.
 
 ## ❖ Files Included
 
