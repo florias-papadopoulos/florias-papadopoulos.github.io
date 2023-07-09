@@ -13,12 +13,14 @@ We start by importing the modules that we will use
 import random 
 import numpy as np
 from matplotlib import pyplot as plt
+```
 
 If one or more modules are missing you can just type the code below in order to install a pip package in the current Jupyter kernel. For example, if numpy is missing, then we can use  
 
 ```python
 import sys
 !{sys.executable} -m pip install numpy
+```
 
     Requirement already satisfied: numpy in c:\users\hp\appdata\local\programs\python\python311\lib\site-packages (1.24.1)
     
