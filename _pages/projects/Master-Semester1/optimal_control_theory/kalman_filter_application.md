@@ -5,7 +5,7 @@ permalink: /projects/Master-Semester1/optimal_control_theory/kalman_filter_appli
 author_profile: true
 ---
 
-## Abstract 
+## ❖ Abstract 
 
 A script was made for an assignment of the class ”Optimal Control Theory” of my master’s program:  
 
@@ -30,10 +30,10 @@ setting "proper" values for the parameters (e.g. $\sigma_1=\sigma_2 = 1/2$ and $
   
 **Note.** The script that i made can be used for any $k_{upper}$ number of steps, with $k_{upper}=20$ being the input in the final "Solving the problem" section.
 
-## Files Included
+## ❖ Files Included
 
 - [Interactive Python Notebook](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/optimal_control_theory/kalman_filter.ipynb) (english)
 
-## Keywords
+## ❖ Keywords
 
  Kalman filter, Position estimators
