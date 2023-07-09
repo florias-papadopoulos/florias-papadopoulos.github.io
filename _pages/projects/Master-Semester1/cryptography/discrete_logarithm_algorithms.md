@@ -21,3 +21,6 @@ In the context of computational exercises assigned in class, we had to use Shank
 ## ❖ Keywords
 
 Discrete Logarithm algorithms, Shanks algorithm, Baby-step Giant-step algorithm, Adleman's algorithm, Discrete Pollard's algorithm, Pollard's rho algorithm for logarithms, Pohlig-Hellman algorithm, Index calculus algorithm
+
+<!-- Load MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
