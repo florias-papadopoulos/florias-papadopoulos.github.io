@@ -1,10 +1,8 @@
 ---
 layout: single
-title: "Project B"
-permalink: /projects/2022/projectB/
+title: "Factoring & Discrete Logarithm Algorithms"
+permalink: /projects/Master-Semester1/cryptography/factoring_and_discrete_logarithm_algorithms/
 author_profile: true
 ---
 
-This tutorial will guide you how to write a post in the _Chirpy_ template, and it's worth reading even if you've used Jekyll before, as many features require specific variables to be set.
-
-## Naming and Path
+🚧 Under Construction 🚧
