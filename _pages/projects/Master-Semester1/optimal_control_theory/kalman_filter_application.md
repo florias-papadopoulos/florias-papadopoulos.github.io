@@ -80,8 +80,8 @@ as well as $w_k = (w_{k,1}, w_{k,2}, w_{k,3}, w_{k,4})^T$ and $\nu_k = (\nu_{k,1
 
 ## Files Included
 
-- [Markdown File](./kalman_filter_ipynb.md?raw=true) (markdown file corresponding to the ipynb)
-- [Interactive Python Notebook](./kalman_filter.ipynb) (english)
+- [Markdown File](kalman_filter_ipynb.md) (markdown file corresponding to the ipynb)
+- [Interactive Python Notebook](kalman_filter.ipynb) (english)
 
 ## Keywords
 
