@@ -18,9 +18,11 @@ redirect_from:
 
 🔬 My research interests are mainly in Cryptography, gaining knowledge on Modern, Quantum and Post-Quantum Cryptography!
    * Related courses/work:
-     - Cryptography
-     - Elliptic Curve Cryptography
-     - Quantum Information and Computation
-     - "Cryptography in the Post-Quantum Era" (bachelor thesis)
+     - Machine Learning (MSc)
+     - Cryptography (BSc & MSc)
+     - Error-Correcting Codes (BSc)
+     - Elliptic Curve Cryptography (MSc)
+     - Quantum Information and Computation (MSc)
+     - "Cryptography in the Post-Quantum Era" (BSc thesis)
 
 📚 I'm currently working towards my Master's Thesis in the field of Lattice Cryptography.
