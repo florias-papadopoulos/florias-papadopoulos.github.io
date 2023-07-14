@@ -14,7 +14,8 @@ redirect_from:
   <img src="./images/gif_one.gif" alt="GIF" width="200">
 </div>
 
-👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος), I'm a final year master student at the Mathematics Department of AUTh, in Theoretical Computer Science and Control Theory.
+👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος). <br>
+    I'm a final year master student at the Mathematics Department of AUTh, in Theoretical Computer Science and Control Theory.
 
 🔬 My research interests are mainly in Cryptography, gaining knowledge on Modern, Quantum and Post-Quantum Cryptography!
    * Related courses/work:
