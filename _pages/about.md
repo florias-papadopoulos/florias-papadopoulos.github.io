@@ -7,7 +7,10 @@ redirect_from:
   - /about/
   - /about.html
 ---
+
+<div style="float: right; margin-left: 5px;">
   <img src="./images/gif_one.gif" alt="GIF" width="200">
+</div>
 
 👨🏻‍💻 My name is Florias Papadopoulos. <br>
     I'm a final year master student at the Mathematics Department of AUTh (Aristotle University of Thessaloniki), in Theoretical Computer Science and Control Theory.
