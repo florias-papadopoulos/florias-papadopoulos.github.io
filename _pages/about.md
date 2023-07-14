@@ -7,43 +7,12 @@ redirect_from:
   - /about/
   - /about.html
 ---
-
-<style>
-  /* CSS for desktop */
-  .gif-container {
-    float: right;
-    margin-left: 10px;
-  }
-
-  /* CSS for tablets */
-  @media (max-width: 768px) {
-    .gif-container {
-      float: none;
-      margin: 0 auto;
-      display: block;
-      max-width: 100%;
-    }
-  }
-
-  /* CSS for phones */
-  @media (max-width: 480px) {
-    .gif-container {
-      float: none;
-      margin: 0 auto;
-      display: block;
-      max-width: 80%;
-    }
-  }
-</style>
-
-<div class="gif-container">
   <img src="./images/gif_one.gif" alt="GIF" width="200">
-</div>
 
-👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος). <br>  
-    I'm a final year master student at the Mathematics Department of AUTh, in Theoretical Computer Science and Control Theory.
+👨🏻‍💻 My name is Florias Papadopoulos. <br>
+    I'm a final year master student at the Mathematics Department of AUTh (Aristotle University of Thessaloniki), in Theoretical Computer Science and Control Theory.
 
-🔬 My research interests are mainly in Cryptography, gaining knowledge on Modern, Quantum and Post-Quantum Cryptography!
+🔬 My research interests primarily lie in Cryptography, where I delve into the fascinating realms of Modern, Quantum, and Post-Quantum Cryptography!
    * Related courses/work:
      - Machine Learning (MSc)
      - Cryptography (BSc & MSc)
@@ -52,4 +21,4 @@ redirect_from:
      - Quantum Information and Computation (MSc)
      - "Cryptography in the Post-Quantum Era" (BSc thesis)
 
-📚 I'm currently working towards my Master's Thesis in the field of Lattice Cryptography.
+📚 Currently, I'm immersed in the exciting world of Lattice Cryptography as part of my Master's Thesis.
