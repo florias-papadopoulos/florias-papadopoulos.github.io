@@ -1,3 +1,10 @@
+---
+layout: single
+title: "Studying steady speed movement with Kalman filter"
+permalink: /cv/
+author_profile: true
+---
+
 # Florias Papadopoulos
 
 <div style="float: right; margin-left: 5px;">
