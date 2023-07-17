@@ -1,11 +1,11 @@
 ---
 layout: single
-title: "Studying steady speed movement with Kalman filter"
+title: "florias cv"
 permalink: /cv/
 author_profile: true
 ---
 
-# Florias Papadopoulos
+# Florias Papadopoulos's CV
 
 <div style="float: right; margin-left: 5px;">
   <img src="./images/picme.jpeg" alt="jpeg" width="200">
