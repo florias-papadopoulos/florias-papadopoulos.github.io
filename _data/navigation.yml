@@ -2,8 +2,8 @@
 main:
 
   - title: "CV"
-    url: /cv/
-  # url: /files/resume.pdf
+  # url: /cv/
+    url: /files/resume.pdf
 
   - title: "Projects"
     url: /projects/
