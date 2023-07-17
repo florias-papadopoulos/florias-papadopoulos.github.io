@@ -1,7 +1,7 @@
 ---
 layout: single
 title: "florias cv"
-permalink: /cv/
+permalink: /cv/english-cv/
 author_profile: true
 ---
 
