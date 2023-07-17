@@ -15,6 +15,7 @@ In the context of computational exercises assigned in class, we had to use the f
 - Adleman's algorithm
 - Discrete Pollard's algorithm (otherwise known as Pollard's rho algorithm for logarithms)
 - Pohlig-Hellman algorithm (also named Index calculus algorithm)
+
 for calculating the discrete logarithm of a number. My task was to calculate the discrete logarithm $x$ inside $Z_N$ = $Z_{1693}$, where $17^x ≡ 101 \, (mod \, 1693)$.
 
 
