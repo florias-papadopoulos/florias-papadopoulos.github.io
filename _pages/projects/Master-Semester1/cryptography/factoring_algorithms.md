@@ -7,7 +7,11 @@ author_profile: true
 
 ## ❖ Abstract
 
-In the context of computational exercises assigned in class, we had to use the Dixon algorithm, the Pollard p-1 algorithm and the Pollard rho algorithm for the factorization of a number (mine was $n=902831$). These algorithms play a vital role in breaking down large numbers into their prime factors, a crucial step in modern encryption and decryption techniques.
+In the context of computational exercises assigned in class, we had to use the following:
+- Dixon's algorithm
+- Pollard's p-1 algorithm
+- Pollard's rho algorithm
+for the factorization of a number (mine was $n=902831$). These algorithms play a vital role in breaking down large numbers into their prime factors, a crucial step in modern encryption and decryption techniques.
 
 
 ## ❖ Files Included
