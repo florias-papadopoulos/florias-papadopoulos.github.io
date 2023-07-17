@@ -54,16 +54,12 @@ author_profile: true
 - Attended the ISCwsISC 2023 on Secure Computations: ZKP, MPC & FHE (Online, February 2023)
 - Attended the 2nd Congress of Greek Mathematicians 2022 (NTUA Athens, July 2022)
 
-## Skills
-
 | Hard Skills            | Soft Skills          | Languages          |
 |------------------------|----------------------|---------------------|
 | Microsoft Office       | Attention to detail  | Greek (Native)      |
 | LaTeX                  | Strategic planning   | English (Fluent)    |
 | Python                 | Patience             | French (Basic)      |
 
-## Interests
-- Water Polo
-- Travelling
-- Hiking
-- Puzzle Solving
+| Interests                                            |
+|------------------------------------------------------|
+| - Water Polo<br>- Travelling<br>- Hiking<br>- Puzzle Solving |
