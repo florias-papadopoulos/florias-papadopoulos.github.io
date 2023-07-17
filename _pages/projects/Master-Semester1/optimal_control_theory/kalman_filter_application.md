@@ -28,7 +28,7 @@ $$
   
 setting "proper" values for the parameters (e.g. $\sigma_1=\sigma_2 = 1/2$ and $q_1=q_2=1$).    
   
-**Note.** The script that i made can be used for any $k_{upper}$ number of steps, with $k_{upper}=20$ being the input in the final "Solving the problem" section.
+***Note.** The script that i made can be used for any $k_{upper}$ number of steps, with $k_{upper}=20$ being the input in the final "Solving the problem" section.
 
 ## ❖ Files Included
 
