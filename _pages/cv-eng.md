@@ -8,7 +8,7 @@ author_profile: true
 # Florias Papadopoulos
 
 <div style="float: right; margin-left: 5px;">
-  <img src="./images/picme" alt="jpeg" width="200">
+  <img src="./images/picme.jpeg" alt="jpeg" width="200">
 </div>
 
 **Date of Birth:** 27/11/1999  
