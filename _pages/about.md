@@ -8,7 +8,7 @@ redirect_from:
   - /about.html
 ---
 
-<div style="float: right; margin-left: 5px;">
+<div style="float: right; margin-left: 6px;">
   <img src="./images/gif_one.gif" alt="GIF" width="200">
 </div>
 
