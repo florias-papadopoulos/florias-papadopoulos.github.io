@@ -1,6 +1,6 @@
 ---
 permalink: /
-title: "👋🏼 Hello there, I'm Florias!"
+title: "👋🏼 Hello there, I'm Fl0r1as!"
 excerpt: "About me"
 author_profile: true
 redirect_from: 
@@ -12,18 +12,9 @@ redirect_from:
   <img src="./images/gif_one.gif" alt="GIF" width="200">
 </div>
 
-👨🏻‍💻 My name is Florias Papadopoulos. <br>
-    ~~I'm a final year master student at the Mathematics Department of AUTh (Aristotle University of Thessaloniki), in Theoretical Computer Science and Control Theory.~~
-    ⚠️🚧 UNDER CONSTRUCTION ⚠️🚧
+👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος, in greek). <br>
+I am currently a doctoral researcher at the “Cybersecurity and Applied Cryptography” lab, under the supervision of Prof. Katerina Mitrokotsa, at the University of St. Gallen, Switzerland (HSG).
 
-🔬 My research interests primarily lie in Cryptography, where I delve into the fascinating realms of Modern, Quantum, and Post-Quantum Cryptography!
-   * Related courses/work:
-     - Machine Learning (MSc)
-     - Cryptography (BSc & MSc)
-     - Error-Correcting Codes (BSc)
-     - Elliptic Curve Cryptography (MSc)
-     - Quantum Information and Computation (MSc)
-     - "Cryptography in the Post-Quantum Era" (BSc thesis)
+🔬 My current research interests lie in provable security, post-quantum cryptography, and privacy-preserving protocols, with a particular focus on functional encryption and its practical applications to real-world problems.
 
-📚 ~~Currently, I'm immersed in the exciting world of Lattice Cryptography as part of my Master's Thesis.~~
-     ⚠️🚧 UNDER CONSTRUCTION ⚠️🚧
+📚 As for my previous education, I obtained both my BSc degree in “Mathematics” and my MSc degree in “Theoretical Computer Science and Control Theory” at the Aristotle University of Thessaloniki, Greece (AUTh).
