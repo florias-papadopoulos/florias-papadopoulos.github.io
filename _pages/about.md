@@ -12,7 +12,7 @@ redirect_from:
   <img src="./images/gif_one.gif" alt="GIF" width="200">
 </div>
 
-👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος, in greek). <br>
+👨🏻‍💻 My name is Florias Papadopoulos/ Φλωριάς Παπαδόπουλος. <br>
 I am currently a doctoral researcher at the “Cybersecurity and Applied Cryptography” lab, under the supervision of Prof. Katerina Mitrokotsa, at the University of St. Gallen, Switzerland (HSG).
 
 🔬 My current research interests lie in provable security, post-quantum cryptography, and privacy-preserving protocols, with a particular focus on functional encryption and its practical applications to real-world problems.
