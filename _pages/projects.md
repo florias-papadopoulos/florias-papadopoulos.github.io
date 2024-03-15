@@ -127,6 +127,12 @@ a.project-link:hover {
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
+      <p class="timeline-event-thumbnail">Master - Semester 3</p>
+      <p><strong><u>Master Thesis</u></strong><br>
+      <a href="/projects/Master-Semester1/cryptography/master_thesis/" class="project-link">Cryptography based on Learning with Errors</a><br>
+  <li class="timeline-event">
+    <label class="timeline-event-icon"></label>
+    <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 2</p>
       <p><strong><u>Elliptic-Curve Cryptography</u></strong><br>
       <a href="/projects/Master-Semester2/elliptic_curve_cryptography/signal_protocol/" class="project-link">Signal Protocol</a>
