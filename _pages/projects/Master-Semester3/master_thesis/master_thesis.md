@@ -1,7 +1,7 @@
 ---
 layout: single
 title: "Overview of the Signal Protocol"
-permalink: /projects/Master-Semester2/elliptic_curve_cryptography/signal_protocol/
+permalink: /projects/Master-Semester3/master_thesis/cryptography_based_on_lwe
 author_profile: true
 ---
 
