@@ -129,7 +129,7 @@ a.project-link:hover {
     <div class="timeline-event-copy">
       <p class="timeline-event-thumbnail">Master - Semester 3</p>
       <p><strong><u>Master Thesis</u></strong><br>
-      <a href="/projects/Master-Semester1/cryptography/master_thesis/" class="project-link">Cryptography based on Learning with Errors</a><br>
+      <a href="/projects/Master-Semester1/cryptography/master_thesis/cryptography_based_on_lwe" class="project-link">Cryptography based on Learning with Errors</a><br>
   <li class="timeline-event">
     <label class="timeline-event-icon"></label>
     <div class="timeline-event-copy">
