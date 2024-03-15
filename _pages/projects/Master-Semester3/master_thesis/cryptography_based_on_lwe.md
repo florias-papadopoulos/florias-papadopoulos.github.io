@@ -1,20 +1,19 @@
 ---
 layout: single
-title: "Overview of the Signal Protocol"
+title: "Cryptography Based on LWE"
 permalink: /projects/Master-Semester3/master_thesis/cryptography_based_on_lwe
 author_profile: true
 ---
 
 ## ❖ Abstract
 
-This study was made for an assignment of the class ”Elliptic-Curve Cryptography” of my master’s. <br>
-For the assignment, the Signal Protocol (as described in [\[1\]](https://signal.org/docs/specifications/xeddsa/), [\[2\]](https://signal.org/docs/specifications/x3dh/), [\[3\]](https://signal.org/docs/specifications/doubleratchet/), [\[4\]](https://signal.org/docs/specifications/sesame/)), had to be studied, analyzed and presented in a more explanatory and student-friendly way. <br>
+This work navigates the evolving world of post-quantum cryptography, particularly focusing on lattice-based cryptographic constructions. Starting with a thorough exploration of fundamental lattice concepts, the study progresses to delve into well-known hard lattice problems and the algorithms attempting to solve them. Afterwards, the focus is shifted to Learning with Errors (LWE), providing a comprehensive examination of LWE theory, its applications, and a concise study of Ring-LWE, a variant that provides more efficient constructions. The conclusion unfolds with an in-depth exploration of CRYSTALS-Kyber, a cryptographic scheme whose security is based on the hardness of solving hard lattice problems in (module) lattices. Beginning with the necessary preliminaries, we then delve into a detailed analysis of Kyber and its security, finishing with a recent real-world application of the scheme, the X25519Kyber768 hybrid KEM that is used to fortify Google Chrome’s security.
 
 ## ❖ Files Included
 
-- [PDF](./ecc_signal_pdf.pdf) (english)
-- [Presentation](./ecc_signal_presentation.pptx) (english)
+- [PDF](./msc-thesis.pdf) (english)
+- [Presentation](./msc-thesis-presentation.pptx) (english)
 
 ## ❖ Keywords
 
-Elliptic curve Cryptography, Edwards Curves, Montgomery Curves, Curve25519, Curve448, EdDSA, ECDH, XEdDSA, X3DH protocol, Double Ratchet, Signal Protocol
+Post-Quantum Cryptography, Lattices, Lattice-based Cryptography, Learning with Errors (LWE), CRYSTALS-Kyber, Module-Lattice-Based Key-Encapsulation Mechanism Standard (ML-KEM), X25519Kyber768
