@@ -8,10 +8,6 @@ redirect_from:
   - /about.html
 ---
 
-<div style="float: right; margin-left: 6px;">
-  <img src="./images/gif_one.gif" alt="GIF" width="200">
-</div>
-
 👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος). <br>
 I am currently a doctoral researcher at the “Cybersecurity and Applied Cryptography” lab, under the supervision of Prof. Katerina Mitrokotsa, at the University of St. Gallen, Switzerland (HSG).
 
