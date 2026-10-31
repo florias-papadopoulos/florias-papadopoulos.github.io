@@ -8,10 +8,12 @@
 /* ---------- Mountains ---------- */
 
 .terrain { position: absolute; left: 0; top: 0; overflow: visible; }
-.t-back { fill: #e3e9f1; }
-.t-ground { fill: #cdd8e6; stroke: #b4c3d6; stroke-width: 2; stroke-linejoin: round; }
+.t-back { fill: #e6ecf4; }
+.t-ground { fill: url(#t-grad); stroke: #b4c3d6; stroke-width: 2; stroke-linejoin: round; }
 .t-snow { fill: #fff; }
-.t-pine { fill: #9fbcae; }
+.t-pine-l { fill: #6f9c84; }
+.t-pine-d { fill: #567f6a; }
+.t-trunk { fill: #8b6b4a; }
 .t-pole { stroke: #8e8e8e; stroke-width: 2.5; stroke-linecap: round; }
 .t-flag { fill: #ff6f6f; transform-box: fill-box; transform-origin: left center; animation: t-flag 1.6s ease-in-out infinite; }
 
@@ -139,17 +141,27 @@
 .cat.land .cat-flip svg { animation: cat-land 0.22s ease-out; }
 
 /* outline and colours */
-.cat .ol { stroke: #2d2016; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
-.cat .fur { fill: #f6a23a; }
-.cat .fur-dark { fill: #d9862a; }
-.cat .cream { fill: #ffe7c2; }
-.cat .stripe { fill: none; stroke: #c96f17; stroke-width: 2.6; stroke-linecap: round; }
-.cat .pink { fill: #ff9fb0; }
-.cat .ink { fill: #2d2016; }
-.cat .ink-line { fill: none; stroke: #2d2016; stroke-width: 1.8; stroke-linecap: round; }
-.cat .whisker { stroke: #6d5442; stroke-width: 0.9; stroke-linecap: round; }
-.cat .tail-ol { fill: none; stroke: #2d2016; stroke-width: 10; stroke-linecap: round; }
-.cat .tail-fur { fill: none; stroke: #f6a23a; stroke-width: 5.6; stroke-linecap: round; }
+.cat .ol { stroke: #3b2a1e; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.cat .fur { fill: url(#cat-fur); }
+.cat .head { fill: url(#cat-head); }
+.cat .fur-dark { fill: #de8a2c; }
+.cat .cream { fill: #ffe9c9; }
+.cat .stripe { fill: none; stroke: #cf7419; stroke-width: 2.6; stroke-linecap: round; }
+.cat .pink { fill: #ffaebf; }
+.cat .nose { fill: #ff8fa3; stroke-width: 0.9; }
+.cat .sclera { fill: #fff; stroke-width: 1.2; }
+.cat .iris { fill: #74c26b; }
+.cat .ink { fill: #1f1610; }
+.cat .ink-line { fill: none; stroke: #3b2a1e; stroke-width: 1.8; stroke-linecap: round; }
+.cat .whisker { stroke: #8a6a50; stroke-width: 0.8; stroke-linecap: round; }
+.cat .tuft { fill: none; stroke: #fff4e2; stroke-width: 1.1; stroke-linecap: round; }
+.cat .toe { fill: none; stroke: #3b2a1e; stroke-width: 1; stroke-linecap: round; }
+.cat .tail-ol { fill: none; stroke: #3b2a1e; stroke-width: 9.6; stroke-linecap: round; }
+.cat .tail-fur { fill: none; stroke: #f5a03c; stroke-width: 5.8; stroke-linecap: round; }
+.cat .tail-stripe { fill: none; stroke: #cf7419; stroke-width: 5.8; stroke-dasharray: 3 7; }
+.cat .tail-tip { fill: none; stroke: #ffe9c9; stroke-width: 5.8; stroke-linecap: round; }
+.cat .shadow { fill: rgba(15, 23, 42, 0.14); transition: opacity 0.2s; }
+.cat.jump .shadow, .cat.held .shadow { opacity: 0; }
 
 /* poses: sit when idle, stand while moving, curl while sleeping */
 .p-stand, .p-sleep { display: none; }

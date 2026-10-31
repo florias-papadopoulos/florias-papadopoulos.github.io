@@ -25,7 +25,7 @@
     var pos = { x: 0, y: 0 };                      /* the cat's feet, in layer coordinates */
     var at = null;                                 /* where it is: {kind, el?, drone?} */
     var timer = null, moving = false, token = 0;
-    var ridge = [], wide = false, side = 0;
+    var ridge = [], wide = false, phone = false, side = 0;
     var drones = [], clock = null, fm = null, blocks = [];
     var pets = 0;
     try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
@@ -117,6 +117,11 @@
         var p = rel(panel);
         side = Math.max(0, Math.min(p.x, W - p.x - p.w));
         wide = side > 200;
+        phone = W < 700;
+        if (phone) {                               /* phones: no mountains, a flat floor at the bottom of the page */
+            ridge = [{ x: 0, y: F - 2 }, { x: W, y: F - 2 }];
+            return { W: W, F: F, peak: 0, xm: 0 };
+        }
         var peak = wide ? Math.min(400, window.innerHeight * 0.44) : 120;
         var mid = wide ? 74 : 60;
         var xm = Math.max(side, W * 0.2);
@@ -133,6 +138,10 @@
 
         svgT.setAttribute('width', W);
         svgT.setAttribute('height', F + 2);
+        var defs = svgEl('defs', {});
+        var g = svgEl('linearGradient', { id: 't-grad', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+        svgEl('stop', { offset: 0, 'stop-color': '#d2dcea' }, g);
+        svgEl('stop', { offset: 1, 'stop-color': '#bccadc' }, g);
         var back = pts.map(function (q, i) { return q.x + ',' + (q.y - 30 - 22 * Math.sin(i * 1.3)); });
         svgEl('polygon', { 'class': 't-back', points: '0,' + F + ' ' + back.join(' ') + ' ' + W + ',' + F });
         svgEl('polygon', { 'class': 't-ground', points: '0,' + (F + 4) + ' ' + pts.map(function (q) { return q.x + ',' + q.y; }).join(' ') + ' ' + W + ',' + (F + 4) });
@@ -146,10 +155,11 @@
                 if (!top || b.y < top.y) top = b;
             }
         }
+        /* small clusters of layered pines on the lower slopes, light on the left and shaded on the right */
         for (var k = 2; k < pts.length - 1; k += 2) {
             if (F - pts[k].y < peak * 0.55) {
-                var tx = pts[k].x + 18, ty = groundY(tx) + 4;
-                svgEl('polygon', { 'class': 't-pine', points: tx + ',' + (ty - 30) + ' ' + (tx + 9) + ',' + ty + ' ' + (tx - 9) + ',' + ty });
+                var n = 2 + (k % 3 === 0 ? 1 : 0);
+                for (var t = 0; t < n; t++) pine(pts[k].x + 10 + t * 15, 22 + ((k * 7 + t * 13) % 3) * 7);
             }
         }
         if (wide && top) {
@@ -157,6 +167,16 @@
             svgEl('polygon', { 'class': 't-flag', points: top.x + ',' + (top.y - 36) + ' ' + (top.x + 24) + ',' + (top.y - 30) + ' ' + top.x + ',' + (top.y - 24) });
         }
         return { W: W, F: F, peak: peak, xm: xm };
+    }
+
+    function pine(x, h) {
+        var y = groundY(x) + 3;
+        svgEl('rect', { 'class': 't-trunk', x: x - 1.6, y: y - 6, width: 3.2, height: 7, rx: 1 });
+        for (var i = 0; i < 3; i++) {
+            var top = y - 5 - h + i * h * 0.27, hh = h * 0.48, w = h * (0.28 + 0.09 * i);
+            svgEl('polygon', { 'class': 't-pine-l', points: x + ',' + top + ' ' + (x - w) + ',' + (top + hh) + ' ' + x + ',' + (top + hh) });
+            svgEl('polygon', { 'class': 't-pine-d', points: x + ',' + top + ' ' + x + ',' + (top + hh) + ' ' + (x + w) + ',' + (top + hh) });
+        }
     }
 
     function sizeLayers() {
@@ -654,10 +674,14 @@
         sizeLayers();
         var geo = buildTerrain();
         clearLab();
-        makeBlocks(geo);
-        makeClock(geo);
-        makeFM(geo);
-        makeDrones(geo);
+        if (!phone) {                              /* the lab only where there is room for it */
+            makeBlocks(geo);
+            makeClock(geo);
+            makeFM(geo);
+            makeDrones(geo);
+        } else {
+            blocks = []; clock = null; fm = null; drones = [];
+        }
         if (at && at.kind === 'drone') at = { kind: 'ground', what: 'wander' };
         if (!moving && at) {
             if (at.kind === 'ground') place(pos.x, groundY(pos.x));
