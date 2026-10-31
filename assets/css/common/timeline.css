@@ -1,0 +1,97 @@
+/* Timeline for the Bachelor, Master and Papers pages (layouts/_default/timeline.html),
+   ported from the projects page of the old Jekyll site */
+
+.timeline {
+    --color-1: black;
+    --color-2: var(--theme);
+    --color-3: rgb(168, 50, 121);
+    position: relative;
+    max-width: 46em;
+    margin: 4em auto;
+    padding: 0;
+    list-style: none;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 2em;
+    width: 2px;
+    height: 100%;
+    margin-left: -1px;
+    background-color: var(--color-1);
+}
+
+.timeline-event {
+    position: relative;
+}
+
+.timeline-event:hover .timeline-event-icon {
+    transform: rotate(-45deg);
+    background-color: var(--color-3);
+}
+
+.timeline-event:hover .timeline-event-thumbnail {
+    box-shadow: inset 40em 0 0 0 var(--color-3);
+}
+
+.timeline-event-copy {
+    position: relative;
+    top: -1.875em;
+    left: 4em;
+    width: 80%;
+    padding: 2em;
+}
+
+.timeline-event-copy strong {
+    font-weight: 700;
+}
+
+.timeline-event-copy p:not(.timeline-event-thumbnail) {
+    padding-bottom: 0.6em;
+}
+
+.timeline-event-icon {
+    position: absolute;
+    top: 0;
+    left: 2em;
+    display: block;
+    width: 1em;
+    height: 1em;
+    margin: 0.5em 0.5em 0.5em -0.5em;
+    outline: 10px solid var(--color-2);
+    background-color: var(--color-1);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease-in;
+}
+
+.timeline-event-thumbnail {
+    display: inline-block;
+    margin-bottom: 1.2em;
+    padding: 0.25em 1em 0.2em 1em;
+    color: white;
+    font-size: 0.75em;
+    background-color: var(--color-1);
+    box-shadow: inset 0 0 0 0em #ef795a;
+    transition: box-shadow 0.5s ease-in 0.1s;
+}
+
+a.project-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a.project-link:hover {
+    text-decoration: underline;
+}
+
+.project-authors {
+    display: block;
+    color: var(--secondary);
+    font-size: 0.85em;
+}
+
+@media (max-width: 600px) {
+    .timeline-event-copy { left: 3em; width: calc(100% - 3em); padding: 2em 0.5em 2em 1em; }
+}

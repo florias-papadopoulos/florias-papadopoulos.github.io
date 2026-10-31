@@ -1,0 +1,49 @@
+{{- /* Bachelor, Master, Papers (and /projects/): timeline in the style of the old projects page.
+       Projects come from the "projects" section; their context "Group · Course" sets where they appear.
+       listLevel keeps only contexts starting with it (e.g. "Master"); entries with externalUrl link out directly. */ -}}
+{{- define "main" }}
+{{- with .Content }}
+<div class="post-content">{{ . }}</div>
+{{- end }}
+
+{{- $level := .Params.listLevel }}
+{{- $pages := where site.RegularPages "Section" "projects" }}
+{{- with $level }}{{ $pages = where $pages "Params.context" "like" (printf "^%s" .) }}{{ end }}
+{{- $pages = sort $pages "Weight" }}
+
+{{- $groups := slice }}
+{{- range $pages }}
+{{- $g := index (split .Params.context " · ") 0 }}
+{{- if not (in $groups $g) }}{{ $groups = $groups | append $g }}{{ end }}
+{{- end }}
+
+<ul class="timeline">
+    {{- range $g := $groups }}
+    {{- $label := $g }}
+    {{- with $level }}{{ $label = replaceRE (printf `^%s,\s*` .) "" $g }}{{ end }}
+    <li class="timeline-event">
+        <label class="timeline-event-icon"></label>
+        <div class="timeline-event-copy">
+            <p class="timeline-event-thumbnail">{{ $label }}</p>
+            {{- $courses := slice }}
+            {{- range $pages }}
+            {{- $parts := split .Params.context " · " }}
+            {{- if and (eq (index $parts 0) $g) (not (in $courses (index $parts 1))) }}{{ $courses = $courses | append (index $parts 1) }}{{ end }}
+            {{- end }}
+            {{- range $c := $courses }}
+            <p><strong><u>{{ $c }}</u></strong><br>
+                {{- range $pages }}
+                {{- $parts := split .Params.context " · " }}
+                {{- if and (eq (index $parts 0) $g) (eq (index $parts 1) $c) }}
+                <a href="{{ .Params.externalUrl | default .RelPermalink }}" class="project-link"
+                    {{- if .Params.externalUrl }} target="_blank" rel="noopener"{{ end }}>{{ .Title }}</a>
+                {{- with .Params.authors }}<span class="project-authors">{{ . }}</span>{{ end }}<br>
+                {{- end }}
+                {{- end }}
+            </p>
+            {{- end }}
+        </div>
+    </li>
+    {{- end }}
+</ul>
+{{- end }}

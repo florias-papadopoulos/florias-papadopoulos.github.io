@@ -1,9 +1,7 @@
 ---
 title: "Before PhD"
 description: "Projects from my academic journey in cryptography and related fields."
-cascade:
-  hideSummary: true
-  hideAuthor: true
+layout: timeline
 ---
 
 📌 This page showcases a carefully curated collection of projects from my academic journey, spanning various subjects, including cryptography and related fields. <br>

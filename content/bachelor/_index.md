@@ -2,6 +2,7 @@
 title: "Bachelor"
 description: "Projects from my bachelor studies."
 listLevel: "Bachelor"
+layout: timeline
 ---
 
 📌 This page showcases a carefully curated collection of projects from my academic journey, spanning various subjects, including cryptography and related fields. <br>

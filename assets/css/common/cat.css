@@ -1,0 +1,137 @@
+/* Home page cat and its playground (layouts/partials/cat.html) */
+
+.cat-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
+
+/* ---------- Playground in the side margins ---------- */
+
+.pg { position: absolute; }
+.pg-post {
+    width: 18px;
+    border-radius: 4px;
+    background: repeating-linear-gradient(170deg, #d8c3a5 0 6px, #c9b089 6px 9px);
+}
+.pg-plat { height: 14px; border-radius: 7px; background: #b9a7e0; box-shadow: 0 4px 0 #9d89cf; }
+.pg-string { width: 2px; background: #a99cc4; transform-origin: top center; animation: pg-swing 2.6s ease-in-out infinite; }
+.pg-string::after {
+    content: "";
+    position: absolute;
+    bottom: -14px;
+    left: -9px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffb3c7, #ff6f9c);
+}
+.pg-cushion { height: 22px; border-radius: 14px; background: linear-gradient(#ffd98f, #ffbe55); box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08); }
+.pg-yarn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: repeating-linear-gradient(40deg, #6fb3e0 0 4px, #4f97c9 4px 7px);
+    box-shadow: inset -4px -4px 0 rgba(0, 0, 0, 0.12);
+    transition: transform 1.2s cubic-bezier(.2, .8, .3, 1);
+}
+.pg-yarn.rolled { transform: translateX(46px) rotate(320deg); }
+.pg-floor { height: 2px; border-radius: 2px; background: #e2e2e2; }
+.pg-box { border-radius: 4px; background: #d9b48a; box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.07); }
+.pg-box::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 10px; margin-left: -5px; background: #e8cba5; }
+.pg-hammock { height: 34px; border: 4px solid #8fc7b4; border-top: none; border-radius: 0 0 60px 60px; }
+.pg-pole { width: 6px; border-radius: 3px; background: #c4b8a6; }
+.pg-shelf { height: 10px; border-radius: 5px; background: #c79f78; box-shadow: 0 4px 0 #b08560; }
+.pg-bowl {
+    width: 44px;
+    height: 40px;
+    border-radius: 50% 50% 46% 46%;
+    border: 2px solid rgba(120, 170, 210, 0.7);
+    background: linear-gradient(transparent 30%, rgba(140, 200, 240, 0.45) 30%);
+    overflow: hidden;
+}
+.pg-bowl::after { content: "\1F41F"; position: absolute; top: 14px; font-size: 14px; animation: pg-fish 5s ease-in-out infinite; }
+.pg-clock { width: 46px; height: 46px; border-radius: 50%; background: #fff; border: 4px solid #b9a7e0; }
+.pg-clock::before, .pg-clock::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; background: #555; transform-origin: bottom center; }
+.pg-clock::before { height: 14px; margin: -14px 0 0 -1px; animation: pg-spin 12s linear infinite; }
+.pg-clock::after { height: 10px; margin: -10px 0 0 -1px; animation: pg-spin 90s linear infinite; }
+.pg-tail { width: 6px; height: 46px; border-radius: 3px; background: #f4a259; transform-origin: top center; animation: pg-swing 1.4s ease-in-out infinite; }
+.pg-portal {
+    width: 58px;
+    height: 74px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, #2b1d52 20%, #7c5cff 55%, #c6b3ff 72%, transparent 74%);
+    animation: pg-portal 3s linear infinite;
+}
+
+@keyframes pg-swing { 0%, 100% { transform: rotate(14deg); } 50% { transform: rotate(-14deg); } }
+@keyframes pg-fish { 0%, 100% { left: 4px; transform: scaleX(-1); } 50% { left: 24px; transform: scaleX(1); } }
+@keyframes pg-spin { to { transform: rotate(360deg); } }
+@keyframes pg-portal { 0%, 100% { filter: hue-rotate(0deg); transform: scale(1); } 50% { filter: hue-rotate(40deg); transform: scale(1.06); } }
+
+/* ---------- Cat ---------- */
+
+.cat {
+    position: absolute;
+    width: 72px;
+    height: 58px;
+    pointer-events: auto;
+    cursor: grab;
+    outline: none;
+    transition: opacity 0.35s, transform 0.35s;
+}
+.cat.vanish { opacity: 0; transform: scale(0.2) rotate(180deg); }
+.cat-flip { width: 100%; height: 100%; }
+.cat.left .cat-flip { transform: scaleX(-1); }
+.cat svg { display: block; overflow: visible; }
+
+.cat-tail { transform-box: view-box; transform-origin: 14px 44px; animation: cat-tail 2.2s ease-in-out infinite; }
+.eyes-open ellipse { transform-box: fill-box; transform-origin: center; animation: cat-blink 5s infinite; }
+.eyes-happy, .eyes-sleep, .cat-blush { display: none; }
+.cat.happy .eyes-open, .cat.sleep .eyes-open { display: none; }
+.cat.happy .eyes-happy, .cat.happy .cat-blush, .cat.sleep .eyes-sleep { display: inline; }
+.cat.sleep .cat-tail { animation-duration: 6s; }
+.cat-legs rect { transform-box: fill-box; transform-origin: top center; }
+.cat.walk .cat-legs rect:first-child { animation: cat-step 0.32s ease-in-out infinite; }
+.cat.walk .cat-legs rect:last-child { animation: cat-step 0.32s ease-in-out infinite reverse; }
+.cat.walk .cat-flip svg { animation: cat-bob 0.32s ease-in-out infinite; }
+.cat.jump .cat-flip svg { transform: scaleY(1.08) rotate(-6deg); }
+.cat-paw { transform-box: fill-box; transform-origin: center; }
+.cat.bat .cat-paw { animation: cat-bat 0.45s ease-in-out 2; }
+.cat.groom .cat-head { transform-box: view-box; transform-origin: 55px 30px; animation: cat-groom 0.6s ease-in-out 4; }
+
+.cat-zzz, .cat-bubble, .cat-heart { position: absolute; pointer-events: none; font-weight: 700; white-space: nowrap; }
+.cat-zzz { left: 50px; top: -16px; color: #8a9bb5; font-size: 14px; animation: cat-zzz 2.4s ease-out infinite; }
+.cat-bubble {
+    left: 50%;
+    top: -34px;
+    transform: translateX(-50%);
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #fff;
+    color: #c2477a;
+    font-size: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.cat-heart { top: 0; color: #ff5c8a; font-size: 18px; animation: cat-heart 1.3s ease-out forwards; }
+
+/* Letters of the name and chips the cat plays with */
+.ltr { display: inline-block; white-space: pre; transform-origin: bottom center; }
+.ltr.bonk { animation: ltr-bonk 0.9s cubic-bezier(.3, 1.6, .5, 1); }
+.chips li.nudged { animation: chip-nudge 0.7s ease-in-out; }
+
+@keyframes cat-tail { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-18deg); } }
+@keyframes cat-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes cat-step { 0%, 100% { transform: rotate(18deg); } 50% { transform: rotate(-18deg); } }
+@keyframes cat-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes cat-bat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(9px, -16px); } }
+@keyframes cat-groom { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(14deg); } }
+@keyframes cat-zzz { 0% { transform: translate(0, 0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(14px, -24px); opacity: 0; } }
+@keyframes cat-heart { 0% { transform: translate(0, 0) scale(0.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(var(--dx, 0px), -60px) scale(1.2); opacity: 0; } }
+@keyframes ltr-bonk {
+    0% { transform: rotate(0deg) translateY(0); }
+    30% { transform: rotate(-24deg) translateY(-14px); }
+    60% { transform: rotate(10deg) translateY(4px); }
+    100% { transform: rotate(0deg) translateY(0); }
+}
+@keyframes chip-nudge { 0%, 100% { transform: translateX(0) rotate(0deg); } 30% { transform: translateX(10px) rotate(4deg); } 60% { transform: translateX(-4px) rotate(-2deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .cat-layer *, .ltr, .chips li { animation: none !important; transition: none !important; }
+}

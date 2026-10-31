@@ -1,0 +1,116 @@
+/* Home page: centered profile (layouts/partials/index_profile.html) */
+
+:root {
+    --gr: #2f6db5;
+    --ch: #d0392b;
+}
+
+.main:has(.profile.home) { max-width: 900px; }
+/* Room above the photo, so the cat can sit on it and its purr bubble stays visible */
+.main .profile.home { justify-content: center; align-items: center; padding: 76px 16px 32px; }
+
+.home-panel { width: 100%; align-items: center !important; gap: 18px !important; text-align: center; }
+
+/* Photo above the name */
+.id-row { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.profile-photo { border: 5px solid #fff !important; box-shadow: 0 10px 32px rgba(31, 45, 58, 0.18); object-fit: cover; }
+.name-block h1 { margin: 0; font-size: clamp(2.3rem, 6vw, 3.3rem) !important; line-height: 1.1; }
+.native-name { margin: 4px 0 0; color: var(--secondary); font-size: 1.25rem; }
+.role { margin: 10px 0 0; font-size: 1.35rem; font-weight: 600; }
+
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chips li { padding: 5px 14px; border-radius: 999px; background: #eaf1f8; color: #2c4a66; font-size: 0.95rem; }
+.focus { max-width: 34em; margin: 0; color: var(--secondary); font-size: 1.15rem; }
+
+/* Journey: two cards, Greece then Switzerland */
+.journey {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    width: 100%;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+}
+.journey-stop {
+    position: relative;
+    padding: 20px 20px 20px 48px;
+    border-radius: 18px;
+    background: var(--entry);
+    box-shadow: 0 6px 24px rgba(31, 45, 58, 0.08);
+}
+.journey-stop:first-child::after {
+    content: "\2192";
+    position: absolute;
+    top: 50%;
+    right: -14px;
+    transform: translate(50%, -50%);
+    color: #9fb2c4;
+    font-size: 1.5rem;
+}
+.journey-dot {
+    position: absolute;
+    left: 18px;
+    top: 25px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid var(--gr);
+}
+.journey-stop[data-stop="ch"] .journey-dot { border-color: var(--ch); }
+.journey-place { font-size: 1.15rem; font-weight: 700; }
+.journey-school { color: var(--secondary); font-size: 0.95rem; }
+.journey-items { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 1rem; }
+
+/* Degree buttons with a hover tab listing the projects */
+.journey-item { position: relative; }
+.degree {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid #d3dee9;
+    border-radius: 10px;
+    background: var(--theme);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+.degree .count { padding: 1px 9px; border-radius: 999px; background: #eaf1f8; color: #2c4a66; font-size: 0.8rem; white-space: nowrap; }
+.journey-item:hover .degree, .degree:focus-visible { border-color: var(--gr); }
+
+.degree-pop {
+    display: none;
+    position: absolute;
+    z-index: 30;
+    left: 0;
+    top: 100%;
+    width: min(440px, 86vw);
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 6px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 12px 36px rgba(31, 45, 58, 0.2);
+}
+.journey-stop:last-child .degree-pop { left: auto; right: 0; }
+.journey-item:hover .degree-pop, .journey-item:focus-within .degree-pop { display: block; }
+.degree-pop a { display: block; padding: 8px 10px; border-radius: 8px; font-size: 0.92rem; line-height: 1.35; }
+.degree-pop a:hover, .degree-pop a:focus { background: #eef4fa; }
+.degree-pop small { display: block; color: var(--secondary); font-size: 0.78rem; }
+.degree-pop .pop-all { margin-top: 2px; border-top: 1px solid #edf1f5; border-radius: 0 0 8px 8px; color: var(--gr); font-weight: 600; }
+
+.home .social-icons { justify-content: center; }
+.home .buttons { justify-content: center; }
+.home .button { font-size: 1.05rem; }
+
+@media (max-width: 760px) {
+    .journey { grid-template-columns: 1fr; gap: 16px; }
+    .journey-stop:first-child::after { content: none; }
+    .journey-stop:last-child .degree-pop { left: 0; right: auto; }
+    .role { font-size: 1.15rem; }
+    .focus { font-size: 1.05rem; }
+}

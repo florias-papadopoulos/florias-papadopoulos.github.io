@@ -35,12 +35,15 @@ menu:
     - name: Master
       url: /master/
       weight: 1
+    - name: Papers
+      url: /papers/
+      weight: 2
     - name: Games
       url: /games/
-      weight: 2
+      weight: 3
     - name: CV
       url: /files/resume.pdf
-      weight: 3
+      weight: 4
 
 params:
   description: "Florias Papadopoulos, doctoral researcher in cryptography at the University of St. Gallen (HSG)."
@@ -69,11 +72,12 @@ params:
     enabled: true
     title: Florias Papadopoulos
     nativeName: Φλωριάς Παπαδόπουλος
-    role: Doctoral researcher in cryptography
+    role: Doctoral researcher in cryptography · CYD Fellow
     interests: [Provable security, Post-quantum cryptography, Privacy-preserving protocols]
     focus: Designing secure and efficient systems for **proximity tracking** and **collision avoidance**.
     # Stops on the map (ids match the markers drawn by tools/make_map.py), oldest first.
-    # "projects" lists the projects whose context starts with that word, in a hover tab.
+    # "projects" lists the entries whose context starts with that word in a hover tab ("noun" names them),
+    # "url" is the page with all of them.
     journey:
       - stop: gr
         place: Thessaloniki, Greece
@@ -81,22 +85,29 @@ params:
         items:
           - label: BSc in Mathematics
             projects: Bachelor
+            url: /bachelor/
           - label: MSc in Theoretical Computer Science and Control Theory
             projects: Master
+            url: /master/
       - stop: ch
         place: St. Gallen, Switzerland
         school: University of St. Gallen (HSG)
         items:
           - label: Doctoral researcher, Cybersecurity and Applied Cryptography lab, supervised by Prof. Katerina Mitrokotsa
+            projects: Paper
+            noun: paper
+            url: /papers/
     imageUrl: my_profile_square.jpg
     imageTitle: Florias Papadopoulos
-    imageWidth: 120
-    imageHeight: 120
+    imageWidth: 168
+    imageHeight: 168
     buttons:
       - name: Bachelor
         url: /bachelor/
       - name: Master
         url: /master/
+      - name: Papers
+        url: /papers/
       - name: Games
         url: /games/
 
@@ -107,6 +118,8 @@ params:
       url: https://www.linkedin.com/in/florias-papadopoulos-b035ab233
     - name: GitHub
       url: https://github.com/florias-papadopoulos
+    - name: Instagram
+      url: https://www.instagram.com/florias.pap/
 
   assets:
     disableScrollBarStyle: true

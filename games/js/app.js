@@ -60,29 +60,63 @@ function levelStates(game) {
 
 // Views
 
+const GLYPHS = ['🔑', '🔒', '0', '1', '⊕', 'mod', '∑', 'π', '#', 'λ', '🗝️', '✦', 'XOR', '≡', '🎲', 'φ(n)'];
+const SCRAMBLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&@';
+
+// The title "decrypts" from random characters, revealing one letter at a time.
+function scramble(el) {
+  const text = el.dataset.text;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = text; return; }
+  let frame = 0;
+  clearInterval(el._timer);
+  el._timer = setInterval(() => {
+    const shown = Math.floor(frame / 3);
+    el.textContent = [...text].map((c, i) => i < shown ? c : SCRAMBLE[Math.floor(Math.random() * SCRAMBLE.length)]).join('');
+    if (shown >= text.length) clearInterval(el._timer);
+    frame++;
+  }, 35);
+}
+
 async function hub() {
   const games = await load('games');
+  document.body.classList.add('on-hub');
+  const floaters = Array.from({ length: 22 }, (_, i) => {
+    const g = GLYPHS[i % GLYPHS.length];
+    const size = 14 + Math.random() * 26;
+    return `<span style="left:${(i * 4.6 + Math.random() * 3).toFixed(1)}%;font-size:${size.toFixed(0)}px;` +
+      `animation-duration:${(16 + Math.random() * 14).toFixed(1)}s;animation-delay:${(-Math.random() * 30).toFixed(1)}s">${g}</span>`;
+  }).join('');
   app.innerHTML = `
-    <section class="hero">
-      <span class="tag">University of St. Gallen</span>
-      <h1>Learn cryptography by playing</h1>
-      <p class="muted">Short levels that follow the course, built from the lectures and the exercise solutions.</p>
+    <div class="hub-bg" aria-hidden="true">${floaters}</div>
+    <section class="hub-hero">
+      <h1 class="hub-title" data-text="CryptoGames">CryptoGames</h1>
+      <p class="hub-lead">Short levels that follow the course, built from the lectures and the exercise solutions.</p>
     </section>
     <div class="games">
       ${games.map(g => g.status === 'open' ? `
-        <a class="game-card" href="#/${g.id}">
-          <span class="tag">${g.degree}</span>
-          <h2>${g.title}</h2>
-          <p class="muted">Play through the course, one topic at a time.</p>
-          <span class="btn">Play</span>
+        <a class="game-card game-${g.id}" href="#/${g.id}">
+          <div class="card-art"><span class="art-emoji">${g.emoji}</span></div>
+          <div class="card-body">
+            <span class="tag">${g.degree}</span>
+            <h2>${g.title}</h2>
+            <p class="muted">Play through the course, one topic at a time.</p>
+            <span class="btn">&#9654; Play</span>
+          </div>
         </a>` : `
-        <div class="game-card soon">
-          <span class="tag">${g.degree}</span>
-          <h2>${g.title}</h2>
-          <p class="muted">Coming soon.</p>
-          <button class="btn" disabled>Locked</button>
+        <div class="game-card game-${g.id} soon">
+          <span class="ribbon">Coming soon</span>
+          <div class="card-art"><span class="art-emoji">${g.emoji}</span></div>
+          <div class="card-body">
+            <span class="tag">${g.degree}</span>
+            <h2>${g.title}</h2>
+            <p class="muted">Still being built.</p>
+            <button class="btn" disabled>&#128274; Locked</button>
+          </div>
         </div>`).join('')}
     </div>`;
+  const title = app.querySelector('.hub-title');
+  scramble(title);
+  title.addEventListener('mouseenter', () => scramble(title));
 }
 
 function lockScreen(meta) {
@@ -272,6 +306,7 @@ function play(game, levelId) {
 async function route() {
   const [gameId, levelId] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   window.scrollTo(0, 0);
+  document.body.classList.remove('on-hub');
   try {
     if (!gameId) return await hub();
     const meta = (await load('games')).find(g => g.id === gameId && g.status === 'open');

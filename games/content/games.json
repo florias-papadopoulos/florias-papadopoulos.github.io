@@ -3,12 +3,14 @@
     "id": "msc",
     "degree": "MSc",
     "title": "Advanced Cybersecurity",
-    "status": "open"
+    "status": "open",
+    "emoji": "🔐"
   },
   {
     "id": "bsc",
     "degree": "BSc",
     "title": "Cybersecurity",
-    "status": "soon"
+    "status": "soon",
+    "emoji": "🧩"
   }
 ]

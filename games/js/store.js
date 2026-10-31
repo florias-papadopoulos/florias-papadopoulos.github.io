@@ -1,5 +1,5 @@
 // Progress lives in the browser only: { gameId: { levelId: { best: 0..1 } } }
-const KEY = 'hsg-crypto-games-v1';
+const KEY = 'cryptogames-v1';
 
 function readAll() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
@@ -27,7 +27,7 @@ export function resetProgress(gameId) {
 }
 
 // Passwords are kept per game so students type them once per device.
-const PW_KEY = 'hsg-crypto-games-pw-v1';
+const PW_KEY = 'cryptogames-pw-v1';
 
 function readPasswords() {
   try { return JSON.parse(localStorage.getItem(PW_KEY)) || {}; } catch { return {}; }
