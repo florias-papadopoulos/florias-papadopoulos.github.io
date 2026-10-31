@@ -2,6 +2,9 @@
 layout: single
 title: "Numerical methods for solving systems of chaotic first-order differential equations"
 permalink: /projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_systems_of_chaotic_equations/
+url: /projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_systems_of_chaotic_equations/
+weight: 8
+context: "Master, Semester 1 · Numerical Methods with Applications to ODE & PDE"
 author_profile: true
 ---
 

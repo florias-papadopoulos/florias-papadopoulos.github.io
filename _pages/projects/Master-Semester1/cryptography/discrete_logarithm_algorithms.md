@@ -2,6 +2,10 @@
 layout: single
 title: "Discrete Logarithm Algorithms"
 permalink: /projects/Master-Semester1/cryptography/discrete_logarithm_algorithms/
+url: /projects/Master-Semester1/cryptography/discrete_logarithm_algorithms/
+weight: 7
+context: "Master, Semester 1 · Cryptography"
+math: true
 author_profile: true
 ---
 

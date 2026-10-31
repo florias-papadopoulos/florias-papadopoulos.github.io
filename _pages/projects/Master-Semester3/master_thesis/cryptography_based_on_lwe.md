@@ -2,6 +2,9 @@
 layout: single
 title: "Cryptography Based on LWE"
 permalink: /projects/Master-Semester3/master_thesis/cryptography_based_on_lwe/
+url: /projects/Master-Semester3/master_thesis/cryptography_based_on_lwe/
+weight: 1
+context: "Master, Semester 3 · Master Thesis"
 author_profile: true
 ---
 

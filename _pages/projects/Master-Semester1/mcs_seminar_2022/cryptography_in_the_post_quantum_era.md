@@ -2,6 +2,9 @@
 layout: single
 title: "Cryptography In The Post-Quantum Era"
 permalink: /projects/Master-Semester1/mcs_seminar_2022/cryptography_in_the_post_quantum_era/
+url: /projects/Master-Semester1/mcs_seminar_2022/cryptography_in_the_post_quantum_era/
+weight: 10
+context: "Master, Semester 1 · Master Seminar 2022"
 author_profile: true
 ---
 

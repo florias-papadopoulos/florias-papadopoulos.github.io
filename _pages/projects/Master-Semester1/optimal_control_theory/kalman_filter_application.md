@@ -2,6 +2,10 @@
 layout: single
 title: "Studying steady speed movement with Kalman filter"
 permalink: /projects/Master-Semester1/optimal_control_theory/kalman_filter_application/
+url: /projects/Master-Semester1/optimal_control_theory/kalman_filter_application/
+weight: 9
+context: "Master, Semester 1 · Optimal Control Theory"
+math: true
 author_profile: true
 ---
 

@@ -2,6 +2,9 @@
 layout: single
 title: "Euclid Attack"
 permalink: /projects/Master-Semester1/cryptography/euclid_attack/
+url: /projects/Master-Semester1/cryptography/euclid_attack/
+weight: 5
+context: "Master, Semester 1 · Cryptography"
 author_profile: true
 ---
 

@@ -2,6 +2,9 @@
 layout: single
 title: "Overview of the Signal Protocol"
 permalink: /projects/Master-Semester2/elliptic_curve_cryptography/signal_protocol/
+url: /projects/Master-Semester2/elliptic_curve_cryptography/signal_protocol/
+weight: 2
+context: "Master, Semester 2 · Elliptic-Curve Cryptography"
 author_profile: true
 ---
 

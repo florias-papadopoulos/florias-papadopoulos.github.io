@@ -2,6 +2,9 @@
 layout: single
 title: "Activity Recognition Algorithms from Accelerometer Signals (team project)"
 permalink: /projects/Master-Semester2/machine_learning/activity_recognition/
+url: /projects/Master-Semester2/machine_learning/activity_recognition/
+weight: 4
+context: "Master, Semester 2 · Machine Learning"
 author_profile: true
 ---
 

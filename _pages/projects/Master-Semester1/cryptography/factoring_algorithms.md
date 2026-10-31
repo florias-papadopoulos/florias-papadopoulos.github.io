@@ -2,6 +2,10 @@
 layout: single
 title: "Factoring Algorithms"
 permalink: /projects/Master-Semester1/cryptography/factoring_algorithms/
+url: /projects/Master-Semester1/cryptography/factoring_algorithms/
+weight: 6
+context: "Master, Semester 1 · Cryptography"
+math: true
 author_profile: true
 ---
 

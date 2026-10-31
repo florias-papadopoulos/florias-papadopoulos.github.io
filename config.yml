@@ -1,0 +1,116 @@
+baseURL: "https://florias-papadopoulos.github.io/"
+title: Florias Papadopoulos
+theme: PaperMod
+locale: en
+
+enableRobotsTXT: true
+disablePathToLower: true
+pagination:
+  pagerSize: 20
+
+# Project pages and their files stay in _pages/projects (old URLs and GitHub links keep working):
+# the .md files become pages under /projects/, everything else is served at /_pages/projects/.
+module:
+  mounts:
+    - source: content
+      target: content
+    - source: _pages/projects
+      target: content/projects
+      files: ["**/*.md"]
+    - source: static
+      target: static
+    - source: _pages/projects
+      target: static/_pages/projects
+      files: ["! **/*.md"]
+    - source: files
+      target: static/files
+    - source: games
+      target: static/games
+
+menu:
+  main:
+    - name: Projects
+      url: /projects/
+      weight: 1
+    - name: Games
+      url: /games/
+      weight: 2
+    - name: CV
+      url: /files/resume.pdf
+      weight: 3
+
+params:
+  description: "Florias Papadopoulos, doctoral researcher in cryptography at the University of St. Gallen (HSG)."
+  author: Florias Papadopoulos
+  DateFormat: January 2006
+  defaultTheme: light
+  hideFooter: false
+  disableThemeToggle: true
+  ShowShareButtons: false
+  ShowReadingTime: false
+  disableSpecial1stPost: true
+  disableAnchoredHeadings: true
+  ShowPostNavLinks: false
+  ShowBreadCrumbs: false
+  ShowCodeCopyButtons: true
+  ShowAllPagesInArchive: false
+  MainSections: [projects]
+  ShowToc: false
+  disableScrollToTop: true
+  TocOpen: true
+  ShowWordCount: false
+  UseHugoToc: true
+  comments: false
+  math: false
+  profileMode:
+    enabled: true
+    title: Florias Papadopoulos
+    subtitle: |-
+      👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος). <br>
+      I am currently a doctoral researcher at the “Cybersecurity and Applied Cryptography” lab, under the supervision of Prof. Katerina Mitrokotsa, at the University of St. Gallen, Switzerland (HSG).
+
+      🔬 My current research interests lie in provable security, post-quantum cryptography, and privacy-preserving protocols, with a particular focus on designing secure and efficient systems for **proximity tracking** and **collision avoidance**.
+
+      📚 As for my previous education, I obtained both my BSc degree in “Mathematics” and my MSc degree in “Theoretical Computer Science and Control Theory” at the Aristotle University of Thessaloniki, Greece (AUTh).
+    imageUrl: my_profile.jpeg
+    imageTitle: Florias Papadopoulos
+    imageWidth: 160
+    imageHeight: 160
+    buttons:
+      - name: Projects
+        url: /projects/
+      - name: Games
+        url: /games/
+
+  socialIcons:
+    - name: CV
+      url: /files/resume.pdf
+    - name: LinkedIn
+      url: https://www.linkedin.com/in/florias-papadopoulos-b035ab233
+    - name: GitHub
+      url: https://github.com/florias-papadopoulos
+
+  assets:
+    disableScrollBarStyle: true
+  cover:
+    hiddenInList: false
+    hiddenInSingle: true
+  label:
+    text: Florias Papadopoulos
+    icon: favicon.ico
+    iconHeight: 18
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+    # Leave $...$ and $$...$$ untouched for KaTeX
+    extensions:
+      passthrough:
+        enable: true
+        delimiters:
+          block: [['$$', '$$']]
+          inline: [['$', '$']]
+  highlight:
+    guessSyntax: true
+    style: autumn

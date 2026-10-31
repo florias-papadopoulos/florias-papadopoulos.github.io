@@ -2,6 +2,9 @@
 layout: single
 title: "Semi-Quantum Cryptography"
 permalink: /projects/Master-Semester2/quantum_information_and_computation/semiquantum_cryptography/
+url: /projects/Master-Semester2/quantum_information_and_computation/semiquantum_cryptography/
+weight: 3
+context: "Master, Semester 2 · Quantum Information & Computation"
 author_profile: true
 ---
 
