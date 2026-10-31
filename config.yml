@@ -128,14 +128,20 @@ params:
     - name: Instagram
       url: https://www.instagram.com/florias.pap/
 
+  # "?v=key" makes browsers fetch the new (key) icon instead of a cached old one; bump it when the icon changes
   assets:
     disableScrollBarStyle: true
+    favicon: favicon.ico?v=key
+    favicon16x16: favicon-16x16.png?v=key
+    favicon32x32: favicon-32x32.png?v=key
+    apple_touch_icon: apple-touch-icon.png?v=key
+    safari_pinned_tab: safari-pinned-tab.svg?v=key
   cover:
     hiddenInList: false
     hiddenInSingle: true
   label:
     text: Florias Papadopoulos
-    icon: favicon.ico
+    icon: favicon.ico?v=key
     iconHeight: 18
 
 markup:
