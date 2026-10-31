@@ -4,9 +4,7 @@
    Around it, toys from the research on privacy-preserving proximity testing:
    - two drones (w, q) with an l-infinity delta-region: each one learns only the bit "is something inside my
      region?", shows it, and swerves to avoid collisions; the cat can ride them
-   - a fuzzy-matching card: the interval [42, 55] and the point q as binary prefixes with wildcards, matching
-     when the two sets intersect (as in the talk slides)
-   You can drag the cat, the drones and q, and click the cat to pet it. */
+   You can drag the cat and the drones, and click the cat to pet it. */
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');
@@ -25,7 +23,7 @@
     var at = null;                                 /* where it is: {kind, el?, drone?} */
     var timer = null, moving = false, token = 0;
     var ridge = [], wide = false, phone = false, side = 0;
-    var drones = [], fm = null;
+    var drones = [];
     var pets = 0;
     try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
 
@@ -181,59 +179,6 @@
     function sizeLayers() {
         layer.style.height = world.style.height = '0px';
         layer.style.height = world.style.height = document.documentElement.scrollHeight + 'px';
-    }
-
-    /* ---------- lab: fuzzy matching card (wide screens) ---------- */
-    var BITS = 8, LO = 32, HI = 63, WA = 42, WB = 55;
-    function bin(v, len) { return v.toString(2).padStart(BITS, '0').slice(0, len); }
-    function cover(a, b) {                         /* [a, b] as few dyadic intervals: prefixes with wildcards */
-        var out = [];
-        while (a <= b) {
-            var size = 1, len = BITS;
-            while (len > 0 && a % (size * 2) === 0 && a + size * 2 - 1 <= b) { size *= 2; len--; }
-            out.push(bin(a, len) + '*'.repeat(BITS - len));
-            a += size;
-        }
-        return out;
-    }
-    function prefixes(q, upTo) {                   /* q and its prefixes, up to upTo wildcards */
-        var out = [];
-        for (var s = 0; s <= upTo; s++) out.push(bin(q, BITS - s) + '*'.repeat(s));
-        return out;
-    }
-    function makeFM(geo) {
-        if (!wide) { fm = null; return; }
-        var w = Math.min(232, side - 28);
-        var f = { el: div('fm', layer), q: 49, w: w };
-        f.el.style.width = w + 'px';
-        f.el.style.left = ((side - w) / 2) + 'px';
-        f.el.innerHTML = '<div class="fm-title">fuzzy matching &middot; is q within &delta; of w?</div>' +
-            '<div class="fm-line"><div class="fm-int"></div><div class="fm-w"></div><div class="fm-q" title="drag q"></div></div>' +
-            '<div class="fm-scale"><span>' + LO + '</span><span>w = 48.5, &delta; = 6.5</span><span>' + HI + '</span></div>' +
-            '<div class="fm-set fm-W"></div><div class="fm-set fm-Q"></div><div class="fm-out"></div>';
-        var line = f.el.querySelector('.fm-line');
-        var frac = function (v) { return (v - LO) / (HI - LO) * 100; };
-        f.el.querySelector('.fm-int').style.left = frac(WA) + '%';
-        f.el.querySelector('.fm-int').style.width = (frac(WB) - frac(WA)) + '%';
-        f.el.querySelector('.fm-w').style.left = frac((WA + WB) / 2) + '%';
-        f.set = function (q) {
-            f.q = clamp(Math.round(q), LO, HI);
-            f.el.querySelector('.fm-q').style.left = frac(f.q) + '%';
-            var W = cover(WA, WB), maxStar = Math.max.apply(null, W.map(function (s) { return (s.match(/\*/g) || []).length; }));
-            var Q = prefixes(f.q, maxStar + 1);
-            var hit = Q.filter(function (s) { return W.indexOf(s) >= 0; });
-            f.el.querySelector('.fm-W').innerHTML = '<b>W</b>' + W.map(function (s) { return '<code' + (hit.indexOf(s) >= 0 ? ' class="hit"' : '') + '>' + s + '</code>'; }).join('');
-            f.el.querySelector('.fm-Q').innerHTML = '<b>q=' + f.q + '</b>' + Q.map(function (s) { return '<code' + (hit.indexOf(s) >= 0 ? ' class="hit"' : '') + '>' + s + '</code>'; }).join('');
-            f.el.querySelector('.fm-out').innerHTML = hit.length ? 'W &cap; Q &ne; &empty; &rarr; <b>match: 1</b>' : 'W &cap; Q = &empty; &rarr; <b>match: 0</b>';
-            f.el.classList.toggle('is-match', hit.length > 0);
-        };
-        function fromX(p) { var r = rel(line); f.set(LO + (p.x - r.x) / r.w * (HI - LO)); }
-        draggable(line, { move: fromX, end: fromX, click: function (e) { fromX(pointer(e)); } });
-        f.set(f.q);
-        /* vertically: centred between the top of the page and the mountains */
-        var r = f.el.getBoundingClientRect();
-        f.el.style.top = Math.max(20, (geo.F - geo.peak - r.height) * 0.42) + 'px';
-        fm = f;
     }
 
     /* ---------- lab: drones with an l-infinity delta-region ---------- */
@@ -413,7 +358,6 @@
         push('.home .route', 'card');
         push('.home .paper', 'card');
         push('.home .buttons .button', 'button');
-        if (fm) list.push({ el: fm.el, kind: 'fm' });
         return list;
     }
     function spotOn(p, fx) {
@@ -421,10 +365,6 @@
         if (p.kind === 'name') {
             var l = h1.querySelectorAll('.ltr'), lr = rel(l[Math.floor(fx * (l.length - 1))]);
             return { x: lr.x + lr.w / 2, y: lr.y + lr.h * 0.18 };
-        }
-        if (p.kind === 'fm') {                     /* sit above the q marker */
-            var qr = rel(fm.el.querySelector('.fm-q'));
-            return { x: clamp(qr.x + qr.w / 2, r.x + 30, r.x + r.w - 30), y: r.y };
         }
         return { x: r.x + pad + (r.w - 2 * pad) * fx, y: r.y };
     }
@@ -461,7 +401,7 @@
             if (at && at.el === p.el && p.kind !== 'name') return;
             var fx = Math.random();
             add(p, function () { return spotOn(p, fx); },
-                p.kind === 'name' ? 2 : p.kind === 'chip' ? 1.3 : p.kind === 'fm' ? 2.2 : 1);
+                p.kind === 'name' ? 2 : p.kind === 'chip' ? 1.3 : 1);
         });
         drones.forEach(function (d) {
             if (riding && at.drone === d) return;
@@ -509,10 +449,6 @@
             return next(1700 + Math.random() * 1500);
         }
         if (p.kind === 'chip' && r < 0.7) { bat(function () { bonk(p.el, 'nudged', 700); }); return next(1900 + Math.random() * 1500); }
-        if (p.kind === 'fm') {
-            bat(function () { fm.set(fm.q + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 6))); });
-            return next(2200 + Math.random() * 1500);
-        }
         if ((p.what === 'peak' || p.kind === 'photo') && r < 0.18) return nap();
         if (r > 0.94 && p.kind !== 'button' && p.kind !== 'chip') return nap();
         if (r > 0.6) {
@@ -601,17 +537,16 @@
 
     /* ---------- start ---------- */
     function clearLab() {
-        Array.prototype.forEach.call(layer.querySelectorAll('.fm, .drone'), function (e) { e.remove(); });
+        Array.prototype.forEach.call(layer.querySelectorAll('.drone'), function (e) { e.remove(); });
     }
     function layout() {
         sizeLayers();
         var geo = buildTerrain();
         clearLab();
         if (!phone) {                              /* the lab only where there is room for it */
-            makeFM(geo);
             makeDrones(geo);
         } else {
-            fm = null; drones = [];
+            drones = [];
         }
         if (at && at.kind === 'drone') at = { kind: 'ground', what: 'wander' };
         if (!moving && at) {
