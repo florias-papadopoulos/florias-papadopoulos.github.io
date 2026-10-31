@@ -1,0 +1,4 @@
+/* The site is designed light: tell browsers not to apply automatic dark modes (see also the meta tag in head.html) */
+:root {
+    color-scheme: only light;
+}
