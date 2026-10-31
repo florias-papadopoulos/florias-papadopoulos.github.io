@@ -24,8 +24,9 @@ module:
       files: ["! **/*.md"]
     - source: files
       target: static/files
-    - source: games
-      target: static/games
+    # Games (CryptoGames build) hidden for now: re-add this mount and the menu/button entries to publish /games/
+    # - source: games
+    #   target: static/games
 
 menu:
   main:
@@ -38,9 +39,6 @@ menu:
     - name: Papers
       url: /papers/
       weight: 2
-    - name: Games
-      url: /games/
-      weight: 3
     - name: CV
       url: /files/resume.pdf
       weight: 4
@@ -108,8 +106,6 @@ params:
         url: /master/
       - name: Papers
         url: /papers/
-      - name: Games
-        url: /games/
 
   socialIcons:
     - name: CV
