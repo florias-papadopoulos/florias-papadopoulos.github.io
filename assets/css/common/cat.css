@@ -1,11 +1,11 @@
-/* Home page cat, mountains and props (layouts/partials/cat.html) */
+/* Home page cat, mountains and research lab (layouts/partials/cat.html, assets/js/home-lab.js) */
 
 .world-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
 .cat-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
 /* the page content sits between the mountains (behind) and the cat (in front) */
 .main:has(.profile.home) { position: relative; z-index: 1; }
 
-/* ---------- Mountains and props ---------- */
+/* ---------- Mountains ---------- */
 
 .terrain { position: absolute; left: 0; top: 0; overflow: visible; }
 .t-back { fill: #e3e9f1; }
@@ -15,35 +15,110 @@
 .t-pole { stroke: #8e8e8e; stroke-width: 2.5; stroke-linecap: round; }
 .t-flag { fill: #ff6f6f; transform-box: fill-box; transform-origin: left center; animation: t-flag 1.6s ease-in-out infinite; }
 
-.prop { position: absolute; }
-.prop-yarn {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: repeating-linear-gradient(40deg, #6fb3e0 0 4px, #4f97c9 4px 7px);
-    box-shadow: inset -4px -4px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px #2f6f9c;
+@keyframes t-flag { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(8deg) scaleX(0.9); } }
+
+/* ---------- Lab: drones, fuzzy matching, mod clock, integer blocks ---------- */
+
+.drone, .block, .modclock, .fm { position: absolute; pointer-events: auto; touch-action: none; }
+.drone { width: 0; height: 0; cursor: grab; }
+.drone svg { position: absolute; left: -32px; top: -15px; width: 64px; height: 30px; overflow: visible; animation: drone-hover 1.8s ease-in-out infinite; }
+.drone .hull { fill: var(--d); stroke: #0f172a; stroke-width: 1.6; }
+.drone .arm { fill: none; stroke: #0f172a; stroke-width: 2; stroke-linecap: round; }
+.drone .rotor ellipse { fill: rgba(15, 23, 42, 0.35); transform-box: fill-box; transform-origin: center; animation: rotor 0.12s linear infinite; }
+.drone .led { fill: #4ade80; }
+.drone.alert .led { fill: #ef4444; animation: led 0.4s steps(1) infinite; }
+.drone-w { --d: #d6336c; }
+.drone-q { --d: #1e3a8a; }
+.drone .zone {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border: 1.5px dashed var(--d);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--d) 5%, transparent);
+    pointer-events: none;
+    transition: background 0.25s, border-color 0.25s;
 }
-.prop-cushion {
-    width: 92px;
-    height: 20px;
-    border-radius: 14px;
-    background: linear-gradient(#ffd98f, #ffbe55);
-    box-shadow: 0 0 0 2px #d9952f, 0 12px 18px rgba(0, 0, 0, 0.08);
-    animation: prop-float 4s ease-in-out infinite;
+.drone.alert .zone { border-style: solid; border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+.d-name, .d-bit, .d-enc { position: absolute; left: 0; transform: translateX(-50%); white-space: nowrap; pointer-events: none; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.d-name { top: -36px; color: var(--d); font-weight: 800; font-size: 13px; font-style: italic; }
+.d-bit { top: 20px; padding: 1px 7px; border-radius: 999px; background: #fff; border: 1px solid #e2e8f0; color: #475569; font-size: 10.5px; }
+.drone.alert .d-bit { background: #ef4444; border-color: #ef4444; color: #fff; font-weight: 700; }
+.d-enc { top: 40px; color: #94a3b8; font-size: 9.5px; }
+
+.block {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #0f172a;
+    border-radius: 6px;
+    background: #fff;
+    color: #d6336c;
+    font: 700 12px ui-monospace, Menlo, Consolas, monospace;
+    box-shadow: 0 3px 0 #0f172a;
+    cursor: grab;
+    user-select: none;
 }
-.prop-portal {
-    width: 50px;
-    height: 66px;
-    border-radius: 50%;
-    border-radius: 50%;
-    background: radial-gradient(ellipse at center, #1d1240 0 42%, #5b3df5 43% 55%, #a993ff 56% 64%, transparent 65%);
-    box-shadow: 0 0 18px rgba(124, 92, 255, 0.35);
-    animation: prop-portal 3s linear infinite;
+.block.is-q { color: #1e3a8a; }
+.block.show-bin::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 38px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 10px;
+    white-space: nowrap;
 }
 
-@keyframes t-flag { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(8deg) scaleX(0.9); } }
-@keyframes prop-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-@keyframes prop-portal { 0%, 100% { filter: hue-rotate(0deg); transform: scale(1); } 50% { filter: hue-rotate(40deg); transform: scale(1.06); } }
+.modclock { width: 74px; height: 92px; cursor: pointer; user-select: none; text-align: center; }
+.mc-face { position: relative; width: 70px; height: 70px; margin: 0 auto; border: 2px solid #0f172a; border-radius: 50%; background: #fff; box-shadow: 0 3px 0 #0f172a; }
+.mc-tick { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; font: 600 9px/12px ui-monospace, Menlo, Consolas, monospace; color: #94a3b8; }
+.mc-hand { position: absolute; left: 50%; top: 9px; width: 2px; height: 26px; margin-left: -1px; background: #d6336c; transform-origin: 50% 26px; transform: rotate(51.4deg); transition: transform 0.35s cubic-bezier(.3, 1.6, .5, 1); }
+.mc-val { position: absolute; inset: 0; display: grid; place-items: center; font: 800 16px ui-monospace, Menlo, Consolas, monospace; color: #1e3a8a; }
+.mc-cap { margin-top: 3px; font: 600 10.5px ui-monospace, Menlo, Consolas, monospace; color: #0f172a; }
+.modclock.tick .mc-face { animation: mc-tick 0.35s ease-out; }
+
+.fm {
+    padding: 10px 11px 9px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    color: #334155;
+    touch-action: auto;
+}
+.fm-title { margin-bottom: 8px; font-weight: 700; color: #0f172a; }
+.fm-line { position: relative; height: 22px; margin: 0 6px; cursor: pointer; touch-action: none; }
+.fm-line::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 2px; background: #cbd5e1; }
+.fm-int { position: absolute; top: 7px; height: 8px; border-radius: 4px; background: rgba(214, 51, 108, 0.35); border: 1.5px solid #d6336c; }
+.fm-w, .fm-q { position: absolute; top: 5px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; }
+.fm-w { background: #d6336c; }
+.fm-q { background: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.18); cursor: grab; transition: left 0.25s; }
+.fm-scale { display: flex; justify-content: space-between; margin: 2px 0 8px; color: #94a3b8; font-size: 9.5px; }
+.fm-set { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 4px; }
+.fm-set b { width: 100%; font-size: 10px; }
+.fm-W b { color: #d6336c; }
+.fm-Q b { color: #1e3a8a; }
+.fm-set code { padding: 0 3px; border-radius: 3px; background: #f1f5f9; font-size: 9.5px; color: #475569; }
+.fm-set code.hit { background: #fde68a; color: #0f172a; font-weight: 700; }
+.fm-out { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0; }
+.fm.is-match .fm-out b { color: #15803d; }
+.fm:not(.is-match) .fm-out b { color: #b91c1c; }
+
+.cat.held { cursor: grabbing; }
+.cat { touch-action: none; }
+
+@keyframes drone-hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes rotor { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.25); } }
+@keyframes led { 50% { opacity: 0.2; } }
+@keyframes mc-tick { 0% { transform: rotate(-8deg) scale(1.06); } 100% { transform: none; } }
 
 /* ---------- Cat ---------- */
 

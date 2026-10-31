@@ -1,34 +1,55 @@
-{{- /* Home page: centered profile (content in config.yml, profileMode) */ -}}
+{{- /* Home page (content in config.yml, profileMode): hero, tagline, route from the first stop to now,
+       latest paper, links. The cat and its research lab around the page: layouts/partials/cat.html */ -}}
 {{- $projects := where site.RegularPages "Section" "projects" }}
 {{- with site.Params.profileMode }}
 <div class="profile home" id="home">
-
     <div class="profile_inner home-panel">
-        <div class="id-row">
-        {{- with resources.Get .imageUrl }}
-        {{- /* Square crop at 3x the display size, so the photo stays sharp on high-density screens */ -}}
-        {{- $w := site.Params.profileMode.imageWidth | default 160 }}
-        {{- $img := .Fill (printf "%dx%d Center q88" (mul $w 3) (mul $w 3)) }}
-        <img class="profile-photo" draggable="false" src="{{ $img.RelPermalink }}" alt="{{ site.Params.profileMode.imageTitle | default "profile image" }}"
-            width="{{ $w }}" height="{{ $w }}" />
-        {{- end }}
-        <div class="name-block">
-            <h1>{{ .title | default site.Title }}</h1>
-            {{- with .nativeName }}<p class="native-name" lang="el">{{ . }}</p>{{ end }}
-            {{- with .role }}<p class="role">{{ . | markdownify }}</p>{{ end }}
-        </div>
-        </div>
+
+        <header class="hero">
+            {{- with resources.Get .imageUrl }}
+            {{- /* Square crop at 3x the display size, so the photo stays sharp on high-density screens */ -}}
+            {{- $w := site.Params.profileMode.imageWidth | default 160 }}
+            {{- $img := .Fill (printf "%dx%d Center q88" (mul $w 3) (mul $w 3)) }}
+            <img class="profile-photo" draggable="false" src="{{ $img.RelPermalink }}" alt="{{ site.Params.profileMode.imageTitle | default "profile image" }}"
+                width="{{ $w }}" height="{{ $w }}" />
+            {{- end }}
+            <div class="name-block">
+                {{- with .kicker }}<p class="kicker"><span class="prompt">&gt;</span> {{ . }}<span class="caret"></span></p>{{ end }}
+                <h1>{{ .title | default site.Title }}</h1>
+                {{- with .nativeName }}<p class="native-name" lang="el">{{ . }}</p>{{ end }}
+                <p class="whereabouts">
+                    {{- with .location }}
+                    <span class="loc"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.6" fill="currentColor"/></svg>{{ . }}</span>
+                    {{- end }}
+                    {{- with .badge }}<span class="badge">{{ . }}</span>{{ end }}
+                </p>
+            </div>
+        </header>
+
+        {{- with .tagline }}<p class="tagline">{{ . | markdownify }}</p>{{ end }}
         {{- with .interests }}
         <ul class="chips">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
         {{- end }}
-        {{- with .focus }}<p class="focus">{{ . | markdownify }}</p>{{ end }}
 
         {{- with .journey }}
-        <ol class="journey">
-            {{- range . }}
-            <li class="journey-stop" data-stop="{{ .stop }}">
-                <div class="journey-place"><span class="journey-dot"></span>{{ .place }}</div>
-                <div class="journey-school">{{ .school }}</div>
+        {{- $n := len . }}
+        <div class="route">
+            {{- range $i, $s := . }}
+            {{- if gt $i 0 }}
+            <div class="route-line" aria-hidden="true">
+                <span class="route-track"></span><span class="route-dot"></span>
+                {{- with site.Params.profileMode.routeDistance }}<span class="route-km">{{ . }}</span>{{ end }}
+            </div>
+            {{- end }}
+            <section class="stop{{ if eq .when "now" }} is-now{{ end }}" data-stop="{{ .stop }}">
+                <div class="stop-head">
+                    <span class="flag" aria-hidden="true">{{ .flag }}</span>
+                    <div>
+                        <h2 class="stop-place">{{ .place }}</h2>
+                        <p class="stop-school">{{ .school }}</p>
+                    </div>
+                    {{- with .when }}<span class="when">{{ . }}</span>{{ end }}
+                </div>
                 <ul class="journey-items">
                     {{- range .items }}
                     {{- if .projects }}
@@ -36,11 +57,11 @@
                     {{- $noun := .noun | default "project" }}
                     <li class="journey-item has-projects">
                         <button class="degree" type="button" aria-haspopup="true">
-                            {{ .label }} <span class="count">{{ len $list }} {{ cond (eq (len $list) 1) $noun (pluralize $noun) }}</span>
+                            <span>{{ .label }}</span> <span class="count">{{ len $list }} {{ cond (eq (len $list) 1) $noun (pluralize $noun) }}</span>
                         </button>
                         <div class="degree-pop">
                             {{- range $list }}
-                            <a href="{{ .Params.externalUrl | default .RelPermalink }}"{{ if .Params.externalUrl }} target="_blank" rel="noopener"{{ end }}>{{ .Title }}<small>{{ replaceRE `^(Bachelor|Master|Paper),?\s*(·\s*)?` "" .Params.context }}</small></a>
+                            <a href="{{ .Params.externalUrl | default .RelPermalink }}"{{ if .Params.externalUrl }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Title }}<small>{{ replaceRE `^(Bachelor|Master|Paper),?\s*(·\s*)?` "" .Params.context }}</small></a>
                             {{- end }}
                             <a class="pop-all" href="{{ .url | relURL }}">{{ cond (eq $noun "project") (printf "All %s projects" (lower .projects)) (printf "All %s" (pluralize $noun)) }} &rarr;</a>
                         </div>
@@ -50,24 +71,29 @@
                     {{- end }}
                     {{- end }}
                 </ul>
-            </li>
-            {{- end }}
-        </ol>
-        {{- end }}
-
-        {{- partial "social_icons.html" -}}
-
-        {{- with .buttons }}
-        <div class="buttons">
-            {{- range . }}
-            <a class="button" href="{{ trim .url " " }}" rel="noopener" title="{{ .name }}">
-                <span class="button-inner">{{ .name }}</span>
-            </a>
+            </section>
             {{- end }}
         </div>
         {{- end }}
+
+        {{- with .paper }}
+        <a class="paper" href="{{ .url }}" target="_blank" rel="noopener noreferrer">
+            <span class="paper-label">{{ .label }}</span>
+            <span class="paper-title">{{ .title }} <span aria-hidden="true">&#8599;</span></span>
+        </a>
+        {{- end }}
+
+        <div class="links">
+            {{- partial "social_icons.html" -}}
+            {{- with .buttons }}
+            <div class="buttons">
+                {{- range . }}
+                <a class="button" href="{{ trim .url " " }}" title="{{ .name }}"><span class="button-inner">{{ .name }}</span></a>
+                {{- end }}
+            </div>
+            {{- end }}
+        </div>
     </div>
 </div>
 {{ partial "cat.html" . }}
-
 {{- end }}
