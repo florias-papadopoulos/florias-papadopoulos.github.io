@@ -25,6 +25,11 @@
 
 {{- $pages := union .RegularPages .Sections }}
 
+{{- /* Bachelor and Master tabs: the projects whose context starts with listLevel */ -}}
+{{- with .Params.listLevel }}
+{{- $pages = where (where site.RegularPages "Section" "projects") "Params.context" "like" (printf "^%s" .) }}
+{{- end }}
+
 {{- if .IsHome }}
 {{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
 {{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}

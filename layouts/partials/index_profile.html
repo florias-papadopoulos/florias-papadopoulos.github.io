@@ -1,0 +1,134 @@
+{{- /* Home page: illustrated journey map behind a profile panel (content in config.yml, profileMode) */ -}}
+{{- $projects := where site.RegularPages "Section" "projects" }}
+{{- with site.Params.profileMode }}
+<div class="profile home" id="home">
+    <div class="home-map">
+        {{ (resources.Get "journey-map.svg").Content | safeHTML }}
+        <div class="jm-tip" id="jm-tip" hidden></div>
+    </div>
+
+    <div class="profile_inner home-panel">
+        <div class="id-row">
+        {{- with resources.Get .imageUrl }}
+        {{- /* Square crop at 3x the display size, so the photo stays sharp on high-density screens */ -}}
+        {{- $w := site.Params.profileMode.imageWidth | default 160 }}
+        {{- $img := .Fill (printf "%dx%d Center q88" (mul $w 3) (mul $w 3)) }}
+        <img class="profile-photo" draggable="false" src="{{ $img.RelPermalink }}" alt="{{ site.Params.profileMode.imageTitle | default "profile image" }}"
+            width="{{ $w }}" height="{{ $w }}" />
+        {{- end }}
+        <div class="name-block">
+            <h1>{{ .title | default site.Title }}</h1>
+            {{- with .nativeName }}<p class="native-name" lang="el">{{ . }}</p>{{ end }}
+            {{- with .role }}<p class="role">{{ . | markdownify }}</p>{{ end }}
+        </div>
+        </div>
+        {{- with .interests }}
+        <ul class="chips">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
+        {{- end }}
+        {{- with .focus }}<p class="focus">{{ . | markdownify }}</p>{{ end }}
+
+        {{- with .journey }}
+        <ol class="journey">
+            {{- range . }}
+            <li class="journey-stop" data-stop="{{ .stop }}">
+                <div class="journey-place"><span class="journey-dot"></span>{{ .place }}</div>
+                <div class="journey-school">{{ .school }}</div>
+                <ul class="journey-items">
+                    {{- range .items }}
+                    {{- if .projects }}
+                    {{- $list := sort (where $projects "Params.context" "like" (printf "^%s" .projects)) "Weight" }}
+                    <li class="journey-item has-projects">
+                        <button class="degree" type="button" aria-haspopup="true">
+                            {{ .label }} <span class="count">{{ len $list }} {{ cond (eq (len $list) 1) "project" "projects" }}</span>
+                        </button>
+                        <div class="degree-pop">
+                            {{- range $list }}
+                            <a href="{{ .RelPermalink }}">{{ .Title }}<small>{{ replaceRE `^(Bachelor|Master),?\s*(·\s*)?` "" .Params.context }}</small></a>
+                            {{- end }}
+                            <a class="pop-all" href="{{ printf "/%s/" (lower .projects) | relURL }}">All {{ lower .projects }} projects &rarr;</a>
+                        </div>
+                    </li>
+                    {{- else }}
+                    <li class="journey-item">{{ .label | markdownify }}</li>
+                    {{- end }}
+                    {{- end }}
+                </ul>
+            </li>
+            {{- end }}
+        </ol>
+        {{- end }}
+
+        {{- partial "social_icons.html" -}}
+
+        {{- with .buttons }}
+        <div class="buttons">
+            {{- range . }}
+            <a class="button" href="{{ trim .url " " }}" rel="noopener" title="{{ .name }}">
+                <span class="button-inner">{{ .name }}</span>
+            </a>
+            {{- end }}
+        </div>
+        {{- end }}
+    </div>
+</div>
+
+<script>
+(function () {
+    var home = document.getElementById('home');
+    var tip = document.getElementById('jm-tip');
+    var svg = home.querySelector('svg.jm');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce && svg.pauseAnimations) svg.pauseAnimations();
+    var pinned = '';
+
+    function stopInfo(id) {
+        var li = home.querySelector('.journey-stop[data-stop="' + id + '"]');
+        if (!li) return '';
+        var items = Array.prototype.map.call(li.querySelectorAll('.journey-item'), function (el) {
+            var b = el.querySelector('.degree');
+            return '<li>' + (b ? b.firstChild.textContent.trim() : el.innerHTML) + '</li>';
+        }).join('');
+        return '<strong>' + li.querySelector('.journey-place').textContent + '</strong>' +
+            '<span>' + li.querySelector('.journey-school').textContent + '</span><ul>' + items + '</ul>';
+    }
+
+    function show(id, withTip) {
+        home.dataset.active = id || '';
+        if (!id || !withTip) { tip.hidden = true; return; }
+        var dot = svg.querySelector('.jm-stop[data-stop="' + id + '"] .jm-dot');
+        var r = dot.getBoundingClientRect();
+        tip.innerHTML = stopInfo(id);
+        tip.hidden = false;
+        var w = tip.offsetWidth, h = tip.offsetHeight;
+        var x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
+        var y = r.top - h - 14;
+        if (y < 8) y = r.bottom + 14;
+        tip.style.left = x + 'px';
+        tip.style.top = y + 'px';
+    }
+
+    svg.querySelectorAll('.jm-stop, .jm-hl').forEach(function (el) {
+        var id = el.dataset.stop;
+        el.addEventListener('mouseenter', function () { if (!pinned) show(id, true); });
+        el.addEventListener('mouseleave', function () { if (!pinned) show('', false); });
+        el.addEventListener('focus', function () { show(id, true); });
+        el.addEventListener('blur', function () { if (!pinned) show('', false); });
+        el.addEventListener('click', function (e) {
+            e.stopPropagation();
+            pinned = pinned === id ? '' : id;
+            show(pinned, true);
+        });
+        el.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.dispatchEvent(new MouseEvent('click')); }
+        });
+    });
+    home.querySelectorAll('.journey-stop').forEach(function (li) {
+        li.addEventListener('mouseenter', function () { if (!pinned) show(li.dataset.stop, false); });
+        li.addEventListener('mouseleave', function () { if (!pinned) show('', false); });
+    });
+    document.addEventListener('click', function () { if (pinned) { pinned = ''; show('', false); } });
+    window.addEventListener('scroll', function () { if (!tip.hidden && pinned) show(pinned, true); }, { passive: true });
+    window.addEventListener('resize', function () { if (pinned) show(pinned, true); });
+})();
+</script>
+{{- end }}

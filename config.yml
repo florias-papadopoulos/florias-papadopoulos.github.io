@@ -29,8 +29,11 @@ module:
 
 menu:
   main:
-    - name: Before PhD
-      url: /projects/
+    - name: Bachelor
+      url: /bachelor/
+      weight: 1
+    - name: Master
+      url: /master/
       weight: 1
     - name: Games
       url: /games/
@@ -65,20 +68,35 @@ params:
   profileMode:
     enabled: true
     title: Florias Papadopoulos
-    subtitle: |-
-      👨🏻‍💻 My name is Florias Papadopoulos (Φλωριάς Παπαδόπουλος). <br>
-      I am currently a doctoral researcher at the “Cybersecurity and Applied Cryptography” lab, under the supervision of Prof. Katerina Mitrokotsa, at the University of St. Gallen, Switzerland (HSG).
-
-      🔬 My current research interests lie in provable security, post-quantum cryptography, and privacy-preserving protocols, with a particular focus on designing secure and efficient systems for **proximity tracking** and **collision avoidance**.
-
-      📚 As for my previous education, I obtained both my BSc degree in “Mathematics” and my MSc degree in “Theoretical Computer Science and Control Theory” at the Aristotle University of Thessaloniki, Greece (AUTh).
-    imageUrl: my_profile.jpeg
+    nativeName: Φλωριάς Παπαδόπουλος
+    role: Doctoral researcher in cryptography
+    interests: [Provable security, Post-quantum cryptography, Privacy-preserving protocols]
+    focus: Designing secure and efficient systems for **proximity tracking** and **collision avoidance**.
+    # Stops on the map (ids match the markers drawn by tools/make_map.py), oldest first.
+    # "projects" lists the projects whose context starts with that word, in a hover tab.
+    journey:
+      - stop: gr
+        place: Thessaloniki, Greece
+        school: Aristotle University of Thessaloniki (AUTh)
+        items:
+          - label: BSc in Mathematics
+            projects: Bachelor
+          - label: MSc in Theoretical Computer Science and Control Theory
+            projects: Master
+      - stop: ch
+        place: St. Gallen, Switzerland
+        school: University of St. Gallen (HSG)
+        items:
+          - label: Doctoral researcher, Cybersecurity and Applied Cryptography lab, supervised by Prof. Katerina Mitrokotsa
+    imageUrl: my_profile_square.jpg
     imageTitle: Florias Papadopoulos
-    imageWidth: 160
-    imageHeight: 160
+    imageWidth: 120
+    imageHeight: 120
     buttons:
-      - name: Before PhD
-        url: /projects/
+      - name: Bachelor
+        url: /bachelor/
+      - name: Master
+        url: /master/
       - name: Games
         url: /games/
 
