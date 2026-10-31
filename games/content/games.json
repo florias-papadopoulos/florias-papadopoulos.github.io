@@ -1,0 +1,14 @@
+[
+  {
+    "id": "msc",
+    "degree": "MSc",
+    "title": "Advanced Cybersecurity",
+    "status": "open"
+  },
+  {
+    "id": "bsc",
+    "degree": "BSc",
+    "title": "Cybersecurity",
+    "status": "soon"
+  }
+]
