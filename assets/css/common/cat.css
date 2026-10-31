@@ -117,12 +117,11 @@
 .cat .ink-line { fill: none; stroke: #3b2a1e; stroke-width: 1.8; stroke-linecap: round; }
 .cat .whisker { stroke: #8a6a50; stroke-width: 0.8; stroke-linecap: round; }
 .cat .tuft { fill: none; stroke: #fff4e2; stroke-width: 1.1; stroke-linecap: round; }
-/* a lighter face: softer outline, stripes and whiskers on the head only */
-.cat .cat-head .ol { stroke: #7a5638; stroke-width: 1.6; }
-.cat .cat-head .stripe { stroke: #eb9a45; stroke-width: 2; }
-.cat .cat-head .whisker { stroke: #c9ad95; stroke-width: 0.7; }
-.cat .cat-head .sclera { stroke-width: 1; }
-.cat .cat-head .ink-line { stroke: #6b4a33; }
+/* the face uses the body's colours, with slightly finer lines */
+.cat .cat-head .ol { stroke-width: 1.8; }
+.cat .cat-head .stripe { stroke-width: 2.2; }
+.cat .cat-head .whisker { stroke: #9a7a60; stroke-width: 0.75; }
+.cat .cat-head .sclera { stroke-width: 1.1; }
 .cat .toe { fill: none; stroke: #3b2a1e; stroke-width: 1; stroke-linecap: round; }
 .cat .tail-ol { fill: none; stroke: #3b2a1e; stroke-width: 9.6; stroke-linecap: round; }
 .cat .tail-fur { fill: none; stroke: #f5a03c; stroke-width: 5.8; stroke-linecap: round; }
