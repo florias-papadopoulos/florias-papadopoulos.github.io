@@ -1,42 +1,55 @@
-/* Home page: centered profile (layouts/partials/index_profile.html) */
+/* Home page: centered profile (layouts/partials/index_profile.html).
+   Sized to fit one laptop screen above the mountains at the bottom (layouts/partials/cat.html). */
 
 :root {
     --gr: #2f6db5;
     --ch: #d0392b;
+    --gap-v: clamp(8px, 1.6vh, 16px);
 }
 
-.main:has(.profile.home) { max-width: 900px; }
-/* Room above the photo, so the cat can sit on it and its purr bubble stays visible */
-.main .profile.home { justify-content: center; align-items: center; padding: 76px 16px 32px; }
+.main:has(.profile.home) { max-width: 920px; min-height: 0; padding-top: 0; padding-bottom: 0; }
+.main .profile.home {
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(20px, 4vh, 44px) 16px 104px;     /* bottom: room for the mountains */
+}
 
-.home-panel { width: 100%; align-items: center !important; gap: 18px !important; text-align: center; }
+.home-panel { width: 100%; align-items: center !important; gap: var(--gap-v) !important; text-align: center; }
 
-/* Photo above the name */
-.id-row { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.profile-photo { border: 5px solid #fff !important; box-shadow: 0 10px 32px rgba(31, 45, 58, 0.18); object-fit: cover; }
-.name-block h1 { margin: 0; font-size: clamp(2.3rem, 6vw, 3.3rem) !important; line-height: 1.1; }
-.native-name { margin: 4px 0 0; color: var(--secondary); font-size: 1.25rem; }
-.role { margin: 10px 0 0; font-size: 1.35rem; font-weight: 600; }
+/* Photo beside the name */
+.id-row { display: flex; align-items: center; justify-content: center; gap: 22px; text-align: left; }
+.id-row .profile-photo {
+    flex: none;
+    width: clamp(88px, 14vh, 136px);
+    height: clamp(88px, 14vh, 136px);
+    border: 4px solid #fff !important;
+    box-shadow: 0 8px 26px rgba(31, 45, 58, 0.18);
+    object-fit: cover;
+}
+.name-block h1 { margin: 0; font-size: clamp(2rem, 5vh, 2.9rem) !important; line-height: 1.1; white-space: nowrap; }
+.native-name { margin: 2px 0 0; color: var(--secondary); font-size: 1.05rem; }
+.role { margin: 6px 0 0; font-size: 1.12rem; font-weight: 600; }
 
 .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.chips li { padding: 5px 14px; border-radius: 999px; background: #eaf1f8; color: #2c4a66; font-size: 0.95rem; }
-.focus { max-width: 34em; margin: 0; color: var(--secondary); font-size: 1.15rem; }
+.chips li { padding: 4px 13px; border-radius: 999px; background: #eaf1f8; color: #2c4a66; font-size: 0.9rem; }
+.focus { max-width: 42em; margin: 0; color: var(--secondary); font-size: 1rem; }
 
 /* Journey: two cards, Greece then Switzerland */
 .journey {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 28px;
+    gap: 26px;
     width: 100%;
-    margin: 10px 0 0;
+    margin: 2px 0 0;
     padding: 0;
     list-style: none;
     text-align: left;
 }
 .journey-stop {
     position: relative;
-    padding: 20px 20px 20px 48px;
-    border-radius: 18px;
+    padding: 14px 16px 14px 42px;
+    border-radius: 16px;
     background: var(--entry);
     box-shadow: 0 6px 24px rgba(31, 45, 58, 0.08);
 }
@@ -44,25 +57,25 @@
     content: "\2192";
     position: absolute;
     top: 50%;
-    right: -14px;
+    right: -13px;
     transform: translate(50%, -50%);
     color: #9fb2c4;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
 }
 .journey-dot {
     position: absolute;
-    left: 18px;
-    top: 25px;
-    width: 16px;
-    height: 16px;
+    left: 16px;
+    top: 19px;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
     background: #fff;
     border: 4px solid var(--gr);
 }
 .journey-stop[data-stop="ch"] .journey-dot { border-color: var(--ch); }
-.journey-place { font-size: 1.15rem; font-weight: 700; }
-.journey-school { color: var(--secondary); font-size: 0.95rem; }
-.journey-items { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 1rem; }
+.journey-place { font-size: 1.05rem; font-weight: 700; }
+.journey-school { color: var(--secondary); font-size: 0.88rem; }
+.journey-items { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 0.92rem; }
 
 /* Degree buttons with a hover tab listing the projects */
 .journey-item { position: relative; }
@@ -71,15 +84,15 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
+    padding: 5px 11px;
     border: 1px solid #d3dee9;
     border-radius: 10px;
     background: var(--theme);
     text-align: left;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
-.degree .count { padding: 1px 9px; border-radius: 999px; background: #eaf1f8; color: #2c4a66; font-size: 0.8rem; white-space: nowrap; }
+.degree .count { padding: 1px 9px; border-radius: 999px; background: #eaf1f8; color: #2c4a66; font-size: 0.78rem; white-space: nowrap; }
 .journey-item:hover .degree, .degree:focus-visible { border-color: var(--gr); }
 
 .degree-pop {
@@ -104,13 +117,41 @@
 .degree-pop .pop-all { margin-top: 2px; border-top: 1px solid #edf1f5; border-radius: 0 0 8px 8px; color: var(--gr); font-weight: 600; }
 
 .home .social-icons { justify-content: center; }
+.home .social-icons a { padding: 0 6px; }
 .home .buttons { justify-content: center; }
-.home .button { font-size: 1.05rem; }
+.home .button { margin-top: 0; margin-bottom: 0; }
+
+/* The footer sits on the mountains, at the bottom of the page */
+body:has(.profile.home) { position: relative; }
+body:has(.profile.home) .footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 4px;
+    z-index: 2;
+    background: transparent;
+    font-size: 12px;
+}
 
 @media (max-width: 760px) {
-    .journey { grid-template-columns: 1fr; gap: 16px; }
+    .journey { grid-template-columns: 1fr; gap: 12px; }
     .journey-stop:first-child::after { content: none; }
     .journey-stop:last-child .degree-pop { left: 0; right: auto; }
-    .role { font-size: 1.15rem; }
-    .focus { font-size: 1.05rem; }
+}
+
+/* Phones: photo above the name, everything a size smaller, name on one line */
+@media (max-width: 600px) {
+    .main .profile.home { padding: 22px 12px 124px; }
+    .id-row { flex-direction: column; gap: 10px; text-align: center; }
+    .id-row .profile-photo { width: 92px; height: 92px; }
+    .name-block h1 { font-size: clamp(1.45rem, 7vw, 2rem) !important; }
+    .native-name { font-size: 0.95rem; }
+    .role { font-size: 0.98rem; }
+    .chips li { font-size: 0.8rem; padding: 3px 10px; }
+    .focus { font-size: 0.92rem; }
+    .journey-stop { padding: 12px 14px 12px 38px; }
+    .journey-dot { left: 13px; top: 17px; }
+    .journey-place { font-size: 1rem; }
+    .degree { font-size: 0.85rem; }
+    .home .button { font-size: 0.95rem; }
 }

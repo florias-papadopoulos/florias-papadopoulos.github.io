@@ -1,30 +1,62 @@
-{{- /* A cat that roams the home page: it hops between page elements (photo, name, chips, cards, buttons)
-       and, on wide screens, a playground in the side margins. It bats letters of the name, nudges chips,
-       naps, teleports between two portals, and can be petted with a click. Styles: assets/css/common/cat.css */ -}}
+{{- /* A cartoon cat living on the home page. It walks, runs and climbs along a mountain range at the
+       bottom of the page (with snow, pines, a flag, a yarn ball, a floating cushion and two portals), hops up
+       the page elements one at a time (buttons, cards, chips, name, photo), bats letters of the name, nudges
+       chips, grooms, naps, and can be petted with a click. Styles: assets/css/common/cat.css */ -}}
+<div class="world-layer" id="world-layer" aria-hidden="true"><svg class="terrain" id="terrain"></svg></div>
 <div class="cat-layer" id="cat-layer">
     <div class="cat" id="cat" role="button" tabindex="0" aria-label="A cat. Click to pet it.">
-        <div class="cat-flip">
-            <svg viewBox="0 0 72 58" width="72" height="58" aria-hidden="true">
-                <g class="cat-tail"><path d="M14 44C3 40 1 25 9 16" stroke="#e08a3c" stroke-width="7" fill="none" stroke-linecap="round"/></g>
-                <g class="cat-legs" fill="#e08a3c"><rect x="19" y="49" width="6" height="9" rx="3"/><rect x="38" y="49" width="6" height="9" rx="3"/></g>
-                <ellipse cx="31" cy="44" rx="20" ry="12" fill="#f4a259"/>
-                <path d="M24 33q2 6 0 12M31 32q2 7 0 13M38 33q2 6 0 12" stroke="#e08a3c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                <ellipse class="cat-paw" cx="49" cy="54" rx="4.5" ry="3.5" fill="#f4a259"/>
-                <g class="cat-head">
-                    <path d="M44 15L46 2l9 9zM57 11l8-9 2 13z" fill="#f4a259"/>
-                    <path d="M46.5 12l1-6 4 4zM60 10l4-4 .5 6z" fill="#ffc2c7"/>
-                    <circle cx="55" cy="23" r="13" fill="#f4a259"/>
-                    <path d="M51 12q4 3 8 0" stroke="#e08a3c" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <g class="eyes-open" fill="#2b2b2b"><ellipse cx="50" cy="22" rx="2" ry="3"/><ellipse cx="60" cy="22" rx="2" ry="3"/></g>
-                    <g class="eyes-happy" stroke="#2b2b2b" stroke-width="1.8" fill="none" stroke-linecap="round"><path d="M47.5 23q2.5-3.5 5 0M57.5 23q2.5-3.5 5 0"/></g>
-                    <g class="eyes-sleep" stroke="#2b2b2b" stroke-width="1.8" stroke-linecap="round"><path d="M47.5 22.5h5M57.5 22.5h5"/></g>
-                    <g class="cat-blush" fill="#ff8fa3" opacity=".6"><ellipse cx="46.5" cy="27.5" rx="2.6" ry="1.6"/><ellipse cx="63.5" cy="27.5" rx="2.6" ry="1.6"/></g>
-                    <path d="M53.5 26.5h3l-1.5 2z" fill="#ff8fa3"/>
-                    <path d="M55 28.5q-1.5 2.5-3.5 1.5M55 28.5q1.5 2.5 3.5 1.5" stroke="#2b2b2b" stroke-width="1" fill="none" stroke-linecap="round"/>
-                    <path d="M44 26l-9-1M44 28.5l-9 1.5M66 26l9-1M66 28.5l9 1.5" stroke="#8a6a50" stroke-width=".8" stroke-linecap="round"/>
+        <div class="cat-tilt"><div class="cat-flip">
+        <svg viewBox="0 0 110 90" aria-hidden="true">
+            <!-- standing (moving) -->
+            <g class="p-stand"><g class="body-bob">
+                <g class="leg bf fur-dark ol"><rect x="30" y="54" width="9" height="28" rx="4.5"/><ellipse cx="35" cy="84" rx="6" ry="3.4"/></g>
+                <g class="leg ff fur-dark ol"><rect x="72" y="54" width="9" height="28" rx="4.5"/><ellipse cx="78" cy="84" rx="6" ry="3.4"/></g>
+                <g class="tail"><path class="tail-ol" d="M27 52C12 46 8 30 15 20c3-4 8-3 7 2"/><path class="tail-fur" d="M27 52C12 46 8 30 15 20c3-4 8-3 7 2"/></g>
+                <path class="fur ol" d="M24 49c0-10 9-15 26-14h18c13 0 19 7 17 17-2 10-10 12-20 12H40c-12 0-17-6-16-15z"/>
+                <path class="cream" d="M40 62c8 3 22 3 30 0-2 2-6 3-15 3s-13-1-15-3z"/>
+                <path class="stripe" d="M44 37q3 6 1 12M53 36q3 7 1 13M62 36q3 6 1 12"/>
+                <g class="leg bn fur ol"><rect x="36" y="54" width="9" height="28" rx="4.5"/><ellipse cx="41" cy="84" rx="6" ry="3.4"/></g>
+                <g class="leg fn fur ol"><rect x="66" y="54" width="9" height="28" rx="4.5"/><ellipse cx="72" cy="84" rx="6" ry="3.4"/></g>
+            </g></g>
+            <!-- sitting (idle) -->
+            <g class="p-sit">
+                <g class="tail"><path class="tail-ol" d="M40 82C24 88 12 82 16 72c2-5 8-4 8 0"/><path class="tail-fur" d="M40 82C24 88 12 82 16 72c2-5 8-4 8 0"/></g>
+                <ellipse class="fur-dark ol" cx="74" cy="84" rx="6" ry="3.4"/>
+                <path class="fur ol" d="M38 84c-6-18 2-38 22-40 16-1 22 16 16 40z"/>
+                <path class="cream" d="M58 50c8 1 12 12 9 30-4 2-10 2-14 0-3-14-1-28 5-30z"/>
+                <ellipse class="fur ol" cx="46" cy="72" rx="13" ry="13"/>
+                <path class="stripe" d="M38 62q5 3 4 9M44 58q5 4 4 10"/>
+                <ellipse class="fur ol" cx="52" cy="85" rx="8" ry="3.6"/>
+                <g class="paw-arm"><rect class="fur ol" x="65" y="56" width="9" height="28" rx="4.5"/><ellipse class="fur ol" cx="70" cy="84" rx="6" ry="3.4"/></g>
+            </g>
+            <!-- curled up (sleeping) -->
+            <g class="p-sleep">
+                <ellipse class="fur ol" cx="52" cy="74" rx="32" ry="15"/>
+                <path class="stripe" d="M40 62q3 5 1 10M50 60q3 6 1 11M60 61q3 5 1 10"/>
+                <path class="tail-ol" d="M22 76c2 16 52 18 64 4"/><path class="tail-fur" d="M22 76c2 16 52 18 64 4"/>
+            </g>
+            <!-- head (moved by pose) -->
+            <g class="cat-head">
+                <path class="fur ol" d="M-15-7l1-19 12 10zM3-16l12-10 2 19z"/>
+                <path class="pink" d="M-12-10l1-11 6 6zM6-15l7-6 1 10z"/>
+                <ellipse class="fur ol" cx="0" cy="0" rx="18" ry="15.5"/>
+                <path class="stripe" d="M-4-14q0 4-1 6M1-15v6M6-14q0 4 1 6"/>
+                <ellipse class="cream" cx="3" cy="7" rx="10" ry="6.5"/>
+                <g class="eye-open">
+                    <ellipse fill="#fff" class="ol" stroke-width="1.3" cx="-6" cy="-2" rx="4.4" ry="5.4"/>
+                    <ellipse fill="#fff" class="ol" stroke-width="1.3" cx="8" cy="-2" rx="4.4" ry="5.4"/>
+                    <ellipse class="ink" cx="-5" cy="-1.5" rx="2.6" ry="3.8"/><ellipse class="ink" cx="9" cy="-1.5" rx="2.6" ry="3.8"/>
+                    <circle fill="#fff" cx="-4" cy="-3.4" r="1.1"/><circle fill="#fff" cx="10" cy="-3.4" r="1.1"/>
                 </g>
-            </svg>
-        </div>
+                <path class="eye-happy ink-line" d="M-9.5-1q3.5-4.5 7 0M4.5-1q3.5-4.5 7 0"/>
+                <path class="eye-sleep ink-line" d="M-9.5-2q3.5 3.5 7 0M4.5-2q3.5 3.5 7 0"/>
+                <g class="blush pink" opacity=".7"><ellipse cx="-11" cy="6" rx="3" ry="1.8"/><ellipse cx="14" cy="6" rx="3" ry="1.8"/></g>
+                <path class="pink" d="M1 4h4l-2 2.4z"/>
+                <path class="ink-line" stroke-width="1.2" d="M3 6.5q-1.8 3-4 1.6M3 6.5q1.8 3 4 1.6"/>
+                <path class="whisker" d="M12 6l13-2M12 8.5l13 2M-7 6l-12-2M-7 8.5l-12 2"/>
+            </g>
+        </svg>
+        </div></div>
     </div>
 </div>
 
@@ -32,20 +64,27 @@
 (function () {
     var layer = document.getElementById('cat-layer');
     var cat = document.getElementById('cat');
-    if (!layer || !cat) return;
-    document.body.appendChild(layer);            /* page coordinates, also over the side margins */
+    var world = document.getElementById('world-layer');   /* mountains and props, behind the page */
+    var svgT = document.getElementById('terrain');
+    var panel = document.querySelector('.home .home-panel');
+    if (!layer || !cat || !panel || !world) return;
+    document.body.appendChild(world);              /* page coordinates, including the side margins */
+    document.body.appendChild(layer);
 
+    var NS = 'http://www.w3.org/2000/svg';
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var CW = 72, CH = 58;
-    var pos = { x: 0, y: 0 };                    /* where the cat's feet are, in layer coordinates */
-    var perch = null, timer = null, moving = false;
-    var pg = [], yarn = null;
+    var CW = 88, CH = 72;
+    var pos = { x: 0, y: 0 };                      /* where the cat's feet are, in layer coordinates */
+    var at = null;                                 /* current perch: {el, kind} or {kind: 'ground'} */
+    var timer = null, moving = false;
+    var mood = 'page', moodLeft = 3;                /* 'page' or 'mountains', switches every few moves */
+    var ridge = [], props = {};
     var pets = 0;
     try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
 
     /* Letters of the name become separate spans the cat can bat */
     var h1 = document.querySelector('.home .name-block h1');
-    if (h1) {
+    if (h1 && !h1.querySelector('.ltr')) {
         var name = h1.textContent.trim();
         h1.setAttribute('aria-label', name);
         h1.textContent = '';
@@ -60,71 +99,120 @@
 
     function rel(el) {
         var r = el.getBoundingClientRect(), L = layer.getBoundingClientRect();
-        return { x: r.left - L.left, y: r.top - L.top, w: r.width, h: r.height, vis: r.bottom > 0 && r.top < window.innerHeight };
+        return { x: r.left - L.left, y: r.top - L.top, w: r.width, h: r.height };
+    }
+    function onScreen(y) {
+        var top = y + layer.getBoundingClientRect().top;
+        return top > -40 && top < window.innerHeight + 40;
     }
 
-    /* ---------- playground in the side margins (wide screens only) ---------- */
-    function add(cls, x, y, w, h, kind) {
-        var d = document.createElement('div');
-        d.className = 'pg ' + cls;
-        d.setAttribute('aria-hidden', 'true');
-        d.style.left = x + 'px';
-        d.style.top = y + 'px';
-        if (w) d.style.width = w + 'px';
-        if (h) d.style.height = h + 'px';
-        layer.insertBefore(d, cat);
-        if (kind) pg.push({ el: d, kind: kind });
-        return d;
+    /* ---------- mountains ---------- */
+    function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        (parent || svgT).appendChild(e);
+        return e;
     }
-    function buildPlayground() {
-        Array.prototype.forEach.call(layer.querySelectorAll('.pg'), function (e) { e.remove(); });
-        pg = [];
-        yarn = null;
-        var W = layer.clientWidth;
-        var panel = rel(document.querySelector('.home .home-panel'));
-        var gutter = Math.min(panel.x, W - panel.x - panel.w) - 10;
-        if (gutter < 190) return;
-        var floor = Math.max(parseFloat(layer.style.height) - 40, 640);
-        var c = gutter / 2, rc = W - gutter / 2;
-
-        /* left: floor, cat tree with a swinging pompom, floating cushion, yarn, portal */
-        add('pg-floor', 14, floor, gutter - 28, 2, 'floor');
-        add('pg-post', c - 9, floor - 420, 18, 420);
-        add('pg-plat', c - 60, floor - 420, 120, 14, 'plat');
-        add('pg-plat', c - 70, floor - 280, 110, 14, 'plat');
-        add('pg-plat', c - 30, floor - 140, 100, 14, 'plat');
-        add('pg-string', c + 46, floor - 406, 2, 70);
-        if (floor - 560 > 60) add('pg-cushion', 22, floor - 560, 96, 22, 'cushion');
-        yarn = add('pg-yarn', c + 34, floor - 30, 30, 30);
-        add('pg-portal', 10, floor - 76, 58, 74, 'portal');
-
-        /* right: boxes, hammock, shelf with a fishbowl, clock with a tail pendulum, portal */
-        add('pg-floor', W - gutter + 14, floor, gutter - 28, 2, 'floor');
-        add('pg-box', rc - 52, floor - 70, 104, 70);
-        add('pg-box', rc - 30, floor - 120, 62, 50, 'box');
-        add('pg-pole', rc - 74, floor - 330, 6, 330);
-        add('pg-pole', rc + 68, floor - 330, 6, 330);
-        add('pg-hammock', rc - 70, floor - 318, 140, 34, 'hammock');
-        add('pg-shelf', rc - 64, floor - 470, 128, 10, 'plat');
-        add('pg-bowl', rc + 12, floor - 512, 44, 40);
-        if (floor - 640 > 30) {
-            add('pg-clock', rc - 40, floor - 640, 46, 46);
-            add('pg-tail', rc - 20, floor - 590, 6, 46);
+    function groundY(x) {
+        if (x <= ridge[0].x) return ridge[0].y;
+        for (var i = 1; i < ridge.length; i++) {
+            if (x <= ridge[i].x) {
+                var a = ridge[i - 1], b = ridge[i], t = (x - a.x) / (b.x - a.x);
+                return a.y + (b.y - a.y) * t;
+            }
         }
-        add('pg-portal', W - 68, floor - 76, 58, 74, 'portal');
+        return ridge[ridge.length - 1].y;
+    }
+    /* slope in degrees seen in the direction of travel: negative = uphill */
+    function slope(x, dir) {
+        return Math.atan2(groundY(x + 4 * (dir || 1)) - groundY(x), 4) * 180 / Math.PI;
+    }
+    function buildTerrain() {
+        while (svgT.firstChild) svgT.removeChild(svgT.firstChild);
+        Array.prototype.forEach.call(world.querySelectorAll('.prop'), function (p) { p.remove(); });
+        var W = layer.clientWidth, F = parseFloat(layer.style.height);
+        var p = rel(panel);
+        var side = Math.max(0, Math.min(p.x, W - p.x - p.w));
+        var wide = side > 160;
+        var peak = wide ? Math.min(430, window.innerHeight * 0.48) : 130;
+        var mid = wide ? 78 : 64;
+        var xm = Math.max(side, W * 0.2);
+        var L = [[0, .5], [.16, .74], [.3, .6], [.5, 1], [.68, .64], [.84, .8], [1, .36]];
+        var R = [[0, .4], [.14, .78], [.3, .62], [.48, 1.06], [.66, .7], [.82, .84], [1, .52]];
+        var pts = L.map(function (q) { return { x: q[0] * xm, y: F - q[1] * peak }; });
+        var n = Math.max(2, Math.round((W - 2 * xm) / 110));
+        for (var i = 1; i < n; i++) {
+            var h = mid * (0.7 + 0.35 * Math.sin(i * 1.7) + 0.15 * Math.cos(i * 3.1));
+            pts.push({ x: xm + (W - 2 * xm) * i / n, y: F - h });
+        }
+        R.forEach(function (q) { pts.push({ x: W - xm + q[0] * xm, y: F - q[1] * peak }); });
+        ridge = pts;
+
+        svgT.setAttribute('width', W);
+        svgT.setAttribute('height', F + 2);
+        var back = pts.map(function (q, i) { return (q.x) + ',' + (q.y - 34 - 26 * Math.sin(i * 1.3)); });
+        el('polygon', { 'class': 't-back', points: '0,' + F + ' ' + back.join(' ') + ' ' + W + ',' + F });
+        el('polygon', { 'class': 't-ground', points: '0,' + (F + 4) + ' ' + pts.map(function (q) { return q.x + ',' + q.y; }).join(' ') + ' ' + W + ',' + (F + 4) });
+        /* snow on the high peaks, pines in the low parts */
+        var top = null;
+        for (var j = 1; j < pts.length - 1; j++) {
+            var a = pts[j - 1], b = pts[j], c = pts[j + 1];
+            if (F - b.y > peak * 0.82 && b.y < a.y && b.y < c.y) {
+                var dl = 26 / (a.y - b.y), dr = 26 / (c.y - b.y);
+                var lx = b.x + (a.x - b.x) * dl, rx = b.x + (c.x - b.x) * dr;
+                el('polygon', { 'class': 't-snow', points: [b.x + ',' + b.y, rx + ',' + (b.y + 26), (b.x + (rx - b.x) * .45) + ',' + (b.y + 18),
+                    b.x + ',' + (b.y + 24), (b.x + (lx - b.x) * .45) + ',' + (b.y + 18), lx + ',' + (b.y + 26)].join(' ') });
+                if (!top || b.y < top.y) top = b;
+            }
+        }
+        for (var k = 0; k < pts.length; k++) {
+            var q = pts[k];
+            if (F - q.y < peak * 0.55 && k % 2 === 0 && k > 0 && k < pts.length - 1) {
+                var tx = q.x + 18, ty = groundY(tx) + 4;
+                el('polygon', { 'class': 't-pine', points: tx + ',' + (ty - 30) + ' ' + (tx + 9) + ',' + ty + ' ' + (tx - 9) + ',' + ty });
+            }
+        }
+        if (wide && top) {
+            el('line', { 'class': 't-pole', x1: top.x, y1: top.y + 2, x2: top.x, y2: top.y - 36 });
+            el('polygon', { 'class': 't-flag', points: top.x + ',' + (top.y - 36) + ' ' + (top.x + 24) + ',' + (top.y - 30) + ' ' + top.x + ',' + (top.y - 24) });
+        }
+        /* props */
+        function prop(cls, x, yBottom, w, h) {
+            var d = document.createElement('div');
+            d.className = 'prop ' + cls;
+            d.setAttribute('aria-hidden', 'true');
+            d.style.left = (x - w / 2) + 'px';
+            d.style.top = (yBottom - h) + 'px';
+            world.appendChild(d);
+            return { el: d, x: x, w: w, h: h };
+        }
+        var yx = xm + (W - 2 * xm) * 0.18;
+        props.yarn = prop('prop-yarn', yx, groundY(yx) + 2, 26, 26);
+        props.yarn.x0 = yx;
+        props.portals = [];
+        if (wide) {
+            var px1 = Math.min(40, xm * 0.12) + 26, px2 = W - px1;
+            props.portals.push(prop('prop-portal', px1, groundY(px1) + 4, 50, 66));
+            props.portals.push(prop('prop-portal', px2, groundY(px2) + 4, 50, 66));
+        }
+        props.cushion = null;
+        if (wide) {
+            var cx = xm * 0.5, cy = F - peak - 90;
+            if (cy > 40) props.cushion = prop('prop-cushion', cx, cy, 92, 20);
+        }
     }
 
     function sizeLayer() {
-        layer.style.height = '0px';
-        layer.style.height = document.documentElement.scrollHeight + 'px';
+        layer.style.height = world.style.height = '0px';
+        layer.style.height = world.style.height = document.documentElement.scrollHeight + 'px';
     }
 
-    /* ---------- perches: page elements plus the playground ---------- */
+    /* ---------- perches on the page ---------- */
     function perches() {
         var list = [];
         function push(sel, kind) {
-            Array.prototype.forEach.call(document.querySelectorAll(sel), function (el) {
-                if (el.getBoundingClientRect().width > 20) list.push({ el: el, kind: kind });
+            Array.prototype.forEach.call(document.querySelectorAll(sel), function (e) {
+                if (e.getBoundingClientRect().width > 24) list.push({ el: e, kind: kind });
             });
         }
         push('.home .profile-photo', 'photo');
@@ -133,90 +221,224 @@
         push('.home .journey-stop', 'card');
         push('.home .social-icons', 'icons');
         push('.home .buttons .button', 'button');
-        return list.concat(pg);
+        if (props.cushion) list.push({ el: props.cushion.el, kind: 'cushion' });
+        return list;
     }
-    function spot(p) {
+    function spotOn(p, fx) {
         var r = rel(p.el);
-        if (p.fx === undefined) p.fx = Math.random();
-        var pad = Math.min(24, r.w / 2);
-        var x = r.x + pad + (r.w - 2 * pad) * p.fx;
-        var y = p.kind === 'hammock' ? r.y + r.h - 6 : p.kind === 'portal' ? r.y + r.h : r.y;
-        return { x: x, y: y, vis: r.vis };
+        var pad = Math.min(26, r.w / 2);
+        if (p.kind === 'name') {           /* sit on the text, not on the line box */
+            var l = h1.querySelectorAll('.ltr');
+            var lr = rel(l[Math.floor(fx * (l.length - 1))]);
+            return { x: lr.x + lr.w / 2, y: lr.y + lr.h * 0.18 };
+        }
+        return { x: r.x + pad + (r.w - 2 * pad) * fx, y: r.y };
     }
 
-    function place(pt) {
-        pos = { x: pt.x, y: pt.y };
-        cat.style.left = (pt.x - CW / 2) + 'px';
-        cat.style.top = (pt.y - CH + 3) + 'px';
+    function place(x, y) {
+        pos = { x: x, y: y };
+        cat.style.left = (x - CW / 2) + 'px';
+        cat.style.top = (y - CH + 3) + 'px';
     }
     function face(dx) {
-        if (dx < -2) cat.classList.add('left');
-        else if (dx > 2) cat.classList.remove('left');
+        if (dx < -1) cat.classList.add('left');
+        else if (dx > 1) cat.classList.remove('left');
     }
+    function tilt(deg) { cat.style.setProperty('--tilt', (deg || 0).toFixed(1) + 'deg'); }
     function next(delay) {
         clearTimeout(timer);
         if (!reduce) timer = setTimeout(decide, delay);
     }
+    function pose(cls) {
+        cat.classList.remove('walk', 'run', 'climb', 'jump', 'crouch');
+        if (cls) cls.split(' ').forEach(function (c) { cat.classList.add(c); });
+    }
 
-    function moveTo(p, then) {
-        p.fx = undefined;
-        var target = spot(p);
-        var dx = target.x - pos.x, dy = target.y - pos.y;
-        face(dx);
-        if (reduce) { place(target); perch = p; return; }
-        var walk = Math.abs(dy) < 8 && Math.abs(dx) < 320;
-        var dist = Math.sqrt(dx * dx + dy * dy);
-        var dur = walk ? Math.max(350, Math.abs(dx) * 7) : Math.min(1500, 520 + dist * 0.7);
-        var arc = walk ? 0 : 50 + Math.min(150, Math.abs(dx) * 0.2) + Math.max(0, -dy) * 0.25;
-        var x0 = pos.x, y0 = pos.y, t0 = performance.now();
-        moving = true;
-        cat.classList.remove('sleep', 'groom');
-        cat.classList.add(walk ? 'walk' : 'jump');
+    /* ---------- movement ---------- */
+    function animate(dur, frame, done) {
+        var t0 = performance.now();
         function step(now) {
             var t = Math.min(1, (now - t0) / dur);
-            var e = walk ? t : t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-            place({ x: x0 + dx * e, y: y0 + dy * t - arc * 4 * t * (1 - t) });
-            if (t < 1) { requestAnimationFrame(step); return; }
-            cat.classList.remove('walk', 'jump');
-            moving = false;
-            perch = p;
-            (then || arrive)(p);
+            frame(t);
+            if (t < 1) requestAnimationFrame(step); else done();
         }
         requestAnimationFrame(step);
     }
+    /* walk or run along the ridge, tilting with the slope */
+    function walkGround(x1, done) {
+        x1 = Math.max(30, Math.min(layer.clientWidth - 30, x1));
+        var x0 = pos.x, dx = x1 - x0;
+        if (Math.abs(dx) < 3) return done();
+        var dir = Math.sign(dx), x = x0, last = performance.now(), gait = '';
+        face(dx);
+        moving = true;
+        cat.classList.add('moving');
+        /* speed per step: climb slowly up steep slopes, gallop on long gentle stretches, walk otherwise */
+        function step(now) {
+            var dt = Math.min(0.05, (now - last) / 1000);
+            last = now;
+            var s = slope(x, dir), left = Math.abs(x1 - x);
+            var steep = Math.abs(s) > 30;
+            var g = steep ? 'walk climb' : left > 260 ? 'run' : 'walk';
+            var speed = steep ? (s < 0 ? 70 : 120) : g === 'run' ? 260 : 95;
+            if (left < 40) speed = Math.max(55, speed * left / 40);
+            if (g !== gait) { pose(g); gait = g; }
+            x += dir * Math.min(left, speed * dt);
+            tilt(Math.max(-55, Math.min(55, dir * s)));
+            place(x, groundY(x));
+            if (Math.abs(x1 - x) > 0.5) requestAnimationFrame(step);
+            else { pose(''); tilt(0); done(); }
+        }
+        requestAnimationFrame(step);
+    }
+    /* crouch, leap along a parabola, land with a squash */
+    function leap(x1, y1, done) {
+        var x0 = pos.x, y0 = pos.y, dx = x1 - x0, dy = y1 - y0;
+        face(dx);
+        moving = true;
+        cat.classList.add('moving');
+        pose('crouch');
+        setTimeout(function () {
+            var apex = Math.min(y0, y1) - 40 - Math.min(60, Math.abs(dx) * 0.08);
+            var dur = 380 + Math.sqrt(Math.abs(dy) + Math.abs(dx) * 0.5) * 22;
+            var lead = Math.sign(dx || 1);
+            pose('jump');
+            animate(dur, function (t) {
+                /* quadratic through (0,y0), (0.5,apex), (1,y1) */
+                var a = 2 * y0 + 2 * y1 - 4 * apex, b = -3 * y0 - y1 + 4 * apex;
+                var y = a * t * t + b * t + y0;
+                tilt(lead * (t < 0.5 ? -10 : 8));
+                place(x0 + dx * t, y);
+            }, function () {
+                pose('');
+                tilt(0);
+                cat.classList.remove('land');
+                void cat.offsetWidth;
+                cat.classList.add('land');
+                done();
+            });
+        }, reduce ? 0 : 160);
+    }
+    function settle(p) {
+        moving = false;
+        cat.classList.remove('moving');
+        at = p;
+        arrive(p);
+    }
 
-    /* ---------- what the cat does where it lands ---------- */
+    function goTo(target) {
+        clearTimeout(timer);
+        if (reduce) { place(target.x, target.y); at = target.p; return; }
+        var fromGround = at && at.kind === 'ground';
+        if (target.p.kind === 'ground') {
+            if (fromGround) return walkGround(target.x, function () { settle(target.p); });
+            /* jump down next to where we are, then walk */
+            var lx = pos.x + (target.x > pos.x ? 60 : -60);
+            return leap(lx, groundY(lx), function () { walkGround(target.x, function () { settle(target.p); }); });
+        }
+        if (fromGround) {
+            /* walk under the target, then jump up */
+            var ux = target.x + (pos.x < target.x ? -70 : 70);
+            return walkGround(ux, function () { leap(target.x, target.y, function () { settle(target.p); }); });
+        }
+        leap(target.x, target.y, function () { settle(target.p); });
+    }
+
+    /* ---------- choosing where to go ---------- */
+    function decide() {
+        if (moving) return next(400);
+        if (--moodLeft <= 0) {
+            mood = mood === 'page' ? 'mountains' : 'page';
+            moodLeft = mood === 'page' ? 3 + Math.floor(Math.random() * 3) : 4 + Math.floor(Math.random() * 3);
+        }
+        var opts = [];
+        perches().forEach(function (p) {
+            if (at && at.el === p.el && p.kind !== 'name') return;
+            var s = spotOn(p, Math.random());
+            if (s.y < CH + 34) return;                 /* no room above for the cat (and its purr bubble) */
+            var dy = Math.abs(s.y - pos.y);
+            var fromGround = at && at.kind === 'ground';
+            /* one hop at a time: only things within jumping height (from the ground: below ~280px up) */
+            if (dy > (fromGround ? 280 : 300)) return;
+            var w = (p.kind === 'name' ? 2.2 : p.kind === 'chip' ? 1.5 : p.kind === 'cushion' ? 1.6 : 1) / (1 + Math.abs(s.x - pos.x) / 500);
+            if (!onScreen(s.y)) w *= 0.15;
+            /* on the way down to the mountains, prefer lower perches; on the page, higher ones */
+            if (mood === 'mountains') w *= s.y > pos.y + 10 ? 3 : 0.25;
+            else if (at && at.kind === 'ground') w *= 1.5;
+            opts.push({ p: p, x: s.x, y: s.y, w: w });
+        });
+        /* the mountains: peaks, the yarn, a portal, or just somewhere */
+        var gw = mood === 'mountains' ? 5 : 0.4;
+        if (ridge.length) {
+            var tops = ridge.filter(function (q, i) { return i > 0 && i < ridge.length - 1 && q.y < ridge[i - 1].y && q.y < ridge[i + 1].y; });
+            var pick = tops[Math.floor(Math.random() * tops.length)];
+            var reachable = (at && at.kind === 'ground') || Math.abs(groundY(pos.x) - pos.y) < 300;
+            if (reachable) {
+                if (pick) opts.push({ p: { kind: 'ground', what: 'peak' }, x: pick.x, y: pick.y, w: gw * 1.3 });
+                var yx = props.yarn.x - 24;
+                opts.push({ p: { kind: 'ground', what: 'yarn' }, x: yx, y: groundY(yx), w: gw });
+                if (props.portals.length) {
+                    var portal = props.portals[Math.floor(Math.random() * 2)];
+                    opts.push({ p: { kind: 'ground', what: 'portal', portal: portal }, x: portal.x, y: groundY(portal.x), w: gw * 0.6 });
+                }
+                var rx = 40 + Math.random() * (layer.clientWidth - 80);
+                opts.push({ p: { kind: 'ground', what: 'wander' }, x: rx, y: groundY(rx), w: gw });
+            }
+        }
+        var total = opts.reduce(function (s, o) { return s + o.w; }, 0);
+        var r = Math.random() * total;
+        for (var i = 0; i < opts.length; i++) {
+            r -= opts[i].w;
+            if (r <= 0) return goTo(opts[i]);
+        }
+        next(1500);
+    }
+
+    /* ---------- what it does where it lands ---------- */
     function bat(after) {
         cat.classList.add('bat');
-        setTimeout(after, 230);
+        setTimeout(after, 220);
         setTimeout(function () { cat.classList.remove('bat'); }, 950);
     }
-    function bonk(el, cls, ms) {
-        el.classList.remove(cls);
-        void el.offsetWidth;
-        el.classList.add(cls);
-        setTimeout(function () { el.classList.remove(cls); }, ms);
+    function bonk(e, cls, ms) {
+        e.classList.remove(cls);
+        void e.offsetWidth;
+        e.classList.add(cls);
+        setTimeout(function () { e.classList.remove(cls); }, ms);
+    }
+    function rollYarn() {
+        var y = props.yarn, dir = cat.classList.contains('left') ? -1 : 1;
+        var from = y.x, to = Math.max(y.x0 - 160, Math.min(y.x0 + 160, from + dir * (50 + Math.random() * 60)));
+        animate(900, function (t) {
+            var e = 1 - Math.pow(1 - t, 3), x = from + (to - from) * e;
+            y.x = x;
+            y.el.style.left = (x - y.w / 2) + 'px';
+            y.el.style.top = (groundY(x) + 2 - y.h) + 'px';
+            y.el.style.transform = 'rotate(' + (x * 6) + 'deg)';
+        }, function () {});
     }
     function arrive(p) {
         var r = Math.random();
         if (p.kind === 'name' && r < 0.75) {
-            var best = null, bd = 1e9;
+            var best = null, bd = 1e9, reach = cat.classList.contains('left') ? -30 : 30;
             Array.prototype.forEach.call(h1.querySelectorAll('.ltr'), function (l) {
-                var lr = rel(l), d = Math.abs(lr.x + lr.w / 2 - (pos.x + (cat.classList.contains('left') ? -26 : 26)));
+                var lr = rel(l), d = Math.abs(lr.x + lr.w / 2 - (pos.x + reach));
                 if (l.textContent.trim() && d < bd) { bd = d; best = l; }
             });
             if (best) bat(function () { bonk(best, 'bonk', 900); });
-            return next(1600 + Math.random() * 1500);
+            return next(1700 + Math.random() * 1500);
         }
-        if (p.kind === 'chip' && r < 0.7) { bat(function () { bonk(p.el, 'nudged', 700); }); return next(1800 + Math.random() * 1500); }
-        if (p.kind === 'floor' && yarn && r < 0.6) { bat(function () { yarn.classList.toggle('rolled'); }); return next(2200); }
-        if (p.kind === 'portal' && r < 0.7) return teleport(p);
-        if (r > 0.86 && p.kind !== 'button' && p.kind !== 'chip') return nap();
-        if (r > 0.65) {
+        if (p.kind === 'chip' && r < 0.7) { bat(function () { bonk(p.el, 'nudged', 700); }); return next(1900 + Math.random() * 1500); }
+        if (p.what === 'yarn') { face(props.yarn.x - pos.x); bat(rollYarn); return next(2400); }
+        if (p.what === 'portal' && r < 0.75) return teleport(p.portal);
+        if (p.what === 'peak' && r < 0.18) return nap();
+        if ((p.kind === 'cushion' || p.kind === 'photo') && r < 0.25) return nap();
+        if (r > 0.95 && p.kind !== 'button' && p.kind !== 'chip') return nap();
+        if (r > 0.6) {
             cat.classList.add('groom');
-            setTimeout(function () { cat.classList.remove('groom'); }, 2400);
+            setTimeout(function () { cat.classList.remove('groom'); }, 2600);
         }
-        next(2600 + Math.random() * 3200);
+        next(2400 + Math.random() * 3000);
     }
     function nap() {
         cat.classList.add('sleep');
@@ -225,65 +447,45 @@
         z.textContent = 'z z';
         cat.appendChild(z);
         clearTimeout(timer);
-        timer = setTimeout(function () { cat.classList.remove('sleep'); z.remove(); decide(); }, 6000 + Math.random() * 4000);
+        timer = setTimeout(function () { cat.classList.remove('sleep'); z.remove(); decide(); }, 4500 + Math.random() * 3500);
     }
-    function teleport(p) {
-        var other = pg.filter(function (q) { return q.kind === 'portal' && q !== p; })[0];
-        if (!other) return next(2000);
+    function teleport(portal) {
+        var other = props.portals[0] === portal ? props.portals[1] : props.portals[0];
         cat.classList.add('vanish');
         setTimeout(function () {
-            place(spot(other));
-            perch = other;
-            face(other.el.getBoundingClientRect().left > window.innerWidth / 2 ? -1 : 1);
+            var x = other.x + (other.x > layer.clientWidth / 2 ? -40 : 40);
+            place(x, groundY(x));
+            face(layer.clientWidth / 2 - x);
             cat.classList.remove('vanish');
-            next(1500);
-        }, 450);
-    }
-
-    function decide() {
-        if (moving) return next(500);
-        var here = pos;
-        var options = perches().filter(function (p) { return !perch || p.el !== perch.el || p.kind === 'name'; });
-        var total = 0;
-        var weighted = options.map(function (p) {
-            var s = spot(p);
-            var d = Math.sqrt(Math.pow(s.x - here.x, 2) + Math.pow(s.y - here.y, 2));
-            var w = (s.vis ? 3 : 0.15) / (1 + d / 350) * (p.kind === 'name' ? 2.2 : p.kind === 'chip' ? 1.4 : 1);
-            total += w;
-            return w;
-        });
-        var pick = Math.random() * total;
-        for (var i = 0; i < options.length; i++) {
-            pick -= weighted[i];
-            if (pick <= 0) return moveTo(options[i]);
-        }
-        next(1000);
+            next(1400);
+        }, 420);
     }
 
     /* ---------- petting ---------- */
     function pet() {
         pets++;
         try { localStorage.setItem('cat-pets', pets); } catch (e) { /* no storage */ }
+        var wasAsleep = cat.classList.contains('sleep');
         cat.classList.remove('sleep', 'groom');
         Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz, .cat-bubble'), function (e) { e.remove(); });
         cat.classList.add('happy');
         var b = document.createElement('span');
         b.className = 'cat-bubble';
-        b.textContent = pets === 1 ? 'purr' : 'purr ×' + pets;
+        b.textContent = wasAsleep ? 'mrrp?' : pets === 1 ? 'purr' : 'purr ×' + pets;
         cat.appendChild(b);
         for (var i = 0; i < 3; i++) {
             var h = document.createElement('span');
             h.className = 'cat-heart';
             h.textContent = '♥';
-            h.style.left = (22 + i * 12) + 'px';
+            h.style.left = (26 + i * 13) + 'px';
             h.style.setProperty('--dx', ((i - 1) * 16) + 'px');
             h.style.animationDelay = (i * 0.12) + 's';
             cat.appendChild(h);
             setTimeout(h.remove.bind(h), 1700);
         }
         clearTimeout(cat._petTimer);
-        cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, 2200);
-        if (!moving) next(2800);
+        cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, 2300);
+        if (!moving) next(2900);
     }
     cat.addEventListener('click', function (e) { e.stopPropagation(); pet(); });
     cat.addEventListener('keydown', function (e) {
@@ -293,17 +495,19 @@
     /* ---------- start ---------- */
     function layout() {
         sizeLayer();
-        buildPlayground();
-        if (perch && !moving) place(spot(perch));
+        buildTerrain();
+        if (!moving) {
+            if (at && at.kind === 'ground') place(pos.x, groundY(pos.x));
+            else if (at && at.el) { var s = spotOn(at, at.fx || 0.5); place(s.x, s.y); }
+        }
     }
     function start() {
         layout();
-        var first = perches().filter(function (p) { return p.kind === 'name'; })[0] || perches()[0];
-        if (!first) return;
-        first.fx = 0.92;
-        place(spot(first));
-        perch = first;
-        next(1800);
+        var nm = perches().filter(function (p) { return p.kind === 'name' || p.kind === 'chip'; })
+            .filter(function (p) { return spotOn(p, 0.95).y > CH + 34; })[0];
+        if (nm) { nm.fx = 0.95; var s = spotOn(nm, 0.95); place(s.x, s.y); at = nm; }
+        else { place(layer.clientWidth / 2, groundY(layer.clientWidth / 2)); at = { kind: 'ground' }; }
+        next(1600);
     }
     var resizeTimer;
     window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(layout, 150); });
