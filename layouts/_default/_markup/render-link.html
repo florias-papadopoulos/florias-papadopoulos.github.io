@@ -3,4 +3,4 @@
 {{- if and .Page.File (hasPrefix .Page.File.Dir "projects/") (not (findRE `^([a-z]+:|/|#)` $dest)) }}
 {{- $dest = printf "/_pages/%s%s" .Page.File.Dir (strings.TrimPrefix "./" $dest) }}
 {{- end -}}
-<a href="{{ $dest | safeURL }}"{{ with .Title}} title="{{ . }}"{{ end }}{{ if strings.HasPrefix $dest "http" }} target="_blank"{{ end }}>{{- .Text | safeHTML -}}</a>
+<a href="{{ $dest | safeURL }}"{{ with .Title}} title="{{ . }}"{{ end }}{{ if strings.HasPrefix $dest "http" }} target="_blank" rel="noopener noreferrer"{{ end }}>{{- .Text | safeHTML -}}</a>
