@@ -19,9 +19,9 @@
 
 @keyframes t-flag { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(8deg) scaleX(0.9); } }
 
-/* ---------- Lab: drones, fuzzy matching, mod clock, integer blocks ---------- */
+/* ---------- Lab: drones and fuzzy matching ---------- */
 
-.drone, .block, .modclock, .fm { position: absolute; pointer-events: auto; touch-action: none; }
+.drone, .fm { position: absolute; pointer-events: auto; touch-action: none; }
 .drone { width: 0; height: 0; cursor: grab; }
 .drone svg { position: absolute; left: -32px; top: -15px; width: 64px; height: 30px; overflow: visible; animation: drone-hover 1.8s ease-in-out infinite; }
 .drone .hull { fill: var(--d); stroke: #0f172a; stroke-width: 1.6; }
@@ -47,43 +47,6 @@
 .d-bit { top: 20px; padding: 1px 7px; border-radius: 999px; background: #fff; border: 1px solid #e2e8f0; color: #475569; font-size: 10.5px; }
 .drone.alert .d-bit { background: #ef4444; border-color: #ef4444; color: #fff; font-weight: 700; }
 .d-enc { top: 40px; color: #94a3b8; font-size: 9.5px; }
-
-.block {
-    display: grid;
-    place-items: center;
-    width: 30px;
-    height: 30px;
-    border: 2px solid #0f172a;
-    border-radius: 6px;
-    background: #fff;
-    color: #d6336c;
-    font: 700 12px ui-monospace, Menlo, Consolas, monospace;
-    box-shadow: 0 3px 0 #0f172a;
-    cursor: grab;
-    user-select: none;
-}
-.block.is-q { color: #1e3a8a; }
-.block.show-bin::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 38px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 2px 7px;
-    border-radius: 6px;
-    background: #0f172a;
-    color: #fff;
-    font-size: 10px;
-    white-space: nowrap;
-}
-
-.modclock { width: 74px; height: 92px; cursor: pointer; user-select: none; text-align: center; }
-.mc-face { position: relative; width: 70px; height: 70px; margin: 0 auto; border: 2px solid #0f172a; border-radius: 50%; background: #fff; box-shadow: 0 3px 0 #0f172a; }
-.mc-tick { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; font: 600 9px/12px ui-monospace, Menlo, Consolas, monospace; color: #94a3b8; }
-.mc-hand { position: absolute; left: 50%; top: 9px; width: 2px; height: 26px; margin-left: -1px; background: #d6336c; transform-origin: 50% 26px; transform: rotate(51.4deg); transition: transform 0.35s cubic-bezier(.3, 1.6, .5, 1); }
-.mc-val { position: absolute; inset: 0; display: grid; place-items: center; font: 800 16px ui-monospace, Menlo, Consolas, monospace; color: #1e3a8a; }
-.mc-cap { margin-top: 3px; font: 600 10.5px ui-monospace, Menlo, Consolas, monospace; color: #0f172a; }
-.modclock.tick .mc-face { animation: mc-tick 0.35s ease-out; }
 
 .fm {
     padding: 10px 11px 9px;
@@ -120,7 +83,6 @@
 @keyframes drone-hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @keyframes rotor { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.25); } }
 @keyframes led { 50% { opacity: 0.2; } }
-@keyframes mc-tick { 0% { transform: rotate(-8deg) scale(1.06); } 100% { transform: none; } }
 
 /* ---------- Cat ---------- */
 

@@ -6,8 +6,7 @@
      region?", shows it, and swerves to avoid collisions; the cat can ride them
    - a fuzzy-matching card: the interval [42, 55] and the point q as binary prefixes with wildcards, matching
      when the two sets intersect (as in the talk slides)
-   - a 3^k mod 7 clock and integer blocks
-   You can drag the cat, the drones, the blocks and q, click the clock, and click the cat to pet it. */
+   You can drag the cat, the drones and q, and click the cat to pet it. */
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');
@@ -26,7 +25,7 @@
     var at = null;                                 /* where it is: {kind, el?, drone?} */
     var timer = null, moving = false, token = 0;
     var ridge = [], wide = false, phone = false, side = 0;
-    var drones = [], clock = null, fm = null, blocks = [];
+    var drones = [], fm = null;
     var pets = 0;
     try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
 
@@ -182,66 +181,6 @@
     function sizeLayers() {
         layer.style.height = world.style.height = '0px';
         layer.style.height = world.style.height = document.documentElement.scrollHeight + 'px';
-    }
-
-    /* ---------- lab: integer blocks ---------- */
-    function placeOnGround(o) {
-        o.el.style.left = (o.x - o.w / 2) + 'px';
-        o.el.style.top = (groundY(o.x) - o.h + 2) + 'px';
-    }
-    function fall(o, done) {                       /* a dragged block falls back to the ground */
-        var y0 = o.y, y1 = groundY(o.x) - o.h + 2;
-        var dur = reduce ? 1 : Math.sqrt(Math.max(0, y1 - y0) / 1200) * 1000 + 60;
-        animate(dur, function (t) { o.el.style.top = (y0 + (y1 - y0) * t * t) + 'px'; }, done || function () {}, true);
-    }
-    function makeBlocks(geo) {
-        var vals = [42, 55, 49];
-        var xs = wide ? [geo.xm + 40, geo.xm + 90, geo.W - geo.xm - 70] : [geo.W * 0.56, geo.W * 0.68, geo.W * 0.8];
-        blocks = vals.map(function (v, i) {
-            var b = { el: div('block' + (v === 49 ? ' is-q' : ''), layer), x: xs[i], w: 30, h: 30, v: v };
-            b.el.textContent = v;
-            b.el.title = v + ' = ' + v.toString(2).padStart(8, '0');
-            placeOnGround(b);
-            draggable(b.el, {
-                move: function (p) { b.x = clamp(p.x, 20, geo.W - 20); b.y = p.y - b.h / 2; b.el.style.left = (b.x - b.w / 2) + 'px'; b.el.style.top = b.y + 'px'; },
-                end: function () { fall(b); },
-                click: function () { b.el.classList.toggle('show-bin'); }
-            });
-            return b;
-        });
-    }
-    function pushBlock(b) {
-        var dir = cat.classList.contains('left') ? -1 : 1;
-        var from = b.x, to = clamp(from + dir * (36 + Math.random() * 40), 20, layer.clientWidth - 20);
-        animate(600, function (t) { b.x = from + (to - from) * (1 - Math.pow(1 - t, 3)); placeOnGround(b); }, function () {}, true);
-    }
-
-    /* ---------- lab: 3^k mod 7 clock ---------- */
-    function makeClock(geo) {
-        var x = wide ? geo.xm * 0.62 : geo.W * 0.2;
-        var c = { el: div('modclock', layer), x: x, w: 74, h: 92, k: 0 };
-        c.el.innerHTML = '<div class="mc-face"><div class="mc-hand"></div><div class="mc-val">1</div></div>' +
-            '<div class="mc-cap">3<sup class="mc-k">0</sup> mod 7</div>';
-        for (var i = 0; i < 7; i++) {
-            var t = document.createElement('span');
-            t.className = 'mc-tick';
-            t.textContent = i;
-            t.style.transform = 'rotate(' + (i * 360 / 7) + 'deg) translateY(-25px) rotate(' + (-i * 360 / 7) + 'deg)';
-            c.el.firstChild.appendChild(t);
-        }
-        placeOnGround(c);
-        c.step = function () {
-            c.k = (c.k + 1) % 6;
-            var v = 1;
-            for (var j = 0; j < c.k; j++) v = (v * 3) % 7;
-            c.el.querySelector('.mc-val').textContent = v;
-            c.el.querySelector('.mc-k').textContent = c.k;
-            c.el.querySelector('.mc-hand').style.transform = 'rotate(' + (v * 360 / 7) + 'deg)';
-            c.el.classList.remove('tick'); void c.el.offsetWidth; c.el.classList.add('tick');
-        };
-        c.el.addEventListener('click', c.step);
-        c.el.title = 'Click: k → k + 1';
-        clock = c;
     }
 
     /* ---------- lab: fuzzy matching card (wide screens) ---------- */
@@ -535,10 +474,6 @@
                 var tops = ridge.filter(function (q, i) { return i > 0 && i < ridge.length - 1 && q.y < ridge[i - 1].y && q.y < ridge[i + 1].y; });
                 var pk = tops[Math.floor(Math.random() * tops.length)];
                 if (pk) add({ kind: 'ground', what: 'peak' }, function () { return { x: pk.x, y: pk.y }; }, gw * 1.2);
-                if (clock) add({ kind: 'ground', what: 'clock' }, function () { var x = clock.x - 46; return { x: x, y: groundY(x) }; }, gw * 1.4);
-                blocks.forEach(function (b) {
-                    add({ kind: 'ground', what: 'block', block: b }, function () { var x = b.x + (pos.x < b.x ? -34 : 34); return { x: x, y: groundY(x) }; }, gw * 0.7);
-                });
                 var rx = 40 + Math.random() * (layer.clientWidth - 80);
                 add({ kind: 'ground', what: 'wander' }, function () { return { x: rx, y: groundY(rx) }; }, gw);
             }
@@ -578,8 +513,6 @@
             bat(function () { fm.set(fm.q + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 6))); });
             return next(2200 + Math.random() * 1500);
         }
-        if (p.what === 'clock') { face(clock.x - pos.x); bat(clock.step); return next(2000 + Math.random() * 1200); }
-        if (p.what === 'block') { face(p.block.x - pos.x); bat(function () { pushBlock(p.block); }); return next(2200); }
         if ((p.what === 'peak' || p.kind === 'photo') && r < 0.18) return nap();
         if (r > 0.94 && p.kind !== 'button' && p.kind !== 'chip') return nap();
         if (r > 0.6) {
@@ -668,19 +601,17 @@
 
     /* ---------- start ---------- */
     function clearLab() {
-        Array.prototype.forEach.call(layer.querySelectorAll('.block, .modclock, .fm, .drone'), function (e) { e.remove(); });
+        Array.prototype.forEach.call(layer.querySelectorAll('.fm, .drone'), function (e) { e.remove(); });
     }
     function layout() {
         sizeLayers();
         var geo = buildTerrain();
         clearLab();
         if (!phone) {                              /* the lab only where there is room for it */
-            makeBlocks(geo);
-            makeClock(geo);
             makeFM(geo);
             makeDrones(geo);
         } else {
-            blocks = []; clock = null; fm = null; drones = [];
+            fm = null; drones = [];
         }
         if (at && at.kind === 'drone') at = { kind: 'ground', what: 'wander' };
         if (!moving && at) {
