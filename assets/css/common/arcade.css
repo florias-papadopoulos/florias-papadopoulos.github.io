@@ -1,0 +1,97 @@
+/* Games page (layouts/_default/arcade.html, assets/js/games/arcade.js). Each game adds its own styles via api.css. */
+
+.arcade { --ink: #0f172a; --muted: #64748b; --navy: #1e3a8a; --pink: #d6336c; --line: #e2e8f0; color: var(--ink); }
+.arcade-head { position: relative; margin: 8px 0 22px; text-align: center; }
+.arcade-head h1 { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
+.arcade-head p { margin: 4px 0 12px; color: var(--muted); }
+
+.arcade-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+.arcade-btn:hover { border-color: var(--navy); }
+.arcade-btn[aria-pressed="false"] { color: var(--muted); }
+
+.arcade-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 40px; }
+.game-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 18px 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.game-card:hover:not(:disabled) { transform: translateY(-3px) rotate(-1deg); border-color: var(--navy); box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1); }
+.game-card:disabled { opacity: 0.5; cursor: default; }
+.gc-icon { font-size: 2.4rem; line-height: 1.2; }
+.gc-title { font-weight: 700; }
+.gc-desc { color: var(--muted); font-size: 0.82rem; line-height: 1.35; }
+.gc-best { min-height: 1.2em; color: var(--navy); font-size: 0.78rem; font-weight: 600; }
+
+/* ---------- the game screen: full window, on desktop and phones ---------- */
+body.arcade-playing { overflow: hidden; }
+.arcade-stage { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; background: #f8fafc; }
+.arcade-stage[hidden] { display: none; }
+.stage-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: #fff; }
+.stage-title { font-weight: 800; }
+.stage-score { margin-left: auto; font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; color: var(--navy); }
+.stage-best { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; color: var(--muted); }
+.stage-area { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+
+.stage-msg { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(15, 23, 42, 0.35); }
+.stage-msg[hidden] { display: none; }
+.stage-msg-box { padding: 22px 28px; border-radius: 18px; background: #fff; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25); }
+.stage-msg-text { margin: 0 0 14px; font-size: 1.15rem; font-weight: 700; white-space: pre-line; }
+.stage-again { background: var(--ink); color: #fff; border-color: var(--ink); padding: 8px 18px; }
+
+/* the cat in the corner, reacting to the game */
+.arcade .mascot { position: absolute; right: 10px; bottom: 6px; z-index: 4; width: 88px; height: 72px; pointer-events: auto; cursor: pointer; }
+.arcade .mascot.wow .cat-flip { animation: mascot-hop 0.5s ease-out; }
+.arcade .mascot.sad .eye-open { display: none; }
+.arcade .mascot.sad .eye-sleep { display: inline; }
+.arcade .mascot.sad .cat-head { transform: translate(66px, 33px) rotate(-10deg); }
+.arcade .mascot.think .cat-head { transform: translate(66px, 30px) rotate(10deg); }
+.arcade .mascot.happy .cat-flip { animation: mascot-hop 0.5s ease-out 2; }
+.mascot-say {
+    position: absolute;
+    right: 70px;
+    bottom: 72px;
+    z-index: 6;
+    max-width: 220px;
+    padding: 6px 11px;
+    border-radius: 14px 14px 2px 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.15);
+    font-size: 0.85rem;
+    font-weight: 600;
+    pointer-events: none;
+    animation: say-in 0.2s ease-out;
+}
+@keyframes mascot-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } }
+@keyframes say-in { from { transform: scale(0.8); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 600px) {
+    .arcade-head h1 { font-size: 1.8rem; }
+    .arcade-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .game-card { padding: 14px 8px 10px; }
+    .gc-icon { font-size: 2rem; }
+    .stage-bar { gap: 6px; padding: 6px 8px; }
+    .stage-title { font-size: 0.92rem; }
+    .stage-best { display: none; }
+    .arcade .mascot { width: 66px; height: 54px; }
+    .mascot-say { right: 52px; bottom: 54px; }
+}

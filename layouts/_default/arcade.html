@@ -1,0 +1,50 @@
+{{- /* Games page: a grid of small games played with the cat. The list is in content/games/_index.md; each game is
+       assets/js/games/<id>.js, loaded only when opened, run by the shell assets/js/games/arcade.js
+       (styles: assets/css/common/arcade.css). */ -}}
+{{- define "main" }}
+{{- $list := slice }}
+{{- range .Params.games }}
+{{- $g := . }}
+{{- $src := "" }}{{ $sri := "" }}
+{{- with resources.Get (printf "js/games/%s.js" $g.id) }}{{ $js := . | minify | fingerprint }}{{ $src = $js.RelPermalink }}{{ $sri = $js.Data.Integrity }}{{ end }}
+{{- $list = $list | append (dict "id" $g.id "title" $g.title "emoji" $g.emoji "desc" $g.desc "music" $g.music "src" $src "integrity" $sri) }}
+{{- end }}
+<div class="arcade" id="arcade" data-games="{{ $list | jsonify }}">
+    <header class="arcade-head">
+        <h1>Games</h1>
+        <p>Ten little games to play with the cat. They work on phones too.</p>
+        <button class="arcade-btn music-toggle" type="button" aria-pressed="true">&#9835; Music on</button>
+    </header>
+    <div class="arcade-grid">
+        {{- range $list }}
+        <button class="game-card" type="button" data-id="{{ .id }}"{{ if not .src }} disabled{{ end }}>
+            <span class="gc-icon" aria-hidden="true">{{ .emoji }}</span>
+            <span class="gc-title">{{ .title }}</span>
+            <span class="gc-desc">{{ if .src }}{{ .desc }}{{ else }}Coming soon{{ end }}</span>
+            <span class="gc-best" data-best="{{ .id }}"></span>
+        </button>
+        {{- end }}
+    </div>
+
+    <section class="arcade-stage" hidden aria-live="polite">
+        <div class="stage-bar">
+            <button class="arcade-btn stage-back" type="button">&larr; Games</button>
+            <span class="stage-title"></span>
+            <span class="stage-score"></span>
+            <span class="stage-best"></span>
+            <button class="arcade-btn music-toggle" type="button" aria-pressed="true" title="Music">&#9835;</button>
+            <button class="arcade-btn stage-restart" type="button" title="Restart">&#8635;</button>
+        </div>
+        <div class="stage-area"></div>
+        <div class="stage-msg" hidden>
+            <div class="stage-msg-box">
+                <p class="stage-msg-text"></p>
+                <button class="arcade-btn stage-again" type="button">Play again</button>
+            </div>
+        </div>
+        <div class="cat mascot" aria-hidden="true"><div class="cat-tilt"><div class="cat-flip">{{ partial "cat-svg.html" . }}</div></div></div>
+    </section>
+</div>
+{{- $shell := resources.Get "js/games/arcade.js" | minify | fingerprint }}
+<script src="{{ $shell.RelPermalink }}" integrity="{{ $shell.Data.Integrity }}" defer></script>
+{{- end }}

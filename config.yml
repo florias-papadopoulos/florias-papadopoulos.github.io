@@ -40,6 +40,9 @@ menu:
     - name: Papers
       url: /papers/
       weight: 2
+    - name: Games
+      url: /games/
+      weight: 3
     - name: CV
       url: /files/resume.pdf
       weight: 4
@@ -118,6 +121,8 @@ params:
         url: /master/
       - name: Papers
         url: /papers/
+      - name: Games
+        url: /games/
 
   socialIcons:
     - name: CV
