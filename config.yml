@@ -102,10 +102,12 @@ params:
             projects: Paper
             noun: paper
             url: /papers/
-    paper:
-      label: New paper · ACM ASIA CCS 2026
-      title: Privacy-preserving Proximity Testing from Geometric Fuzzy Matching
-      url: https://dl.acm.org/doi/10.1145/3779208.3785374
+    # Latest news on the home page, newest first. date is shown as written, text may use **bold**,
+    # url is optional (links starting with http open in a new tab). The list scrolls after three items.
+    news:
+      - date: "2026"
+        text: "New paper at **ACM ASIA CCS 2026**: Privacy-preserving Proximity Testing from Geometric Fuzzy Matching"
+        url: https://dl.acm.org/doi/10.1145/3779208.3785374
     imageUrl: my_profile_square.jpg
     imageTitle: Florias Papadopoulos
     imageWidth: 168

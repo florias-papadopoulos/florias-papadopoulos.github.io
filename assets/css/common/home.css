@@ -147,11 +147,15 @@
 .degree-pop small { display: block; color: var(--muted); font-size: 0.76rem; }
 .degree-pop .pop-all { margin-top: 2px; border-top: 1px solid #edf1f5; border-radius: 0 0 8px 8px; color: var(--navy); font-weight: 600; }
 
-/* ---------- Latest paper ---------- */
-.paper { display: inline-flex; flex-direction: column; gap: 1px; max-width: 100%; text-align: center; }
-.paper-label { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.02em; }
-.paper-title { font-size: 0.95rem; font-weight: 600; text-decoration: underline; text-decoration-color: #cbd5e1; text-underline-offset: 3px; }
-.paper:hover .paper-title { text-decoration-color: var(--ink); }
+/* ---------- Latest news: a short feed, newest first, scrolls after three items ---------- */
+.news { width: 100%; text-align: left; }
+.news-head { margin: 0 0 2px; color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.news-list { max-height: 6.6em; overflow-y: auto; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.news-list li { display: flex; align-items: baseline; gap: 14px; padding: 4px 2px; border-bottom: 1px solid var(--line); font-size: 0.9rem; line-height: 1.35; }
+.news-list time { flex: none; min-width: 4.5em; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.75rem; }
+.news-list a { text-decoration: underline; text-decoration-color: #cbd5e1; text-underline-offset: 3px; }
+.news-list a:hover { text-decoration-color: var(--ink); }
+.news-list p { display: inline; margin: 0; }
 
 /* ---------- Links ---------- */
 .links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 22px; }

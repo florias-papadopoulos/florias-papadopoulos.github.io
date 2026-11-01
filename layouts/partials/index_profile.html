@@ -1,5 +1,5 @@
 {{- /* Home page (content in config.yml, profileMode): hero, tagline, route from the first stop to now,
-       latest paper, links. The cat and its research lab around the page: layouts/partials/cat.html */ -}}
+       latest news, links. The cat and its research lab around the page: layouts/partials/cat.html */ -}}
 {{- $projects := where site.RegularPages "Section" "projects" }}
 {{- with site.Params.profileMode }}
 <div class="profile home" id="home">
@@ -76,11 +76,22 @@
         </div>
         {{- end }}
 
-        {{- with .paper }}
-        <a class="paper" href="{{ .url }}" target="_blank" rel="noopener noreferrer">
-            <span class="paper-label">{{ .label }}</span>
-            <span class="paper-title">{{ .title }} <span aria-hidden="true">&#8599;</span></span>
-        </a>
+        {{- with .news }}
+        <section class="news" aria-label="Latest news">
+            <h2 class="news-head">Latest news</h2>
+            <ul class="news-list">
+                {{- range $n := . }}
+                <li>
+                    <time>{{ .date }}</time>
+                    {{- with .url }}
+                    <a href="{{ . }}"{{ if hasPrefix . "http" }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ $n.text | markdownify }}{{ if hasPrefix . "http" }} <span aria-hidden="true">&#8599;</span>{{ end }}</a>
+                    {{- else }}
+                    <span>{{ .text | markdownify }}</span>
+                    {{- end }}
+                </li>
+                {{- end }}
+            </ul>
+        </section>
         {{- end }}
 
         <div class="links">

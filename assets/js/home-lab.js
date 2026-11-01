@@ -401,7 +401,7 @@
         push('.home .name-block h1', 'name');
         /* not the chips: sitting there, the cat would cover the tagline */
         push('.home .route', 'card');
-        push('.home .paper', 'card');
+        push('.home .news', 'card');
         push('.home .buttons .button', 'button');
         glyphs.forEach(function (g) { list.push({ el: g, kind: 'glyph' }); });
         return list;
