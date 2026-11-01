@@ -50,8 +50,37 @@
 .you-never li { margin: 2px 0; }
 .you-search { margin-bottom: 14px; color: var(--tl-text); }
 
+/* the lesson: what reaches my server, and what a tracker would add */
+.you-h3 { margin: 18px 0 4px; padding-top: 14px; border-top: 1px solid var(--tl-line); color: var(--tl-ink); font-size: 16px; font-weight: 700; }
+.you-seen > div:first-child .you-h3 { margin-top: 8px; }
+.you-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 14px 0 10px; }
+.you-btn, .you-btn2 { padding: 8px 15px; border: 1px solid var(--tl-navy); border-radius: 8px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.you-btn { background: var(--tl-navy); color: #fff; }
+.you-btn:hover { background: #172e6e; }
+.you-btn2 { padding: 6px 12px; border-color: var(--tl-rule); background: #fff; color: var(--tl-ink); font-size: 14px; font-weight: 500; }
+.you-btn2:hover { border-color: var(--tl-navy); }
+.you-btn:focus-visible, .you-btn2:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: 2px; }
+.you-btn:disabled { opacity: 0.6; cursor: progress; }
+.you-status { color: var(--tl-text); font-size: 14px; line-height: 1.45; }
+.you-status.is-bad { color: #9f1239; }
+.you-mem { margin: 0 0 14px; padding: 10px 12px; border: 1px dashed var(--tl-rule); border-radius: 8px; }
+.you-mem-text { margin: 0 0 8px; color: var(--tl-muted); font-size: 13.5px; line-height: 1.5; }
+.you-mem-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.you-welcome { margin: 4px 0 10px; color: var(--tl-navy); font-size: 15px; font-weight: 600; }
+.you-fp-row { display: grid; grid-template-columns: minmax(0, 1fr) 76px; column-gap: 18px; align-items: start; }
+.you-fp-row .you-list { grid-column: 1; grid-row: 1; }
+.you-identicon { grid-column: 2; grid-row: 1; width: 76px; height: 76px; margin-top: 12px; border: 1px solid var(--tl-line); border-radius: 6px; }
+.you-identicon:not(.is-on) { visibility: hidden; }
+.you-ic-bg { fill: #f1f5f9; }
+.you-ic-a { fill: #1e3a8a; animation: you-in 0.3s ease-out backwards; }
+.you-ic-b { fill: #8da0d4; animation: you-in 0.3s ease-out backwards; }
+.you-out { display: inline-block; margin-top: 3px; color: var(--tl-navy); font-size: 13.5px; text-decoration: underline; text-underline-offset: 2px; }
+.you-lesson-line { margin: 6px 0 16px; padding-top: 14px; border-top: 1px solid var(--tl-line); color: var(--tl-text); font-size: 15px; line-height: 1.6; }
+.you-lesson-line strong { color: var(--tl-ink); }
+.you-head .you-sub a { color: var(--tl-navy); text-decoration: underline; text-underline-offset: 2px; }
+
 @media (prefers-reduced-motion: reduce) {
-    .you-wait, .you-item.is-shown .you-val { animation: none; }
+    .you-wait, .you-item.is-shown .you-val, .you-ic-a, .you-ic-b { animation: none; }
 }
 @media (max-width: 600px) {
     .you-head { margin-bottom: 18px; }
@@ -60,6 +89,8 @@
     .you-h2 { font-size: 17.5px; }
     .you-item { display: block; padding: 10px 0; }
     .you-label { padding: 0 0 3px; font-size: 14px; }
+    .you-fp-row { grid-template-columns: minmax(0, 1fr) 60px; column-gap: 10px; }
+    .you-identicon { width: 60px; height: 60px; }
 }
 /* the eye in the corner (baseof.html), while on this page */
 .you-link[aria-current="page"] { border-color: #9fb0d8; color: var(--navy, #1e3a8a); }

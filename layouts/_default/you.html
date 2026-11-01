@@ -18,9 +18,11 @@
     <header class="you-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
         {{- if $end }}
-        <p class="you-lede">Everything below is what my visit counter records about this visit, filled in for you. <strong>Nothing else is kept.</strong></p>
+        <p class="you-lede">Here is what my visit counter records about this visit, filled in for you: five things, <strong>and nothing else is kept.</strong></p>
+        <p class="you-sub">The last part shows what else reaches my server with every request, if you press its button. That is not kept either. Details are in the <a href="{{ "privacy/" | relURL }}">privacy notice</a>.</p>
         {{- else }}
         <p class="you-lede">My visit counter is switched off, so <strong>nothing about your visit is recorded.</strong></p>
+        <p class="you-sub">Details are in the <a href="{{ "privacy/" | relURL }}">privacy notice</a>.</p>
         {{- end }}
         <noscript><p class="you-sub">JavaScript is off in your browser, so the counter cannot count this visit, and this page cannot show you anything.</p></noscript>
     </header>
@@ -71,6 +73,54 @@
         <h2 class="you-h2" id="you-h-search">If you found this site through a search</h2>
         <p class="you-intro you-search" id="you-search">Google Search Console only shows me totals: which search terms led to the site and how many clicks they got, never who searched.</p>
     </section>
+
+    {{- if $end }}
+    {{- $seen := slice
+        (slice "ip" "IP address" "Every request carries it. It identifies your connection, and with your provider's records, you.")
+        (slice "place" "Place" "Looked up by Cloudflare from your IP address, before my code even runs.")
+        (slice "coords" "Coordinates" "The middle of that area, not your house. Open the map to see how close it gets.")
+        (slice "isp" "Internet provider" "Your provider, or your employer or university when you are on its network.")
+        (slice "colo" "Cloudflare data centre" "The building your request passed through on its way to my counter.")
+        (slice "ua" "Browser, as sent" "The full header, exactly as a server log would keep it.")
+        (slice "al" "Languages, as sent" "Sent with every request, in your order of preference.") }}
+    {{- $track := slice
+        (slice "fp" "Your fingerprint" "A SHA-256 hash of what your browser shows any page that asks. No cookie needed, and the same on every site that computes it this way.")
+        (slice "fpparts" "Made from" "If the hash changes every time you press the button, your browser blurs some of these on purpose: a good sign.")
+        (slice "fprx" "Your fingerprint, as received" "Now my counter has it too, and could match it to your next visit.")
+        (slice "vid" "Your visit id, as received" "What a tracking cookie does: give your browser a name, then see it again.") }}
+    <section class="you-sec you-lesson" aria-labelledby="you-h-could">
+        <h2 class="you-h2" id="you-h-could">What I could see, if I wanted to</h2>
+        <p class="you-intro">My counter is a small server of mine on Cloudflare. A real tracker would save everything below with one line of code; the button asks mine to send it straight back to you instead, and it forgets it. Nothing happens until you press it.</p>
+        <p class="you-actions">
+            <button class="you-btn" id="you-seen-btn" type="button">Show what reaches my server</button>
+            <span class="you-status" id="you-seen-status" role="status"></span>
+        </p>
+        <div class="you-mem">
+            <p class="you-mem-text" id="you-mem-text">Optional: let this page remember your browser, the way a tracking cookie would. It keeps a random id, a visit count and the date of your last visit, in your browser only, until you press Forget me.</p>
+            <p class="you-mem-btns">
+                <button class="you-btn2" id="you-mem-btn" type="button">Remember me on this browser</button>
+                <button class="you-btn2" id="you-forget-btn" type="button" hidden>Forget me</button>
+            </p>
+        </div>
+        <div class="you-seen" id="you-seen" hidden>
+            <div id="you-seen-server">
+            <h3 class="you-h3">What reaches my server with every visit</h3>
+            <p class="you-intro">Every counted page view sends my counter one small request, and Cloudflare attaches all of this to it automatically. My counter keeps only the five totals above and drops the rest. The button just asks it to show you what arrived with your request. If your browser sends Do Not Track or Global Privacy Control, normal visits send the counter nothing at all; this part still works, because pressing the button is your own request.</p>
+            {{- partial "inline/you-items.html" $seen }}
+            </div>
+
+            <h3 class="you-h3">What a tracker would add, shown only because you clicked</h3>
+            <p class="you-intro">A normal visit to this site works out no fingerprint and gives your browser no id. Tracking sites do both silently on every page view and send them to their server: that is how they recognise you from one visit to the next.</p>
+            <p class="you-welcome" id="you-welcome" hidden></p>
+            <div class="you-fp-row">
+                <svg class="you-identicon" id="you-identicon" viewBox="0 0 8 8" role="img" aria-label="A pattern drawn from your fingerprint" shape-rendering="crispEdges"></svg>
+                {{- partial "inline/you-items.html" $track }}
+            </div>
+            <p class="you-lesson-line"><strong>All of this reached my server. I could have saved it with one line of code. I did not.</strong>
+                Many sites do keep it, and pass it on to advertising networks that follow you from site to site.</p>
+        </div>
+    </section>
+    {{- end }}
 </div>
 {{- if $end }}
 {{- $js := slice (resources.Get "js/stats-detect.js") (resources.Get "js/you.js") | resources.Concat "js/you.bundle.js" | minify | fingerprint }}

@@ -1,0 +1,25 @@
+{{- /* "Privacy" (content/privacy/_index.md), linked from the footer, /you/ and /stats/: the short version from front
+       matter ("short"), then the details from the page text. Styles: assets/css/common/privacy.css. The wrapper also
+       has the class tl-page so the cat of the tabs (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
+{{- define "main" }}
+<div class="tl-page pv-page">
+    <header class="pv-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        {{- with .Params.updated }}<p class="pv-updated">Last updated {{ . }}</p>{{ end }}
+    </header>
+    {{- with .Params.short }}
+    <section class="pv-short" aria-labelledby="pv-h-short">
+        <h2 class="pv-h2" id="pv-h-short">In short</h2>
+        <ul>
+            {{- range . }}
+            <li>{{ . | markdownify }}</li>
+            {{- end }}
+        </ul>
+    </section>
+    {{- end }}
+    <div class="pv-body">
+        {{ .Content }}
+    </div>
+</div>
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}
