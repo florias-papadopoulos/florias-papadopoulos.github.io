@@ -13,7 +13,7 @@
     <header class="arcade-head">
         <h1>Games</h1>
     </header>
-    {{- range slice (slice "simple" "Simple games") (slice "complex" "Complex games") }}
+    {{- range slice (slice "complex" "Complex games") (slice "simple" "Simple games") }}
     {{- $games := where $list "group" (index . 0) }}
     {{- if $games }}
     <h2 class="arcade-group">{{ index . 1 }}</h2>

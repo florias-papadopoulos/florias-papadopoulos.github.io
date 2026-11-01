@@ -213,8 +213,12 @@
     function draw(it) {
         it.el.style.left = (it.x - it.w / 2) + 'px';
         it.el.style.top = (it.y - it.h) + 'px';
-        it.el.style.transform = it.rot ? 'rotate(' + it.rot.toFixed(1) + 'deg)' : '';
+        /* shifted so the bottom of the turned box stays on y (a letter lying on its side sits on the floor) */
+        var a = it.rot * Math.PI / 180, dy = (it.h - it.h * Math.abs(Math.cos(a)) - it.w * Math.abs(Math.sin(a))) / 2;
+        it.el.style.transform = it.rot ? 'translateY(' + dy.toFixed(1) + 'px) rotate(' + it.rot.toFixed(1) + 'deg)' : '';
     }
+    /* the angle something comes to rest at: letters stay fallen over on their nearest side, symbols stand up */
+    function restAngle(it) { return it.src ? Math.round((it.rot - 90) / 180) * 180 + 90 : 0; }
     /* the top of whatever is under x between heights y0 and y1 (page elements, glyphs, the floor), or null */
     function landing(x, y0, y1) {
         var best = null, gy = groundY(x);
@@ -240,8 +244,9 @@
                 if (under !== null && it.vy < 60) {                 /* on a surface: slide and slow down */
                     it.vy = 0; it.y = under;
                     it.vx *= Math.exp(-7 * dt);
-                    it.rot *= Math.exp(-12 * dt);
-                    if (Math.abs(it.vx) < 8) { it.vx = 0; it.rot = 0; it.rest = true; }
+                    var ra = restAngle(it);
+                    it.rot = ra + (it.rot - ra) * Math.exp(-12 * dt);
+                    if (Math.abs(it.vx) < 8) { it.vx = 0; it.rot = ra; it.rest = true; }
                 } else {
                     it.vy += G * dt;
                     it.rot += it.vr * dt;
