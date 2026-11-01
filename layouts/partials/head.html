@@ -1,4 +1,8 @@
 <meta charset="utf-8">
+{{- /* Before any script or style: what the page may load (layouts/partials/csp.html), and only the origin as referrer
+       to other sites */}}
+<meta http-equiv="Content-Security-Policy" content="{{ partial "csp.html" . }}">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 {{- /* The site is designed light: stop phone browsers (Chrome "darken websites", Samsung Internet) from recolouring it */}}
@@ -52,7 +56,12 @@
 {{- $reset := (resources.Get "css/core/reset.css") }}
 {{- $media := (resources.Get "css/core/zmedia.css") }}
 {{- $license_css := (resources.Get "css/core/license.css") }}
-{{- $common := (resources.Match "css/common/*.css") | resources.Concat "assets/css/common.css" }}
+{{- /* without the theme's styles for pages this site does not have (archive, search, single posts) */}}
+{{- $common := slice }}
+{{- range resources.Match "css/common/*.css" }}
+{{- if not (in (slice "css/common/archive.css" "css/common/search.css" "css/common/post-single.css") .Name) }}{{ $common = $common | append . }}{{ end }}
+{{- end }}
+{{- $common = $common | resources.Concat "assets/css/common.css" }}
 
 {{- /* markup.highlight.noClasses should be set to `false` */}}
 {{- $chroma_styles := (resources.Get "css/includes/chroma-styles.css") }}
@@ -72,21 +81,6 @@
 {{- else }}
 <link crossorigin="anonymous" href="{{ $stylesheet.RelPermalink }}" rel="preload stylesheet" as="style">
 {{- end }}
-
-{{- /* Search */}}
-{{- if (eq .Layout `search`) -}}
-<link crossorigin="anonymous" rel="preload" as="fetch" href="../index.json">
-{{- $fastsearch := resources.Get "js/fastsearch.js" | js.Build (dict "params" (dict "fuseOpts" site.Params.fuseOpts)) | resources.Minify }}
-{{- $fusejs := resources.Get "js/fuse.basic.min.js" }}
-{{- $license_js := resources.Get "js/license.js" }}
-{{- if not site.Params.assets.disableFingerprinting }}
-{{- $search := (slice $fusejs $license_js $fastsearch ) | resources.Concat "assets/js/search.js" | fingerprint }}
-<script defer crossorigin="anonymous" src="{{ $search.RelPermalink }}" integrity="{{ $search.Data.Integrity }}"></script>
-{{- else }}
-{{- $search := (slice $fusejs $fastsearch ) | resources.Concat "assets/js/search.js" }}
-<script defer crossorigin="anonymous" src="{{ $search.RelPermalink }}"></script>
-{{- end }}
-{{- end -}}
 
 {{- /* Favicons */}}
 <link rel="icon" href="{{ site.Params.assets.favicon | default "favicon.ico" | absURL }}">
@@ -149,10 +143,6 @@
 {{- partial "templates/opengraph.html" . }}
 {{- partial "templates/twitter_cards.html" . }}
 {{- partial "templates/schema_json.html" . }}
-
-{{ if and (hugo.IsProduction) (.Site.Params.googleAnalyticsID) }}
-{{- partial "analytics.html" . }}
-{{ end }}
 
 {{ if or .Page.Params.math .Site.Params.math }}
 {{- partial "math.html" .}}

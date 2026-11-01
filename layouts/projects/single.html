@@ -7,11 +7,14 @@
 <html lang="{{ site.Language.Lang }}">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="{{ partial "csp.html" . }}">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>{{ .Title }}</title>
 <meta name="robots" content="noindex">
 <link rel="canonical" href="{{ $tab | absURL }}">
 <meta http-equiv="refresh" content="0; url={{ $to }}">
-<script>location.replace({{ $to }});</script>
+{{- $go := resources.Get "js/redirect.js" | minify | fingerprint }}
+<script src="{{ $go.RelPermalink }}" integrity="{{ $go.Data.Integrity }}" data-to="{{ $to }}"></script>
 </head>
 <body><p><a href="{{ $to }}">{{ .Title }}</a></p></body>
 </html>

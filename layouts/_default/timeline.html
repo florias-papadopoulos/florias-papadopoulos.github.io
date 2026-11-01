@@ -99,7 +99,7 @@
                                     </ul>
                                 </div>
                                 {{- end }}
-                                {{- with .Params.keywords }}
+                                {{- with .Keywords }}
                                 <div class="tl-block">
                                     <h4 class="tl-cap">Keywords</h4>
                                     <p class="tl-keys">{{ if reflect.IsSlice . }}{{ delimit . ", " }}{{ else }}{{ . }}{{ end }}</p>
@@ -148,17 +148,10 @@
         {{- end }}
     </div>
 </div>
-{{- /* closed until opened (without JavaScript everything stays open); #anchor opens its entry right away */}}
-<script>
-(function () {
-    var h = '';
-    try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) {}
-    document.querySelectorAll('.tl-entry').forEach(function (e) {
-        if (e.id && e.id === h) { e.classList.add('open'); e.querySelector('.tl-toggle').setAttribute('aria-expanded', 'true'); }
-        else e.querySelector('.tl-more').hidden = true;
-    });
-})();
-</script>
+{{- /* closed until opened (without JavaScript everything stays open); #anchor opens its entry right away. No defer:
+       it runs before the entries are drawn. */}}
+{{- $closed := resources.Get "js/timeline-closed.js" | minify | fingerprint }}
+<script src="{{ $closed.RelPermalink }}" integrity="{{ $closed.Data.Integrity }}"></script>
 {{- if $math }}{{ partial "math.html" . }}{{ end }}
 {{- $tl := resources.Get "js/timeline.js" | minify | fingerprint }}
 <script src="{{ $tl.RelPermalink }}" integrity="{{ $tl.Data.Integrity }}" defer></script>

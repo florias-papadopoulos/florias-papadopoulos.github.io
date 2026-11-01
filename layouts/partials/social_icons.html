@@ -1,0 +1,11 @@
+{{- /* The theme's social icons (themes/PaperMod/layouts/partials/social_icons.html) with an aria-label on each link and
+       the icons hidden from screen readers, so the links are named by the label rather than the title alone */ -}}
+<div class="social-icons" {{ with .align}}align="{{.}}" {{- end }}>
+    {{- range site.Params.socialIcons }}
+    {{- $name := (.title | default .name) | title }}
+    <a href="{{ trim .url " " | safeURL }}" target="_blank" rel="noopener noreferrer me"
+        title="{{ $name }}" aria-label="{{ $name }}">
+        {{ replace (partial "svg.html" .) "<svg " `<svg aria-hidden="true" focusable="false" ` 1 | safeHTML }}
+    </a>
+    {{- end }}
+</div>

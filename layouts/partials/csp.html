@@ -1,0 +1,8 @@
+{{- /* The Content-Security-Policy of every page (head.html, the project redirects in layouts/projects/single.html and
+       the alias redirects in layouts/alias.html): scripts only from this site (bundled asset files with SRI, no inline
+       scripts or onload= handlers), requests only to this site and the visit counter (params.statsEndpoint).
+       Inline styles stay allowed: the games and KaTeX set style attributes and add <style> tags. Images: data: for
+       the backgrounds the games draw (tic-tac-paw, sliding-kitten). */ -}}
+{{- $connect := "'self'" }}
+{{- with site.Params.statsEndpoint }}{{ with urls.Parse . }}{{ $connect = printf "%s %s://%s" $connect .Scheme .Host }}{{ end }}{{ end }}
+{{- return printf "default-src 'self'; script-src 'self'; connect-src %s; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" $connect }}

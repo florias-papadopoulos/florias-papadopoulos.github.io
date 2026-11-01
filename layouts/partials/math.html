@@ -1,24 +1,7 @@
-{{- /* KaTeX 0.16.10, served from static/katex (no third-party request); the integrity hashes are those of the npm release */ -}}
+{{- /* KaTeX 0.16.10, served from static/katex (no third-party request); the integrity hashes are those of the npm release.
+       assets/js/math-render.js renders the math once, after auto-render (deferred scripts run in order). */ -}}
 <link rel="stylesheet" href="{{ "katex/katex.min.css" | relURL }}" integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww">
 <script defer src="{{ "katex/katex.min.js" | relURL }}" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"></script>
-<script defer src="{{ "katex/contrib/auto-render.min.js" | relURL }}" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"
-  onload="renderMathInElement(document.body);"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        renderMathInElement(document.body, {
-          delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '$', right: '$', display: false},
-            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
-            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
-            {left: "\\begin{align}", right: "\\end{align}", display: true},
-            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
-            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
-            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
-            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
-          ],
-          throwOnError : false
-        });
-    });
-</script>
+<script defer src="{{ "katex/contrib/auto-render.min.js" | relURL }}" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"></script>
+{{- $render := resources.Get "js/math-render.js" | minify | fingerprint }}
+<script defer src="{{ $render.RelPermalink }}" integrity="{{ $render.Data.Integrity }}"></script>

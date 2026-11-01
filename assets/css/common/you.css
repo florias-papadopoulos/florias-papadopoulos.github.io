@@ -36,7 +36,7 @@
 .you-main { display: block; min-height: 1.45em; font-family: var(--you-mono); }
 .you-subval { display: block; margin-top: 2px; color: var(--tl-text); font-size: 13.5px; line-height: 1.45; }
 .you-missing { color: var(--tl-muted); }
-.you-wait { color: #a3afbf; font-size: 13px; animation: you-wait 1.2s ease-in-out infinite; }
+.you-wait { color: #5b6b80; font-size: 13px; animation: you-wait 1.2s ease-in-out infinite; }
 .you-item.is-shown .you-val { animation: you-in 0.35s ease-out; }
 @keyframes you-wait { 50% { opacity: 0.35; } }
 @keyframes you-in { from { opacity: 0; transform: translateY(2px); } }

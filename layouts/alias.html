@@ -1,0 +1,14 @@
+{{- /* Old addresses that forward to a page (front matter "aliases", e.g. /about/ on the home page) */ -}}
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang }}">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="{{ partial "csp.html" . }}">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>{{ .Permalink }}</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="{{ .Permalink }}">
+<meta http-equiv="refresh" content="0; url={{ .Permalink }}">
+</head>
+<body><p><a href="{{ .Permalink }}">{{ .Permalink }}</a></p></body>
+</html>

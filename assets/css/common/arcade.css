@@ -1,6 +1,6 @@
 /* Games page (layouts/_default/arcade.html, assets/js/games/arcade.js). Each game adds its own styles via api.css. */
 
-.arcade { --ink: #0f172a; --muted: #64748b; --navy: #1e3a8a; --pink: #d6336c; --line: #e2e8f0; color: var(--ink); }
+.arcade { --ink: #0f172a; --muted: #5b6b80; --navy: #1e3a8a; --pink: #d6336c; --line: #e2e8f0; color: var(--ink); }
 .arcade-head { position: relative; margin: 8px 0 22px; text-align: center; }
 .arcade-head h1 { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
 .arcade-head p { margin: 4px 0 12px; color: var(--muted); }

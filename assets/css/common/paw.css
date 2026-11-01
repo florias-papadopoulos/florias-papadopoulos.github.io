@@ -48,7 +48,7 @@ html[data-cat="bat"] .cat-pick .cf-bat, .cat-opt[data-look="bat"] .cf-bat { disp
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
 }
 .cat-menu[hidden] { display: none; }
-.cat-menu-title { margin: 2px 6px 6px; color: #64748b; font-size: 0.8rem; }
+.cat-menu-title { margin: 2px 6px 6px; color: #5b6b80; font-size: 0.8rem; }
 .cat-opt {
     display: flex;
     align-items: center;

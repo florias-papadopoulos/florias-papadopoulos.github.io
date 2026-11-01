@@ -13,7 +13,7 @@ Arcade.register('cucumber-hop', function (api) {
         '.ch-hint { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); padding: 10px 18px; border-radius: 16px;' +
         '  background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, .12); color: #1e3a8a; font-weight: 700; text-align: center;' +
         '  line-height: 1.45; white-space: pre-line; width: max-content; max-width: calc(100% - 32px); pointer-events: none; }' +
-        '.ch-hint small { display: block; margin-top: 4px; color: #64748b; font-weight: 600; font-size: .82rem; }' +
+        '.ch-hint small { display: block; margin-top: 4px; color: #5b6b80; font-weight: 600; font-size: .82rem; }' +
         '.ch-hint[hidden] { display: none; }' +
         '@keyframes ch-spin { from { transform: rotate(0); } to { transform: rotate(-360deg); } }' +
         '@media (prefers-reduced-motion: reduce) { .ch .ch-cat.ch-spin .cat-flip { animation: none; } }');

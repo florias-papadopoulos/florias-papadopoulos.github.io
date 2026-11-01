@@ -3,7 +3,7 @@
 {{- end -}}
 
 <!DOCTYPE html>
-<html lang="{{ site.Language }}" dir="{{ .Language.LanguageDirection | default "auto" }}">
+<html lang="{{ site.Language }}" dir="{{ .Language.Direction | default "auto" }}">
 
 <head>
     {{- partial "head.html" . }}
@@ -17,8 +17,9 @@
 {{- print " dark" }}
 {{- end -}}
 " id="top">
-    {{- /* the visitor's chosen look of the cat, applied before anything is drawn */}}
-    <script>try { var l = localStorage.getItem('cat-look'); if (l) document.documentElement.dataset.cat = l; } catch (e) {}</script>
+    {{- /* the visitor's chosen look of the cat, applied before anything is drawn (no defer) */}}
+    {{- $look := resources.Get "js/cat-look.js" | minify | fingerprint }}
+    <script src="{{ $look.RelPermalink }}" integrity="{{ $look.Data.Integrity }}"></script>
     {{- if not .IsHome  }}
     {{- partialCached "header.html" . .Page -}}
     {{- end }}
@@ -45,27 +46,8 @@
     <a class="corner-btn you-link" id="you-link" href="{{ "you/" | relURL }}" title="What this site knows about you" aria-label="What this site knows about you"{{ if eq .Layout "you" }} aria-current="page"{{ end }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.3"/></svg>
     </a>
-    <script>
-    (function () {
-        var picker = document.getElementById('cat-picker'), btn = picker.querySelector('.cat-pick'), menu = picker.querySelector('.cat-menu');
-        function mark() {
-            var cur = document.documentElement.dataset.cat || 'ginger';
-            Array.prototype.forEach.call(menu.querySelectorAll('.cat-opt'), function (o) { o.setAttribute('aria-checked', o.dataset.look === cur); });
-        }
-        function open(on) { menu.hidden = !on; btn.setAttribute('aria-expanded', on); if (on) mark(); }
-        btn.addEventListener('click', function (e) { e.stopPropagation(); open(menu.hidden); });
-        menu.addEventListener('click', function (e) {
-            var o = e.target.closest('.cat-opt');
-            if (!o) return;
-            document.documentElement.dataset.cat = o.dataset.look;
-            try { localStorage.setItem('cat-look', o.dataset.look); } catch (err) {}
-            mark();
-            setTimeout(function () { open(false); }, 250);
-        });
-        document.addEventListener('click', function (e) { if (!picker.contains(e.target)) open(false); });
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') open(false); });
-    })();
-    </script>
+    {{- $picker := resources.Get "js/cat-picker.js" | minify | fingerprint }}
+    <script src="{{ $picker.RelPermalink }}" integrity="{{ $picker.Data.Integrity }}" defer></script>
     {{- /* the visit counter: one beacon per page view, only when params.statsEndpoint is set (assets/js/stats-hit.js,
            with assets/js/stats-detect.js before it; totals on /stats/); "page not found" is counted as /404/ instead
            of whatever address was mistyped */}}

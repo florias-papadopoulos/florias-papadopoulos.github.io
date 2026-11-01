@@ -11,7 +11,7 @@ Arcade.register('long-cat', function (api) {
         '.yt-hint { position: absolute; left: 50%; transform: translate(-50%, -50%); padding: 10px 18px; border-radius: 16px;' +
         '  background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, .12); color: #1e3a8a; font-weight: 700; text-align: center;' +
         '  line-height: 1.45; white-space: pre-line; width: max-content; max-width: calc(100% - 32px); pointer-events: none; }' +
-        '.yt-hint small { display: block; margin-top: 4px; color: #64748b; font-weight: 600; font-size: .82rem; }' +
+        '.yt-hint small { display: block; margin-top: 4px; color: #5b6b80; font-weight: 600; font-size: .82rem; }' +
         '.yt-hint[hidden] { display: none; }' +
         '.yt-pad { position: absolute; left: 16px; bottom: 14px; display: grid; gap: 6px;' +
         '  grid-template: "a u b" 54px "l d r" 54px / 54px 54px 54px; }' +
