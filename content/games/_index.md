@@ -25,5 +25,7 @@ games:
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex }
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: complex, levels: true }
   - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: complex, levels: true }
+  - { id: paw-raiders,    title: "Paw Raiders",         emoji: "🚀", desc: "Fly a cardboard box rocket and throw yarn at ducks, drones and robot vacuums.", group: complex, levels: true }
+  - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out of the garden with a water pistol.", group: complex, levels: true }
   - { id: dino-valley,    title: "Dino Valley",         emoji: "🦕", desc: "Ride a baby dinosaur home with the cat on its back before the volcano blows.", group: complex, levels: true }
 ---
