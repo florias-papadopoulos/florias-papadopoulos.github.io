@@ -171,16 +171,16 @@ params:
     - name: email
       title: Email
       url: "#email"
-    - name: LinkedIn
-      url: https://www.linkedin.com/in/florias-papadopoulos-b035ab233
-    - name: GitHub
-      url: https://github.com/florias-papadopoulos
     - name: orcid
       title: ORCID
       url: https://orcid.org/0009-0001-3684-5318
     - name: researchgate
       title: ResearchGate
       url: https://www.researchgate.net/profile/Florias-Papadopoulos
+    - name: LinkedIn
+      url: https://www.linkedin.com/in/florias-papadopoulos-b035ab233
+    - name: GitHub
+      url: https://github.com/florias-papadopoulos
     - name: Instagram
       url: https://www.instagram.com/florias.pap/
 
