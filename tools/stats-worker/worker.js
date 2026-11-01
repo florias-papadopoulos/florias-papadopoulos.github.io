@@ -2,6 +2,7 @@
 // It keeps daily totals only: no cookies, no IP addresses, nothing about any one visitor.
 //   POST /hit    one page view, sent by the site: {"p": "/games/", "r": "google.com", "d": "phone", "b": "Firefox"}
 //   GET  /stats  the totals of the last ?days=30 days, read by the site's /stats/ page
+//   GET  /whoami the country this request would be counted under (for the /you/ page; nothing is stored)
 // Table (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country.
 const SITE = 'https://florias-papadopoulos.github.io';
 const BROWSERS = ['Firefox', 'Chrome', 'Safari', 'Edge', 'Opera', 'Other'];
@@ -20,6 +21,10 @@ export default {
         try {
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
             if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
+            if (url.pathname === '/whoami' && req.method === 'GET') {
+                return new Response(JSON.stringify({ country: (req.cf && req.cf.country) || 'XX' }),
+                    { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) });
+            }
         } catch (e) {
             return new Response('Error', { status: 500, headers: headers() });
         }

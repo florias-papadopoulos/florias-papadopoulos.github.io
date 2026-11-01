@@ -1,70 +1,81 @@
 {{- /* "What this site knows about you" (content/you/_index.md), reached from the eye button in the top right corner
-       (baseof.html): what I, the owner, could learn about a visit from the visit itself, as server logs and a basic
-       analytics script would record it. Every value is read by assets/js/you.js in the visitor's browser and shown only
-       to them; the one request to another site is the IP lookup, made only when the visitor presses its button.
-       Styles: assets/css/common/you.css. The wrapper also has the class tl-page so the cat of the tabs
-       (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
+       (baseof.html): exactly what the visit counter (assets/js/stats-hit.js, tools/stats-worker/worker.js) records
+       about this visit, filled in for the visitor by assets/js/you.js with the same detection code
+       (assets/js/stats-detect.js), and what I, the owner, never see. The country comes from GET <endpoint>/whoami,
+       asked only when the visit is counted. While params.statsEndpoint is empty the counter is off and the page says
+       that nothing is recorded. Styles: assets/css/common/you.css. The wrapper also has the class tl-page so the cat
+       of the tabs (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
 {{- define "main" }}
-{{- $ip := slice
-    (slice "ip" "IP address" "Arrives with every request and lands in my server log. It identifies your connection, often for days or weeks.")
-    (slice "city" "City" "Looked up from public registry data: often your town or one nearby, never your street.")
-    (slice "region" "Region" "Usually right even when the city is not.")
-    (slice "country" "Country" "Enough to tell which country's laws, prices and language would apply to you.")
-    (slice "org" "Provider" "Your internet provider, or your employer or university when you are on its network.") }}
-{{- $request := slice
-    (slice "browser" "Browser" "Your browser names itself in every request, so it is in every server log.")
-    (slice "os" "Operating system" "Part of the same header: it tells me what you run, and roughly how up to date it is.")
-    (slice "dtype" "Device type" "Phone, tablet or computer, read from the same header.")
-    (slice "langs" "Languages" "Your browser asks for pages in these languages, in this order. An uncommon mix says a lot about you.")
-    (slice "ref" "Where you came from" "Your browser tells me which site sent you, unless you or that site ask it not to. Shown here as the site only.")
-    (slice "when" "Time of your visit" "Every log line is stamped with the moment of the request.") }}
-{{- $script := slice
-    (slice "screen" "Screen" "Analytics tools report screen sizes to tell phones from laptops, and as one more clue about you.")
-    (slice "tz" "Time zone and your clock" "Places you within a few countries without asking for your location, even without your IP address.")
-    (slice "pages" "Pages this visit" "Analytics tools follow you from page to page, so I would see which pages you read and in what order.")
-    (slice "time" "Time on this page" "Counted live here. Analytics tools record it for every page you open.") }}
+{{- $end := site.Params.statsEndpoint }}
+{{- $rec := slice
+    (slice "page" "Page" "The address of the page you are on, nothing more of it.")
+    (slice "ref" "Site that sent you" "Only the name of another site whose link you followed, never the page on it or what you did there.")
+    (slice "device" "Device" "Only phone, tablet or computer, not the model.")
+    (slice "browser" "Browser" "Only the family name, not the version or your settings.")
+    (slice "country" "Country" "Worked out by Cloudflare, which runs the counter, from the network you connect through. Your IP address is not read or kept.") }}
 
-<div class="tl-page you-page" id="you">
+<div class="tl-page you-page" id="you" data-endpoint="{{ $end }}" data-page="{{ .RelPermalink }}" data-title="{{ .Title }}">
     <header class="you-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
-        <p class="you-lede">Everything below is worked out by your own browser, on this page: <strong>none of it is stored or sent anywhere</strong>, apart from the IP lookup you can start with the button.</p>
-        {{- /* the visit counter (params.statsEndpoint) keeps totals only: say so while it is switched on */}}
-        {{- if site.Params.statsEndpoint }}
-        <p class="you-sub">This site only counts visits in totals (no cookies, no IP addresses, see <a href="{{ "stats/" | relURL }}">Site stats</a>). Everything below is what I, as its owner, <em>could</em> see about your visit, shown to you only.</p>
+        {{- if $end }}
+        <p class="you-lede">Everything below is what my visit counter records about this visit, filled in for you. <strong>Nothing else is kept.</strong></p>
         {{- else }}
-        <p class="you-sub">This site runs no analytics. This is what I, as its owner, <em>could</em> see about your visit, shown to you only.</p>
+        <p class="you-lede">My visit counter is switched off, so <strong>nothing about your visit is recorded.</strong></p>
         {{- end }}
-        <noscript><p class="you-sub you-noscript">JavaScript is off, so this page cannot show you anything. My server would still see your IP address, browser, languages and the page that sent you.</p></noscript>
+        <noscript><p class="you-sub">JavaScript is off in your browser, so the counter cannot count this visit, and this page cannot show you anything.</p></noscript>
     </header>
 
-
-    <section class="you-sec you-net" aria-labelledby="you-h-ip">
-        <h2 class="you-h2" id="you-h-ip">Where you are connecting from</h2>
-        <p class="you-intro">My web server gets your public IP address with every request, and a free lookup turns it into a rough location and your internet provider. Your browser cannot see that address itself, so to show it to you this page has to ask an outside service.</p>
-        <p class="you-actions">
-            <button class="you-btn" id="you-ip-btn" type="button">Show what I can see about you</button>
-            <span class="you-status" id="you-ip-status" role="status"></span>
-        </p>
-        <p class="you-note">Pressing it sends your IP address to <a href="https://ipapi.co/privacy/" rel="noopener noreferrer" target="_blank">ipapi.co</a>, a third-party service. Nothing is sent before you press it.</p>
-        <div class="you-ip" id="you-ip" hidden>
-            {{- partial "inline/you-items.html" $ip }}
-        </div>
+    {{- if $end }}
+    <section class="you-sec you-verdict" aria-labelledby="you-h-count">
+        <h2 class="you-h2" id="you-h-count">Is this visit counted?</h2>
+        <dl class="you-list">
+            <div class="you-item" data-k="counted">
+                <dt class="you-label">This visit</dt>
+                <dd class="you-val"><span class="you-wait">checking</span></dd>
+                <dd class="you-why">The counter leaves out visits from browsers that send Do Not Track or Global Privacy Control, and from browsers where counting was switched off.</dd>
+            </div>
+        </dl>
     </section>
 
-    <section class="you-sec" aria-labelledby="you-h-req">
-        <h2 class="you-h2" id="you-h-req">What your browser tells me with every request</h2>
-        <p class="you-intro">Sent before any page loads, so a plain server log keeps it.</p>
-        {{- partial "inline/you-items.html" $request }}
+    <section class="you-sec" aria-labelledby="you-h-rec">
+        <h2 class="you-h2" id="you-h-rec">What I record about this visit</h2>
+        <p class="you-intro" id="you-rec-intro">One small note per page view, with these five things and no others.</p>
+        {{- partial "inline/you-items.html" $rec }}
     </section>
 
-    <section class="you-sec" aria-labelledby="you-h-script">
-        <h2 class="you-h2" id="you-h-script">What a basic analytics script would add</h2>
-        <p class="you-intro">A few lines of JavaScript, of the kind most websites run, can read and report these.</p>
-        {{- partial "inline/you-items.html" $script }}
+    <section class="you-sec" aria-labelledby="you-h-then">
+        <h2 class="you-h2" id="you-h-then">What happens to it</h2>
+        <p class="you-intro">It is added to the totals of the day and then forgotten: no time of day, no entry for you, nothing that ties the five values together.</p>
+        <dl class="you-list">
+            <div class="you-item" data-k="adds">
+                <dt class="you-label" id="you-adds-label">Added today</dt>
+                <dd class="you-val"><span class="you-wait">reading</span></dd>
+                <dd class="you-why">The totals are public, for everyone to see, on <a href="{{ "stats/" | relURL }}">Site stats</a>.</dd>
+            </div>
+        </dl>
+    </section>
+    {{- end }}
+
+    <section class="you-sec" aria-labelledby="you-h-never">
+        <h2 class="you-h2" id="you-h-never">What I never see</h2>
+        <ul class="you-never">
+            <li>Your IP address</li>
+            <li>Where exactly you are: nothing finer than the country</li>
+            <li>Your name, or anything else about who you are</li>
+            <li>Which other sites you visit</li>
+            <li>Anything that links today's visit to another day, or one page you open to the next</li>
+        </ul>
+    </section>
+
+    <section class="you-sec" aria-labelledby="you-h-search">
+        <h2 class="you-h2" id="you-h-search">If you found this site through a search</h2>
+        <p class="you-intro you-search" id="you-search">Google Search Console only shows me totals: which search terms led to the site and how many clicks they got, never who searched.</p>
     </section>
 </div>
-{{- $js := resources.Get "js/you.js" | minify | fingerprint }}
+{{- if $end }}
+{{- $js := slice (resources.Get "js/stats-detect.js") (resources.Get "js/you.js") | resources.Concat "js/you.bundle.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{- end }}
 {{ partial "cat.html" (dict "world" "pages") }}
 {{- end }}
 

@@ -67,9 +67,10 @@
     })();
     </script>
     {{- /* the visit counter: one beacon per page view, only when params.statsEndpoint is set (assets/js/stats-hit.js,
-           totals on /stats/); "page not found" is counted as /404/ instead of whatever address was mistyped */}}
+           with assets/js/stats-detect.js before it; totals on /stats/); "page not found" is counted as /404/ instead
+           of whatever address was mistyped */}}
     {{- with site.Params.statsEndpoint }}
-    {{- $hit := resources.Get "js/stats-hit.js" | minify | fingerprint }}
+    {{- $hit := slice (resources.Get "js/stats-detect.js") (resources.Get "js/stats-hit.js") | resources.Concat "js/stats-hit.bundle.js" | minify | fingerprint }}
     <script id="stats-hit" src="{{ $hit.RelPermalink }}" integrity="{{ $hit.Data.Integrity }}" data-endpoint="{{ . }}"{{ if eq $.Kind "404" }} data-page="/404/"{{ end }} defer></script>
     {{- end }}
 </body>
