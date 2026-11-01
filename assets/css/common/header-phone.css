@@ -1,6 +1,6 @@
 /* Phones: the menu gets its own full-width row with the items spread evenly, so they never crowd */
 @media (max-width: 600px) {
-    .nav { justify-content: flex-start; }      /* name on the left, the two corner buttons on the right */
+    .nav { justify-content: flex-start; }      /* name on the left, the corner buttons on the right */
     .logo { margin: auto 12px; }
     #menu { width: 100%; justify-content: space-between; margin: 0 14px; line-height: 40px; }
     #menu li + li { margin-inline-start: 10px; }

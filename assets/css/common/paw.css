@@ -1,4 +1,5 @@
-/* Top right corner, on every page: the cat picker and the paw that leads to the cat games (layouts/_default/baseof.html) */
+/* Top right corner, on every page: the paw that leads to the cat games, the cat picker and the eye that leads to
+   what this site knows about you (layouts/_default/baseof.html) */
 .corner-btn {
     position: fixed;
     top: 6px;
@@ -22,7 +23,9 @@
 .paw-link.wiggle { animation: paw-wiggle 0.5s ease-in-out 4; }
 .cat-pick { right: 52px; }
 .cat-pick svg { width: 22px; height: 20px; }
-.home-reset { right: 94px; }
+.you-link { right: 94px; }
+.you-link svg { width: 19px; height: 19px; fill: currentColor; }
+.home-reset { right: 136px; }
 .home-reset svg { width: 17px; height: 17px; }
 
 /* the little cat face, in the colours of the current look (variables in cat.css) */
@@ -65,15 +68,16 @@ html[data-cat="bat"] .cat-pick .cf-bat, .cat-opt[data-look="bat"] .cf-bat { disp
 .cat-opt:hover { background: #f1f5f9; }
 .cat-opt[aria-checked="true"] { border-color: #cbd5e1; background: #f8fafc; font-weight: 700; }
 
-/* leave room for the two buttons at the right end of the menu */
-.nav { padding-inline-end: 92px; }
-body:has(.home-reset) .nav { padding-inline-end: 134px; }
+/* leave room for the three buttons at the right end of the menu */
+.nav { padding-inline-end: 134px; }
+body:has(.home-reset) .nav { padding-inline-end: 176px; }
 @keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
 @media (max-width: 600px) {
     .nav { padding-inline-end: 0; }
     .corner-btn { top: 5px; }
     .paw-link { right: 8px; }
     .cat-pick { right: 48px; }
-    .home-reset { right: 88px; }
+    .you-link { right: 88px; }
+    .home-reset { right: 128px; }
     body:has(.home-reset) .nav { padding-inline-end: 0; }
 }

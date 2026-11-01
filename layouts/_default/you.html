@@ -1,0 +1,76 @@
+{{- /* "What this site knows about you" (content/you/_index.md), reached from the eye button in the top right corner
+       (baseof.html): what I, the owner, could learn about a visit from the visit itself, as server logs and a basic
+       analytics script would record it. Every value is read by assets/js/you.js in the visitor's browser and shown only
+       to them; the one request to another site is the IP lookup, made only when the visitor presses its button.
+       Styles: assets/css/common/you.css. The wrapper also has the class tl-page so the cat of the tabs
+       (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
+{{- define "main" }}
+{{- $ip := slice
+    (slice "ip" "IP address" "Arrives with every request and lands in my server log. It identifies your connection, often for days or weeks.")
+    (slice "city" "City" "Looked up from public registry data: often your town or one nearby, never your street.")
+    (slice "region" "Region" "Usually right even when the city is not.")
+    (slice "country" "Country" "Enough to tell which country's laws, prices and language would apply to you.")
+    (slice "org" "Provider" "Your internet provider, or your employer or university when you are on its network.") }}
+{{- $request := slice
+    (slice "browser" "Browser" "Your browser names itself in every request, so it is in every server log.")
+    (slice "os" "Operating system" "Part of the same header: it tells me what you run, and roughly how up to date it is.")
+    (slice "dtype" "Device type" "Phone, tablet or computer, read from the same header.")
+    (slice "langs" "Languages" "Your browser asks for pages in these languages, in this order. An uncommon mix says a lot about you.")
+    (slice "ref" "Where you came from" "Your browser tells me which site sent you, unless you or that site ask it not to. Shown here as the site only.")
+    (slice "when" "Time of your visit" "Every log line is stamped with the moment of the request.") }}
+{{- $script := slice
+    (slice "screen" "Screen" "Analytics tools report screen sizes to tell phones from laptops, and as one more clue about you.")
+    (slice "tz" "Time zone and your clock" "Places you within a few countries without asking for your location, even without your IP address.")
+    (slice "pages" "Pages this visit" "Analytics tools follow you from page to page, so I would see which pages you read and in what order.")
+    (slice "time" "Time on this page" "Counted live here. Analytics tools record it for every page you open.") }}
+
+<div class="tl-page you-page" id="you">
+    <header class="you-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        <p class="you-lede">Everything below is worked out by your own browser, on this page: <strong>none of it is stored or sent anywhere</strong>, apart from the IP lookup you can start with the button.</p>
+        <p class="you-sub">This site runs no analytics. This is what I, as its owner, <em>could</em> see about your visit, shown to you only.</p>
+        <noscript><p class="you-sub you-noscript">JavaScript is off, so this page cannot show you anything. My server would still see your IP address, browser, languages and the page that sent you.</p></noscript>
+    </header>
+
+
+    <section class="you-sec you-net" aria-labelledby="you-h-ip">
+        <h2 class="you-h2" id="you-h-ip">Where you are connecting from</h2>
+        <p class="you-intro">My web server gets your public IP address with every request, and a free lookup turns it into a rough location and your internet provider. Your browser cannot see that address itself, so to show it to you this page has to ask an outside service.</p>
+        <p class="you-actions">
+            <button class="you-btn" id="you-ip-btn" type="button">Show what I can see about you</button>
+            <span class="you-status" id="you-ip-status" role="status"></span>
+        </p>
+        <p class="you-note">Pressing it sends your IP address to <a href="https://ipapi.co/privacy/" rel="noopener noreferrer" target="_blank">ipapi.co</a>, a third-party service. Nothing is sent before you press it.</p>
+        <div class="you-ip" id="you-ip" hidden>
+            {{- partial "inline/you-items.html" $ip }}
+        </div>
+    </section>
+
+    <section class="you-sec" aria-labelledby="you-h-req">
+        <h2 class="you-h2" id="you-h-req">What your browser tells me with every request</h2>
+        <p class="you-intro">Sent before any page loads, so a plain server log keeps it.</p>
+        {{- partial "inline/you-items.html" $request }}
+    </section>
+
+    <section class="you-sec" aria-labelledby="you-h-script">
+        <h2 class="you-h2" id="you-h-script">What a basic analytics script would add</h2>
+        <p class="you-intro">A few lines of JavaScript, of the kind most websites run, can read and report these.</p>
+        {{- partial "inline/you-items.html" $script }}
+    </section>
+</div>
+{{- $js := resources.Get "js/you.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}
+
+{{- define "_partials/inline/you-items.html" }}
+<dl class="you-list">
+    {{- range . }}
+    <div class="you-item" data-k="{{ index . 0 }}">
+        <dt class="you-label">{{ index . 1 }}</dt>
+        <dd class="you-val"><span class="you-wait">reading</span></dd>
+        <dd class="you-why">{{ index . 2 }}</dd>
+    </div>
+    {{- end }}
+</dl>
+{{- end }}
