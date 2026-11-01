@@ -14,9 +14,6 @@ Arcade.register('cucumber-hop', function (api) {
         '  line-height: 1.45; white-space: pre-line; width: max-content; max-width: calc(100% - 32px); pointer-events: none; }' +
         '.ch-hint small { display: block; margin-top: 4px; color: #64748b; font-weight: 600; font-size: .82rem; }' +
         '.ch-hint[hidden] { display: none; }' +
-        '.ch-duck { position: absolute; left: 14px; bottom: 16px; width: 76px; height: 64px; border: none; border-radius: 18px;' +
-        '  background: rgba(255, 255, 255, .9); box-shadow: 0 4px 0 #cbd5e1; color: #1e3a8a; font: 800 .8rem/1.1 inherit; touch-action: none; }' +
-        '.ch-duck.ch-on { transform: translateY(3px); box-shadow: 0 1px 0 #cbd5e1; background: #1e3a8a; color: #fff; }' +
         '@keyframes ch-spin { from { transform: rotate(0); } to { transform: rotate(-360deg); } }' +
         '@media (prefers-reduced-motion: reduce) { .ch .ch-cat.ch-spin .cat-flip { animation: none; } }');
 
@@ -46,20 +43,10 @@ Arcade.register('cucumber-hop', function (api) {
     wrap.innerHTML = '<canvas></canvas><div class="ch-hint"></div>';
     api.el.appendChild(wrap);
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d'), hint = wrap.querySelector('.ch-hint');
-    hint.textContent = api.touch ?
-        'Tap: jump\nTap again in the air: double jump\nHold: higher, swipe down or Duck: duck' :
-        'Space, click or ↑: jump\nAgain in the air: double jump\nHold: higher jump, ↓ or S: duck';
+    hint.textContent = api.touch ? 'Tap to jump, twice for a double jump\nSwipe down to duck' : 'Space to jump, twice for a double jump\n↓ to duck';
     var small = document.createElement('small');
-    small.textContent = 'Catch fish for a multiplier, a missed fish lowers it' + (L.lives > 1 ? '. Lives: ' + L.lives : '');
+    small.textContent = 'Fish boost your score';
     hint.appendChild(small);
-    var duckBtn = null;
-    if (api.touch) {
-        duckBtn = document.createElement('button');
-        duckBtn.type = 'button';
-        duckBtn.className = 'ch-duck';
-        duckBtn.innerHTML = '&#9660;<br>Duck';
-        wrap.appendChild(duckBtn);
-    }
 
     /* the runner: a clone of the corner cat, posed with the classes of cat.css */
     var src = document.querySelector('.arcade .mascot svg');
@@ -71,7 +58,7 @@ Arcade.register('cucumber-hop', function (api) {
     var RUN = api.reducedMotion ? 'cat ch-cat moving walk' : 'cat ch-cat moving run';
 
     var W = 0, H = 0, ground = 0, catX = 60, y = 0, vy = 0, onGround = true, held = false, holdT = 0, buffer = 0, airJumps = 0;
-    var duck = false, keyDuck = false, btnDuck = false, swipeDuck = false;
+    var duck = false, keyDuck = false, swipeDuck = false, jumpAt = -1;
     var speed = L.speed, maxSpeed = L.max, dist = 0, points = 0, score = 0, meters = 0, gapLeft = 0, time = 0, state = 'ready';
     var pose = 'cat ch-cat', cls = pose, lives = L.lives, hurtT = 0, spinT = 0, flash = 0, mult = 1, pips = 0, filt = '';
     var obs = [], fishes = [], parts = [], texts = [];
@@ -105,7 +92,7 @@ Arcade.register('cucumber-hop', function (api) {
         if (state === 'over') return;
         held = true;
         begin();
-        if (onGround) jump();
+        if (onGround) { jump(); jumpAt = performance.now(); }
         else if (airJumps < 1) doubleJump();
         else buffer = 0.12;                                /* a press just before landing still counts */
     }
@@ -129,20 +116,23 @@ Arcade.register('cucumber-hop', function (api) {
         api.sfx('jump');
     }
     function setDuck() {
-        var d = keyDuck || btnDuck || swipeDuck;
+        var d = keyDuck || swipeDuck;
         if (d && !duck && state === 'run' && !onGround && vy > -400) vy = -400;   /* ducking in the air: drop fast */
         duck = d;
     }
     var downY = 0, downId = -1;
     api.on(wrap, 'pointerdown', function (e) {
-        if (duckBtn && e.target === duckBtn) return;
         e.preventDefault();
         downY = e.clientY; downId = e.pointerId;
         press();
     });
     api.on(wrap, 'pointermove', function (e) {
         if (e.pointerId !== downId || swipeDuck) return;
-        if (e.clientY - downY > 36) { swipeDuck = true; setDuck(); }
+        if (e.clientY - downY > 36) {
+            /* a swipe that starts on the ground ducks instead of jumping: undo the jump the touch began */
+            if (performance.now() - jumpAt < 250 && airJumps === 0 && y < 60) { y = 0; vy = 0; onGround = true; setPose(RUN); }
+            swipeDuck = true; setDuck();
+        }
     });
     function up(e) {
         if (e.pointerId === downId) { downId = -1; if (swipeDuck) { swipeDuck = false; setDuck(); } }
@@ -150,18 +140,6 @@ Arcade.register('cucumber-hop', function (api) {
     }
     api.on(window, 'pointerup', up);
     api.on(window, 'pointercancel', up);
-    if (duckBtn) {
-        api.on(duckBtn, 'pointerdown', function (e) {
-            e.preventDefault(); e.stopPropagation();
-            if (state === 'over') return;
-            begin();
-            btnDuck = true; duckBtn.classList.add('ch-on'); setDuck();
-        });
-        var duckUp = function () { if (btnDuck) { btnDuck = false; duckBtn.classList.remove('ch-on'); setDuck(); } };
-        api.on(duckBtn, 'pointerup', duckUp);
-        api.on(duckBtn, 'pointerleave', duckUp);
-        api.on(window, 'pointercancel', duckUp);
-    }
     function isJumpKey(e) { return e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW'; }
     function isDuckKey(e) { return e.code === 'ArrowDown' || e.code === 'KeyS'; }
     api.on(document, 'keydown', function (e) {
