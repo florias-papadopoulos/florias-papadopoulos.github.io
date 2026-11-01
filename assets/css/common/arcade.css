@@ -48,11 +48,14 @@ body.arcade-playing { overflow: hidden; }
 .arcade-stage { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; background: #f8fafc; }
 .arcade-stage[hidden] { display: none; }
 .stage-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: #fff; }
-.stage-title { font-weight: 800; }
-.stage-score { margin-left: auto; font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; color: var(--navy); }
+.stage-bar > * { flex-shrink: 0; }
+.stage-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.stage-score { margin-left: auto; white-space: nowrap; font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; color: var(--navy); }
 .stage-best { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; color: var(--muted); }
 .stage-level { padding: 5px 8px; font-size: 0.85rem; cursor: pointer; }
 .stage-level[hidden] { display: none; }
+/* iPhones zoom into the page when a picker with text under 16px is tapped, and stay zoomed: keep it at 16px there */
+@media (pointer: coarse) { .stage-level { font-size: 16px; padding: 3px 4px; } }
 .stage-area { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 
 .stage-msg { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(15, 23, 42, 0.35); }
@@ -94,6 +97,8 @@ body.arcade-playing { overflow: hidden; }
     .gc-icon { font-size: 2rem; }
     .stage-bar { gap: 6px; padding: 6px 8px; }
     .stage-title { font-size: 0.92rem; }
+    .stage-back-label { display: none; }
+    .stage-score { font-size: 0.9rem; }
     .stage-best { display: none; }
     .arcade .mascot { width: 66px; height: 54px; }
     .mascot-say { right: 52px; bottom: 54px; }
