@@ -247,14 +247,14 @@
         it.rest = false;
         physics();
     }
-    /* walking into something loose on the same surface kicks it along */
+    /* walking into something loose kicks it along: anything the front of the cat's body touches, also a symbol
+       lying on top of another one, unless it is already flying away */
     function nudge(dir, run) {
-        var pos = api.pos();
+        var pos = api.pos(), ch = api.size().h;
+        var body = { x: dir > 0 ? pos.x : pos.x - 26, y: pos.y - ch * 0.75, w: 26, h: ch * 0.75 };
         loose.forEach(function (it) {
-            if (it.held || Math.abs(it.y - pos.y) > 8) return;
-            var ahead = (it.x - pos.x) * dir;
-            if (ahead > 0 && ahead < 26 + it.w / 2 && (it.rest || Math.abs(it.vx) < 120))
-                launch(it, dir * (run ? 480 : 230) + (Math.random() - 0.5) * 60, -(run ? 380 : 190));
+            if (it.held || !overlap(body, box(it)) || it.vx * dir > 120) return;
+            launch(it, dir * (run ? 480 : 230) + (Math.random() - 0.5) * 60, -(run ? 380 : 190));
         });
     }
     /* visitors can drag symbols and loose letters around and throw them; a click without moving pokes a glyph */
