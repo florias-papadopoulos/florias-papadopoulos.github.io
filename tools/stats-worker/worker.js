@@ -12,11 +12,7 @@
 //   GET  /room/BDFG/answer   the host waits: {"answer": "v=0..."} once it is there, and the room is deleted; 204 until then
 //   POST /room/BDFG/close    the host gives up waiting: the room is deleted
 // Every request first deletes the rooms older than ROOM_TTL (so does the scheduled handler, if a cron trigger is set).
-//   GET  /turn               the ICE servers for a race: Cloudflare's STUN, plus short-lived TURN relay credentials when the
-//                            secrets TURN_KEY_ID and TURN_KEY_API_TOKEN are set (Cloudflare Realtime TURN). The relay is
-//                            only used when two devices cannot reach each other directly. At most TURN_DAY a day.
-// Tables (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country (and turn: relay
-//                      credentials handed out, not shown on /stats);
+// Tables (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country;
 //                      rooms(code, offer, answer, at), at = when the room was opened (ms).
 const SITE = 'https://florias-papadopoulos.github.io';
 const BROWSERS = ['Firefox', 'Chrome', 'Safari', 'Edge', 'Opera', 'Other'];
@@ -33,9 +29,6 @@ const ROOM_TTL = 120000;  // ms a room lives at most
 const MAX_ROOMS = 100;    // rooms open at once; past it new ones are refused
 const MAX_SDP = 6000;     // bytes; an offer or answer with its network addresses is usually 1 to 3 KB
 const LETTERS = 'BCDFGHJKLMNPQRSTVWXZ';  // room codes: no vowels (so no words), no I or O to mix up with 1 or 0
-const STUN = [{ urls: 'stun:stun.cloudflare.com:3478' }];
-const TURN_TTL = 7200;    // s a relay credential lasts (a long evening of rematches is still one connection)
-const TURN_DAY = 300;     // relay credentials handed out a day at most, so nobody can run up the relay bill with them
 
 function headers(extra) {
     return Object.assign({ 'Access-Control-Allow-Origin': SITE, 'Vary': 'Origin' }, extra || {});
@@ -49,7 +42,6 @@ export default {
         }
         try {
             if (url.pathname === '/room' || url.pathname.indexOf('/room/') === 0) return await room(req, url, env);
-            if (url.pathname === '/turn' && req.method === 'GET') return await turn(req, env);
             /* old rooms go on every other request too, after the answer (and never in its way) */
             if (ctx && ctx.waitUntil) ctx.waitUntil(Promise.resolve().then(function () { return sweep(env); }).catch(function () {}));
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
@@ -129,38 +121,6 @@ async function room(req, url, env) {
     if (row.answer !== null && row.answer !== undefined) return reply(409);
     const r = await env.DB.prepare('UPDATE rooms SET answer = ?2 WHERE code = ?1 AND answer IS NULL').bind(code, answer).run();
     return reply(r && r.meta && r.meta.changes === 1 ? 204 : 409);
-}
-
-/* The ICE servers for one race. Without the TURN secrets (or past TURN_DAY, or if Cloudflare does not answer) only
-   STUN, and the two devices can still connect directly. URLs on port 53 are left out: browsers block that port, and a
-   device would wait for it in vain. */
-async function turn(req, env) {
-    if (req.headers.get('Origin') !== SITE) return reply(403);
-    if (!env.TURN_KEY_ID || !env.TURN_KEY_API_TOKEN) return reply(200, { iceServers: STUN });
-    const day = new Date().toISOString().slice(0, 10);
-    const used = await env.DB.prepare("SELECT n FROM counts WHERE day = ?1 AND kind = 'turn' AND key = 'all'").bind(day).first();
-    if (used && used.n >= TURN_DAY) return reply(200, { iceServers: STUN });
-    try {
-        const r = await fetch('https://rtc.live.cloudflare.com/v1/turn/keys/' + env.TURN_KEY_ID + '/credentials/generate-ice-servers', {
-            method: 'POST', headers: { 'Authorization': 'Bearer ' + env.TURN_KEY_API_TOKEN, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ttl: TURN_TTL })
-        });
-        if (!r.ok) return reply(200, { iceServers: STUN });
-        const d = await r.json();
-        let list = d && d.iceServers;
-        if (list && !Array.isArray(list)) list = [list];
-        if (!list || !list.length) return reply(200, { iceServers: STUN });
-        list = list.map(function (srv) {
-            const urls = (Array.isArray(srv.urls) ? srv.urls : [srv.urls]).filter(function (u) { return typeof u === 'string' && !/:53(\?|$)/.test(u); });
-            const out = { urls: urls };
-            if (srv.username) { out.username = srv.username; out.credential = srv.credential; }
-            return out;
-        }).filter(function (srv) { return srv.urls.length; });
-        await env.DB.prepare("INSERT INTO counts (day, kind, key, n) VALUES (?1, 'turn', 'all', 1) ON CONFLICT(day, kind, key) DO UPDATE SET n = n + 1").bind(day).run();
-        return reply(200, { iceServers: list });
-    } catch (e) {
-        return reply(200, { iceServers: STUN });
-    }
 }
 
 async function hit(req, env) {
