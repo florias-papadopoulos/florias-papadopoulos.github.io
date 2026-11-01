@@ -1,6 +1,7 @@
-/* Yarn Trail: the cat walks a grid, eats fish and leaves a growing yarn trail behind.
-   Bumping into the trail, a houseplant or the wall ends the walk. Bonuses: golden fish (+3, gone after a few seconds),
-   a mouse that runs away (+5) and catnip (slow motion, walk through your yarn). Easy: the walls wrap around and there
+/* Long Cat (game id yarn-trail): a cat walks a grid and eats fish, and every fish makes it longer: head in front,
+   a striped furry body behind, back paws and a swishing tail at the end.
+   Bumping into its own body, a houseplant or the wall ends the walk. Bonuses: golden fish (+3, gone after a few seconds),
+   a mouse that runs away (+5) and catnip (slow motion, walk through yourself). Easy: the walls wrap around and there
    are no plants; hard: faster, more plants, a quicker mouse. Uses the shell API of assets/js/games/arcade.js. */
 Arcade.register('yarn-trail', function (api) {
     'use strict';
@@ -35,7 +36,7 @@ Arcade.register('yarn-trail', function (api) {
     wrap.innerHTML = '<canvas></canvas><div class="yt-hint"></div>';
     api.el.appendChild(wrap);
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d'), hint = wrap.querySelector('.yt-hint');
-    hint.textContent = (api.touch ? 'Swipe or use the arrows' : 'Arrow keys or WASD') + '\nEat fish, avoid your yarn' +
+    hint.textContent = (api.touch ? 'Swipe or use the arrows' : 'Arrow keys or WASD') + '\nEat fish to grow, avoid your own tail' +
         (L.wrap ? '\nThe walls wrap around' : '\nMind the walls and houseplants') + '\n' + (api.touch ? 'Tap to start' : 'Press a key to start');
     var small = document.createElement('small');
     small.textContent = 'Gold fish +3, mouse +5, catnip slows time';
@@ -153,7 +154,7 @@ Arcade.register('yarn-trail', function (api) {
     }
 
     function reset() {
-        occ = new Uint8Array(cols * rows);                 /* yarn pieces per cell (catnip lets them overlap) */
+        occ = new Uint8Array(cols * rows);                 /* cat pieces per cell (catnip lets them overlap) */
         plant = new Uint8Array(cols * rows);
         plants = [];
         var cy0 = rows >> 1, cx0 = cols >> 1;
@@ -196,7 +197,7 @@ Arcade.register('yarn-trail', function (api) {
         var tail = body[body.length - 1];
         if (grow > 0) { grow--; prevTail = tail; }
         else { body.pop(); occ[tail]--; prevTail = tail; }    /* the tail end moves away first */
-        if (occ[n] && nipT <= 0) return crash('Tangled in yarn!');
+        if (occ[n] && nipT <= 0) return crash('Tangled in your own tail!');
         lastDir = dir;
         body.unshift(n);
         occ[n]++;
@@ -218,7 +219,7 @@ Arcade.register('yarn-trail', function (api) {
             if (eaten % 10 === 0) {
                 api.sfx('point');
                 api.cat('happy');
-                api.say(['Yum, ' + eaten + ' fish!', 'So much yarn!', 'Purrfect!'][(eaten / 10) % 3]);
+                api.say(['Yum, ' + eaten + ' fish!', 'Such a long cat!', 'Purrfect!'][(eaten / 10) % 3]);
             } else {
                 api.sfx('pop');
                 if (eaten % 5 === 0) api.cat('wow');
@@ -248,7 +249,7 @@ Arcade.register('yarn-trail', function (api) {
             burst(cx(n), cy(n), '#5fae74', 14);
             api.sfx('jump');
             api.cat('wow');
-            api.say('Catnip! Slow motion, walk through yarn');
+            api.say('Catnip! Slow motion, walk through yourself');
         }
     }
     /* new bonuses appear after eating a fish */
@@ -315,7 +316,7 @@ Arcade.register('yarn-trail', function (api) {
     }
     function win() {
         state = 'over';
-        api.end({ score: score, win: true, text: 'The whole board is yarn!\nScore: ' + score });
+        api.end({ score: score, win: true, text: 'The whole board is cat!\nScore: ' + score });
     }
 
     /* ---------- particles: little bursts and floating points ---------- */
@@ -363,7 +364,7 @@ Arcade.register('yarn-trail', function (api) {
         if (gold) drawGold(now, bob);
         if (nip) drawNip(now, bob);
         if (mouse) drawMouse(now);
-        drawYarn(now);
+        drawCat(now);
         g.restore();
         drawFx();
         g.restore();
@@ -466,47 +467,148 @@ Arcade.register('yarn-trail', function (api) {
         g.beginPath(); g.arc(x + d * s * 0.5, y - s * 0.05, Math.max(1, s * 0.1), 0, TAU); g.fill();
         g.globalAlpha = 1;
     }
-    /* the yarn: a strand of plied wool (grooves of the twist, a soft sheen); the head and the tail glide between cells */
-    function drawYarn(now) {
-        var f = state === 'run' ? frac : 1, n = body.length, ghost = nipT > 0;
-        var hx = cx(body[0]) - DX[lastDir] * (1 - f) * cell, hy = cy(body[0]) - DY[lastDir] * (1 - f) * cell;
-        var tx = cx(body[n - 1]), ty = cy(body[n - 1]);
-        if (prevTail >= 0 && prevTail !== body[n - 1] && state === 'run') {
-            var tv = vec(body[n - 1], prevTail);
-            tx += tv[0] * cell * (1 - f); ty += tv[1] * cell * (1 - f);
+    /* ---------- the long cat: head in front, a furry striped body, back paws and a swishing tail at the end ---------- */
+    /* colours of the chosen cat look (the CSS variables of cat.css), ginger if they are missing */
+    var C = (function () {
+        var cs = null;
+        try { cs = getComputedStyle(document.documentElement); } catch (e) { /* ginger */ }
+        function v(name, dflt) { var s = cs && cs.getPropertyValue(name).trim(); return s || dflt; }
+        return { fur: v('--fur-bot', '#f0932c'), light: v('--fur-top', '#ffc06e'), head: v('--head-top', '#ffc479'),
+                 stripe: v('--stripe', '#cf7419'), cream: v('--cream', '#ffe9c9'), tail: v('--tail', '#f5a03c'),
+                 iris: v('--iris', '#8ed383'), line: '#3b2a1e' };
+    })();
+    /* opaque blends of the fur with its lighter and darker tones (drawing twice at a joint must not change them) */
+    function blend(a, b, t) {
+        function rgb(h) {
+            h = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(h) ? h.slice(1) : null;
+            if (!h) return null;
+            if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+            return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
         }
-        function strand(ox2, oy2) {
-            g.beginPath();
-            g.moveTo(hx + ox2, hy + oy2);
-            for (var i = 1; i < n; i++) {
-                var a = body[i - 1], b = body[i];
-                if (jump(a, b)) {                          /* across the wrap: out of one side, in at the other */
-                    var v = vec(a, b);
-                    g.lineTo(cx(a) + v[0] * cell + ox2, cy(a) + v[1] * cell + oy2);
-                    g.moveTo(cx(b) - v[0] * cell + ox2, cy(b) - v[1] * cell + oy2);
-                }
-                g.lineTo(cx(b) + ox2, cy(b) + oy2);
-            }
-            g.lineTo(tx + ox2, ty + oy2);
+        var x = rgb(a), y = rgb(b);
+        if (!x || !y) return b;
+        return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(x[i] + (y[i] - x[i]) * t); }).join(',') + ')';
+    }
+    C.back = blend(C.fur, C.light, 0.5);
+    C.belly = blend(C.fur, C.cream, 0.75);
+    C.mark = blend(C.fur, C.stripe, 0.85);
+    C.sock = blend(C.light, C.cream, 0.6);
+    var BODY = 0.74, EDGE = 0.84;                           /* fur and outline width, in cells */
+    /* the body as short straight pieces, head to tail; each starts on a cell centre (or one just past the edge),
+       so the stripes stay put on the board while the cat glides */
+    function pieces(f) {
+        var segs = [], n = body.length, i, a, b, v;
+        function seg(x, y, dx, dy, len) { segs.push([x, y, x + dx * len * cell, y + dy * len * cell]); }
+        a = body[0]; b = body[1];
+        v = vec(b, a);
+        seg(cx(b), cy(b), v[0], v[1], f);                  /* the neck, growing towards the head */
+        if (jump(a, b)) seg(cx(a) - v[0] * cell, cy(a) - v[1] * cell, v[0], v[1], f);
+        for (i = 2; i < n; i++) {
+            a = body[i - 1]; b = body[i];
+            v = vec(b, a);
+            seg(cx(b), cy(b), v[0], v[1], 1);
+            if (jump(a, b)) seg(cx(a), cy(a), -v[0], -v[1], 1);   /* across the wrap: the other side too */
         }
-        g.lineCap = 'round'; g.lineJoin = 'round';
-        g.save();
-        if (ghost) g.globalAlpha = 0.55;
-        strand(0, cell * 0.08);                            /* shadow */
-        g.strokeStyle = 'rgba(120, 40, 70, .16)'; g.lineWidth = cell * 0.46; g.stroke();
-        strand(0, 0);
-        g.strokeStyle = '#c2255c'; g.lineWidth = cell * 0.42; g.stroke();
-        g.strokeStyle = '#f783ac'; g.lineWidth = cell * 0.34; g.stroke();
-        g.setLineDash([cell * 0.05, cell * 0.0928]);        /* the twist: seven grooves per cell, fixed on the board */
-        g.lineDashOffset = -(steps + f) * cell;
-        g.lineCap = 'butt';
-        g.strokeStyle = 'rgba(166, 30, 77, .42)'; g.lineWidth = cell * 0.34; g.stroke();
-        g.setLineDash([]);
+        var t = body[n - 1];
+        if (prevTail >= 0 && prevTail !== t && state === 'run') {
+            v = vec(t, prevTail);                          /* the back end, still leaving the cell behind */
+            seg(cx(t), cy(t), v[0], v[1], 1 - f);
+        }
+        return segs;
+    }
+    function trace(list, from, to, ox2, oy2) {
+        g.beginPath();
+        for (var i = from; i < to; i++) {
+            var s = list[i];
+            g.moveTo(s[0] + ox2, s[1] + oy2); g.lineTo(s[2] + ox2, s[3] + oy2);
+        }
+    }
+    /* the fur, then its markings: a soft light back, a cream belly side and curved tabby stripes coming down
+       from the back (the back is the upper left side, where the light comes from) */
+    function fur(list, from, to, cap) {
+        trace(list, from, to, 0, 0);
+        g.lineCap = cap || 'round'; g.strokeStyle = C.fur; g.lineWidth = cell * BODY; g.stroke();
         g.lineCap = 'round';
-        strand(-cell * 0.035, -cell * 0.06);               /* soft sheen on the top left */
-        g.strokeStyle = 'rgba(255, 214, 230, .75)'; g.lineWidth = Math.max(1, cell * 0.08); g.stroke();
-        drawBall(tx, ty, (steps + f) * 0.9);
-        g.restore();
+    }
+    function marks(list, from, to) {
+        trace(list, from, to, -cell * 0.08, -cell * 0.1);
+        g.strokeStyle = C.back; g.lineWidth = cell * 0.3; g.stroke();
+        trace(list, from, to, cell * 0.13, cell * 0.15);
+        g.strokeStyle = C.belly; g.lineWidth = cell * 0.17; g.stroke();
+        g.beginPath();
+        var hw = cell * BODY / 2;
+        for (var i = from; i < to; i++) {
+            var q = list[i], len = Math.abs(q[2] - q[0]) + Math.abs(q[3] - q[1]);
+            if (len < 1) continue;
+            var ux = (q[2] - q[0]) / len, uy = (q[3] - q[1]) / len, bx = -uy, by = ux;
+            if (bx + by > 0) { bx = -bx; by = -by; }       /* the back side */
+            var sx = q[2] > q[0] || q[3] > q[1] ? 1 : -1;  /* stripes lean the same way whichever way it was drawn */
+            for (var k = 0; k < 2; k++) {
+                var d = (k ? 0.72 : 0.28) * cell;
+                if (d > len) break;
+                var px2 = q[0] + ux * d, py2 = q[1] + uy * d;
+                g.moveTo(px2 + bx * hw * 0.95, py2 + by * hw * 0.95);
+                g.quadraticCurveTo(px2 + bx * hw * 0.2 + ux * sx * cell * 0.1, py2 + by * hw * 0.2 + uy * sx * cell * 0.1,
+                    px2 - bx * hw * (k ? 0.2 : 0.55), py2 - by * hw * (k ? 0.2 : 0.55));
+            }
+        }
+        g.strokeStyle = C.mark; g.lineWidth = Math.max(1.2, cell * 0.09); g.stroke();
+    }
+    function paw(x, y) {
+        g.fillStyle = C.sock; g.strokeStyle = C.line; g.lineWidth = Math.max(1, cell * 0.045);
+        g.beginPath(); g.ellipse(x, y, cell * 0.17, cell * 0.14, 0, 0, TAU); g.fill(); g.stroke();
+    }
+    function tail(x, y, ex, ey, now) {
+        var px2 = -ey, py2 = ex, sw = api.reducedMotion ? 0.4 : Math.sin(now / 420);
+        var k = 0.55 + 0.45 * sw, c = cell;
+        var x0 = x + ex * c * 0.25, y0 = y + ey * c * 0.25;
+        var x1 = x0 + ex * c * 0.55 + px2 * c * 0.12 * sw, y1 = y0 + ey * c * 0.55 + py2 * c * 0.12 * sw;
+        var x2 = x0 + ex * c * 1.15 + px2 * c * 0.5 * k, y2 = y0 + ey * c * 1.15 + py2 * c * 0.5 * k;
+        var x3 = x0 + ex * c * 0.85 + px2 * c * 0.9 * k, y3 = y0 + ey * c * 0.85 + py2 * c * 0.9 * k;
+        function path() { g.beginPath(); g.moveTo(x0, y0); g.bezierCurveTo(x1, y1, x2, y2, x3, y3); }
+        g.lineCap = 'round';
+        path(); g.strokeStyle = nipT > 0 ? '#2f9e5b' : C.line; g.lineWidth = c * 0.34; g.stroke();
+        path(); g.strokeStyle = C.tail; g.lineWidth = c * 0.24; g.stroke();
+        path(); g.setLineDash([c * 0.09, c * 0.16]); g.strokeStyle = C.stripe; g.globalAlpha = 0.8; g.stroke();
+        g.setLineDash([]); g.globalAlpha = 1;
+        g.fillStyle = C.cream;                             /* the tip */
+        g.beginPath(); g.arc(x3, y3, c * 0.11, 0, TAU); g.fill();
+    }
+    function drawCat(now) {
+        var f = state === 'run' ? frac : 1, n = body.length, ghost = nipT > 0;
+        var D = [DX[lastDir], DY[lastDir]];
+        var hx = cx(body[0]) - D[0] * (1 - f) * cell, hy = cy(body[0]) - D[1] * (1 - f) * cell;
+        var t = body[n - 1], ex, ey, tx = cx(t), ty = cy(t), e;
+        if (prevTail >= 0 && prevTail !== t && state === 'run') {
+            e = vec(t, prevTail);
+            tx += e[0] * cell * (1 - f); ty += e[1] * cell * (1 - f);
+        } else e = vec(body[n - 2], t);
+        ex = e[0]; ey = e[1];                              /* pointing away from the body */
+        var segs = pieces(f), m = segs.length, step0 = (steps + f) * 3.1416, walk = api.reducedMotion ? 0 : 1;
+        g.lineJoin = 'round';
+        trace(segs, 0, m, 0, cell * 0.09);                 /* shadow */
+        g.lineCap = 'round'; g.strokeStyle = 'rgba(120, 72, 20, .15)'; g.lineWidth = cell * EDGE; g.stroke();
+        tail(tx, ty, ex, ey, now);
+        /* small groups from the tail to the head, so a body crossing itself (catnip) shows the newer part on top */
+        for (var end = m, first = true; end > 0; end -= 4) {
+            var from = Math.max(0, end - 4);
+            trace(segs, from, end, 0, 0);
+            g.lineCap = 'round'; g.strokeStyle = ghost ? '#2f9e5b' : C.line; g.lineWidth = cell * EDGE; g.stroke();
+            var to = Math.min(m, end + 1);                 /* one piece more: mends the joint with the group before */
+            fur(segs, from, end);
+            if (to > end) fur(segs, end, to, 'butt');     /* square ends, so it does not cover the older markings */
+            marks(segs, from, to);
+            if (first) {                                   /* back paws on the last cell */
+                first = false;
+                var bs = Math.sin(step0) * cell * 0.08 * walk;
+                paw(tx - ex * cell * 0.12 - ey * cell * 0.36 + ex * bs, ty - ey * cell * 0.12 + ex * cell * 0.36 + ey * bs);
+                paw(tx - ex * cell * 0.12 + ey * cell * 0.36 - ex * bs, ty - ey * cell * 0.12 - ex * cell * 0.36 - ey * bs);
+            }
+        }
+        var fs = Math.sin(step0 + 1.6) * cell * 0.08 * walk;       /* front paws just behind the head */
+        var fx0 = hx - D[0] * cell * 0.42, fy0 = hy - D[1] * cell * 0.42;
+        paw(fx0 - D[1] * cell * 0.36 + D[0] * fs, fy0 + D[0] * cell * 0.36 + D[1] * fs);
+        paw(fx0 + D[1] * cell * 0.36 - D[0] * fs, fy0 - D[0] * cell * 0.36 - D[1] * fs);
         if (ghost) {                                       /* catnip glow around the head */
             var pulse = api.reducedMotion ? 0 : Math.sin(now / 120) * 0.06;
             var gr = g.createRadialGradient(hx, hy, cell * 0.2, hx, hy, cell * (0.9 + pulse));
@@ -517,80 +619,12 @@ Arcade.register('yarn-trail', function (api) {
         shadowAt(hx, hy + cell * 0.42, cell * 0.36);
         drawHead(hx, hy);
     }
-    /* a ball of wool: a shaded sphere, bands of wound strands clipped to it, a highlight and a loose thread.
-       Drawn once per size and colour into a little canvas, then only rotated for the spin. */
-    var WOOL = {
-        pink:   { base: '#f783ac', light: '#ffd0e0', dark: '#c2255c', lo: 'rgba(255, 228, 238, .7)', hi: 'rgba(166, 30, 77, .38)' },
-        orange: { base: '#fb9a4b', light: '#ffe0bf', dark: '#c2410c', lo: 'rgba(255, 237, 213, .7)', hi: 'rgba(154, 52, 18, .38)' }
-    };
-    var woolCache = {};
-    function woolImg(r, tone) {
-        var dpr = Math.min(2, window.devicePixelRatio || 1);
-        r = Math.max(3, Math.round(r * 2) / 2);
-        var key = r + tone + dpr;
-        if (woolCache[key]) return woolCache[key];
-        var C = WOOL[tone], S = Math.ceil(r * 3.8), o = S / 2, cvs = document.createElement('canvas');
-        cvs.width = cvs.height = Math.ceil(S * dpr);
-        var c = cvs.getContext('2d'), lw = r < 10 ? Math.max(0.9, r * 0.1) : Math.max(0.7, r * 0.04);
-        c.scale(dpr, dpr);
-        c.lineCap = 'round';
-        c.strokeStyle = C.dark; c.lineWidth = Math.max(1, r * 0.09);   /* the loose thread, curling off */
-        c.beginPath(); c.moveTo(o + r * 0.5, o + r * 0.8);
-        c.bezierCurveTo(o + r * 0.9, o + r * 1.55, o + r * 1.75, o + r * 1.2, o + r * 1.45, o + r * 0.7);
-        c.bezierCurveTo(o + r * 1.3, o + r * 0.45, o + r * 1.05, o + r * 0.6, o + r * 1.2, o + r * 0.85);
-        c.stroke();
-        var gr = c.createRadialGradient(o - r * 0.4, o - r * 0.45, r * 0.1, o, o, r * 1.05);
-        gr.addColorStop(0, C.light); gr.addColorStop(0.45, C.base); gr.addColorStop(1, C.dark);
-        c.fillStyle = gr;
-        c.beginPath(); c.arc(o, o, r, 0, TAU); c.fill();
-        c.save();
-        c.beginPath(); c.arc(o, o, r, 0, TAU); c.clip();
-        /* bands: tilt, how round the strands curve, where the band sits; each strand is the front half of an ellipse */
-        var small = r < 10, bands = small ? [[0.5, 0.55, -0.25], [-1.0, 0.7, 0.2]] :
-            [[0.45, 0.5, -0.35], [-1.05, 0.65, 0.15], [2.0, 0.45, -0.05], [3.6, 0.7, 0.4]];
-        for (var b = 0; b < bands.length; b++) {
-            var a = bands[b][0], k = bands[b][1], n = small ? 3 : 7, gapS = r * (small ? 0.2 : 0.075);
-            var nx = -Math.sin(a), ny = Math.cos(a);       /* across the band */
-            c.fillStyle = C.hi;                            /* a faint shade under the band */
-            c.globalAlpha = 0.35;
-            c.beginPath(); c.ellipse(o + nx * bands[b][2] * r, o + ny * bands[b][2] * r, r * 1.05, r * k + gapS * n / 2, a, 0, Math.PI);
-            c.ellipse(o + nx * bands[b][2] * r, o + ny * bands[b][2] * r, r * 1.05, Math.max(0, r * k - gapS * n / 2), a, Math.PI, 0, true);
-            c.fill();
-            c.globalAlpha = 1;
-            for (var i = 0; i < n; i++) {
-                var d = (i - (n - 1) / 2) * gapS + bands[b][2] * r;
-                c.strokeStyle = i % 2 ? C.hi : C.lo; c.lineWidth = lw;
-                c.beginPath(); c.ellipse(o + nx * d, o + ny * d, r * 1.05, r * k, a, 0, Math.PI); c.stroke();
-            }
-        }
-        var sh = c.createRadialGradient(o - r * 0.3, o - r * 0.35, r * 0.3, o, o, r);   /* round it off again */
-        sh.addColorStop(0, 'rgba(255, 255, 255, 0)'); sh.addColorStop(0.7, 'rgba(0, 0, 0, 0)'); sh.addColorStop(1, 'rgba(90, 20, 50, .28)');
-        c.fillStyle = sh;
-        c.fillRect(o - r, o - r, r * 2, r * 2);
-        c.restore();
-        var hl = c.createRadialGradient(o - r * 0.42, o - r * 0.45, 0, o - r * 0.42, o - r * 0.45, r * 0.42);
-        hl.addColorStop(0, 'rgba(255, 255, 255, .65)'); hl.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        c.fillStyle = hl;
-        c.beginPath(); c.arc(o - r * 0.42, o - r * 0.45, r * 0.42, 0, TAU); c.fill();
-        c.strokeStyle = C.dark; c.lineWidth = Math.max(0.8, r * 0.07);
-        c.beginPath(); c.arc(o, o, r - c.lineWidth / 2, 0, TAU); c.stroke();
-        woolCache[key] = { cv: cvs, s: S };
-        return woolCache[key];
-    }
-    function wool(ctx, x, y, r, a, tone) {
-        var w = woolImg(r, tone || 'pink');
-        ctx.save();
-        ctx.translate(x, y); if (a) ctx.rotate(a);
-        ctx.drawImage(w.cv, -w.s / 2, -w.s / 2, w.s, w.s);
-        ctx.restore();
-    }
-    function drawBall(x, y, a) { wool(g, x, y, cell * 0.38, api.reducedMotion ? 0 : a, 'pink'); }
     /* the cat's face, looking a little towards where it walks */
     function drawHead(x, y) {
         var s = cell * 0.5, lx = DX[dir] * s * 0.12, ly = DY[dir] * s * 0.12;
         g.lineWidth = Math.max(1, cell * 0.06);
-        g.strokeStyle = '#3b2a1e';
-        g.fillStyle = '#f6a23a';
+        g.strokeStyle = C.line;
+        g.fillStyle = C.fur;
         g.beginPath();                                     /* ears */
         g.moveTo(x - s * 0.85, y - s * 0.2); g.lineTo(x - s * 0.7, y - s * 1.05); g.lineTo(x - s * 0.15, y - s * 0.65);
         g.moveTo(x + s * 0.85, y - s * 0.2); g.lineTo(x + s * 0.7, y - s * 1.05); g.lineTo(x + s * 0.15, y - s * 0.65);
@@ -600,24 +634,32 @@ Arcade.register('yarn-trail', function (api) {
         g.moveTo(x - s * 0.66, y - s * 0.4); g.lineTo(x - s * 0.62, y - s * 0.82); g.lineTo(x - s * 0.36, y - s * 0.6);
         g.moveTo(x + s * 0.66, y - s * 0.4); g.lineTo(x + s * 0.62, y - s * 0.82); g.lineTo(x + s * 0.36, y - s * 0.6);
         g.fill();
-        g.fillStyle = '#f6a23a';
+        var hg = g.createRadialGradient(x - s * 0.3, y - s * 0.35, s * 0.1, x, y, s);
+        hg.addColorStop(0, C.head); hg.addColorStop(1, C.fur);
+        g.fillStyle = hg;
         g.beginPath(); g.ellipse(x, y, s * 0.92, s * 0.8, 0, 0, TAU); g.fill(); g.stroke();
-        g.strokeStyle = '#d9822b';                         /* forehead stripes */
+        g.strokeStyle = C.stripe;                          /* forehead stripes */
         g.beginPath();
         g.moveTo(x - s * 0.18, y - s * 0.74); g.lineTo(x - s * 0.12, y - s * 0.5);
+        g.moveTo(x, y - s * 0.78); g.lineTo(x, y - s * 0.52);
         g.moveTo(x + s * 0.18, y - s * 0.74); g.lineTo(x + s * 0.12, y - s * 0.5);
         g.stroke();
-        g.fillStyle = '#ffe9c9';
+        g.fillStyle = C.cream;
         g.beginPath(); g.ellipse(x + lx, y + s * 0.32 + ly, s * 0.42, s * 0.28, 0, 0, TAU); g.fill();
+        g.fillStyle = C.iris;                              /* eyes: iris and a dark pupil */
+        g.beginPath();
+        g.ellipse(x - s * 0.36 + lx, y - s * 0.12 + ly, s * 0.15, s * 0.2, 0, 0, TAU);
+        g.ellipse(x + s * 0.36 + lx, y - s * 0.12 + ly, s * 0.15, s * 0.2, 0, 0, TAU);
+        g.fill();
         g.fillStyle = '#1f1610';
         g.beginPath();
-        g.ellipse(x - s * 0.36 + lx, y - s * 0.12 + ly, s * 0.1, s * 0.18, 0, 0, TAU);
-        g.ellipse(x + s * 0.36 + lx, y - s * 0.12 + ly, s * 0.1, s * 0.18, 0, 0, TAU);
+        g.ellipse(x - s * 0.36 + lx * 1.4, y - s * 0.12 + ly * 1.4, s * 0.075, s * 0.16, 0, 0, TAU);
+        g.ellipse(x + s * 0.36 + lx * 1.4, y - s * 0.12 + ly * 1.4, s * 0.075, s * 0.16, 0, 0, TAU);
         g.fill();
         g.fillStyle = '#fff';
         g.beginPath();
-        g.arc(x - s * 0.33 + lx, y - s * 0.2 + ly, s * 0.04, 0, TAU);
-        g.arc(x + s * 0.39 + lx, y - s * 0.2 + ly, s * 0.04, 0, TAU);
+        g.arc(x - s * 0.31 + lx, y - s * 0.2 + ly, s * 0.045, 0, TAU);
+        g.arc(x + s * 0.41 + lx, y - s * 0.2 + ly, s * 0.045, 0, TAU);
         g.fill();
         g.fillStyle = '#ff8fa3';
         g.beginPath(); g.arc(x + lx, y + s * 0.18 + ly, s * 0.1, 0, TAU); g.fill();
