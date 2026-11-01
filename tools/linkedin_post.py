@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Make home page entries for LinkedIn posts (config.yml, params.profileMode.linkedin).
+"""Make entries of the home page "Latest" feed for LinkedIn posts (config.yml, params.profileMode.latest).
 
 For each public post URL, fetches the page like a browser would and reads its Open Graph tags (og:description or
 og:title for the text, og:image for the picture, article:published_time for the date), saves the picture as
-static/img/linkedin/<slug>.jpg and prints a YAML entry to paste into config.yml. With --write the entries are added
-at the top of the linkedin list in config.yml instead (the rest of the file, comments included, stays as it is).
+static/img/linkedin/<slug>.jpg and prints a YAML entry (date, text, linkedin, image, alt) to paste into config.yml.
+With --write the entries are added at the top of the latest list in config.yml instead (the rest of the file,
+comments included, stays as it is). Posts whose link is already in config.yml (as a linkedin: or url: field) are
+skipped. The text is the first sentence of the post, shortened to one line: edit it, and when the post is about
+something with its own page (an event, an article, a paper), add that page as url: to the entry.
 
 LinkedIn often answers scripts with a login page (or HTTP status 999). Then the script says so and prints a template
 entry to fill in by hand; the date comes from the number in the post URL, which encodes when it was posted.
@@ -30,7 +33,7 @@ from pathlib import Path
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
       "Chrome/130.0.0.0 Safari/537.36")
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-MAX_TEXT = 240                      # characters of the post kept as the excerpt
+MAX_TEXT = 110                      # characters of the post kept as the text (one line in the feed)
 MAX_PAGE = 4 << 20                  # bytes read of a post page
 MAX_IMAGE = 15 << 20                # bytes of a picture
 IMAGE_EXT = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp",
@@ -130,17 +133,23 @@ def parse_date(s):
 
 
 def show_date(d):
-    return "%d %s %d" % (d.day, MONTHS[d.month - 1], d.year) if d else ""
+    """As the feed writes dates: "Sep 2026"."""
+    return "%s %d" % (MONTHS[d.month - 1], d.year) if d else ""
 
 
 def excerpt(meta):
-    """The post text from og:description (or og:title without "Name on LinkedIn: "), shortened at a word."""
+    """The start of the post from og:description (or og:title without "Name on LinkedIn: "): its first sentence,
+    shortened at a word when that is still too long."""
     text = meta.get("og:description") or meta.get("description") or ""
     title = meta.get("og:title") or meta.get("twitter:title") or ""
     if not text and title:
-        text = re.sub(r"^.{0,80}? on LinkedIn:\s*", "", title)
+        text = title
+    text = re.sub(r"^.{0,80}? on LinkedIn:\s*", "", text)
     text = re.sub(r"\s*\|\s*[\d,.]+\s+comments?\s+on\s+LinkedIn\s*$", "", text, flags=re.I)
     text = re.sub(r"\s+", " ", html.unescape(text)).strip()
+    first = re.match(r"(.{20,}?[.!?])(?=\s|$)", text)
+    if first:
+        text = first.group(1).rstrip(".")
     if len(text) > MAX_TEXT:
         cut = text[:MAX_TEXT + 1]
         text = (cut[:cut.rfind(" ")] if " " in cut[MAX_TEXT // 2:] else cut[:MAX_TEXT]).rstrip(" ,;:.") + "…"
@@ -185,17 +194,21 @@ def ystr(s):
     return '"%s"' % s.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def quoted(s):
+    return '"%s"' % s.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def entry_lines(e, ind):
-    """The YAML lines of one post, items indented by ind."""
-    lines = ["%s- date: %s" % (ind, '"%s"' % e["date"])]
-    lines.append('%s  text: "%s"' % (ind, e["text"].replace("\\", "\\\\").replace('"', '\\"')))
+    """The YAML lines of one entry of the latest list, items indented by ind."""
+    lines = ["%s- date: %s" % (ind, quoted(e["date"]))]
+    lines.append("%s  text: %s" % (ind, quoted(e["text"])))
+    lines.append("%s  linkedin: %s" % (ind, ystr(e["url"])))
     if e.get("image"):
         lines.append("%s  image: %s" % (ind, ystr(e["image"])))
     elif e.get("image_hint"):
         lines.append("%s  # image: %s   (optional: save the picture there)" % (ind, e["image_hint"]))
     if e.get("alt"):
-        lines.append("%s  alt: %s" % (ind, '"%s"' % e["alt"].replace("\\", "\\\\").replace('"', '\\"')))
-    lines.append("%s  url: %s" % (ind, ystr(e["url"])))
+        lines.append("%s  alt: %s" % (ind, quoted(e["alt"])))
     return lines
 
 
@@ -216,10 +229,10 @@ def process(url, site, timeout, want_image):
             raise Blocked("the page has no Open Graph text (most likely a login page)")
     except Blocked as e:
         warn("  LinkedIn did not hand out this post: %s" % e)
-        warn("  Fill in the template below by hand (open the post in your browser and copy the first sentence or two).")
+        warn("  Fill in the template below by hand (open the post in your browser and sum it up in one short line).")
         d = id_date
-        return {"ok": False, "date": show_date(d) or "FILL IN, e.g. 28 Oct 2026",
-                "text": "FILL IN: the first sentence or two of the post", "url": link,
+        return {"ok": False, "date": show_date(d) or "FILL IN, e.g. Oct 2026",
+                "text": "FILL IN: one short line about the post", "url": link,
                 "image_hint": "img/linkedin/%s.jpg" % slugify("", d, url)}
     d = parse_date(meta.get("article:published_time") or meta.get("og:article:published_time")) or id_date
     e = {"ok": True, "date": show_date(d), "text": text, "url": clean_url(meta.get("og:url") or "") or link}
@@ -236,37 +249,49 @@ def process(url, site, timeout, want_image):
     return e
 
 
+def norm_url(u):
+    """A link as compared for duplicates: no quotes, tracking parameters or trailing slash, any case of the host."""
+    u = clean_url(u.strip().strip("'\""))
+    return u.rstrip("/").lower()
+
+
+def known_urls(raw):
+    """The links already in config.yml as linkedin: or url: fields (the latest list and the rest of the file)."""
+    return {norm_url(m.group(2)) for m in re.finditer(r"(?m)^[ \t]*(?:-[ \t]+)?(linkedin|url):[ \t]*(\S+)", raw)
+            if re.match(r"[\"']?https?://", m.group(2))}
+
+
 def write_config(path, entries):
-    """Adds the entries at the top of params.profileMode.linkedin in config.yml, touching nothing else."""
+    """Adds the entries at the top of params.profileMode.latest in config.yml, touching nothing else."""
     raw = path.read_bytes().decode("utf-8")
     nl = "\r\n" if "\r\n" in raw else "\n"
     lines = raw.split(nl)
-    keys = [i for i, l in enumerate(lines) if re.match(r"[ \t]*linkedin:([ \t]|$)", l)]
+    keys = [i for i, l in enumerate(lines) if re.match(r"[ \t]*latest:([ \t]|$)", l)]
     if len(keys) != 1:
-        raise SystemExit("%s: expected one 'linkedin:' line under params.profileMode, found %d (add 'linkedin: []')"
+        raise SystemExit("%s: expected one 'latest:' line under params.profileMode, found %d (add 'latest: []')"
                          % (path, len(keys)))
     k = keys[0]
-    m = re.match(r"([ \t]*)linkedin:[ \t]*(.*?)[ \t]*$", lines[k])
+    m = re.match(r"([ \t]*)latest:[ \t]*(.*?)[ \t]*$", lines[k])
     ind, rest = m.group(1), m.group(2)
     comment = re.search(r"#.*$", rest)
     value = rest[:comment.start()].strip() if comment else rest
     if value == "[]":
-        lines[k] = ind + "linkedin:" + (" " + comment.group(0) if comment else "")
+        lines[k] = ind + "latest:" + (" " + comment.group(0) if comment else "")
         item_ind = ind + "  "
     elif value == "":
         nxt = next((l for l in lines[k + 1:] if l.strip() and not l.lstrip().startswith("#")), "")
         mi = re.match(r"([ \t]*)- ", nxt)
         item_ind = mi.group(1) if mi and len(mi.group(1)) >= len(ind) else ind + "  "
     else:
-        raise SystemExit("%s: 'linkedin: %s' is written inline; turn it into a list of '- date: ...' items first"
+        raise SystemExit("%s: 'latest: %s' is written inline; turn it into a list of '- date: ...' items first"
                          % (path, value))
-    new, have = [], raw
+    new, have = [], known_urls(raw)
     for e in entries:
-        if e["url"] in have:
+        if norm_url(e["url"]) in have:
             warn("  already in %s, skipped: %s" % (path.name, e["url"]))
             continue
         new += entry_lines(e, item_ind)
-        have += e["url"]
+        have.add(norm_url(e["url"]))
     if not new:
         return 0
     lines[k + 1:k + 1] = new
@@ -285,7 +310,8 @@ def warn(msg):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
                                  formatter_class=argparse.RawDescriptionHelpFormatter,
-                                 epilog="The list on the home page is newest first; new entries go on top.")
+                                 epilog="The Latest list on the home page is newest first; new entries go on top. When a post is about "
+                                        "something with its own page, add that page as url: to the entry.")
     ap.add_argument("urls", nargs="+", metavar="URL", help="public LinkedIn post link (Share > Copy link)")
     ap.add_argument("--write", action="store_true", help="add the entries to config.yml instead of only printing them")
     ap.add_argument("--site", type=Path, default=Path(__file__).resolve().parent.parent,
@@ -297,11 +323,11 @@ def main(argv=None):
     if args.write and not config.is_file():
         raise SystemExit("no config.yml in %s" % args.site)
 
-    known = config.read_text(encoding="utf-8") if config.is_file() else ""
+    known = known_urls(config.read_text(encoding="utf-8")) if config.is_file() else set()
     entries = []
     for url in args.urls:
         warn("%s" % url)
-        if clean_url(url.strip()) in known:
+        if norm_url(url) in known:
             warn("  already in config.yml, not fetched again")
             continue
         entries.append(process(url, args.site, args.timeout, not args.no_image))
@@ -312,9 +338,9 @@ def main(argv=None):
 
     if args.write and good:
         n = write_config(config, good)
-        warn("added %d post%s at the top of the linkedin list in %s" % (n, "" if n == 1 else "s", config))
+        warn("added %d post%s at the top of the latest list in %s" % (n, "" if n == 1 else "s", config))
     if good and not args.write:
-        print("# under params.profileMode.linkedin in config.yml (newest first):")
+        print("# at the top of params.profileMode.latest in config.yml (newest first):")
         for e in good:
             print("\n".join(entry_lines(e, "      ")))
     if templates:
@@ -325,9 +351,10 @@ def main(argv=None):
 
 
 def parse_date_shown(s):
-    m = re.fullmatch(r"(\d{1,2}) (\w{3}) (\d{4})", s or "")
+    """The date of "Sep 2026" (or "28 Sep 2026") for sorting, None for anything else."""
+    m = re.fullmatch(r"(?:(\d{1,2}) )?(\w{3}) (\d{4})", s or "")
     if m and m.group(2) in MONTHS:
-        return datetime.date(int(m.group(3)), MONTHS.index(m.group(2)) + 1, int(m.group(1)))
+        return datetime.date(int(m.group(3)), MONTHS.index(m.group(2)) + 1, int(m.group(1) or 1))
     return None
 
 

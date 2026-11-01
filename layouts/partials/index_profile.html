@@ -1,8 +1,12 @@
 {{- /* Home page (content in config.yml, profileMode): hero, tagline, route from the first stop to now,
-       latest news, the latest LinkedIn posts (only when there are some), links. The cat and its research lab
-       around the page: layouts/partials/cat.html */ -}}
+       the "Latest" feed (news and LinkedIn posts in one list), links. The cat and its research lab around the
+       page: layouts/partials/cat.html */ -}}
 {{- $projects := where site.RegularPages "Section" "projects" }}
-{{- $linkedin := site.Params.profileMode.linkedin }}
+{{- $liProfile := site.Params.profileMode.linkedinUrl }}
+{{- if not $liProfile }}
+{{- range site.Params.socialIcons }}{{ if eq (lower .name) "linkedin" }}{{ $liProfile = .url }}{{ end }}{{ end }}
+{{- end }}
+{{- $liMark := `<svg class="in-mark" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="currentColor"/><path d="M6.2 9.6h2.6V18H6.2zM7.5 5.4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.4 9.6h2.5v1.15c.4-.7 1.3-1.35 2.7-1.35 2.8 0 3.3 1.8 3.3 4.2V18h-2.6v-3.9c0-.95 0-2.15-1.3-2.15s-1.5 1-1.5 2.1V18h-2.6z" fill="#fff"/></svg>` }}
 {{- with site.Params.profileMode }}
 <div class="profile home" id="home">
     <div class="profile_inner home-panel">
@@ -72,30 +76,46 @@
         </div>
         {{- end }}
 
-        {{- /* with LinkedIn posts, the news and the posts share a row (layouts/partials/linkedin.html) */ -}}
-        {{- if $linkedin }}
-        <div class="feeds">
-        {{- end }}
-        {{- with .news }}
-        <section class="news" aria-label="Latest news">
-            <h2 class="news-head">Latest news</h2>
-            <ul class="news-list">
-                {{- range $n := . }}
+        {{- /* Latest: news and LinkedIn posts in one list, newest first (profileMode.latest). The text links to url,
+               otherwise to the LinkedIn post (then the "in" mark sits right after the text); with both, a separate
+               "in" mark at the end of the row links to the post. Desktop: about three rows, the list scrolls. */ -}}
+        {{- with .latest }}
+        <section class="latest" aria-labelledby="latest-head">
+            <div class="latest-top">
+                <h2 class="latest-head" id="latest-head">Latest</h2>
+                {{- with $liProfile }}
+                <a class="latest-all" href="{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile (opens in a new tab)">LinkedIn <span aria-hidden="true">&#8599;</span></a>
+                {{- end }}
+            </div>
+            <ul class="latest-list">
+                {{- range $e := . }}
+                {{- $href := $e.url | default $e.linkedin }}
+                {{- $onlyLi := and $e.linkedin (not $e.url) }}
+                {{- $ext := and $href (hasPrefix $href "http") }}
+                {{- $plain := plainify (markdownify $e.text) }}
                 <li>
-                    <time>{{ .date }}</time>
-                    {{- with .url }}
-                    <a href="{{ . }}"{{ if hasPrefix . "http" }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ $n.text | markdownify }}{{ if hasPrefix . "http" }} <span aria-hidden="true">&#8599;</span>{{ end }}</a>
+                    <time>{{ $e.date }}</time>
+                    {{- with $e.image }}
+                    <img class="latest-thumb" src="{{ if hasPrefix . "http" }}{{ . }}{{ else }}{{ . | relURL }}{{ end }}" alt="{{ $e.alt | default "" }}" width="44" height="30" loading="lazy" decoding="async" draggable="false">
                     {{- else }}
-                    <span>{{ .text | markdownify }}</span>
+                    <span class="latest-thumb is-empty" aria-hidden="true"></span>
+                    {{- end }}
+                    {{- if $href }}
+                    <a class="latest-text" href="{{ if $ext }}{{ $href }}{{ else }}{{ $href | relURL }}{{ end }}" title="{{ $plain }}{{ if $onlyLi }} (on LinkedIn){{ end }}"{{ if $ext }} target="_blank" rel="noopener noreferrer"{{ end }}>
+                        <span class="latest-t">{{ $e.text | markdownify }}</span>
+                        {{- if $onlyLi }}<span class="latest-on" aria-label="on LinkedIn" role="img">{{ $liMark | safeHTML }}</span>
+                        {{- else if $ext }}<span class="latest-ext" aria-hidden="true">&#8599;</span>{{ end }}
+                    </a>
+                    {{- else }}
+                    <span class="latest-text" title="{{ $plain }}"><span class="latest-t">{{ $e.text | markdownify }}</span></span>
+                    {{- end }}
+                    {{- if and $e.linkedin $e.url }}
+                    <a class="latest-in" href="{{ $e.linkedin }}" target="_blank" rel="noopener noreferrer" aria-label="On LinkedIn" title="On LinkedIn">{{ $liMark | safeHTML }}</a>
                     {{- end }}
                 </li>
                 {{- end }}
             </ul>
         </section>
-        {{- end }}
-        {{- with $linkedin }}
-        {{ partial "linkedin.html" . }}
-        </div>
         {{- end }}
 
         <div class="links">

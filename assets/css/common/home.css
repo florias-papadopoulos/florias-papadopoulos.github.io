@@ -125,15 +125,62 @@ a.badge:hover, a.badge:focus-visible { border-color: var(--navy); color: var(--n
 .degree .count { flex: none; padding: 1px 8px; border-radius: 999px; background: #e0e7ff; color: var(--navy); font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
 .degree:hover, .degree:focus-visible { border-color: var(--navy); background: #fff; }
 
-/* ---------- Latest news: a short feed, newest first, scrolls after three items ---------- */
-.news { width: 100%; text-align: left; }
-.news-head { margin: 0 0 2px; color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-.news-list { max-height: 3.65em; overflow-y: auto; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
-.news-list li { display: flex; align-items: baseline; gap: 14px; padding: 4px 2px; border-bottom: 1px solid var(--line); font-size: 0.9rem; line-height: 1.35; }
-.news-list time { flex: none; min-width: 4.5em; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.75rem; }
-.news-list a { text-decoration: underline; text-decoration-color: #cbd5e1; text-underline-offset: 3px; }
-.news-list a:hover { text-decoration-color: var(--ink); }
-.news-list p { display: inline; margin: 0; }
+/* ---------- Latest: news and LinkedIn posts in one feed, newest first; about three rows, then it scrolls ---------- */
+.latest { --row: 34px; --rows: 2; width: 100%; text-align: left; }
+/* three rows where the screen is tall enough (1280x800 and up), two on shorter laptops (1366x768): one screen */
+@media (min-height: 700px) { .latest { --rows: 3; } }
+.latest-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 2px; line-height: 1.1; }
+.latest-head { margin: 0; color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.latest-all { color: var(--muted); font-size: 0.75rem; font-weight: 600; white-space: nowrap; transition: color 0.15s; }
+.latest-all:hover, .latest-all:focus-visible { color: var(--navy); }
+.latest-list {
+    max-height: calc(var(--rows) * var(--row) + 1px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+}
+.latest-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: var(--row);
+    padding: 0 2px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9rem;
+    line-height: 1.35;
+}
+.latest-list time { flex: none; min-width: 4.5em; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.75rem; }
+/* not the theme's look for the profile photo (round, scaled down on phones) */
+.home .latest-thumb {
+    display: block;
+    flex: none;
+    width: 44px;
+    height: 30px;
+    margin: 0;
+    border: 0;
+    border-radius: 4px;
+    background: #f1f5f9;
+    object-fit: cover;
+    transform: none;
+    -webkit-user-drag: none;
+}
+.home .latest-thumb.is-empty { background: none; }
+.latest-text { display: flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; color: var(--ink); }
+.latest-t { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; }
+.latest-t p { display: inline; margin: 0; }
+.latest-t strong { font-weight: 700; }
+a.latest-text .latest-t { text-decoration: underline; text-decoration-color: #cbd5e1; text-underline-offset: 3px; }
+a.latest-text:hover .latest-t, a.latest-text:focus-visible .latest-t { text-decoration-color: var(--ink); }
+.latest-ext { flex: none; margin-left: -2px; }
+.latest-on, .latest-in { display: inline-flex; flex: none; color: var(--navy); }
+.latest-in { margin-left: auto; padding: 4px; border-radius: 4px; opacity: 0.85; transition: opacity 0.15s; }
+.latest-in:hover, .latest-in:focus-visible { opacity: 1; }
+.latest a:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 
 /* ---------- Links ---------- */
 .links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 22px; }
@@ -169,23 +216,75 @@ body:has(.profile.home) .footer {
     .route-track::after { right: auto; left: -6px; top: auto; bottom: -8px; border: 5px solid transparent; border-top: 8px solid #cbd5e1; }
     .route-km { left: 16px; right: auto; top: 12px; text-align: left; }
 }
+/* Phones: one calm column in this order: hero, tagline, topics, the buttons and icons (reachable without scrolling),
+   the route, the Latest feed, the footer. Fixed spacing (not vh based), the same gap between all blocks. */
 @media (max-width: 600px) {
-    .main .profile.home { padding: 20px 12px 44px; }    /* phones: no background, just the cat */
+    .main .profile.home { min-height: 0; padding: 22px 2px 36px; }     /* phones: no background, just the cat */
+    .home-panel { gap: 22px !important; }
     .hero { flex-direction: column; gap: 10px; text-align: center; }
-    .whereabouts { justify-content: center; }
-    .hero .profile-photo { width: 96px; height: 96px; }
+    .kicker, .tagline { text-wrap: balance; }           /* no lone word on a line of its own */
+    .whereabouts { justify-content: center; margin-top: 8px; }
+    .hero .profile-photo { width: 92px; height: 92px; }
     .name-block h1 { font-size: clamp(1.5rem, 7.4vw, 2.1rem) !important; }
-    .tagline { font-size: 1rem; }
-    .chips { gap: 2px 14px; }
+    .tagline { margin: 0; font-size: 1rem; }
+    .chips { gap: 2px 14px; margin-top: -10px; }        /* the topics belong to the tagline: closer to it */
     .chips li { font-size: 0.78rem; }
     .chips li + li::before { content: none; }           /* no stray dot at the start of a wrapped line */
-    .home .button { font-size: 0.92rem; }
-    /* the page scrolls on phones anyway: show every news item, roomy rows, no inner scrolling */
-    .news-list { max-height: none; overflow: visible; }
-    .news-list li { padding: 8px 2px; }
-    .news-list time { min-width: 4.8em; }
-    .home .feeds .news + .li { margin-top: 22px; }
+
+    .hero { order: 1; }
+    .tagline { order: 2; }
+    .chips { order: 3; }
+    .home .links { order: 4; }
+    .route { order: 5; }
+    .latest { order: 6; }
+
+    /* the buttons as one full-width row of three, the icons under them */
+    .home .links { flex-direction: column; flex-wrap: nowrap; gap: 14px; width: 100%; }
+    .home .buttons { order: -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; }
+    .home .button { display: flex; align-items: center; justify-content: center; margin: 0; min-height: 46px; padding: 6px 4px; font-size: 0.95rem; white-space: nowrap; }
+    .home .button-inner { padding: 0; }
+    .home .buttons { max-width: none; }
+    .home .social-icons a { padding: 0 9px; }
+
+    .route { padding: 12px 14px; }
+    .route-line { height: 30px; margin: 4px 0 4px 12px; }
+    .route-km { top: 7px; }
+    .journey-items { gap: 5px; margin-top: 8px; }
+
+    /* the page scrolls on phones anyway: every row of the feed, full text, no inner scrolling.
+       Thumbnail on the left, the date above the text, the "in" mark on the right */
+    .latest-list { max-height: none; overflow: visible; }
+    .latest-list li {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 1px 12px;
+        height: auto;
+        padding: 9px 2px;
+        font-size: 0.88rem;
+        line-height: 1.38;
+    }
+    .latest-list time { grid-column: 2; grid-row: 1; min-width: 0; font-size: 0.72rem; }
+    .home .latest-thumb { grid-column: 1; grid-row: 1 / 3; width: 52px; height: 36px; }
+    .latest-text { display: block; grid-column: 2; grid-row: 2; }
+    .latest-t { display: inline; overflow: visible; white-space: normal; }
+    .latest-ext { margin-left: 2px; }
+    .latest-on { margin-left: 5px; vertical-align: -2px; }
+    .latest-in { grid-column: 3; grid-row: 1 / 3; }
+
+    /* the footer in the flow under the page, centred, with clear space above it */
+    body:has(.profile.home) .footer {
+        position: static;
+        margin: 0 auto;
+        padding: 0 20px 18px;
+        text-align: center;
+        line-height: 1.7;
+        font-size: 0;                                   /* hides the " · " between the parts: set again below */
+    }
+    /* two lines: "© 2026 Name · Site stats", then "Made with ..." */
+    body:has(.profile.home) .footer > * { font-size: 11px; }
+    body:has(.profile.home) .footer > span:last-child { display: block; }
+    body:has(.profile.home) .footer .footer-stats::before { content: "\00b7"; display: inline-block; margin: 0 6px; color: var(--secondary); }
     /* the corner buttons stay at the top of the page instead of floating over it while scrolling */
     body:has(.profile.home) .corner-btn { position: absolute; }
-    .home .links { margin-top: 12px; }
 }

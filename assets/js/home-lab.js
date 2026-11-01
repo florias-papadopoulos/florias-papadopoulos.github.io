@@ -64,12 +64,10 @@
         }
         var floor = F - 30;
         ridge = [{ x: 0, y: floor }, { x: W, y: floor }];
-        /* platforms in the margins: five levels a side, a comfortable jump apart; none on the right when the
-           LinkedIn card is there (layouts/partials/linkedin.html) */
+        /* platforms in the margins: five levels a side, a comfortable jump apart */
         if (side < 150) return;
         var top = 110, levels = 5, step = (floor - 70 - top) / (levels - 1), n = 0;
-        var li = document.querySelector('.home .li'), liRight = li && rel(li).x >= p.x + p.w;
-        (liRight ? [0] : [0, 1]).forEach(function (s2) {
+        [0, 1].forEach(function (s2) {
             for (var lv = 0; lv < levels; lv++) {
                 var g = document.createElement('div');
                 var x0 = s2 ? W - side + 18 : 18, span = side - 140;
@@ -247,8 +245,7 @@
         push('.home .name-block h1', 'name', { w: 3, room: CH - 6, hop: 480, again: true });
         /* not the chips: sitting there, the cat would cover the tagline */
         push('.home .route', 'card');
-        push('.home .news', 'card');
-        push('.home .li', 'card');
+        push('.home .latest', 'card');
         push('.home .buttons .button', 'button');
         glyphs.forEach(function (g) { list.push({ el: g, kind: 'glyph', w: 1.4 }); });
         return list;
