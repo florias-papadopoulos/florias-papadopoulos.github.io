@@ -48,7 +48,7 @@ params:
   description: "Florias Papadopoulos, doctoral researcher in cryptography at the University of St. Gallen (HSG)."
   author: Florias Papadopoulos
   # Default picture when a page is shared (og:image, twitter:image), 1200x630, from static/img; drawn by
-  # 0-Courses/WebsiteRedesign/share-card/make_share_card.py
+  # tools/make_share_card.py
   images: [img/share-card.jpg]
   DateFormat: January 2006
   defaultTheme: light
