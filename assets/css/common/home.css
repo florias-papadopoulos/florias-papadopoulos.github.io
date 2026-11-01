@@ -176,6 +176,16 @@ body:has(.profile.home) .footer {
     .hero .profile-photo { width: 96px; height: 96px; }
     .name-block h1 { font-size: clamp(1.5rem, 7.4vw, 2.1rem) !important; }
     .tagline { font-size: 1rem; }
+    .chips { gap: 2px 14px; }
     .chips li { font-size: 0.78rem; }
+    .chips li + li::before { content: none; }           /* no stray dot at the start of a wrapped line */
     .home .button { font-size: 0.92rem; }
+    /* the page scrolls on phones anyway: show every news item, roomy rows, no inner scrolling */
+    .news-list { max-height: none; overflow: visible; }
+    .news-list li { padding: 8px 2px; }
+    .news-list time { min-width: 4.8em; }
+    .home .feeds .news + .li { margin-top: 22px; }
+    /* the corner buttons stay at the top of the page instead of floating over it while scrolling */
+    body:has(.profile.home) .corner-btn { position: absolute; }
+    .home .links { margin-top: 12px; }
 }
