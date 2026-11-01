@@ -2,7 +2,8 @@
 title: "Games"
 description: "Small games to play with the cat."
 layout: arcade
-# Each game is assets/js/games/<id>.js (loaded only when opened). group: complex or simple (the two sections of the page).
+# Each game is assets/js/games/<id>.js (loaded only when opened). group: complex, two or simple (the three sections of the page:
+# Best Games, 2 Player Games, Classic Games).
 # levels: true shows the Easy/Normal/Hard picker while playing (the game reads it with api.level()).
 # script: <file> runs a game from another game's file (assets/js/games/<file>.js registers both ids).
 # restart: false hides the restart button (a two-player race would lose the other player).
@@ -17,8 +18,8 @@ games:
   - { id: brick-paw,      title: "Brick Paw",           emoji: "🧱", desc: "Bounce the yarn ball, clear the bricks.", group: simple, levels: true }
   - { id: cucumber-hop,   title: "Cucumber Hop",        emoji: "🥒", desc: "Jump the cucumbers, run as far as you can.", group: simple, levels: true }
   - { id: kitty-kart,     title: "Kitty Kart",          emoji: "🏎️",  desc: "Race the cats on eight tracks, from a volcano to the moon.", group: complex, levels: true }
-  - { id: kitty-kart-duo, title: "Kitty Kart Duo",      emoji: "🏁", desc: "Race a friend on their own phone or computer, both on the same home wifi.", group: complex, script: kitty-kart, restart: false }
-  - { id: kitty-kart-split, title: "Kitty Kart Split Screen", emoji: "⌨️", desc: "Two players on one keyboard, split screen: W A S D against the arrow keys. No internet needed.", group: complex, script: kitty-kart, levels: true }
+  - { id: kitty-kart-duo, title: "Kitty Kart Duo",      emoji: "🏁", desc: "Race a friend on their own phone or computer, both on the same home wifi.", group: two, script: kitty-kart, restart: false }
+  - { id: kitty-kart-split, title: "Kitty Kart Split Screen", emoji: "📱", desc: "Two players on one phone, one half each, or on one keyboard. No internet needed.", group: two, script: kitty-kart, levels: true }
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex }
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: complex, levels: true }
   - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: complex, levels: true }
