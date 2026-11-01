@@ -8,12 +8,15 @@
    main ones; karts find their nearest point to know where they are, and a lap counts only after all checkpoints
    were passed in order. Shell API: arcade.js.
    The same file is Kitty Kart Duo (id kitty-kart-duo): two players on two devices race each other and two computer
-   cats; see the Duo part at the end. Single player is untouched by it: pal stays null, host and remote false. */
+   cats; see the Duo part at the end. Single player is untouched by it: pal stays null, host and remote false.
+   And it is Kitty Kart Split Screen (id kitty-kart-split): two players on one keyboard, W A S D against the arrow
+   keys, each with half of the screen; see the Split part at the very end. Nothing goes over the network there. */
 (function () {
 Arcade.register('kitty-kart', function (api) { return kart(api, false); });
 Arcade.register('kitty-kart-duo', function (api) { return kart(api, true); });
+Arcade.register('kitty-kart-split', function (api) { return kart(api, false, true); });
 
-function kart(api, duo) {
+function kart(api, duo, split) {
     'use strict';
     api.css(
         '.kk, .kk-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }' +
@@ -79,6 +82,7 @@ function kart(api, duo) {
         '.kk-lb-go { border-color: #d6336c; background: #d6336c; color: #fff; } .kk-lb-go:hover { border-color: #a61e4d; }' +
         '.kk-lb-big { flex: 1 1 150px; padding: 16px 12px; font-size: 1.05rem; }' +
         '.kk-lb-small { margin: 14px 0 0; color: #5b6b80; font-size: .76rem; line-height: 1.35; } .kk-lb-small a { color: #1e3a8a; }' +
+        '.kk-lb-p b { color: #0f172a; } .kk-lb-wifi { font-size: .85rem; } .kk-lb-wifi a { color: #1e3a8a; font-weight: 700; }' +
         '.kk-code { margin: 2px 0 10px; color: #1e3a8a; font: 800 3.6rem/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .16em; }' +
         '.kk-lb-wait { margin: 0 0 14px; color: #d6336c; font-weight: 800; }' +
         '.kk-in { width: 7.2em; padding: 7px 8px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; color: #1e3a8a;' +
@@ -97,6 +101,27 @@ function kart(api, duo) {
         '.kk-res-list i { flex: none; width: 14px; height: 14px; border-radius: 50%; }' +
         '.kk-res-list em { margin-left: auto; color: #1e3a8a; font-family: ui-monospace, Menlo, Consolas, monospace; font-style: normal; white-space: nowrap; }' +
         '.kk-narrow .kk-code { font-size: 2.8rem; }' +
+        /* Kitty Kart Split Screen: two views, each with its own HUD; the keys line and the keyboard note in the picker */
+        '.kk.kk-split { background: #e2e8f0; }' +
+        '.kk-split > .kk-cv, .kk-split > .kk-hud, .kk-split > .kk-count, .kk-split > .kk-hint { display: none; }' +
+        '.kk-view { position: absolute; overflow: hidden; }' +
+        '.kk-vhud { position: absolute; left: 10px; top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; pointer-events: none; }' +
+        '.kk.kk-picking .kk-vhud, .kk.kk-picking .kk-vsay { display: none; }' +
+        '.kk-who { color: #fff; background: #d6336c; } .kk-v2 .kk-who { background: #1e3a8a; }' +
+        '.kk-who small { margin: 0 0 0 4px; color: rgba(255,255,255,.85); }' +
+        '.kk-v2 .kk-pos { color: #1e3a8a; }' +
+        '.kk-vhud .kk-slot { width: auto; display: flex; gap: 4px; padding: 0 9px 0 6px; }' +
+        '.kk-vhud .kk-slot small { margin: 0; }' +
+        '.kk-count.kk-fin { color: #1e3a8a; font-size: 2.2rem; } .kk-v1 .kk-count.kk-fin { color: #d6336c; }' +
+        '.kk-view .kk-count { font-size: 4rem; } .kk-view .kk-count.kk-warn, .kk-view .kk-count.kk-fin { font-size: 2rem; }' +
+        '.kk-vsay { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: 90%; padding: 6px 12px; border-radius: 12px;' +
+        '  background: rgba(255,255,255,.92); color: #0f172a; font-size: .88rem; font-weight: 700; text-align: center; pointer-events: none; }' +
+        '.kk-vsay:empty { display: none; }' +
+        '.kk-keys { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: center; margin: 0 0 10px; color: #475569; font-size: .85rem; font-weight: 600; }' +
+        '.kk-keys b { margin-right: 4px; color: #d6336c; font-weight: 800; } .kk-keys span + span b { color: #1e3a8a; }' +
+        '.kk-keys-note { margin: 0 0 10px; padding: 8px 12px; border-radius: 12px; background: #fff7d6; color: #475569; font-size: .88rem; line-height: 1.4; }' +
+        '.kk-keys-note a { color: #1e3a8a; font-weight: 700; }' +
+        '.kk-res-list li.kk-p2 { color: #1e3a8a; }' +
         '@keyframes kk-pop { from { transform: translate(-50%, -50%) scale(.4); } to { transform: translate(-50%, -50%) scale(1); } }');
 
     var N = 480, CP = 12, SEG = N / CP, LAPS = 3, HW = 52, PAD = 380, BRAKE = 520, REV = 90, R = 12;
@@ -307,8 +332,8 @@ function kart(api, duo) {
     }
 
     /* ---------- the tracks ---------- */
-    var VX0 = 0, VY0 = 0, VX1 = 0, VY1 = 0;  /* the visible part of the world, for culling */
-    function vis(x, y, r) { return x + r > VX0 && x - r < VX1 && y + r > VY0 && y - r < VY1; }
+    var VX0 = 0, VY0 = 0, VX1 = 0, VY1 = 0, VB = null;  /* the visible part of the world, for culling; VB: the other view (split screen) */
+    function vis(x, y, r) { return x + r > VX0 && x - r < VX1 && y + r > VY0 && y - r < VY1 || !!VB && x + r > VB[0] && x - r < VB[2] && y + r > VB[1] && y - r < VB[3]; }
 
     var MEADOW = {
         id: 'meadow', name: 'Catnip Meadow', blurb: 'A sprinkler and a farm gate shortcut',
@@ -1694,21 +1719,23 @@ function kart(api, duo) {
     }
     function showBests() {
         cards.forEach(function (b, i) {
-            var t = duo ? null : saved.best[MAPS[i].id];  /* racing a friend keeps no best times */
+            var t = duo || split ? null : saved.best[MAPS[i].id];  /* racing a friend keeps no best times */
             b.querySelector('.kk-mbest').textContent = typeof t === 'number' ? 'Best ' + t.toFixed(1) + ' s' : '';
             b.classList.toggle('kk-sel', i === sel);
             b.setAttribute('aria-pressed', i === sel ? 'true' : 'false');
         });
     }
 
-    var dpr = 1, W = 0, H = 0, zoom = 1, res = 0, track = null, mini = null, MM = 110, mmK = 1, dirty = true;
+    var dpr = 1, W = 0, H = 0, FW = 0, zoom = 1, res = 0, track = null, mini = null, MM = 110, mmK = 1, dirty = true;
     function fit(s) {
         dpr = Math.min(window.devicePixelRatio || 1, 2);  /* sharp enough, and much lighter on phones */
+        FW = s.w;  /* the whole play area, for the picker */
+        if (split) s = layout(s);  /* split screen: W and H are one view's */
         W = s.w; H = s.h;
         cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
         zoom = clamp(Math.sqrt(W * H) / 760, 0.7, 1.4);
         MM = W < 600 ? 92 : 120;
-        wrapEl.classList.toggle('kk-narrow', W < 600);
+        wrapEl.classList.toggle('kk-narrow', FW < 600);
         MAPS.forEach(function (m) { m.beam = m.ray = null; });  /* gradients belong to the old canvas state */
         var r = Math.min(zoom * dpr, Math.sqrt(9e6 / (WW * WH)));  /* cap the cached track at about 9 megapixels */
         if (Math.abs(r - res) > 0.01 || !track || dirty) { res = r; renderTrack(); dirty = false; }
@@ -1765,14 +1792,14 @@ function kart(api, duo) {
         { fur: '#45424d', stripe: null, body: '#0f9d8a', skill: 0.925 },  /* black cat */
         { fur: '#fbf7ef', stripe: '#e8c9a0', body: '#8b5cf6', skill: 0.895 }];  /* white cat */
     karts.forEach(function (c, i) { c.phase = i * 1.7; c.lane = (i % 2 ? 1 : -1) * 0.3 * HW; });
-    var me = karts[0], keys = {}, pads = {};
+    var me = karts[0], keys = {}, pads = {}, keys2 = {};  /* keys2: player 2 on split screen */
     var phase = 'pick', clock = 0, raceTime = 0, finishers = 0, place = 4, camX = 0, camY = 0, shake = 0;
     var shown = { pos: '', lap: '', time: '', count: '' }, lastSay = -99, wrongFor = 0;
     var pal = null, host = false, remote = false;  /* a race with a friend: their kart, and whether this device hosts it or only shows it */
 
     function reset() {
         karts.forEach(function (c, i) {
-            var slot = (i + 3) % 4, j = N - 3 - slot * 3, sd = slot % 2 ? 1 : -1;  /* you start at the back */
+            var slot = split ? GRID[i] : (i + 3) % 4, j = N - 3 - slot * 3, sd = slot % 2 ? 1 : -1;  /* you start at the back */
             c.x = X[j] - Math.sin(A[j]) * sd * HW * 0.45; c.y = Y[j] + Math.cos(A[j]) * sd * HW * 0.45;
             c.a = A[j]; c.vx = c.vy = c.vf = c.steer = c.thr = 0;
             c.k = 0; c.fin = 0; c.prog = 0; c.z = c.vz = c.slip = c.rampT = 0;
@@ -1785,6 +1812,7 @@ function kart(api, duo) {
         slot();
         if (MAP.reset) MAP.reset();
         camX = me.x; camY = me.y;
+        if (split) { views[1].camX = pal.x; views[1].camY = pal.y; }
     }
     function choose(i) {  /* switch the track shown behind the picker */
         sel = (i + MAPS.length) % MAPS.length;
@@ -1794,11 +1822,12 @@ function kart(api, duo) {
         dirty = true;
         fit(api.size());
         showBests();
-        if (!duo) { saved.map = MAP.id; persist(); }
+        if (!duo && !split) { saved.map = MAP.id; persist(); }
     }
     function go() {  /* the picked track: on to the countdown */
         if (phase !== 'pick') return;
         if (duo) { picked(); return; }  /* racing a friend: the host's pick (Duo part below) */
+        if (split) { splitGo(); return; }  /* two players on one keyboard (Split part below) */
         phase = 'count'; clock = 0; keys = {};
         wrapEl.classList.remove('kk-picking');
         if (document.activeElement && wrapEl.contains(document.activeElement)) document.activeElement.blur();
@@ -2173,7 +2202,7 @@ function kart(api, duo) {
     function laps(c) { return c.k > 0 ? Math.floor((c.k - 1) / CP) : 0; }
     function lapDone(c) {
         var l = laps(c);
-        if (l >= LAPS && !c.fin) { c.fin = raceTime; finishers++; if (c === me) finish(); else if (host && c === pal && me.fin) phase = 'done'; return; }
+        if (l >= LAPS && !c.fin) { c.fin = raceTime; finishers++; if (c === me || (split && c === pal)) finish(c); else if (host && c === pal && me.fin) phase = 'done'; return; }
         if (!mine(c)) return;
         sfx(c, 'pop');
         if (l === LAPS - 1) { mood(c, 'wow'); say('Final lap!', c); }
@@ -2181,26 +2210,35 @@ function kart(api, duo) {
     function ordinal(p) { return p + ['st', 'nd', 'rd', 'th'][Math.min(p, 4) - 1]; }
     /* Who hears what happens to a kart: the player on this device and, when hosting a race with a friend, the friend's
        kart too: its sounds, cat moods and speech bubbles are sent over (tell, in the Duo part below). */
-    function mine(c) { return c === me || (host && c === pal); }
+    /* On split screen both players sit at this device: player 2 (pal) hears everything here too, and what is said to
+       a player shows in their own half. */
+    function mine(c) { return c === me || ((host || split) && c === pal); }
     function quiet(c, s) { return mine(c) && clock - (c === me ? lastSay : c.said) > s; }  /* nothing said to c for s seconds */
-    function sfx(c, n) { if (c === me) api.sfx(n); else if (host && c === pal) tell('s', n); }
-    function mood(c, m) { if (c === me) api.cat(m); else if (host && c === pal) tell('c', m); }
+    function sfx(c, n) { if (c === me || (split && c === pal)) api.sfx(n); else if (host && c === pal) tell('s', n); }
+    function mood(c, m) { if (c === me || (split && c === pal)) api.cat(m); else if (host && c === pal) tell('c', m); }
     function say(t, c) {
+        if (split) {  /* nothing more for a player who is through */
+            if (c === pal) { if (!c.fin) { c.said = clock; splitSay(1, t); } } else if ((!c || c === me) && !me.fin) { lastSay = clock; splitSay(0, t); }
+            return;
+        }
         if (!c || c === me) { lastSay = clock; api.say(t, 1800); }
         else if (host && c === pal) { c.said = clock; tell('t', t); }
     }
     function near(x, y, r, n, c) {  /* a sound for each player who drives c or is close to (x, y) */
         if (me === c || Math.hypot(me.x - x, me.y - y) < r) api.sfx(n);
+        else if (split && (pal === c || Math.hypot(pal.x - x, pal.y - y) < r)) api.sfx(n);
         if (host && (pal === c || Math.hypot(pal.x - x, pal.y - y) < r)) sfx(pal, n);
     }
     function bump(c, v) {  /* a hard knock between karts: a sound, and the view shakes */
         if (!mine(c) || v <= 50 || clock - c.hitAt <= 0.5) return;
         c.hitAt = clock;
         if (c === me) { api.sfx('hit'); if (!api.reducedMotion) shake = Math.min(6, v / 25); }
+        else if (split) { api.sfx('hit'); if (!api.reducedMotion) views[1].shake = Math.min(6, v / 25); }
         else tell('k', Math.round(v));
     }
-    function finish() {
+    function finish(c) {
         if (duo) { duoFinish(); return; }
+        if (split) { splitFinish(c); return; }
         phase = 'done';
         count('');
         place = finishers;
@@ -2344,13 +2382,14 @@ function kart(api, duo) {
             g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = r * 0.09; g.beginPath(); g.arc(-r * 0.05, -r * 0.05, r * 0.38, 3.5, 4.3); g.stroke();
         }
     }
+    function itemPic(g, it) {  /* an item, or a dashed ring for none, on a 64 x 64 canvas */
+        g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 64, 64);
+        g.setTransform(1, 0, 0, 1, 32, 32);
+        if (it) drawIcon(g, it, 27);
+        else { g.strokeStyle = '#94a3b8'; g.lineWidth = 3; g.setLineDash([5, 5]); g.beginPath(); g.arc(0, 0, 20, 0, 7); g.stroke(); g.setLineDash([]); }
+    }
     function slot() {  /* the held item, in the HUD and on the touch button */
-        [slotG, useG].forEach(function (g) {
-            g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 64, 64);
-            g.setTransform(1, 0, 0, 1, 32, 32);
-            if (me.item) drawIcon(g, me.item, 27);
-            else { g.strokeStyle = '#94a3b8'; g.lineWidth = 3; g.setLineDash([5, 5]); g.beginPath(); g.arc(0, 0, 20, 0, 7); g.stroke(); g.setLineDash([]); }
-        });
+        itemPic(slotG, me.item); itemPic(useG, me.item);
         slotEl.classList.toggle('kk-empty', !me.item); useEl.classList.toggle('kk-empty', !me.item);
     }
     function drawGate() {
@@ -2464,7 +2503,8 @@ function kart(api, duo) {
         drawUnder();
         for (i = 3; i >= 0; i--) if (!(karts[i].z > 0)) drawKart(karts[i]);
         for (i = 3; i >= 0; i--) if (karts[i].z > 0) drawKart(karts[i]);
-        if (pal && vis(pal.x, pal.y, 40)) {  /* racing a friend: their kart has a name tag */
+        if (split) { tag(karts[0], 'P1', '#d6336c'); tag(karts[1], 'P2', '#1e3a8a'); }  /* split screen: both players */
+        else if (pal && vis(pal.x, pal.y, 40)) {  /* racing a friend: their kart has a name tag */
             ctx.font = '800 12px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.fillStyle = '#1e3a8a';
             ctx.strokeText('Friend', pal.x, pal.y - 22 - pal.z * 0.5); ctx.fillText('Friend', pal.x, pal.y - 22 - pal.z * 0.5);
         }
@@ -2477,8 +2517,8 @@ function kart(api, duo) {
         ctx.drawImage(mini, mx, my, mw, mh);
         for (i = 3; i >= 0; i--) {
             var c = karts[i], you = c === me;
-            ctx.beginPath(); ctx.arc(mx + c.x * mmK, my + c.y * mmK, you ? 4.5 : 3.5, 0, 7);
-            ctx.fillStyle = you || c === pal ? c.fur : c.body; ctx.fill();
+            ctx.beginPath(); ctx.arc(mx + c.x * mmK, my + c.y * mmK, you || (split && i < 2) ? 4.5 : 3.5, 0, 7);
+            ctx.fillStyle = split ? c.body : you || c === pal ? c.fur : c.body; ctx.fill();
             ctx.strokeStyle = you ? OL : '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
         }
     }
@@ -2512,7 +2552,7 @@ function kart(api, duo) {
             if (clock >= 0.6 && n >= 1 && shown.count !== String(n)) { count(String(n)); api.sfx('tap'); }
             if (n < 1) { phase = 'race'; count('Go!', 'kk-go'); api.sfx('point'); hintEl.style.display = 'none'; }
         } else {
-            if (phase === 'done' && (test || duo) && finishers < 4) raceTime += dt;  /* test only, and racing a friend: time the others too */
+            if (phase === 'done' && (test || duo || split) && finishers < 4) raceTime += dt;  /* test only, and racing a friend: time the others too */
             if (phase === 'race') {
                 raceTime += dt;
                 if (me.fin) autopilot(me, 0.45);  /* racing a friend: the race goes on after you finish */
@@ -2543,7 +2583,8 @@ function kart(api, duo) {
             for (i = 0; i < 4; i++) progress(karts[i]);
             pickups(dt);
             moveItems(dt);
-            if (phase === 'race' && !me.fin) {
+            if (split) splitPlaces(dt);  /* each player's place and wrong way warning, in their own half */
+            else if (phase === 'race' && !me.fin) {
                 var p = 1;
                 for (i = 1; i < 4; i++) if (karts[i].fin || karts[i].prog > me.prog) p++;
                 if (p !== place && clock - lastSay > 6) {
@@ -2561,9 +2602,16 @@ function kart(api, duo) {
         camX += (me.x + me.vx * 0.4 - camX) * Math.min(1, dt * 4);
         camY += (me.y + me.vy * 0.4 - camY) * Math.min(1, dt * 4);
         shake = Math.max(0, shake - dt * 20);
+        if (split) {  /* player 2's view follows player 2 the same way */
+            var v2 = views[1];
+            v2.camX += (pal.x + pal.vx * 0.4 - v2.camX) * Math.min(1, dt * 4);
+            v2.camY += (pal.y + pal.vy * 0.4 - v2.camY) * Math.min(1, dt * 4);
+            v2.shake = Math.max(0, v2.shake - dt * 20);
+        }
     }
     api.loop(function (dt, now) {
         for (var s = test ? test.steps : 1; s > 0; s--) update(dt);
+        if (split) { splitFrame(); return; }  /* two views, two HUDs */
         var vw = W / 2 / zoom, vh = H / 2 / zoom;  /* keep the view inside the field */
         camX = vw * 2 < WW ? clamp(camX, vw, WW - vw) : WW / 2;
         camY = vh * 2 < WH ? clamp(camY, vh, WH - vh) : WH / 2;
@@ -2575,11 +2623,12 @@ function kart(api, duo) {
     /* ---------- controls: keys on desktop, buttons on touch screens ---------- */
     var KEYMAP = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
     api.on(window, 'keydown', function (e) {
+        if (split) { splitKey(e, true); return; }  /* two players: keys by where they sit on the keyboard */
         var key = (e.key || '').toLowerCase(), k = KEYMAP[key];
         if (duo && wrapEl.classList.contains('kk-lobby-on')) return;  /* typing a code, or reading the lobby */
         if (phase === 'pick') {  /* in the picker: arrows choose, Enter or Space races */
             if (k) {
-                var cols = W < 600 ? 2 : 4;
+                var cols = FW < 600 ? 2 : 4;
                 choose(sel + (k === 'left' ? -1 : k === 'right' ? 1 : k === 'up' ? -cols : cols));
                 if (wrapEl.contains(document.activeElement)) cards[sel].focus();
                 e.preventDefault();
@@ -2590,8 +2639,8 @@ function kart(api, duo) {
         if (key === ' ' || key === 'shift') { e.preventDefault(); useItem(me); return; }
         if (k) { keys[k] = true; e.preventDefault(); }
     });
-    api.on(window, 'keyup', function (e) { var k = KEYMAP[(e.key || '').toLowerCase()]; if (k) keys[k] = false; });
-    api.on(window, 'blur', function () { keys = {}; });
+    api.on(window, 'keyup', function (e) { if (split) { splitKey(e, false); return; } var k = KEYMAP[(e.key || '').toLowerCase()]; if (k) keys[k] = false; });
+    api.on(window, 'blur', function () { keys = {}; keys2 = {}; });
     api.on(useEl, 'pointerdown', function (e) { e.preventDefault(); useItem(me); });
     api.on(useEl, 'contextmenu', function (e) { e.preventDefault(); });
     Array.prototype.forEach.call(wrapEl.querySelectorAll('.kk-btn[data-k]'), function (b) {
@@ -2625,8 +2674,9 @@ function kart(api, duo) {
     var FAIL = {
         nocode: ['Code not found', 'There is no race with that code, or it has expired (codes last two minutes). Check the letters, or ask your friend for a new code.'],
         taken: ['That race is taken', 'Someone already joined with this code. Ask your friend for a new one.'],
-        direct: ['Could not connect', 'Your two devices could not reach each other directly. Racing works best with both on the same ' +
-            'home wifi; a phone\'s hotspot, two mobile networks, VPNs and some university, hotel or café networks keep devices apart.'],
+        direct: ['Could not connect', 'Your two devices could not reach each other directly. Kitty Kart Duo needs both on the same ' +
+            'home wifi; a phone\'s hotspot, two mobile networks, VPNs and some university, hotel or café networks keep devices apart. ' +
+            'On one laptop, Kitty Kart Split Screen works anywhere.'],
         server: ['Could not reach the server', 'Check your internet connection and try again.'],
         full: ['Too many races right now', 'Please try again in a minute.'],
         none: ['Not available here', 'Racing a friend needs the site\'s small server, which this copy of the site does not have.'],
@@ -2637,8 +2687,10 @@ function kart(api, duo) {
         lobbyEl = document.createElement('div');
         lobbyEl.className = 'kk-lobby';
         lobbyEl.innerHTML = '<div class="kk-pick-box kk-lb" role="dialog" aria-label="Race a friend">' +
-            '<section data-s="menu"><h3>Race a friend</h3><p class="kk-lb-p">Open this game on two phones or computers. One of you hosts and gets a code, ' +
-            'the other joins with it. The race runs straight between your two devices; the same wifi works best.</p>' +
+            '<section data-s="menu"><h3>Race a friend</h3><p class="kk-lb-p">Open this game on two phones or computers, <b>both on the same home wifi</b>. ' +
+            'One of you hosts and gets a code, the other joins with it, and the race runs straight between your two devices.</p>' +
+            '<p class="kk-lb-p kk-lb-wifi">A phone\'s hotspot, two mobile networks, VPNs and some university, hotel or café networks will not work. ' +
+            'On one laptop, play <a href="#play/kitty-kart-split">Kitty Kart Split Screen</a> instead: no network needed.</p>' +
             '<div class="kk-lb-row"><button type="button" class="kk-lb-btn kk-lb-big" data-a="host">Host a race</button>' +
             '<button type="button" class="kk-lb-btn kk-lb-big" data-a="join">Join a race</button></div>' +
             '<p class="kk-lb-small">Your two devices see each other\'s network address, as with any direct connection. <a href="/privacy/">Privacy</a></p></section>' +
@@ -2787,20 +2839,8 @@ function kart(api, duo) {
         roomCode = null;
         try { fetch(SERVER + '/room/' + c + '/close', { method: 'POST', keepalive: true, cache: 'no-store', credentials: 'omit' }).catch(function () {}); } catch (e) { /* offline */ }
     }
-    /* the ICE servers from the counter: STUN, plus a relay (TURN) for when the two devices cannot reach each other
-       directly (a phone hotspot, two mobile networks, a strict wifi); just STUN if the counter does not answer in 4 s */
-    function iceServers() {
-        return new Promise(function (done) {
-            var over = false;
-            function end(list) { if (!over) { over = true; done(list); } }
-            api.timeout(function () { end(ICE); }, 4000);
-            ask('GET', '/turn').then(function (r) {
-                end(r.status === 200 && Array.isArray(r.data.iceServers) && r.data.iceServers.length ? r.data.iceServers : ICE);
-            }, function () { end(ICE); });
-        });
-    }
-    function peer(ice) {
-        var p = new RTCPeerConnection({ iceServers: ice || ICE }), g = gen;
+    function peer() {
+        var p = new RTCPeerConnection({ iceServers: ICE }), g = gen;
         fast = p.createDataChannel('fast', { negotiated: true, id: 0, ordered: false, maxRetransmits: 0 });
         sure = p.createDataChannel('sure', { negotiated: true, id: 1 });
         fast.onmessage = function (e) { if (g === gen) { heard = performance.now(); onFast(e.data); } };
@@ -2823,11 +2863,8 @@ function kart(api, duo) {
         var g = gen;
         role = 'host';
         msg('Getting a code', 'One moment…', [['Cancel', menu]]);
-        iceServers().then(function (ice) {
-            if (g !== gen) return null;
-            pc = peer(ice);
-            return pc.createOffer();
-        }).then(function (o) { return o ? pc.setLocalDescription(o) : null; })
+        pc = peer();
+        pc.createOffer().then(function (o) { return g === gen ? pc.setLocalDescription(o) : null; })
             .then(function () { return g === gen ? gathered(pc) : null; })
             .then(function () { return g === gen ? ask('POST', '/room', { offer: pc.localDescription.sdp }) : null; })
             .then(function (r) {
@@ -2863,11 +2900,10 @@ function kart(api, duo) {
         var g = gen;
         role = 'guest';
         msg('Joining', 'Looking for the race…', [['Cancel', joinScreen]]);
-        Promise.all([ask('GET', '/room/' + c), iceServers()]).then(function (both) {
-            var r = both[0];
+        ask('GET', '/room/' + c).then(function (r) {
             if (g !== gen) return null;
             if (r.status !== 200 || typeof r.data.offer !== 'string') { fail(r.status === 404 ? 'nocode' : 'server'); return null; }
-            pc = peer(both[1]);
+            pc = peer();
             return pc.setRemoteDescription({ type: 'offer', sdp: r.data.offer })
                 .then(function () { return pc.createAnswer(); })
                 .then(function (a) { return pc.setLocalDescription(a); })
@@ -2973,6 +3009,7 @@ function kart(api, duo) {
     function steerPal(dt) {  /* the host drives the friend's kart with the keys they send (none for a moment: let go) */
         var c = pal, fresh = performance.now() - palIn.at < 400;
         if (c.fin || phase !== 'race') { autopilot(c, 0.45); return; }
+        if (split) { drive2(dt); return; }  /* split screen: player 2's keys on this keyboard */
         c.thr = fresh ? palIn.thr : 0;
         c.steer += ((fresh ? palIn.want : 0) - c.steer) * Math.min(1, dt * 10);
         if (c.laser > 0) c.steer = c.steer * 0.3 + 0.7 * clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1);
@@ -3184,12 +3221,240 @@ function kart(api, duo) {
             karts: karts.map(function (c) { return [Math.round(c.x), Math.round(c.y), c.k, c.fin, c.item]; }), me: karts.indexOf(me) };
     };
 
+    /* ---------- Kitty Kart Split Screen: two players on one keyboard ----------
+       Player 1 drives the usual kart (me, karts[0]) with W A S D, player 2 the next one (pal, karts[1]) with the arrow
+       keys; the two computer cats race as always. The play area is cut into two views, side by side (one above the
+       other when it is taller than wide), each a canvas of its own with its own camera and HUD. Before a view is drawn,
+       cv, ctx, W, H, the camera and me point at it, so draw() and the tracks work unchanged. Keys are tracked by e.code
+       (where the key sits, not what it types), so both players can hold keys at once. Nothing is saved, nothing is sent. */
+    var GRID = [2, 3, 0, 1], views = null, splitNo = 0, splitResKey = '', frameNo = 0, sRes = null;
+    var PKEYS = { KeyW: [0, 'up'], KeyS: [0, 'down'], KeyA: [0, 'left'], KeyD: [0, 'right'],
+        ArrowUp: [1, 'up'], ArrowDown: [1, 'down'], ArrowLeft: [1, 'left'], ArrowRight: [1, 'right'] };
+    var IKEYS = { KeyQ: 0, ShiftLeft: 0, Enter: 1, NumpadEnter: 1, ShiftRight: 1 };  /* use an item: 0 player 1, 1 player 2 */
+    var WHO = [['Player 1', 'W A S D', 'Q', 'W A S D to drive and brake, Q or Left Shift to use an item'],
+        ['Player 2', 'arrows', 'Enter', 'Arrow keys to drive and brake, Enter or Right Shift to use an item']];
+    var SPLIT_NAMES = ['Player 1', 'Player 2', 'Black cat', 'White cat'];
+    if (split) {
+        pal = karts[1];
+        wrapEl.classList.add('kk-split');
+        views = [0, 1].map(function (n) {
+            var el = document.createElement('div');
+            el.className = 'kk-view kk-v' + (n + 1);
+            el.innerHTML = '<div class="kk-vhud"><span class="kk-pill kk-who"></span><span class="kk-pill kk-pos">4th</span>' +
+                '<span class="kk-pill"><small>Lap</small><b class="kk-vlap">1/3</b></span><span class="kk-pill kk-time">0.0</span>' +
+                '<span class="kk-pill kk-slot kk-empty"><canvas width="64" height="64"></canvas><small></small></span></div>' +
+                '<div class="kk-count"></div><div class="kk-hint"></div><div class="kk-vsay" role="status"></div>';
+            var c = n ? document.createElement('canvas') : cv;  /* player 1's view draws on the main canvas */
+            c.className = 'kk-cv';
+            el.insertBefore(c, el.firstChild);
+            wrapEl.insertBefore(el, wrapEl.children[n]);
+            el.querySelector('.kk-who').textContent = WHO[n][0] + ' ';
+            var keysEl = document.createElement('small'); keysEl.textContent = WHO[n][1];
+            el.querySelector('.kk-who').appendChild(keysEl);
+            el.querySelector('.kk-slot small').textContent = WHO[n][2];
+            el.querySelector('.kk-slot').title = 'Item: ' + WHO[n][3].split(', ')[1];
+            el.querySelector('.kk-hint').textContent = WHO[n][3];
+            return { el: el, cv: c, g: n ? c.getContext('2d', { alpha: false }) : ctx, kart: karts[n], hud: el.querySelector('.kk-vhud'),
+                pos: el.querySelector('.kk-pos'), lap: el.querySelector('.kk-vlap'), time: el.querySelector('.kk-time'),
+                slot: el.querySelector('.kk-slot'), slotG: el.querySelector('.kk-slot canvas').getContext('2d'),
+                count: el.querySelector('.kk-count'), hint: el.querySelector('.kk-hint'), say: el.querySelector('.kk-vsay'),
+                camX: 0, camY: 0, shake: 0, place: 4, wrongFor: 0, held: undefined, sayAt: 0, shown: {}, r: [0, 0, 0, 0] };
+        });
+        /* the picker: who drives with which keys, and a note for devices without a keyboard */
+        var sBox = wrapEl.querySelector('.kk-pick-box'), keyLine = document.createElement('p');
+        var noKeys = !!(window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches);
+        sBox.querySelector('h3').textContent = 'Pick a track for two players';
+        keyLine.className = 'kk-keys';
+        keyLine.innerHTML = '<span><b>Player 1</b>W A S D, item Q or Left Shift</span><span><b>Player 2</b>arrow keys, item Enter or Right Shift</span>';
+        sBox.insertBefore(keyLine, mapsEl);
+        if (noKeys) {
+            var note = document.createElement('p');
+            note.className = 'kk-keys-note';
+            note.innerHTML = 'Split screen needs a keyboard: two players share one laptop, one on W A S D and one on the arrow keys. ' +
+                'To race on two phones, open <a href="#play/kitty-kart-duo">Kitty Kart Duo</a> on both, on the same home wifi.';
+            sBox.insertBefore(note, keyLine);
+        }
+        wrapEl.querySelector('.kk-pick-tip').textContent = api.touch ? 'Tap a track to race' : 'Click a track, or W A S D or arrows to choose and Enter to race';
+        sRes = document.createElement('div');
+        sRes.className = 'kk-res';
+        sRes.innerHTML = '<div class="kk-pick-box kk-lb" role="dialog" aria-label="Results"><h3>Results</h3><ol class="kk-res-list"></ol>' +
+            '<p class="kk-lb-p kk-res-note"></p><div class="kk-lb-row"><button type="button" class="kk-lb-btn kk-lb-go" data-a="again">Race again</button>' +
+            '<button type="button" class="kk-lb-btn" data-a="new">New track</button></div></div>';
+        wrapEl.appendChild(sRes);
+        api.on(sRes, 'click', function (e) {
+            var b = e.target.closest('button');
+            if (!b || phase !== 'done') return;
+            if (b.dataset.a === 'again') { GRID = [GRID[1], GRID[0], 0, 1]; phase = 'pick'; choose(sel); splitGo(); }  /* the two swap places on the grid */
+            else if (b.dataset.a === 'new') {
+                phase = 'pick'; choose(sel); count('');
+                wrapEl.classList.add('kk-picking'); wrapEl.classList.remove('kk-res-on');
+                if (document.activeElement && wrapEl.contains(document.activeElement)) document.activeElement.blur();
+            }
+        });
+    }
+    function layout(s) {  /* the two views of the play area s: side by side, or one above the other; returns one view's size */
+        var gap = 4, wide = s.w >= s.h, w = wide ? Math.floor((s.w - gap) / 2) : s.w, h = wide ? s.h : Math.floor((s.h - gap) / 2);
+        views.forEach(function (v, n) {
+            var st = v.el.style;
+            st.left = (wide && n ? s.w - w : 0) + 'px'; st.top = (!wide && n ? s.h - h : 0) + 'px'; st.width = w + 'px'; st.height = h + 'px';
+            v.cv.width = Math.round(w * dpr); v.cv.height = Math.round(h * dpr);
+            v.hud.style.right = ((w < 600 ? 92 : 120) + 30) + 'px';  /* clear of the minimap */
+        });
+        return { w: w, h: h };
+    }
+    function splitGo() {  /* the picked track: on to the countdown, for both */
+        splitNo++;
+        phase = 'count'; clock = 0; keys = {}; keys2 = {};
+        raceTime = 0; finishers = 0; lastSay = -99; shake = 0; splitResKey = '';
+        views.forEach(function (v) { v.place = 4; v.wrongFor = 0; v.shake = 0; v.held = undefined; v.sayAt = 0; v.say.textContent = ''; });
+        count('');
+        wrapEl.classList.remove('kk-picking', 'kk-res-on');
+        if (document.activeElement && wrapEl.contains(document.activeElement)) document.activeElement.blur();
+        api.sfx('tap');
+    }
+    function drive2(dt) {  /* player 2 on the arrow keys, just as player 1 drives on W A S D */
+        var c = pal, want = (keys2.right ? 1 : 0) - (keys2.left ? 1 : 0);
+        c.thr = (keys2.up ? 1 : 0) - (keys2.down ? 1 : 0);
+        c.steer += (want - c.steer) * Math.min(1, dt * 10);
+        if (c.laser > 0) c.steer = c.steer * 0.3 + 0.7 * clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1);
+    }
+    function splitKey(e, down) {
+        var m = PKEYS[e.code], it = IKEYS[e.code];
+        if (m) {
+            e.preventDefault();  /* arrows never scroll the page */
+            if (phase !== 'pick') (m[0] ? keys2 : keys)[m[1]] = down;
+            else if (down) {  /* in the picker either player chooses */
+                var cols = FW < 600 ? 2 : 4;
+                choose(sel + (m[1] === 'left' ? -1 : m[1] === 'right' ? 1 : m[1] === 'up' ? -cols : cols));
+                if (wrapEl.contains(document.activeElement)) cards[sel].focus();
+            }
+            return;
+        }
+        if (phase === 'pick') {
+            if (down && (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space')) { e.preventDefault(); go(); }
+            return;
+        }
+        if (phase === 'done' && e.target && e.target.closest && e.target.closest('button')) return;  /* a results button has the focus */
+        if (it !== undefined) { e.preventDefault(); if (down && !e.repeat) useItem(it ? pal : me); }
+        else if (e.code === 'Space') e.preventDefault();  /* nor does the space bar */
+    }
+    function splitSay(n, t) {  /* what is said to a player shows at the bottom of their half */
+        var v = views[n];
+        v.say.textContent = t; v.sayAt = performance.now();
+    }
+    function splitPlaces(dt) {
+        if (phase !== 'race') return;
+        views.forEach(function (v) {
+            var c = v.kart;
+            if (c.fin) return;
+            var p = rankOf(c);
+            if (p !== v.place && quiet(c, 6)) {
+                if (p === 1) { mood(c, 'happy'); say('Purr! You took the lead!', c); }
+                else if (p < v.place) { mood(c, 'wow'); say('Nice pass!', c); }
+                else if (p === 2 && v.place === 1) { mood(c, 'sad'); say('Hiss! Catch them!', c); }
+            }
+            v.place = p;
+            var wrong = Math.abs(wrap(c.a - c.ang)) > 2.1 && c.vf > 20 && !(c.spin > 0) && !(c.fall > 0);
+            v.wrongFor = wrong ? v.wrongFor + dt : 0;
+        });
+    }
+    function splitFinish(c) {  /* one player is through: their half shows the place; both through: the results */
+        var n = c === me ? 0 : 1, v = views[n], other = n ? me : pal, no = splitNo;
+        v.place = rankOf(c);
+        api.sfx(v.place === 1 ? 'win' : 'point');
+        splitSay(n, v.place === 1 ? 'Purrfect! First place!' : !other.fin ? 'Ahead of ' + SPLIT_NAMES[1 - n] + '!' : 'Meow. Next time!');
+        if (!me.fin || !pal.fin) return;
+        phase = 'done';
+        api.cat('happy');
+        api.timeout(function () { if (no === splitNo && phase === 'done') wrapEl.classList.add('kk-res-on'); }, 900);
+    }
+    function splitResults() {  /* the results box, rebuilt when something in it changes (the cats may still be racing) */
+        var order = karts.slice().sort(function (a, b) { return ahead(a, b) ? -1 : ahead(b, a) ? 1 : 0; });
+        var key = order.map(function (c) { return karts.indexOf(c) + ':' + c.fin; }).join();
+        if (key === splitResKey) return;
+        splitResKey = key;
+        var list = sRes.querySelector('.kk-res-list'), d = Math.abs(me.fin - pal.fin);
+        list.innerHTML = '';
+        order.forEach(function (c, i) {
+            var li = document.createElement('li'), n = karts.indexOf(c);
+            li.innerHTML = '<b></b><i></i><span></span><em></em>';
+            if (n < 2) li.className = n ? 'kk-p2' : 'kk-me';
+            li.querySelector('b').textContent = i + 1;
+            li.querySelector('i').style.background = c.body;
+            li.querySelector('span').textContent = SPLIT_NAMES[n];
+            li.querySelector('em').textContent = c.fin ? c.fin.toFixed(1) + ' s' : 'still racing';
+            list.appendChild(li);
+        });
+        sRes.querySelector('.kk-res-note').textContent = d < 0.05 ? 'A dead heat between the two players!' :
+            (me.fin < pal.fin ? 'Player 1 beat Player 2' : 'Player 2 beat Player 1') + ' by ' + d.toFixed(1) + ' s on ' + MAP.name + '.';
+    }
+    function tag(c, text, col) {  /* a name tag over a player's kart */
+        if (!vis(c.x, c.y, 40)) return;
+        ctx.font = '800 12px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.fillStyle = col;
+        ctx.strokeText(text, c.x, c.y - 22 - c.z * 0.5); ctx.fillText(text, c.x, c.y - 22 - c.z * 0.5);
+    }
+    function vset(v, key, val) { if (v.shown[key] !== val) { v.shown[key] = val; v[key].textContent = val; } }
+    function splitFrame() {  /* every frame: both views, then both HUDs */
+        var c0 = cv, g0 = ctx, n, v;
+        VB = null;
+        for (n = 0; n < 2; n++) {
+            v = views[n];
+            cv = v.cv; ctx = v.g; me = v.kart;
+            if (n) { camX = v.camX; camY = v.camY; shake = v.shake; }
+            var vw = W / 2 / zoom, vh = H / 2 / zoom;  /* keep the view inside the field */
+            camX = vw * 2 < WW ? clamp(camX, vw, WW - vw) : WW / 2;
+            camY = vh * 2 < WH ? clamp(camY, vh, WH - vh) : WH / 2;
+            draw();
+            v.r = [VX0, VY0, VX1, VY1];
+            if (n) { v.camX = camX; v.camY = camY; } else { views[0].camX = camX; views[0].camY = camY; views[0].shake = shake; }
+        }
+        cv = c0; ctx = g0; me = karts[0];
+        camX = views[0].camX; camY = views[0].camY; shake = views[0].shake;
+        /* until the next frame, "visible" means in either view (sparks, steam and petals near both players) */
+        frameNo++;
+        var a = views[frameNo & 1].r;
+        VX0 = a[0]; VY0 = a[1]; VX1 = a[2]; VY1 = a[3]; VB = views[1 - (frameNo & 1)].r;
+        for (n = 0; n < 2; n++) {
+            v = views[n];
+            var c = v.kart, text = '', cls = '';
+            vset(v, 'pos', ordinal(v.place));
+            vset(v, 'lap', Math.min(LAPS, laps(c) + 1) + '/' + LAPS);
+            vset(v, 'time', (c.fin || raceTime).toFixed(1));
+            if (c.item !== v.held) { v.held = c.item; itemPic(v.slotG, c.item); v.slot.classList.toggle('kk-empty', !c.item); }
+            if (c.fin) { text = ordinal(v.place) + ' place, ' + c.fin.toFixed(1) + ' s'; cls = 'kk-fin'; }
+            else if (phase === 'race' && clock > 5 && v.wrongFor > 0.8) { text = 'Wrong way!'; cls = 'kk-warn'; }
+            else if (shown.count) { text = shown.count; cls = text === 'Go!' ? 'kk-go' : ''; }
+            if (v.shown.count !== text) {
+                v.shown.count = text;
+                v.count.textContent = text;
+                v.count.className = 'kk-count' + (cls ? ' ' + cls : '');
+                if (text && !api.reducedMotion) { void v.count.offsetWidth; v.count.classList.add('kk-pop'); }
+            }
+            var hint = phase === 'count' ? '' : 'none';
+            if (v.hint.style.display !== hint) v.hint.style.display = hint;
+            if (v.sayAt && performance.now() - v.sayAt > 1800) { v.sayAt = 0; v.say.textContent = ''; }
+        }
+        if (phase === 'done') splitResults();
+    }
+    if (test && split) test.split = function () {  /* only on the test page: where each player is, and which keys a driver would hold */
+        return { phase: phase, map: MAP.id, results: wrapEl.classList.contains('kk-res-on'), time: raceTime, finishers: finishers,
+            views: views.map(function (v) { return [v.el.offsetLeft, v.el.offsetTop, v.el.offsetWidth, v.el.offsetHeight, v.cv.width, v.cv.height]; }),
+            karts: karts.map(function (c, i) {
+                var look = Math.round((34 + Math.abs(c.vf) * 0.32) / SP), j = routeAt(c, look), km = 0;
+                for (var q = 1; q < 26; q++) km = Math.max(km, Math.abs(rK(routeAt(c, q))));
+                var vt = VMAX * 0.85 / (1 + km * 80 * CARE);
+                return { x: Math.round(c.x), y: Math.round(c.y), lap: laps(c), k: c.k, fin: c.fin, item: c.item, vf: Math.round(c.vf),
+                    place: i < 2 ? views[i].place : rankOf(c), thr: c.thr, cs: Math.round(c.steer * 100) / 100,
+                    steer: clamp(wrap(Math.atan2(rY(j) - c.y, rX(j) - c.x) - c.a) * 3, -1, 1), want: c.vf < vt ? 1 : c.vf > vt + 30 ? -1 : 0 };
+            }) };
+    };
+
     load(MAP);
     reset();
     fit(api.size());
     api.onResize(fit);
     showBests();
-    show();
+    if (!split) show();
     return { destroy: function () {
         if (window.__kk === test) try { delete window.__kk; } catch (e) { window.__kk = undefined; }
         if (duo) { send({ t: 'bye' }); teardown(false); }

@@ -45,6 +45,8 @@ In Kitty Kart Duo on the [Games](/games/) page, two people race each other from 
 
 After that the two devices talk directly, and nothing about the race goes through a server. As with any direct connection, each of the two devices sees the other's IP address, so race with people you are happy to share that with.
 
+Kitty Kart Duo works with both devices on the same home wifi, while Kitty Kart Split Screen (two players on one keyboard) sends nothing anywhere.
+
 ## The page "What this site knows about you"
 
 The page [What this site knows about you](/you/) shows you what the counter records about your visit. If your visit is counted, it also asks the counter which country it would record; nothing is stored.
