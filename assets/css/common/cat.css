@@ -1,23 +1,70 @@
-/* Home page cat and mountains (layouts/partials/cat.html, assets/js/home-lab.js) */
+/* Home page cat and its desktop world (layouts/partials/cat.html, assets/js/home-lab.js) */
 
 .world-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
 .cat-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
-/* the page content sits between the mountains (behind) and the cat (in front) */
+/* the page content sits between the world (behind) and the cat (in front) */
 .main:has(.profile.home) { position: relative; z-index: 1; }
 
-/* ---------- Mountains ---------- */
+/* ---------- The three looks of the cat, chosen with the cat button in the top right corner (baseof.html) ---------- */
+:root, .cat-opt[data-look="ginger"] {
+    --fur-top: #ffc06e; --fur-bot: #f0932c; --head-top: #ffc479; --fur-dark: #de8a2c; --stripe: #cf7419;
+    --tail: #f5a03c; --cream: #ffe9c9; --iris: #8ed383; --tuft: #fff4e2; --whisker: #9a7a60;
+}
+html[data-cat="silver"], .cat-opt[data-look="silver"] {
+    --fur-top: #dde2e8; --fur-bot: #a9b2bd; --head-top: #e4e8ed; --fur-dark: #97a1ac; --stripe: #7a8592;
+    --tail: #b4bcc6; --cream: #f5f7f9; --iris: #e9b949; --tuft: #ffffff; --whisker: #8a9099;
+}
+html[data-cat="tuxedo"], .cat-opt[data-look="tuxedo"] {
+    --fur-top: #50545d; --fur-bot: #2c2f35; --head-top: #5b6069; --fur-dark: #26292e; --stripe: #3d4148;
+    --tail: #373a40; --cream: #f6f6f4; --iris: #c8e06c; --tuft: #9ba1a9; --whisker: #c9cdd2;
+}
 
-.terrain { position: absolute; left: 0; top: 0; overflow: visible; }
-.t-back { fill: #e6ecf4; }
-.t-ground { fill: url(#t-grad); stroke: #b4c3d6; stroke-width: 2; stroke-linejoin: round; }
-.t-snow { fill: #fff; }
-.t-pine-l { fill: #6f9c84; }
-.t-pine-d { fill: #567f6a; }
-.t-trunk { fill: #8b6b4a; }
-.t-pole { stroke: #8e8e8e; stroke-width: 2.5; stroke-linecap: round; }
-.t-flag { fill: #ff6f6f; transform-box: fill-box; transform-origin: left center; animation: t-flag 1.6s ease-in-out infinite; }
-
-@keyframes t-flag { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(8deg) scaleX(0.9); } }
+/* ---------- Desktop world: keyboard floor and glyph platforms (built in home-lab.js) ---------- */
+.kb { position: absolute; left: 0; display: flex; gap: 4px; height: 44px; padding: 4px 8px 6px; overflow: hidden; background: #e9eef5; border-top: 1px solid #d6dee9; }
+.kb-key {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 32px;
+    border: 1px solid #cdd6e2;
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: 0 3px 0 #cdd6e2;
+    color: #64748b;
+    font: 600 12px ui-monospace, Menlo, Consolas, monospace;
+    transition: transform 0.08s, box-shadow 0.08s, background 0.08s;
+}
+.kb-key.wide { width: 58px; }
+.kb-key.space { width: 140px; }
+.kb-key.down { transform: translateY(3px); box-shadow: 0 0 0 #cdd6e2; background: #eef2ff; color: #1e3a8a; }
+.glyph {
+    position: absolute;
+    pointer-events: auto;
+    cursor: pointer;
+    user-select: none;
+    line-height: 0.82;
+    color: rgba(30, 58, 138, 0.6);
+    font: 800 38px ui-monospace, Menlo, Consolas, monospace;
+    white-space: nowrap;
+}
+.glyph.pink { color: rgba(214, 51, 108, 0.6); }
+.glyph.cap {
+    padding: 8px 12px;
+    line-height: 1;
+    border: 1px solid #cdd6e2;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 4px 0 #cdd6e2;
+    color: #475569;
+    font-size: 15px;
+    font-weight: 700;
+}
+.glyph.keyicon { width: 70px; height: 33px; color: rgba(30, 58, 138, 0.6); }
+.glyph.keyicon svg { display: block; width: 100%; height: 100%; }
+.glyph.poked { animation: glyph-poke 0.6s cubic-bezier(.3, 1.6, .5, 1); }
+.glyph:hover { color: #1e3a8a; }
+@keyframes glyph-poke { 0% { transform: none; } 30% { transform: translateY(-8px) rotate(-8deg) scale(1.08); } 100% { transform: none; } }
 
 .cat.held { cursor: grabbing; }
 .cat { touch-action: none; }
@@ -44,27 +91,27 @@
 .cat .ol { stroke: #3b2a1e; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .cat .fur { fill: url(#cat-fur); }
 .cat .head { fill: url(#cat-head); }
-.cat .fur-dark { fill: #de8a2c; }
-.cat .cream { fill: #ffe9c9; }
-.cat .stripe { fill: none; stroke: #cf7419; stroke-width: 2.6; stroke-linecap: round; }
+.cat .fur-dark { fill: var(--fur-dark); }
+.cat .cream { fill: var(--cream); }
+.cat .stripe { fill: none; stroke: var(--stripe); stroke-width: 2.6; stroke-linecap: round; }
 .cat .pink { fill: #ffaebf; }
 .cat .nose { fill: #ff8fa3; stroke-width: 0.9; }
 .cat .sclera { fill: #fff; stroke-width: 1.2; }
-.cat .iris { fill: #8ed383; }
+.cat .iris { fill: var(--iris); }
 .cat .ink { fill: #1f1610; }
 .cat .ink-line { fill: none; stroke: #3b2a1e; stroke-width: 1.8; stroke-linecap: round; }
 .cat .whisker { stroke: #8a6a50; stroke-width: 0.8; stroke-linecap: round; }
-.cat .tuft { fill: none; stroke: #fff4e2; stroke-width: 1.1; stroke-linecap: round; }
+.cat .tuft { fill: none; stroke: var(--tuft); stroke-width: 1.1; stroke-linecap: round; }
 /* the face uses the body's colours, with slightly finer lines */
 .cat .cat-head .ol { stroke-width: 1.8; }
 .cat .cat-head .stripe { stroke-width: 2.2; }
-.cat .cat-head .whisker { stroke: #9a7a60; stroke-width: 0.75; }
+.cat .cat-head .whisker { stroke: var(--whisker); stroke-width: 0.75; }
 .cat .cat-head .sclera { stroke-width: 1.1; }
 .cat .toe { fill: none; stroke: #3b2a1e; stroke-width: 1; stroke-linecap: round; }
 .cat .tail-ol { fill: none; stroke: #3b2a1e; stroke-width: 9.6; stroke-linecap: round; }
-.cat .tail-fur { fill: none; stroke: #f5a03c; stroke-width: 5.8; stroke-linecap: round; }
-.cat .tail-stripe { fill: none; stroke: #cf7419; stroke-width: 5.8; stroke-dasharray: 3 7; }
-.cat .tail-tip { fill: none; stroke: #ffe9c9; stroke-width: 5.8; stroke-linecap: round; }
+.cat .tail-fur { fill: none; stroke: var(--tail); stroke-width: 5.8; stroke-linecap: round; }
+.cat .tail-stripe { fill: none; stroke: var(--stripe); stroke-width: 5.8; stroke-dasharray: 3 7; }
+.cat .tail-tip { fill: none; stroke: var(--cream); stroke-width: 5.8; stroke-linecap: round; }
 .cat .shadow { fill: rgba(15, 23, 42, 0.14); transition: opacity 0.2s; }
 .cat.jump .shadow, .cat.held .shadow { opacity: 0; }
 
@@ -126,6 +173,7 @@
     font-size: 12px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
+.cat-bubble.long { top: -52px; width: 210px; padding: 5px 10px; border-radius: 12px; white-space: normal; text-align: center; line-height: 1.3; }
 .cat-heart { top: 8px; color: #ff5c8a; font-size: 18px; animation: cat-heart 1.3s ease-out forwards; }
 
 /* letters of the name and chips the cat plays with */

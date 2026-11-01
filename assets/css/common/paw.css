@@ -1,0 +1,72 @@
+/* Top right corner, on every page: the cat picker and the paw that leads to the cat games (layouts/_default/baseof.html) */
+.corner-btn {
+    position: fixed;
+    top: 6px;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid #d5dbe3;
+    border-radius: 50%;
+    background: #fff;
+    color: #334155;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+    cursor: pointer;
+    transition: transform 0.15s, color 0.15s;
+}
+.corner-btn:hover { transform: rotate(-12deg) scale(1.08); color: #0f172a; }
+.paw-link { right: 10px; }
+.paw-link svg { width: 18px; height: 18px; fill: currentColor; }
+.paw-link.wiggle { animation: paw-wiggle 0.5s ease-in-out 4; }
+.cat-pick { right: 52px; }
+.cat-pick svg { width: 22px; height: 20px; }
+
+/* the little cat face, in the colours of the current look (variables in cat.css) */
+.cf-fur { fill: var(--fur-bot); stroke: #3b2a1e; stroke-width: 1.6; stroke-linejoin: round; }
+.cf-cream { fill: var(--cream); }
+.cf-eye { fill: var(--iris); stroke: #3b2a1e; stroke-width: 1.2; }
+
+.cat-menu {
+    position: fixed;
+    top: 46px;
+    right: 10px;
+    z-index: 91;
+    width: 190px;
+    padding: 8px;
+    border: 1px solid #d5dbe3;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+}
+.cat-menu[hidden] { display: none; }
+.cat-menu-title { margin: 2px 6px 6px; color: #64748b; font-size: 0.8rem; }
+.cat-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: none;
+    color: #0f172a;
+    font: inherit;
+    font-size: 0.92rem;
+    text-align: left;
+    cursor: pointer;
+}
+.cat-opt svg { flex: none; width: 30px; height: 27px; }
+.cat-opt:hover { background: #f1f5f9; }
+.cat-opt[aria-checked="true"] { border-color: #cbd5e1; background: #f8fafc; font-weight: 700; }
+
+/* leave room for the two buttons at the right end of the menu */
+.nav { padding-inline-end: 92px; }
+@keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
+@media (max-width: 600px) {
+    .nav { padding-inline-end: 0; }
+    .corner-btn { top: 5px; }
+    .paw-link { right: 8px; }
+    .cat-pick { right: 48px; }
+}

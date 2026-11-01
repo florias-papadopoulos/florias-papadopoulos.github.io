@@ -14,7 +14,7 @@
                 width="{{ $w }}" height="{{ $w }}" />
             {{- end }}
             <div class="name-block">
-                {{- with .kicker }}<p class="kicker"><span class="prompt">&gt;</span> {{ . }}<span class="caret"></span></p>{{ end }}
+                {{- with .kicker }}<p class="kicker">{{ . }}</p>{{ end }}
                 <h1>{{ .title | default site.Title }}</h1>
                 {{- with .nativeName }}<p class="native-name" lang="el">{{ . }}</p>{{ end }}
                 <p class="whereabouts">
@@ -37,7 +37,7 @@
             {{- range $i, $s := . }}
             {{- if gt $i 0 }}
             <div class="route-line" aria-hidden="true">
-                <span class="route-track"></span><span class="route-dot"></span>
+                <span class="route-track"></span>
                 {{- with site.Params.profileMode.routeDistance }}<span class="route-km">{{ . }}</span>{{ end }}
             </div>
             {{- end }}

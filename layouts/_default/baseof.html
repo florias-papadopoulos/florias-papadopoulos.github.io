@@ -17,6 +17,8 @@
 {{- print " dark" }}
 {{- end -}}
 " id="top">
+    {{- /* the visitor's chosen look of the cat, applied before anything is drawn */}}
+    <script>try { var l = localStorage.getItem('cat-look'); if (l) document.documentElement.dataset.cat = l; } catch (e) {}</script>
     {{- if not .IsHome  }}
     {{- partialCached "header.html" . .Page -}}
     {{- end }}
@@ -24,5 +26,41 @@
         {{- block "main" . }}{{ end }}
     </main>
     {{ partialCached "footer.html" . .Layout .Kind (.Param "hideFooter") (.Param "ShowCodeCopyButtons") -}}
+    {{- /* the paw in the top right corner leads to the cat games (styles: assets/css/common/paw.css) */}}
+    <div class="cat-picker" id="cat-picker">
+        <button class="corner-btn cat-pick" type="button" aria-haspopup="true" aria-expanded="false" title="Choose the cat" aria-label="Choose how the cat looks"><svg viewBox="0 0 40 36" aria-hidden="true"><path d="M5 18L6 2l11 9zM23 11l11-9 1 16z" class="cf-fur"/><ellipse cx="20" cy="21" rx="15" ry="13" class="cf-fur"/><ellipse cx="20" cy="26" rx="7.5" ry="5" class="cf-cream"/><circle cx="14" cy="19" r="2.6" class="cf-eye"/><circle cx="26" cy="19" r="2.6" class="cf-eye"/></svg></button>
+        <div class="cat-menu" role="menu" hidden>
+            <p class="cat-menu-title">Choose your cat</p>
+            {{- range slice (slice "ginger" "Ginger") (slice "silver" "Silver tabby") (slice "tuxedo" "Tuxedo") }}
+            <button class="cat-opt" type="button" role="menuitemradio" data-look="{{ index . 0 }}"><svg viewBox="0 0 40 36" aria-hidden="true"><path d="M5 18L6 2l11 9zM23 11l11-9 1 16z" class="cf-fur"/><ellipse cx="20" cy="21" rx="15" ry="13" class="cf-fur"/><ellipse cx="20" cy="26" rx="7.5" ry="5" class="cf-cream"/><circle cx="14" cy="19" r="2.6" class="cf-eye"/><circle cx="26" cy="19" r="2.6" class="cf-eye"/></svg><span>{{ index . 1 }}</span></button>
+            {{- end }}
+        </div>
+    </div>
+    <a class="corner-btn paw-link" id="paw-link" href="{{ "games/" | relURL }}" title="Cat games" aria-label="Cat games">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><ellipse cx="5.6" cy="10.4" rx="2" ry="2.6" transform="rotate(-18 5.6 10.4)"/>
+        <ellipse cx="9.6" cy="6.6" rx="2.1" ry="2.8" transform="rotate(-6 9.6 6.6)"/><ellipse cx="14.4" cy="6.6" rx="2.1" ry="2.8" transform="rotate(6 14.4 6.6)"/>
+        <ellipse cx="18.4" cy="10.4" rx="2" ry="2.6" transform="rotate(18 18.4 10.4)"/></svg>
+    </a>
+    <script>
+    (function () {
+        var picker = document.getElementById('cat-picker'), btn = picker.querySelector('.cat-pick'), menu = picker.querySelector('.cat-menu');
+        function mark() {
+            var cur = document.documentElement.dataset.cat || 'ginger';
+            Array.prototype.forEach.call(menu.querySelectorAll('.cat-opt'), function (o) { o.setAttribute('aria-checked', o.dataset.look === cur); });
+        }
+        function open(on) { menu.hidden = !on; btn.setAttribute('aria-expanded', on); if (on) mark(); }
+        btn.addEventListener('click', function (e) { e.stopPropagation(); open(menu.hidden); });
+        menu.addEventListener('click', function (e) {
+            var o = e.target.closest('.cat-opt');
+            if (!o) return;
+            document.documentElement.dataset.cat = o.dataset.look;
+            try { localStorage.setItem('cat-look', o.dataset.look); } catch (err) {}
+            mark();
+            setTimeout(function () { open(false); }, 250);
+        });
+        document.addEventListener('click', function (e) { if (!picker.contains(e.target)) open(false); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') open(false); });
+    })();
+    </script>
 </body>
 </html>

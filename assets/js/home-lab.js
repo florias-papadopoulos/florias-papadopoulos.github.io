@@ -1,19 +1,17 @@
 /* Home page cat (markup in layouts/partials/cat.html, styles in assets/css/common/cat.css).
 
-   The cat walks, runs, climbs and jumps between page elements and a mountain range at the bottom of the page
-   (no mountains on phones). You can drag the cat and click it to pet it. */
+   The cat walks, runs and jumps between page elements and, on desktop, a keyboard along the bottom of the page and
+   numbers, letters and keys floating in the margins (nothing on phones). You can drag the cat and click it to pet it. */
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');
     var world = document.getElementById('world-layer');
     var cat = document.getElementById('cat');
-    var svgT = document.getElementById('terrain');
     var panel = document.querySelector('.home .home-panel');
-    if (!layer || !world || !cat || !svgT || !panel) return;
+    if (!layer || !world || !cat || !panel) return;
     document.body.appendChild(world);              /* page coordinates, including the side margins */
     document.body.appendChild(layer);
 
-    var NS = 'http://www.w3.org/2000/svg';
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var CW = 88, CH = 72;
     var pos = { x: 0, y: 0 };                      /* the cat's feet, in layer coordinates */
@@ -37,19 +35,13 @@
         return t > -40 && t < window.innerHeight + 40;
     }
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-    function svgEl(tag, attrs, parent) {
-        var e = document.createElementNS(NS, tag);
-        for (var k in attrs) e.setAttribute(k, attrs[k]);
-        (parent || svgT).appendChild(e);
-        return e;
-    }
     /* drag with mouse or touch; click() is called when the pointer did not move */
     function draggable(el, h) {
         el.addEventListener('pointerdown', function (e) {
             if (e.button > 0) return;
             e.preventDefault();
             e.stopPropagation();
-            el.setPointerCapture(e.pointerId);
+            try { el.setPointerCapture(e.pointerId); } catch (err) { /* no capture: the drag still works */ }
             var start = pointer(e), dragging = false;
             function move(ev) {
                 var p = pointer(ev);
@@ -83,7 +75,7 @@
         });
     }
 
-    /* ---------- mountains ---------- */
+    /* ---------- the floor ---------- */
     function groundY(x) {
         if (!ridge.length) return 0;
         if (x <= ridge[0].x) return ridge[0].y;
@@ -97,71 +89,82 @@
     }
     function slope(x, dir) { return Math.atan2(groundY(x + 4 * (dir || 1)) - groundY(x), 4) * 180 / Math.PI; }
 
+    /* Desktop world: a keyboard along the bottom of the page is the floor, and numbers, letters, symbols and keys
+       float in the side margins as platforms. Phones: nothing, just a flat floor at the bottom of the page. */
+    var GLYPHS = ['0x2A', '7', 'λ', 'A', 'π', 'mod p', '∑', '{ }', '3', 'k', '#', '∞', '0', 'x²', 'Δ', '1'];
+    var CAPS = ['Ctrl', 'K', 'Enter', 'Esc', 'Tab', 'F'];
+    var KEY_ICON = '<svg viewBox="0 0 64 30" aria-hidden="true"><circle cx="13" cy="15" r="9" fill="none" stroke="currentColor" stroke-width="5"/>' +
+        '<path d="M22 15h36M50 15v9M44 15v6" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/></svg>';
+    var glyphs = [], keys = [];
     function buildTerrain() {
-        while (svgT.firstChild) svgT.removeChild(svgT.firstChild);
+        Array.prototype.forEach.call(world.querySelectorAll('.kb, .glyph'), function (e) { e.remove(); });
+        glyphs = []; keys = [];
         var W = layer.clientWidth, F = parseFloat(layer.style.height);
         var p = rel(panel);
         side = Math.max(0, Math.min(p.x, W - p.x - p.w));
         wide = side > 200;
         phone = W < 700;
-        if (phone) {                               /* phones: no mountains, a flat floor at the bottom of the page */
+        if (phone) {
             ridge = [{ x: 0, y: F - 2 }, { x: W, y: F - 2 }];
-            return { W: W, F: F, peak: 0, xm: 0 };
+            return;
         }
-        var peak = wide ? Math.min(400, window.innerHeight * 0.44) : 120;
-        var mid = wide ? 74 : 60;
-        var xm = Math.max(side, W * 0.2);
-        var Lp = [[0, .5], [.16, .74], [.3, .6], [.5, 1], [.68, .64], [.84, .8], [1, .36]];
-        var Rp = [[0, .4], [.14, .78], [.3, .62], [.48, 1.06], [.66, .7], [.82, .84], [1, .52]];
-        var pts = Lp.map(function (q) { return { x: q[0] * xm, y: F - q[1] * peak }; });
-        var n = Math.max(2, Math.round((W - 2 * xm) / 110));
-        for (var i = 1; i < n; i++) {
-            var h = mid * (0.7 + 0.35 * Math.sin(i * 1.7) + 0.15 * Math.cos(i * 3.1));
-            pts.push({ x: xm + (W - 2 * xm) * i / n, y: F - h });
+        /* the keyboard */
+        var KH = 34, kb = document.createElement('div');
+        kb.className = 'kb';
+        kb.style.top = (F - KH - 10) + 'px';
+        kb.style.width = W + 'px';
+        var row = ['Esc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+                   'Ctrl', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Enter', 'Alt', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Space'];
+        for (var used = 8, i = 0; used < W - 8; i++) {
+            var label = row[i % row.length], k = document.createElement('span');
+            k.className = 'kb-key' + (label.length > 1 ? ' wide' : '');
+            k.textContent = label;
+            kb.appendChild(k);
+            used += (label === 'Space' ? 140 : label.length > 1 ? 58 : 36) + 4;
+            if (label === 'Space') k.classList.add('space');
         }
-        Rp.forEach(function (q) { pts.push({ x: W - xm + q[0] * xm, y: F - q[1] * peak }); });
-        ridge = pts;
-
-        svgT.setAttribute('width', W);
-        svgT.setAttribute('height', F + 2);
-        var defs = svgEl('defs', {});
-        var g = svgEl('linearGradient', { id: 't-grad', x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-        svgEl('stop', { offset: 0, 'stop-color': '#d2dcea' }, g);
-        svgEl('stop', { offset: 1, 'stop-color': '#bccadc' }, g);
-        var back = pts.map(function (q, i) { return q.x + ',' + (q.y - 30 - 22 * Math.sin(i * 1.3)); });
-        svgEl('polygon', { 'class': 't-back', points: '0,' + F + ' ' + back.join(' ') + ' ' + W + ',' + F });
-        svgEl('polygon', { 'class': 't-ground', points: '0,' + (F + 4) + ' ' + pts.map(function (q) { return q.x + ',' + q.y; }).join(' ') + ' ' + W + ',' + (F + 4) });
-        var top = null;
-        for (var j = 1; j < pts.length - 1; j++) {
-            var a = pts[j - 1], b = pts[j], c = pts[j + 1];
-            if (F - b.y > peak * 0.82 && b.y < a.y && b.y < c.y) {
-                var lx = b.x + (a.x - b.x) * 26 / (a.y - b.y), rx = b.x + (c.x - b.x) * 26 / (c.y - b.y);
-                svgEl('polygon', { 'class': 't-snow', points: [b.x + ',' + b.y, rx + ',' + (b.y + 26), (b.x + (rx - b.x) * .45) + ',' + (b.y + 18),
-                    b.x + ',' + (b.y + 24), (b.x + (lx - b.x) * .45) + ',' + (b.y + 18), lx + ',' + (b.y + 26)].join(' ') });
-                if (!top || b.y < top.y) top = b;
+        world.appendChild(kb);
+        Array.prototype.forEach.call(kb.children, function (k) { keys.push(k); });
+        var floor = F - KH - 10;
+        ridge = [{ x: 0, y: floor }, { x: W, y: floor }];
+        /* platforms in the margins: five levels a side, a comfortable jump apart */
+        if (side < 150) return;
+        var top = 110, levels = 5, step = (floor - 70 - top) / (levels - 1), n = 0;
+        [0, 1].forEach(function (s2) {
+            for (var lv = 0; lv < levels; lv++) {
+                var g = document.createElement('div'), kind = (lv + s2) % 3;
+                var x0 = s2 ? W - side + 18 : 18, span = side - 140;
+                g.style.left = (x0 + span * (((lv * 0.37 + s2 * 0.5) % 1) * 0.9 + 0.05)) + 'px';
+                g.style.top = Math.min(top + lv * step + (s2 ? step * 0.45 : 0), floor - 70) + 'px';   /* never into the keyboard */
+                if (kind === 2 && n % 2 === 0) { g.className = 'glyph cap'; g.textContent = CAPS[n % CAPS.length]; }
+                else if (n % 7 === 3) { g.className = 'glyph keyicon'; g.innerHTML = KEY_ICON; }
+                else { g.className = 'glyph' + (n % 2 ? ' pink' : ''); g.textContent = GLYPHS[n % GLYPHS.length]; }
+                g.setAttribute('aria-hidden', 'true');
+                world.appendChild(g);
+                glyphs.push(g);
+                g.addEventListener('click', function () { poke(this); });
+                n++;
             }
-        }
-        /* small clusters of layered pines on the lower slopes, light on the left and shaded on the right */
-        for (var k = 2; k < pts.length - 1; k += 2) {
-            if (F - pts[k].y < peak * 0.55) {
-                var n = 2 + (k % 3 === 0 ? 1 : 0);
-                for (var t = 0; t < n; t++) pine(pts[k].x + 10 + t * 15, 22 + ((k * 7 + t * 13) % 3) * 7);
-            }
-        }
-        if (wide && top) {
-            svgEl('line', { 'class': 't-pole', x1: top.x, y1: top.y + 2, x2: top.x, y2: top.y - 36 });
-            svgEl('polygon', { 'class': 't-flag', points: top.x + ',' + (top.y - 36) + ' ' + (top.x + 24) + ',' + (top.y - 30) + ' ' + top.x + ',' + (top.y - 24) });
-        }
-        return { W: W, F: F, peak: peak, xm: xm };
+        });
     }
-
-    function pine(x, h) {
-        var y = groundY(x) + 3;
-        svgEl('rect', { 'class': 't-trunk', x: x - 1.6, y: y - 6, width: 3.2, height: 7, rx: 1 });
-        for (var i = 0; i < 3; i++) {
-            var top = y - 5 - h + i * h * 0.27, hh = h * 0.48, w = h * (0.28 + 0.09 * i);
-            svgEl('polygon', { 'class': 't-pine-l', points: x + ',' + top + ' ' + (x - w) + ',' + (top + hh) + ' ' + x + ',' + (top + hh) });
-            svgEl('polygon', { 'class': 't-pine-d', points: x + ',' + top + ' ' + x + ',' + (top + hh) + ' ' + (x + w) + ',' + (top + hh) });
+    /* a glyph reacts when the cat bats it or someone clicks it: numbers count up, letters move on, the rest wiggles */
+    function poke(g) {
+        var t = g.textContent;
+        if (/^0x[0-9A-F]+$/i.test(t)) g.textContent = '0x' + (parseInt(t.slice(2), 16) + 1).toString(16).toUpperCase();
+        else if (/^\d$/.test(t)) g.textContent = String((+t + 1) % 10);
+        else if (/^[A-Z]$/.test(t) && !g.classList.contains('cap')) g.textContent = t === 'Z' ? 'A' : String.fromCharCode(t.charCodeAt(0) + 1);
+        bonk(g, 'poked', 600);
+    }
+    /* keys go down under the cat's paws */
+    var lastKey = null;
+    function pressKeyAt(x) {
+        if (!keys.length) return;
+        for (var i = 0; i < keys.length; i++) {
+            var r = rel(keys[i]);
+            if (x >= r.x && x <= r.x + r.w) {
+                if (keys[i] !== lastKey) { lastKey = keys[i]; bonk(keys[i], 'down', 220); }
+                return;
+            }
         }
     }
 
@@ -212,6 +215,7 @@
             pose(run ? 'run' : Math.abs(s) > 32 ? 'walk climb' : 'walk');
             tilt(clamp(Math.sign(dx) * s, -55, 55));
             place(x, groundY(x));
+            pressKeyAt(x);
         }, function () { pose(''); tilt(0); done(); });
     }
     function leap(target, done) {                 /* target(): {x, y}, read again at the end for moving targets */
@@ -257,6 +261,7 @@
         push('.home .route', 'card');
         push('.home .paper', 'card');
         push('.home .buttons .button', 'button');
+        glyphs.forEach(function (g) { list.push({ el: g, kind: 'glyph' }); });
         return list;
     }
     function spotOn(p, fx) {
@@ -299,15 +304,12 @@
             if (at && at.el === p.el && p.kind !== 'name') return;
             var fx = Math.random();
             add(p, function () { return spotOn(p, fx); },
-                p.kind === 'name' ? 2 : p.kind === 'chip' ? 1.3 : 1);
+                p.kind === 'name' ? 2 : p.kind === 'glyph' ? 1.6 : 1);
         });
         if (ridge.length) {
             var reach = fromGround || Math.abs(groundY(pos.x) - pos.y) < 300;
             if (reach) {
-                var gw = fromGround ? 2.2 : 1;
-                var tops = ridge.filter(function (q, i) { return i > 0 && i < ridge.length - 1 && q.y < ridge[i - 1].y && q.y < ridge[i + 1].y; });
-                var pk = tops[Math.floor(Math.random() * tops.length)];
-                if (pk) add({ kind: 'ground', what: 'peak' }, function () { return { x: pk.x, y: pk.y }; }, gw * 1.2);
+                var gw = fromGround ? 1.6 : 0.8;
                 var rx = 40 + Math.random() * (layer.clientWidth - 80);
                 add({ kind: 'ground', what: 'wander' }, function () { return { x: rx, y: groundY(rx) }; }, gw);
             }
@@ -342,7 +344,8 @@
             return next(1700 + Math.random() * 1500);
         }
         if (p.kind === 'chip' && r < 0.7) { bat(function () { bonk(p.el, 'nudged', 700); }); return next(1900 + Math.random() * 1500); }
-        if ((p.what === 'peak' || p.kind === 'photo') && r < 0.18) return nap();
+        if (p.kind === 'glyph' && r < 0.7) { bat(function () { poke(p.el); }); return next(1800 + Math.random() * 1500); }
+        if (p.kind === 'photo' && r < 0.18) return nap();
         if (r > 0.94 && p.kind !== 'button' && p.kind !== 'chip') return nap();
         if (r > 0.6) {
             cat.classList.add('groom');
@@ -371,6 +374,15 @@
         var b = document.createElement('span');
         b.className = 'cat-bubble';
         b.textContent = wasAsleep ? 'mrrp?' : pets === 1 ? 'purr' : 'purr ×' + pets;
+        /* the first time ever: the cat tells the visitor about its games behind the paw in the corner */
+        var hint = false;
+        try { hint = !localStorage.getItem('cat-games-hint'); localStorage.setItem('cat-games-hint', '1'); } catch (e) { hint = pets === 1; }
+        var paw = document.getElementById('paw-link');
+        if (hint && paw) {
+            b.textContent = 'Psst! Press the 🐾 at the top right to play games with me.';
+            b.classList.add('long');
+            bonk(paw, 'wiggle', 2100);
+        }
         cat.appendChild(b);
         for (var i = 0; i < 3; i++) {
             var h = document.createElement('span');
@@ -383,10 +395,10 @@
             setTimeout(h.remove.bind(h), 1700);
         }
         clearTimeout(cat._petTimer);
-        cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, 2300);
+        cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, hint ? 5000 : 2300);
         if (!moving) next(2900);
     }
-    /* the first surface below (x, y): a page element or the mountains */
+    /* the first surface below (x, y): a page element, a glyph or the floor */
     function surfaceBelow(x, y) {
         var best = { y: groundY(x), p: { kind: 'ground', what: 'dropped' } };
         pagePerches().forEach(function (p) {
@@ -403,6 +415,7 @@
             at = null;
             cat.classList.add('moving', 'held');
             cat.classList.remove('sleep', 'groom', 'walk', 'run', 'climb', 'crouch');
+            Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz'), function (z) { z.remove(); });   /* picked up: awake */
             cat.classList.add('jump');
             tilt(0);
         },
