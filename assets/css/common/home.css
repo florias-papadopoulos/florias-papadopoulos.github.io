@@ -117,37 +117,13 @@ a.badge:hover, a.badge:focus-visible { border-color: var(--navy); color: var(--n
     background: #f8fafc;
     color: var(--ink);
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
     font-size: 0.86rem;
     transition: border-color 0.15s, background 0.15s;
 }
 .degree .count { flex: none; padding: 1px 8px; border-radius: 999px; background: #e0e7ff; color: var(--navy); font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
-.journey-item:hover .degree, .degree:focus-visible { border-color: var(--navy); background: #fff; }
-
-.degree-pop {
-    display: none;
-    position: absolute;
-    z-index: 30;
-    left: 0;
-    top: 100%;
-    width: min(440px, 86vw);
-    max-height: 60vh;
-    overflow-y: auto;
-    padding: 6px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
-}
-.stop.is-now .degree-pop { left: auto; right: 0; }
-.journey-item.pop-up .degree-pop { top: auto; bottom: 100%; }
-/* an open list goes above the footer and the cat layer (fallen letters, the floor) */
-.main:has(.profile.home):has(.journey-item:hover, .journey-item:focus-within) { z-index: 6; }
-.journey-item:hover .degree-pop, .journey-item:focus-within .degree-pop { display: block; }
-.degree-pop a { display: block; padding: 8px 10px; border-radius: 8px; font-size: 0.9rem; line-height: 1.35; }
-.degree-pop a:hover, .degree-pop a:focus { background: #eef2ff; }
-.degree-pop small { display: block; color: var(--muted); font-size: 0.76rem; }
-.degree-pop .pop-all { margin-top: 2px; border-top: 1px solid #edf1f5; border-radius: 0 0 8px 8px; color: var(--navy); font-weight: 600; }
+.degree:hover, .degree:focus-visible { border-color: var(--navy); background: #fff; }
 
 /* ---------- Latest news: a short feed, newest first, scrolls after three items ---------- */
 .news { width: 100%; text-align: left; }
@@ -192,7 +168,6 @@ body:has(.profile.home) .footer {
     .route-track { left: 0; right: auto; top: 0; bottom: 8px; border-top: none; border-left: 2px dashed #cbd5e1; }
     .route-track::after { right: auto; left: -6px; top: auto; bottom: -8px; border: 5px solid transparent; border-top: 8px solid #cbd5e1; }
     .route-km { left: 16px; right: auto; top: 12px; text-align: left; }
-    .stop.is-now .degree-pop { left: 0; right: auto; }
 }
 @media (max-width: 600px) {
     .main .profile.home { padding: 20px 12px 44px; }    /* phones: no background, just the cat */

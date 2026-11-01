@@ -55,18 +55,12 @@
                 <ul class="journey-items">
                     {{- range .items }}
                     {{- if .projects }}
-                    {{- $list := sort (where $projects "Params.context" "like" (printf "^%s" .projects)) "Weight" }}
+                    {{- $list := where $projects "Params.context" "like" (printf "^%s" .projects) }}
                     {{- $noun := .noun | default "project" }}
-                    <li class="journey-item has-projects">
-                        <button class="degree" type="button" aria-haspopup="true">
+                    <li class="journey-item">
+                        <a class="degree" href="{{ .url | relURL }}">
                             <span>{{ .label }}</span> <span class="count">{{ len $list }} {{ cond (eq (len $list) 1) $noun (pluralize $noun) }}</span>
-                        </button>
-                        <div class="degree-pop">
-                            {{- range $list }}
-                            <a href="{{ .Params.externalUrl | default .RelPermalink }}"{{ if .Params.externalUrl }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Title }}<small>{{ replaceRE `^(Bachelor|Master|Paper),?\s*(·\s*)?` "" .Params.context }}</small></a>
-                            {{- end }}
-                            <a class="pop-all" href="{{ .url | relURL }}">{{ cond (eq $noun "project") (printf "All %s projects" (lower .projects)) (printf "All %s" (pluralize $noun)) }} &rarr;</a>
-                        </div>
+                        </a>
                     </li>
                     {{- else }}
                     <li class="journey-item">{{ .label | markdownify }}</li>
@@ -116,18 +110,5 @@
         </div>
     </div>
 </div>
-<script>
-/* a project list opens upward when there is more room above it, and never runs past the window */
-document.querySelectorAll('.journey-item.has-projects').forEach(function (li) {
-    function place() {
-        var pop = li.querySelector('.degree-pop'), r = li.getBoundingClientRect();
-        var below = innerHeight - r.bottom - 10, above = r.top - 10, up = pop.scrollHeight > below && above > below;
-        li.classList.toggle('pop-up', up);
-        pop.style.maxHeight = Math.max(160, up ? above : below) + 'px';
-    }
-    li.addEventListener('mouseenter', place);
-    li.addEventListener('focusin', place);
-});
-</script>
 {{ partial "cat.html" . }}
 {{- end }}
