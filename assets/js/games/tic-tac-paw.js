@@ -5,7 +5,8 @@
    Reference game for the shell API (see assets/js/games/arcade.js).
    The same file is Tic Tac Two (id tic-tac-paw-2p): two players take turns on one screen, Player 1 with
    paws, Player 2 with fish, no cat playing and no kitten naps. A running tally (wins of each player and draws) lasts
-   until the page is left, "Play again" lets the other player start, and nothing is saved as a best. Single player is
+   until the page is left, "Play again" lets the other player start (the "Starts" toggle can change that until the
+   first move), Reset clears the tally and starts a fresh board, and nothing is saved as a best. Single player is
    untouched by it: duo is false there. */
 (function () {
 var tally = { p1: 0, p2: 0, draws: 0, next: 'Y' };   /* Tic Tac Two: the match so far and who starts next */
@@ -74,7 +75,14 @@ function ticTacPaw(api, duo) {
         '.ttp-btn:active { transform: translateY(2px); box-shadow: none; }' +
         '.ttp-btn:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
         '.ttp-btn:disabled { opacity: .45; cursor: default; }' +
-        '.ttp-btn[hidden] { display: none; }' +
+        '.ttp-btn[hidden], .ttp-turn [hidden] { display: none; }' +
+        '.ttp-start { display: inline-flex; align-items: center; gap: 6px; color: #64748b; font-size: .88rem; font-weight: 700; }' +
+        '.ttp-start button { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 3px 12px 3px 6px; border: 2px solid transparent;' +
+        '  border-radius: 999px; background: #fff; color: #64748b; font: inherit; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
+        '.ttp-start svg { width: 22px; height: 22px; }' +
+        '.ttp-start [aria-pressed="true"] { border-color: #f6a23a; color: #c2620a; }' +
+        '.ttp-start [data-p="C"][aria-pressed="true"] { border-color: #5c7cfa; color: #3b5bdb; }' +
+        '.ttp-start button:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
         '@media (max-width: 420px) { .ttp-score { gap: 4px; } .ttp-side { gap: 4px; padding-right: 8px; font-size: .8rem; }' +
         '  .ttp-draws { padding: 4px 3px; font-size: .8rem; } .ttp-reset { padding: 5px 10px; font-size: .8rem; } }' +
         '@keyframes ttp-in { from { transform: scale(0) rotate(-20deg); } to { transform: none; } }' +
@@ -93,12 +101,15 @@ function ticTacPaw(api, duo) {
     wrap.innerHTML = duo ? '<div class="ttp-score"><span class="ttp-side p1">' + PAW + 'Player 1 <b>0</b></span>' +
         '<span class="ttp-draws">Draws <b>0</b></span><span class="ttp-side p2">' + FISH + 'Player 2 <b>0</b></span>' +
         '<button type="button" class="ttp-btn ttp-reset">Reset</button></div>' +
-        '<div class="ttp-turn"><span aria-live="polite"></span><button type="button" class="ttp-btn go" hidden>Play again</button></div><div class="ttp-board"></div>' :
+        '<div class="ttp-turn"><span aria-live="polite"></span><span class="ttp-start" role="group" aria-label="Who starts">Starts:' +
+        '<button type="button" data-p="Y">' + PAW + 'Player 1</button><button type="button" data-p="C">' + FISH + 'Player 2</button></span>' +
+        '<button type="button" class="ttp-btn go" hidden>Play again</button></div><div class="ttp-board"></div>' :
         '<div class="ttp-turn" aria-live="polite"></div><div class="ttp-board"></div><div class="ttp-chips"></div>';
     api.el.appendChild(wrap);
     var board = wrap.querySelector('.ttp-board'), turnEl = wrap.querySelector(duo ? '.ttp-turn span' : '.ttp-turn'), chips = wrap.querySelector('.ttp-chips');
     var cells = [], grid, busy, points = 0, streak = 0, draws = 0, round = 0, memo = {};
     var turn = 'Y', againBtn = wrap.querySelector('.go'), resetBtn = wrap.querySelector('.ttp-reset');   /* for two: whose turn */
+    var startEl = wrap.querySelector('.ttp-start'), picked = false;    /* picked: the starter was chosen by hand this round */
 
     for (var i = 0; i < 9; i++) {
         var b = document.createElement('button');
@@ -268,11 +279,16 @@ function ticTacPaw(api, duo) {
         sides[0].querySelector('b').textContent = tally.p1;
         sides[1].querySelector('b').textContent = tally.p2;
         wrap.querySelector('.ttp-draws b').textContent = tally.draws;
-        resetBtn.disabled = !(tally.p1 || tally.p2 || tally.draws);
         sides[0].classList.toggle('on', !busy && turn === 'Y');
         sides[1].classList.toggle('on', !busy && turn === 'C');
         wrap.classList.toggle('p2', turn === 'C');
-        if (!busy) duoStatus(name(turn) + (grid.indexOf('Y') < 0 && grid.indexOf('C') < 0 ? ' starts' : '\u2019s turn'), turn);
+        /* before the first move of a round the starter can still be picked; after it the toggle goes away */
+        var fresh = !busy && grid.indexOf('Y') < 0 && grid.indexOf('C') < 0;
+        startEl.hidden = !fresh;
+        turnEl.hidden = fresh;
+        startEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.p === turn); });
+        if (fresh) duoStatus('', turn);
+        else if (!busy) duoStatus(name(turn) + '\u2019s turn', turn);
     }
     function duoFinish(w) {
         if (w.who === 'draw') {
@@ -307,6 +323,7 @@ function ticTacPaw(api, duo) {
         if (duo) {                                /* the starter changes every round */
             turn = tally.next;
             tally.next = turn === 'Y' ? 'C' : 'Y';
+            picked = false;
             againBtn.hidden = true;
             return duoShow();
         }
@@ -332,9 +349,22 @@ function ticTacPaw(api, duo) {
     });
     if (duo) {
         api.on(againBtn, 'click', newRound);
+        /* Reset: a new match, the tally back to 0 and a fresh board; Player 1 starts unless a starter was just picked */
         api.on(resetBtn, 'click', function () {
+            var first = picked ? turn : 'Y';
             tally.p1 = tally.p2 = tally.draws = 0;
+            tally.next = first;
             api.sfx('pop');
+            newRound();
+            api.say('New match! ' + name(first) + ' starts.', 1600);
+        });
+        api.on(startEl, 'click', function (e) {
+            var b = e.target.closest('button');
+            if (!b || busy || startEl.hidden || b.dataset.p === turn) return;
+            turn = b.dataset.p;
+            tally.next = turn === 'Y' ? 'C' : 'Y';   /* and the next round goes on alternating from here */
+            picked = true;
+            api.sfx('tap');
             duoShow();
         });
     }

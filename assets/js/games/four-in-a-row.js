@@ -7,7 +7,8 @@
    The same file is Four for Two (id four-in-a-row-2p): two players take turns on one screen, Player 1 with
    paws, Player 2 with fish, no cat playing and no undo. Its mode toggle is remembered on its own ('arcade-fr2-mode'),
    a running tally (wins of each player and draws, both modes together) lasts until the page is left, "Play again" lets
-   the other player start, and nothing is saved as a best. Single player is untouched by it: duo is false there. */
+   the other player start (the "Starts" toggle can change that until the first move), Reset clears the tally and
+   starts a fresh board, and nothing is saved as a best. Single player is untouched by it: duo is false there. */
 (function () {
 var kept = {};                                    /* the modes, in case localStorage is not available */
 var tally = { p1: 0, p2: 0, draws: 0, next: 1 };  /* Four for Two: the match so far and who starts next */
@@ -70,7 +71,14 @@ function fourInARow(api, duo) {
         '.fr-btn:active { transform: translateY(2px); box-shadow: none; }' +
         '.fr-btn:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
         '.fr-btn:disabled { opacity: .45; cursor: default; }' +
-        '.fr-btn[hidden] { display: none; }' +
+        '.fr-btn[hidden], .fr-turn [hidden] { display: none; }' +
+        '.fr-start { display: inline-flex; align-items: center; gap: 6px; color: #64748b; font-size: .88rem; font-weight: 700; }' +
+        '.fr-start button { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 3px 12px 3px 5px; border: 2px solid transparent;' +
+        '  border-radius: 999px; background: #fff; color: #64748b; font: inherit; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
+        '.fr-start .fr-tok { position: static; width: 24px; height: 24px; box-shadow: none; }' +
+        '.fr-start [aria-pressed="true"] { border-color: #f6a23a; color: #c2620a; }' +
+        '.fr-start [data-p="2"][aria-pressed="true"] { border-color: #5c7cfa; color: #3b5bdb; }' +
+        '.fr-start button:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
         '@media (max-width: 420px) { .fr-duo .fr-bar { gap: 4px; } .fr-duo .fr-chip { gap: 4px; padding-right: 8px; font-size: .8rem; }' +
         '  .fr-draws { padding: 0 3px; font-size: .8rem; } .fr-reset { padding: 4px 10px; font-size: .8rem; } }' +
         '@media (pointer: coarse) { .fr-duo .fr-mode button { padding: 8px 16px; } }' +
@@ -124,6 +132,8 @@ function fourInARow(api, duo) {
         (duo ? '<span class="fr-chip fr-side p1"><span class="fr-tok fr-you">' + ART[YOU] + '</span>Player 1 <b>0</b></span>' +
         '<span class="fr-draws">Draws <b>0</b></span><span class="fr-chip fr-side p2"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Player 2 <b>0</b></span>' +
         '<button type="button" class="fr-btn fr-reset">Reset</button></div><div class="fr-turn"><span aria-live="polite"></span>' +
+        '<span class="fr-start" role="group" aria-label="Who starts">Starts:<button type="button" data-p="1"><span class="fr-tok fr-you">' + ART[YOU] +
+        '</span>Player 1</button><button type="button" data-p="2"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Player 2</button></span>' +
         '<button type="button" class="fr-btn go" hidden>Play again</button></div></div>' :
         '<span class="fr-chip" title="Your round wins"><span class="fr-tok fr-you">' + ART[YOU] + '</span>You <b class="fr-wins">0</b></span>' +
         '<span class="fr-round"></span>' +
@@ -137,6 +147,7 @@ function fourInARow(api, duo) {
     var play = wrap.querySelector('.fr-play'), aim = wrap.querySelector('.fr-aim'), aimTok = aim.firstChild;
     var boardEl = wrap.querySelector('.fr-board'), turnEl = wrap.querySelector(duo ? '.fr-turn span' : '.fr-turn'), undoBtn = wrap.querySelector('.fr-undo');
     var againBtn = wrap.querySelector('.go'), resetBtn = wrap.querySelector('.fr-reset'), turn = YOU;   /* for two: whose turn */
+    var startEl = wrap.querySelector('.fr-start'), picked = false;     /* picked: the starter was chosen by hand this round */
     var colEl = wrap.querySelector('.fr-col'), ghost = wrap.querySelector('.ghost'), pips = wrap.querySelectorAll('.fr-pip');
     var modeBtns = wrap.querySelectorAll('.fr-mode button');
     modeBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.m === mode); });
@@ -468,10 +479,15 @@ function fourInARow(api, duo) {
         sides[0].querySelector('b').textContent = tally.p1;
         sides[1].querySelector('b').textContent = tally.p2;
         wrap.querySelector('.fr-draws b').textContent = tally.draws;
-        resetBtn.disabled = !(tally.p1 || tally.p2 || tally.draws);
         sides[0].classList.toggle('on', !busy && turn === YOU);
         sides[1].classList.toggle('on', !busy && turn === CAT);
-        if (!busy) status(name(turn) + (moves ? '\u2019s turn' : ' starts'), turn);
+        /* before the first move of a round the starter can still be picked; after it the toggle goes away */
+        var fresh = !busy && !moves;
+        startEl.hidden = !fresh;
+        turnEl.hidden = fresh;
+        startEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', +b.dataset.p === turn); });
+        if (fresh) status('', turn);
+        else if (!busy) status(name(turn) + '\u2019s turn', turn);
     }
     function duoFinish(p) {
         if (p) {
@@ -526,6 +542,7 @@ function fourInARow(api, duo) {
         if (duo) {                                /* the starter changes every round */
             setTurn(tally.next);
             tally.next = 3 - turn;
+            picked = false;
             againBtn.hidden = true;
             busy = false;
             showAim();
@@ -557,9 +574,24 @@ function fourInARow(api, duo) {
     if (undoBtn) api.on(undoBtn, 'click', function () { undoBtn.blur(); undo(); });
     if (duo) {
         api.on(againBtn, 'click', newRound);
+        /* Reset: a new match, the tally back to 0 and a fresh board; Player 1 starts unless a starter was just picked */
         api.on(resetBtn, 'click', function () {
+            var first = picked ? turn : YOU;
             tally.p1 = tally.p2 = tally.draws = 0;
+            tally.next = first;
             api.sfx('pop');
+            newRound();
+            api.say('New match! ' + name(first) + ' starts.', 1600);
+        });
+        api.on(startEl, 'click', function (e) {
+            var b = e.target.closest('button');
+            if (!b || busy || moves || +b.dataset.p === turn) return;
+            setTurn(+b.dataset.p);
+            tally.next = 3 - turn;                /* and the next round goes on alternating from here */
+            picked = true;
+            api.sfx('tap');
+            placeAim();
+            showAim();
             duoShow();
         });
     }
