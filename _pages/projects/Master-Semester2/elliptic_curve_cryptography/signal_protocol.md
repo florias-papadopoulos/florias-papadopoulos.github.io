@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester2/elliptic_curve_cryptography/signal_protoco
 url: /projects/Master-Semester2/elliptic_curve_cryptography/signal_protocol/
 weight: 2
 context: "Master, Semester 2 · Elliptic-Curve Cryptography"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "signal-protocol"
+blurb: "A student-friendly walk through XEdDSA, X3DH, the Double Ratchet and Sesame."
+preview: "img/projects/signal.svg"
 author_profile: true
 ---
 

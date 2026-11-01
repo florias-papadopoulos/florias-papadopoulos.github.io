@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester3/master_thesis/cryptography_based_on_lwe/
 url: /projects/Master-Semester3/master_thesis/cryptography_based_on_lwe/
 weight: 1
 context: "Master, Semester 3 · Master Thesis"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "msc-thesis"
+blurb: "From lattices to Learning with Errors and Ring-LWE, ending with CRYSTALS-Kyber and its use in Chrome (X25519Kyber768)."
+preview: "img/projects/lwe.svg"
 author_profile: true
 ---
 

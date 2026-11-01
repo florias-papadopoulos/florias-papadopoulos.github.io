@@ -1,49 +1,170 @@
-{{- /* Bachelor, Master, Papers (and /projects/): timeline in the style of the old projects page.
-       Projects come from the "projects" section; their context "Group · Course" sets where they appear.
-       listLevel keeps only contexts starting with it (e.g. "Master"); entries with externalUrl link out directly. */ -}}
+{{- /* Bachelor, Master, Papers (and /projects/): a rail of groups (semesters, or years for papers) that stays in view
+       while scrolling, and one entry per project that opens in place (styles: assets/css/common/timeline.css,
+       behaviour: assets/js/timeline.js).
+       Projects come from the "projects" section; their context "Group · Course" sets where they appear, and listLevel
+       keeps only contexts starting with it (e.g. "Master").
+       An entry shows its preview picture, course (or venue), title and blurb (or authors). Opened, it shows the
+       project's own text: the Abstract, Files Included and Keywords sections of its .md file, so nothing is kept
+       twice. Papers have no text of their own and use venue, abstract, keywords, links and bibtex from front matter.
+       #anchor (front matter "anchor") opens an entry and scrolls to it. */ -}}
 {{- define "main" }}
-{{- with .Content }}
-<div class="post-content">{{ . }}</div>
-{{- end }}
-
 {{- $level := .Params.listLevel }}
 {{- $pages := where site.RegularPages "Section" "projects" }}
 {{- with $level }}{{ $pages = where $pages "Params.context" "like" (printf "^%s" .) }}{{ end }}
 {{- $pages = sort $pages "Weight" }}
 
 {{- $groups := slice }}
+{{- $math := false }}
 {{- range $pages }}
 {{- $g := index (split .Params.context " · ") 0 }}
 {{- if not (in $groups $g) }}{{ $groups = $groups | append $g }}{{ end }}
+{{- if .Params.math }}{{ $math = true }}{{ end }}
 {{- end }}
 
-<ul class="timeline">
-    {{- range $g := $groups }}
-    {{- $label := $g }}
-    {{- with $level }}{{ $label = replaceRE (printf `^%s,\s*` .) "" $g }}{{ end }}
-    <li class="timeline-event">
-        <label class="timeline-event-icon"></label>
-        <div class="timeline-event-copy">
-            <p class="timeline-event-thumbnail">{{ $label }}</p>
-            {{- $courses := slice }}
-            {{- range $pages }}
-            {{- $parts := split .Params.context " · " }}
-            {{- if and (eq (index $parts 0) $g) (not (in $courses (index $parts 1))) }}{{ $courses = $courses | append (index $parts 1) }}{{ end }}
-            {{- end }}
-            {{- range $c := $courses }}
-            <p><strong><u>{{ $c }}</u></strong><br>
-                {{- range $pages }}
+<div class="tl-page">
+    <header class="tl-intro">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        {{- with .Content }}
+        <div class="tl-lede">{{ . }}</div>
+        {{- end }}
+    </header>
+
+    <div class="tl" id="tl">
+        {{- range $gi, $g := $groups }}
+        {{- $label := $g }}
+        {{- with $level }}{{ $label = replaceRE (printf `^%s,\s*` .) "" $g }}{{ end }}
+        {{- $in := slice }}
+        {{- range $pages }}{{ if eq (index (split .Params.context " · ") 0) $g }}{{ $in = $in | append . }}{{ end }}{{ end }}
+        {{- $noun := cond (hasPrefix $g "Paper") "paper" "project" }}
+        <section class="tl-group" aria-labelledby="tl-g{{ $gi }}">
+            <div class="tl-rail">
+                <h2 class="tl-label" id="tl-g{{ $gi }}"><span class="tl-label-text">{{ $label }}</span>
+                    <span class="tl-count">{{ len $in }} {{ cond (eq (len $in) 1) $noun (pluralize $noun) }}</span></h2>
+            </div>
+            <div class="tl-entries">
+                {{- range $in }}
+                {{- $id := .Params.anchor | default (urlize .File.ContentBaseName) }}
                 {{- $parts := split .Params.context " · " }}
-                {{- if and (eq (index $parts 0) $g) (eq (index $parts 1) $c) }}
-                <a href="{{ .Params.externalUrl | default .RelPermalink }}" class="project-link"
-                    {{- if .Params.externalUrl }} target="_blank" rel="noopener"{{ end }}>{{ .Title }}</a>
-                {{- with .Params.authors }}<span class="project-authors">{{ . | markdownify }}</span>{{ end }}<br>
+                {{- $isPaper := hasPrefix .Params.context "Paper" }}
+                {{- $kicker := index $parts 1 }}
+                {{- if $isPaper }}{{ $kicker = printf "%s %s" $kicker (replaceRE `^Paper,\s*` "" (index $parts 0)) }}{{ end }}
+                <article class="tl-entry" id="{{ $id }}">
+                    <h3 class="tl-head">
+                        <button class="tl-toggle" type="button" id="{{ $id }}-btn" aria-expanded="false" aria-controls="{{ $id }}-more">
+                            {{- with .Params.preview }}
+                            <img class="tl-thumb" src="{{ . | relURL }}" alt="" width="320" height="200" loading="lazy" decoding="async">
+                            {{- end }}
+                            <span class="tl-text">
+                                <span class="tl-kicker">{{ $kicker }}</span>
+                                <span class="tl-title">{{ .Title }}</span>
+                                {{- with .Params.authors }}
+                                <span class="tl-sub tl-authors">{{ . | markdownify }}</span>
+                                {{- else }}{{ with .Params.blurb }}
+                                <span class="tl-sub">{{ . | safeHTML }}</span>
+                                {{- end }}{{ end }}
+                            </span>
+                            <span class="tl-x" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="tl-more" id="{{ $id }}-more" role="region" aria-labelledby="{{ $id }}-btn">
+                        <div class="tl-more-in">
+                            {{- if $isPaper }}
+                            <div class="tl-main">
+                                {{- with .Params.venue }}<p class="tl-venue">{{ . }}</p>{{ end }}
+                                {{- with .Params.abstract }}
+                                <h4 class="tl-cap">Abstract</h4>
+                                <div class="tl-abstract">{{ $.Page.RenderString (dict "display" "block") . }}</div>
+                                {{- end }}
+                                {{- with .Params.bibtex }}
+                                <div class="tl-actions">
+                                    <button class="tl-btn tl-bib-btn" type="button" aria-expanded="false" aria-controls="{{ $id }}-bib">BibTeX</button>
+                                </div>
+                                <div class="tl-bib" id="{{ $id }}-bib" hidden>
+                                    <pre><code>{{ trim . "\n" }}</code></pre>
+                                    <button class="tl-btn tl-copy" type="button">Copy</button>
+                                    <span class="tl-copied" role="status"></span>
+                                </div>
+                                {{- end }}
+                            </div>
+                            <aside class="tl-aside">
+                                {{- $links := .Params.links }}
+                                {{- if and (not $links) .Params.externalUrl }}{{ $links = slice (dict "name" "Paper" "url" .Params.externalUrl) }}{{ end }}
+                                {{- with $links }}
+                                <div class="tl-block">
+                                    <h4 class="tl-cap">Links</h4>
+                                    <ul class="tl-files">
+                                        {{- range . }}
+                                        <li><a href="{{ .url }}"{{ if hasPrefix .url "http" }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .name }}{{ if hasPrefix .url "http" }} <span aria-hidden="true">&#8599;</span>{{ end }}</a></li>
+                                        {{- end }}
+                                    </ul>
+                                </div>
+                                {{- end }}
+                                {{- with .Params.keywords }}
+                                <div class="tl-block">
+                                    <h4 class="tl-cap">Keywords</h4>
+                                    <p class="tl-keys">{{ if reflect.IsSlice . }}{{ delimit . ", " }}{{ else }}{{ . }}{{ end }}</p>
+                                    <a class="tl-perma" href="#{{ $id }}">Link to this paper</a>
+                                </div>
+                                {{- else }}
+                                <div class="tl-block"><a class="tl-perma" href="#{{ $id }}">Link to this paper</a></div>
+                                {{- end }}
+                            </aside>
+                            {{- else }}
+                            {{- /* the sections of the project's own page, split at its headings */}}
+                            {{- $abstract := "" }}{{ $files := "" }}{{ $keys := "" }}
+                            {{- range after 1 (split (string .Content) "<h2") }}
+                            {{- with findRESubmatch `(?s)^[^>]*>(.*?)</h2>(.*)$` . 1 }}
+                            {{- $name := lower (plainify (index (index . 0) 1)) }}
+                            {{- $body := trim (index (index . 0) 2) " \n" }}
+                            {{- if in $name "abstract" }}{{ $abstract = $body }}
+                            {{- else if in $name "files" }}{{ $files = $body }}
+                            {{- else if in $name "keywords" }}{{ $keys = $body }}{{ end }}
+                            {{- end }}
+                            {{- end }}
+                            <div class="tl-main">
+                                {{- with $abstract }}
+                                <h4 class="tl-cap">Abstract</h4>
+                                <div class="tl-abstract">{{ . | safeHTML }}</div>
+                                {{- end }}
+                            </div>
+                            <aside class="tl-aside">
+                                {{- with $files }}
+                                <div class="tl-block">
+                                    <h4 class="tl-cap">Files</h4>
+                                    <div class="tl-files">{{ . | safeHTML }}</div>
+                                </div>
+                                {{- end }}
+                                <div class="tl-block">
+                                    {{- with $keys }}
+                                    <h4 class="tl-cap">Keywords</h4>
+                                    <div class="tl-keys">{{ . | safeHTML }}</div>
+                                    {{- end }}
+                                    <a class="tl-perma" href="#{{ $id }}">Link to this project</a>
+                                </div>
+                            </aside>
+                            {{- end }}
+                        </div>
+                    </div>
+                </article>
                 {{- end }}
-                {{- end }}
-            </p>
-            {{- end }}
-        </div>
-    </li>
-    {{- end }}
-</ul>
+            </div>
+        </section>
+        {{- end }}
+    </div>
+</div>
+{{- /* closed until opened (without JavaScript everything stays open); #anchor opens its entry right away */}}
+<script>
+(function () {
+    var h = '';
+    try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) {}
+    document.querySelectorAll('.tl-entry').forEach(function (e) {
+        if (e.id && e.id === h) { e.classList.add('open'); e.querySelector('.tl-toggle').setAttribute('aria-expanded', 'true'); }
+        else e.querySelector('.tl-more').hidden = true;
+    });
+})();
+</script>
+{{- if $math }}{{ partial "math.html" . }}{{ end }}
+{{- $tl := resources.Get "js/timeline.js" | minify | fingerprint }}
+<script src="{{ $tl.RelPermalink }}" integrity="{{ $tl.Data.Integrity }}" defer></script>
+{{ partial "cat.html" (dict "world" "pages") }}
 {{- end }}

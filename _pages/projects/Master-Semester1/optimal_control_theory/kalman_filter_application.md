@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester1/optimal_control_theory/kalman_filter_appli
 url: /projects/Master-Semester1/optimal_control_theory/kalman_filter_application/
 weight: 9
 context: "Master, Semester 1 · Optimal Control Theory"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "kalman-filter"
+blurb: "Simulating the motion of an object and estimating its state with a Kalman filter."
+preview: "img/projects/kalman.svg"
 math: true
 author_profile: true
 ---

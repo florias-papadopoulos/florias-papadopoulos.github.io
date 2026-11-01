@@ -1,66 +1,20 @@
-/* Home page cat (markup in layouts/partials/cat.html, styles in assets/css/common/cat.css).
+/* Home page world of the cat (the cat itself: assets/js/cat-core.js, bundled before this file by
+   layouts/partials/cat.html; markup there, styles in assets/css/common/cat.css).
 
-   The cat walks, runs and jumps between page elements and, on desktop, a floor of bits that light up under its paws
-   and numbers, letters and field symbols floating in the margins (nothing on phones). It knocks letters of the name
-   and symbols loose: they fly, fall, land, and the cat (or the visitor, by dragging) moves them around. You can drag
-   the cat and click it to pet it. The reset button puts everything back. */
+   On desktop, a floor of bits that light up under the cat's paws and numbers, letters and field symbols floating in
+   the margins (nothing on phones). The cat knocks letters of the name and symbols loose: they fly, fall, land, and
+   the cat (or the visitor, by dragging) moves them around. The reset button puts everything back. */
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');
     var world = document.getElementById('world-layer');
     var cat = document.getElementById('cat');
     var panel = document.querySelector('.home .home-panel');
-    if (!layer || !world || !cat || !panel) return;
+    if (!layer || !world || !cat || !panel || !window.SiteCat) return;
     document.body.appendChild(world);              /* page coordinates, including the side margins */
-    document.body.appendChild(layer);
 
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var CW = 88, CH = 72;
-    var pos = { x: 0, y: 0 };                      /* the cat's feet, in layer coordinates */
-    var at = null;                                 /* where it is: {kind, el?} */
-    var timer = null, moving = false, token = 0;
+    var api, rel, clamp, bonk;
     var ridge = [], wide = false, phone = false, side = 0;
-    var pets = 0;
-    try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
-
-    /* ---------- helpers ---------- */
-    function rel(el) {
-        var r = el.getBoundingClientRect(), L = layer.getBoundingClientRect();
-        return { x: r.left - L.left, y: r.top - L.top, w: r.width, h: r.height };
-    }
-    function pointer(e) {
-        var L = layer.getBoundingClientRect();
-        return { x: e.clientX - L.left, y: e.clientY - L.top };
-    }
-    function onScreen(y) {
-        var t = y + layer.getBoundingClientRect().top;
-        return t > -40 && t < window.innerHeight + 40;
-    }
-    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-    /* drag with mouse or touch; click() is called when the pointer did not move */
-    function draggable(el, h) {
-        el.addEventListener('pointerdown', function (e) {
-            if (e.button > 0) return;
-            e.preventDefault();
-            e.stopPropagation();
-            try { el.setPointerCapture(e.pointerId); } catch (err) { /* no capture: the drag still works */ }
-            var start = pointer(e), dragging = false;
-            function move(ev) {
-                var p = pointer(ev);
-                if (!dragging && Math.abs(p.x - start.x) + Math.abs(p.y - start.y) > 5) { dragging = true; if (h.start) h.start(p); }
-                if (dragging) h.move(p);
-            }
-            function up(ev) {
-                el.removeEventListener('pointermove', move);
-                el.removeEventListener('pointerup', up);
-                el.removeEventListener('pointercancel', up);
-                if (dragging) h.end(pointer(ev)); else if (h.click) h.click(ev);
-            }
-            el.addEventListener('pointermove', move);
-            el.addEventListener('pointerup', up);
-            el.addEventListener('pointercancel', up);
-        });
-    }
 
     /* letters of the name become separate spans the cat can bat */
     var h1 = document.querySelector('.home .name-block h1');
@@ -89,7 +43,6 @@
         }
         return ridge[ridge.length - 1].y;
     }
-    function slope(x, dir) { return Math.atan2(groundY(x + 4 * (dir || 1)) - groundY(x), 4) * 180 / Math.PI; }
 
     /* Desktop world: a floor of bits along the bottom of the page (it spells the name in ASCII; a bit flips and lights
        up when the cat steps on it), and numbers, letters and field symbols float in the side margins as platforms.
@@ -223,7 +176,7 @@
     function landing(x, y0, y1) {
         var best = null, gy = groundY(x);
         if (gy >= y0 - 1 && gy <= y1 + 1) best = gy;
-        pagePerches().forEach(function (p) {
+        perches().forEach(function (p) {
             if (p.kind === 'name') return;
             var r = rel(p.el);
             if (x >= r.x + 2 && x <= r.x + r.w - 2 && r.y >= y0 - 1 && r.y <= y1 + 1 && (best === null || r.y < best)) best = r.y;
@@ -273,6 +226,7 @@
     }
     /* walking into something loose on the same surface kicks it along */
     function nudge(dir, run) {
+        var pos = api.pos();
         loose.forEach(function (it) {
             if (it.held || Math.abs(it.y - pos.y) > 8) return;
             var ahead = (it.x - pos.x) * dir;
@@ -283,7 +237,7 @@
     /* visitors can drag symbols and loose letters around and throw them; a click without moving pokes a glyph */
     function grabbable(el) {
         var it = null, lastP, lastT;
-        draggable(el, {
+        api.draggable(el, {
             start: function (p) {
                 it = el._loose || makeLoose(el, 0, 0);
                 it.held = true; it.rest = false; it.rot = 0;
@@ -314,191 +268,65 @@
         layer.style.height = world.style.height = document.documentElement.scrollHeight + 'px';
     }
 
-    /* ---------- the cat ---------- */
-    function place(x, y) {
-        pos = { x: x, y: y };
-        cat.style.left = (x - CW / 2) + 'px';
-        cat.style.top = (y - CH + 3) + 'px';
-    }
-    function face(dx) {
-        if (dx < -1) cat.classList.add('left');
-        else if (dx > 1) cat.classList.remove('left');
-    }
-    function tilt(deg) { cat.style.setProperty('--tilt', (deg || 0).toFixed(1) + 'deg'); }
-    function pose(cls) {
-        cat.classList.remove('walk', 'run', 'climb', 'jump', 'crouch');
-        if (cls) cls.split(' ').forEach(function (c) { cat.classList.add(c); });
-    }
-    function next(delay) {
-        clearTimeout(timer);
-        if (!reduce) timer = setTimeout(decide, delay);
-    }
-    /* frame-by-frame animation; a newer cat movement (or a drag) cancels older ones */
-    function animate(dur, frame, done, free) {
-        var id = free ? null : token, t0 = performance.now();
-        function step(now) {
-            if (!free && id !== token) return;
-            var t = Math.min(1, (now - t0) / Math.max(1, dur));
-            frame(t);
-            if (t < 1) requestAnimationFrame(step); else done();
-        }
-        requestAnimationFrame(step);
-    }
-    function startMove() { token++; moving = true; cat.classList.add('moving'); cat.classList.remove('sleep', 'groom'); }
-    function walkGround(x1, done) {
-        x1 = clamp(x1, 30, layer.clientWidth - 30);
-        var x0 = pos.x, dx = x1 - x0;
-        if (Math.abs(dx) < 3) return done();
-        var run = Math.abs(dx) > 380;
-        face(dx);
-        animate(Math.abs(dx) / (run ? 300 : 95) * 1000, function (t) {
-            var x = x0 + dx * t, s = slope(x, Math.sign(dx));
-            pose(run ? 'run' : Math.abs(s) > 32 ? 'walk climb' : 'walk');
-            tilt(clamp(Math.sign(dx) * s, -55, 55));
-            place(x, groundY(x));
-            stepAt(x);
-            nudge(Math.sign(dx), run);
-        }, function () { pose(''); tilt(0); done(); });
-    }
-    function leap(target, done) {                 /* target(): {x, y}, read again at the end for moving targets */
-        var x0 = pos.x, y0 = pos.y, t1 = target();
-        face(t1.x - x0);
-        pose('crouch');
-        var id = token;
-        setTimeout(function () {
-            if (id !== token) return;
-            var apex = Math.min(y0, t1.y) - 40 - Math.min(60, Math.abs(t1.x - x0) * 0.08);
-            var dur = 380 + Math.sqrt(Math.abs(t1.y - y0) + Math.abs(t1.x - x0) * 0.5) * 22;
-            var lead = Math.sign(t1.x - x0 || 1);
-            pose('jump');
-            animate(dur, function (t) {
-                var tg = target(), a = 2 * y0 + 2 * tg.y - 4 * apex, b = -3 * y0 - tg.y + 4 * apex;
-                tilt(lead * (t < 0.5 ? -10 : 8));
-                place(x0 + (tg.x - x0) * t, a * t * t + b * t + y0);
-            }, function () {
-                pose(''); tilt(0);
-                cat.classList.remove('land'); void cat.offsetWidth; cat.classList.add('land');
-                done();
-            });
-        }, reduce ? 0 : 160);
-    }
-    function settle(p) {
-        moving = false;
-        cat.classList.remove('moving');
-        at = p;
-        arrive(p);
-    }
-
-    /* ---------- where the cat can go ---------- */
-    function pagePerches() {
+    /* ---------- where the cat can go and what it does there ---------- */
+    function perches() {
         var list = [];
-        function push(sel, kind) {
+        function push(sel, kind, extra) {
             Array.prototype.forEach.call(document.querySelectorAll(sel), function (e) {
-                if (e.getBoundingClientRect().width > 24) list.push({ el: e, kind: kind });
+                if (e.getBoundingClientRect().width > 24) {
+                    var p = { el: e, kind: kind };
+                    for (var k in extra) p[k] = extra[k];
+                    list.push(p);
+                }
             });
         }
+        var CH = api.size().h;
         push('.home .profile-photo', 'photo');
-        push('.home .name-block h1', 'name');
+        /* the name: a big hop is fine, a little less room above is enough, and it may stay to bat another letter */
+        push('.home .name-block h1', 'name', { w: 3, room: CH - 6, hop: 480, again: true });
         /* not the chips: sitting there, the cat would cover the tagline */
         push('.home .route', 'card');
         push('.home .news', 'card');
         push('.home .buttons .button', 'button');
-        glyphs.forEach(function (g) { list.push({ el: g, kind: 'glyph' }); });
+        glyphs.forEach(function (g) { list.push({ el: g, kind: 'glyph', w: 1.4 }); });
         return list;
     }
-    function spotOn(p, fx) {
-        var r = rel(p.el), pad = Math.min(26, r.w / 2);
-        if (p.kind === 'name') {
-            var l = h1.querySelectorAll('.ltr'), lr = rel(l[Math.floor(fx * (l.length - 1))]);
-            return { x: lr.x + lr.w / 2, y: lr.y + lr.h * 0.18 };
-        }
-        return { x: r.x + pad + (r.w - 2 * pad) * fx, y: r.y };
+    function spot(p, fx) {
+        if (p.kind !== 'name') return null;
+        var l = h1.querySelectorAll('.ltr'), lr = rel(l[Math.floor(fx * (l.length - 1))]);
+        return { x: lr.x + lr.w / 2, y: lr.y + lr.h * 0.18 };
     }
-    function goTo(o) {
-        clearTimeout(timer);
-        if (reduce) { var t = o.target(); place(t.x, t.y); at = o.p; return; }
-        startMove();
-        var tg = o.target(), fromGround = at && at.kind === 'ground';
-        if (o.p.kind === 'ground') {
-            if (fromGround) return walkGround(tg.x, function () { settle(o.p); });
-            var lx = pos.x + (tg.x > pos.x ? 60 : -60);
-            return leap(function () { return { x: lx, y: groundY(lx) }; }, function () { walkGround(tg.x, function () { settle(o.p); }); });
-        }
-        if (fromGround) {
-            var ux = tg.x + (pos.x < tg.x ? -70 : 70);
-            return walkGround(ux, function () { leap(o.target, function () { settle(o.p); }); });
-        }
-        leap(o.target, function () { settle(o.p); });
-    }
-    function decide() {
-        if (moving) return next(400);
-        var opts = [], fromGround = at && at.kind === 'ground';
-        function add(p, target, w) {
-            var t = target();
-            if (t.y < (p.kind === 'name' ? CH - 6 : CH + 34)) return;   /* no room above for the cat (and its purr bubble) */
-            if (!fromGround && Math.abs(t.y - pos.y) > (p.kind === 'name' ? 480 : 300)) return;   /* one hop at a time (a big one to the name) */
-            if (fromGround && pos.y - t.y > 280 && p.kind !== 'ground') return;
-            w = w / (1 + Math.abs(t.x - pos.x) / 500);
-            if (!onScreen(t.y)) w *= 0.15;
-            opts.push({ p: p, target: target, w: w });
-        }
-        pagePerches().forEach(function (p) {
-            if (at && at.el === p.el && p.kind !== 'name') return;
-            var fx = Math.random();
-            add(p, function () { return spotOn(p, fx); },
-                p.kind === 'name' ? 3 : p.kind === 'glyph' ? 1.4 : 1);
-        });
-        loose.forEach(function (it) {             /* something loose on the floor: go and push it */
+    /* something loose on the floor: go and push it */
+    function options(add) {
+        var pos = api.pos();
+        loose.forEach(function (it) {
             if (!it.rest || Math.abs(it.y - groundY(it.x)) > 2) return;
             var sx = it.x + (pos.x < it.x ? -1 : 1) * (30 + it.w / 2);
             add({ kind: 'ground', what: 'push', item: it }, function () { return { x: sx, y: groundY(sx) }; }, 1.4);
         });
-        if (ridge.length) {
-            var reach = fromGround || Math.abs(groundY(pos.x) - pos.y) < 300;
-            if (reach) {
-                var gw = fromGround ? 1.6 : 0.8;
-                var rx = 40 + Math.random() * (layer.clientWidth - 80);
-                add({ kind: 'ground', what: 'wander' }, function () { return { x: rx, y: groundY(rx) }; }, gw);
-            }
-        }
-        var total = opts.reduce(function (s, o) { return s + o.w; }, 0), r = Math.random() * total;
-        for (var i = 0; i < opts.length; i++) {
-            r -= opts[i].w;
-            if (r <= 0) return goTo(opts[i]);
-        }
-        next(1500);
     }
-
-    /* ---------- what it does where it lands ---------- */
-    function bat(after) {
-        cat.classList.add('bat');
-        setTimeout(after, 220);
-        setTimeout(function () { cat.classList.remove('bat'); }, 950);
-    }
-    function bonk(e, cls, ms) {
-        e.classList.remove(cls); void e.offsetWidth; e.classList.add(cls);
-        setTimeout(function () { e.classList.remove(cls); }, ms);
-    }
-    function arrive(p) {
-        var r = Math.random();
+    function arrive(p, r) {
+        var pos = api.pos(), left = cat.classList.contains('left');
         if (p.kind === 'name' && r < 0.75) {
-            var best = null, bd = 1e9, reach = cat.classList.contains('left') ? -30 : 30;
+            var best = null, bd = 1e9, reach = left ? -30 : 30;
             Array.prototype.forEach.call(h1.querySelectorAll('.ltr'), function (l) {
                 var lr = rel(l), d = Math.abs(lr.x + lr.w / 2 - (pos.x + reach));
                 if (l.textContent.trim() && d < bd) { bd = d; best = l; }
             });
             if (best) {
-                var dir = cat.classList.contains('left') ? -1 : 1;
-                if (Math.random() < 0.65) bat(function () { makeLoose(best, dir * (180 + Math.random() * 220), -(380 + Math.random() * 220)); });
-                else bat(function () { bonk(best, 'bonk', 900); });
+                var dir = left ? -1 : 1;
+                if (Math.random() < 0.65) api.bat(function () { makeLoose(best, dir * (180 + Math.random() * 220), -(380 + Math.random() * 220)); });
+                else api.bat(function () { bonk(best, 'bonk', 900); });
             }
-            return next(1700 + Math.random() * 1500);
+            api.next(1700 + Math.random() * 1500);
+            return true;
         }
         if (p.what === 'push' && loose.indexOf(p.item) >= 0 && Math.abs(p.item.y - pos.y) < 8) {
             var d = p.item.x > pos.x ? 1 : -1;
-            face(d);
-            bat(function () { launch(p.item, d * (260 + Math.random() * 260), -(260 + Math.random() * 200)); });
-            return next(1300 + Math.random() * 1200);
+            api.face(d);
+            api.bat(function () { launch(p.item, d * (260 + Math.random() * 260), -(260 + Math.random() * 200)); });
+            api.next(1300 + Math.random() * 1200);
+            return true;
         }
         var near = null;                           /* something loose next to it on the same surface: swat it off */
         loose.forEach(function (it) {
@@ -506,145 +334,52 @@
         });
         if (near && r < 0.8) {
             var nd = near.x > pos.x ? 1 : -1;
-            face(nd);
-            bat(function () { launch(near, nd * (220 + Math.random() * 200), -(300 + Math.random() * 200)); });
-            return next(1500 + Math.random() * 1200);
+            api.face(nd);
+            api.bat(function () { launch(near, nd * (220 + Math.random() * 200), -(300 + Math.random() * 200)); });
+            api.next(1500 + Math.random() * 1200);
+            return true;
         }
         if (p.kind === 'glyph' && r < 0.4 && glyphs.indexOf(p.el) >= 0) {   /* kicks off from the symbol, sending it flying */
-            var kd = cat.classList.contains('left') ? -1 : 1, g = p.el;
-            bat(function () {
+            var kd = left ? -1 : 1, g = p.el;
+            api.bat(function () {
                 makeLoose(g, -kd * (160 + Math.random() * 160), -(200 + Math.random() * 150));
-                var lx = pos.x + kd * 90;
-                goTo({ p: { kind: 'ground', what: 'wander' }, target: function () { return { x: lx, y: groundY(lx) }; } });
+                var lx = api.pos().x + kd * 90;
+                api.goTo({ p: { kind: 'ground', what: 'wander' }, target: function () { return { x: lx, y: groundY(lx) }; } });
             });
-            return;
+            return true;
         }
-        if (p.kind === 'chip' && r < 0.7) { bat(function () { bonk(p.el, 'nudged', 700); }); return next(1900 + Math.random() * 1500); }
-        if (p.kind === 'glyph' && r < 0.75) { bat(function () { poke(p.el); }); return next(1800 + Math.random() * 1500); }
-        if (p.kind === 'photo' && r < 0.18) return nap();
-        if (r > 0.94 && p.kind !== 'button' && p.kind !== 'chip') return nap();
-        if (r > 0.6) {
-            cat.classList.add('groom');
-            setTimeout(function () { cat.classList.remove('groom'); }, 2600);
-        }
-        next(2400 + Math.random() * 3000);
+        if (p.kind === 'chip' && r < 0.7) { api.bat(function () { bonk(p.el, 'nudged', 700); }); api.next(1900 + Math.random() * 1500); return true; }
+        if (p.kind === 'glyph' && r < 0.75) { api.bat(function () { poke(p.el); }); api.next(1800 + Math.random() * 1500); return true; }
+        if (p.kind === 'photo' && r < 0.18) { api.nap(); return true; }
+        return false;
     }
-    function nap() {
-        cat.classList.add('sleep');
-        var z = document.createElement('span');
-        z.className = 'cat-zzz';
-        z.textContent = 'z z';
-        cat.appendChild(z);
-        clearTimeout(timer);
-        timer = setTimeout(function () { cat.classList.remove('sleep'); z.remove(); decide(); }, 6000 + Math.random() * 5000);
+    function start() {
+        var CH = api.size().h;
+        var first = perches().filter(function (p) { return p.kind === 'name' || p.kind === 'button'; })
+            .filter(function (p) { return api.spotOn(p, 0.95).y > CH + 34; })[0];
+        if (first) first.fx = 0.95;
+        return first || null;
     }
 
-    /* ---------- petting and dragging the cat ---------- */
-    function pet() {
-        pets++;
-        try { localStorage.setItem('cat-pets', pets); } catch (e) { /* no storage */ }
-        var wasAsleep = cat.classList.contains('sleep');
-        cat.classList.remove('sleep', 'groom');
-        Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz, .cat-bubble'), function (e) { e.remove(); });
-        cat.classList.add('happy');
-        var b = document.createElement('span');
-        b.className = 'cat-bubble';
-        b.textContent = wasAsleep ? 'mrrp?' : pets === 1 ? 'purr' : 'purr ×' + pets;
-        /* the first time ever: the cat tells the visitor about its games behind the paw in the corner */
-        var hint = false;
-        try { hint = !localStorage.getItem('cat-games-hint'); localStorage.setItem('cat-games-hint', '1'); } catch (e) { hint = pets === 1; }
-        var paw = document.getElementById('paw-link');
-        if (hint && paw) {
-            b.textContent = 'Psst! Press the 🐾 at the top right to play games with me.';
-            b.classList.add('long');
-            bonk(paw, 'wiggle', 2100);
-        }
-        cat.appendChild(b);
-        for (var i = 0; i < 3; i++) {
-            var h = document.createElement('span');
-            h.className = 'cat-heart';
-            h.textContent = '♥';
-            h.style.left = (26 + i * 13) + 'px';
-            h.style.setProperty('--dx', ((i - 1) * 16) + 'px');
-            h.style.animationDelay = (i * 0.12) + 's';
-            cat.appendChild(h);
-            setTimeout(h.remove.bind(h), 1700);
-        }
-        clearTimeout(cat._petTimer);
-        cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, hint ? 5000 : 2300);
-        if (!moving) next(2900);
-    }
-    /* the first surface below (x, y): a page element, a glyph or the floor */
-    function surfaceBelow(x, y) {
-        var best = { y: groundY(x), p: { kind: 'ground', what: 'dropped' } };
-        pagePerches().forEach(function (p) {
-            var r = rel(p.el);
-            if (x >= r.x + 6 && x <= r.x + r.w - 6 && r.y >= y - 4 && r.y < best.y && r.y > CH) best = { y: r.y, p: p };
-        });
-        return best;
-    }
-    draggable(cat, {
-        start: function () {
-            token++;
-            clearTimeout(timer);
-            moving = true;
-            at = null;
-            cat.classList.add('moving', 'held');
-            cat.classList.remove('sleep', 'groom', 'walk', 'run', 'climb', 'crouch');
-            Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz'), function (z) { z.remove(); });   /* picked up: awake */
-            cat.classList.add('jump');
-            tilt(0);
-        },
-        move: function (p) { place(p.x, p.y + CH / 2); },
-        end: function (p) {
-            cat.classList.remove('held');
-            var x = clamp(p.x, 20, layer.clientWidth - 20), y0 = p.y + CH / 2;
-            var s = surfaceBelow(x, y0), dist = Math.max(0, s.y - y0);
-            animate(reduce ? 1 : Math.sqrt(dist / 1300) * 1000 + 40, function (t) { place(x, y0 + dist * t * t); }, function () {
-                pose('');
-                cat.classList.remove('land'); void cat.offsetWidth; cat.classList.add('land');
-                settle(s.p);
-            });
-        },
-        click: pet
-    });
-    cat.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pet(); }
+    window.SiteCat({
+        init: function (a) { api = a; rel = a.rel; clamp = a.clamp; bonk = a.bonk; },
+        layout: function () { sizeLayers(); buildTerrain(); },
+        ground: groundY,
+        perches: perches,
+        spot: spot,
+        options: options,
+        step: function (x, dir, run) { stepAt(x); nudge(dir, run); },
+        arrive: arrive,
+        start: start
     });
 
-    /* ---------- start ---------- */
-    function layout() {
-        sizeLayers();
-        buildTerrain();
-        if (!moving && at) {
-            if (at.kind === 'ground') place(pos.x, groundY(pos.x));
-            else if (at.el) { var s = spotOn(at, 0.5); place(s.x, s.y); }
-        }
-    }
     /* the reset button: letters back into the name, symbols back in place, the cat back at the start */
     function reset() {
-        token++;
-        clearTimeout(timer);
-        moving = false;
         loose.forEach(function (it) { it.el.remove(); });
         loose = [];
         Array.prototype.forEach.call(h1.querySelectorAll('.ltr.gone'), function (l) { l.classList.remove('gone'); });
-        cat.classList.remove('moving', 'held', 'sleep', 'groom', 'happy', 'bat', 'left');
-        Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz, .cat-bubble, .cat-heart'), function (e) { e.remove(); });
-        pose(''); tilt(0);
-        start();
+        api.reset();
     }
     var resetBtn = document.getElementById('home-reset');
     if (resetBtn) { document.body.appendChild(resetBtn); resetBtn.addEventListener('click', reset); }
-    function start() {
-        layout();
-        var first = pagePerches().filter(function (p) { return p.kind === 'name' || p.kind === 'button'; })
-            .filter(function (p) { return spotOn(p, 0.95).y > CH + 34; })[0];
-        if (first) { var s = spotOn(first, 0.95); place(s.x, s.y); at = first; }
-        else { place(layer.clientWidth / 2, groundY(layer.clientWidth / 2)); at = { kind: 'ground' }; }
-        next(1600);
-    }
-    var resizeTimer;
-    window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(layout, 150); });
-    if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
 })();

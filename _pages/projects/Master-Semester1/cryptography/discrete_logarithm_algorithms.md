@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester1/cryptography/discrete_logarithm_algorithms
 url: /projects/Master-Semester1/cryptography/discrete_logarithm_algorithms/
 weight: 7
 context: "Master, Semester 1 · Cryptography"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "discrete-log"
+blurb: "Shanks, Adleman, Pollard rho and Pohlig-Hellman, used to solve 17<sup>x</sup> ≡ 101 (mod 1693)."
+preview: "img/projects/dlog.svg"
 math: true
 author_profile: true
 ---

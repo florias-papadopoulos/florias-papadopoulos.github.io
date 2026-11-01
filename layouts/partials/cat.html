@@ -1,9 +1,15 @@
-{{- /* The cat on the home page: markup here (drawing in cat-svg.html), behaviour in assets/js/home-lab.js,
-       styles in assets/css/common/cat.css */ -}}
+{{- /* The cat (drawing in cat-svg.html, styles in assets/css/common/cat.css). Its behaviour is assets/js/cat-core.js,
+       bundled with the world it lives in: on the home page assets/js/home-lab.js (letters of the name, floating
+       symbols, a floor of bits and a reset button), on the Bachelor, Master and Papers tabs assets/js/cat-pages.js
+       (entries, rail labels and the bottom of the window). The tabs call it with (dict "world" "pages"); the home page
+       (index_profile.html) calls it with its profileMode settings. */ -}}
+{{- $home := not (and (reflect.IsMap .) (eq (index . "world") "pages")) }}
+{{- if $home }}
 <div class="world-layer" id="world-layer" aria-hidden="true"></div>
 <button class="corner-btn home-reset" id="home-reset" type="button" title="Put everything back" aria-label="Reset the page: put the letters, symbols and the cat back">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M5 2.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </button>
+{{- end }}
 <div class="cat-layer" id="cat-layer">
     <div class="cat" id="cat" role="button" tabindex="0" aria-label="A cat. Click to pet it.">
         <div class="cat-tilt"><div class="cat-flip">
@@ -12,5 +18,6 @@
     </div>
 </div>
 
-{{- $js := resources.Get "js/home-lab.js" | minify | fingerprint }}
+{{- $world := cond $home "js/home-lab.js" "js/cat-pages.js" }}
+{{- $js := slice (resources.Get "js/cat-core.js") (resources.Get $world) | resources.Concat (cond $home "js/cat-home.bundle.js" "js/cat-pages.bundle.js") | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>

@@ -1,97 +1,194 @@
-/* Timeline for the Bachelor, Master and Papers pages (layouts/_default/timeline.html),
-   ported from the projects page of the old Jekyll site */
+/* Bachelor, Master and Papers tabs (layouts/_default/timeline.html, assets/js/timeline.js): a rail of semesters
+   (or years) on the left that stays in view while scrolling, and entries that open in place. On phones the rail
+   becomes plain section headings. */
 
-.timeline {
-    --color-1: black;
-    --color-2: var(--theme);
-    --color-3: rgb(168, 50, 121);
-    position: relative;
-    max-width: 46em;
-    margin: 4em auto;
-    padding: 0;
-    list-style: none;
+.main:has(.tl-page) { max-width: calc(980px + var(--gap) * 2); }
+.tl-page {
+    --tl-ink: #0f172a;
+    --tl-text: #334155;
+    --tl-muted: #64748b;
+    --tl-navy: #1e3a8a;
+    --tl-line: #e2e8f0;
+    --tl-rule: #cbd5e1;
+    --tl-rail: 150px;
+    --tl-gap: 34px;
+    --tl-thumb: 128px;
+    color: var(--tl-text);
 }
 
-.timeline:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 2em;
-    width: 2px;
-    height: 100%;
-    margin-left: -1px;
-    background-color: var(--color-1);
-}
+/* ---------- title and intro, aligned with the entries ---------- */
+.tl-intro { max-width: 720px; margin: 10px 0 0 calc(var(--tl-rail) + var(--tl-gap)); }
+.tl-h1 { margin: 0 0 10px; color: var(--tl-ink); font-size: 30px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.tl-h1-text { display: inline-block; }
+.tl-lede { color: var(--tl-text); font-size: 16px; line-height: 1.6; }
+.tl-lede p { margin: 0; }
 
-.timeline-event {
-    position: relative;
-}
-
-.timeline-event:hover .timeline-event-icon {
-    transform: rotate(-45deg);
-    background-color: var(--color-3);
-}
-
-.timeline-event:hover .timeline-event-thumbnail {
-    box-shadow: inset 40em 0 0 0 var(--color-3);
-}
-
-.timeline-event-copy {
-    position: relative;
-    top: -1.875em;
-    left: 4em;
-    width: 80%;
-    padding: 2em;
-}
-
-.timeline-event-copy strong {
+/* ---------- the rail ---------- */
+.tl { margin-top: 34px; }
+.tl-group { display: grid; grid-template-columns: var(--tl-rail) minmax(0, 1fr); column-gap: var(--tl-gap); }
+.tl-label {
+    position: sticky;
+    top: 22px;
+    margin: 0;
+    padding-top: 14px;
+    text-align: right;
+    color: var(--tl-ink);
+    font-size: 15px;
     font-weight: 700;
+    line-height: 1.35;
 }
+.tl-label-text { display: inline-block; }
+.tl-count { display: block; color: var(--tl-muted); font-size: 13px; font-weight: 400; }
+.tl-entries { padding-bottom: 30px; border-left: 2px solid var(--tl-rule); }
+.tl-group:last-child .tl-entries { padding-bottom: 8px; }
 
-.timeline-event-copy p:not(.timeline-event-thumbnail) {
-    padding-bottom: 0.6em;
-}
-
-.timeline-event-icon {
+/* ---------- an entry ---------- */
+.tl-entry { position: relative; margin-left: 12px; border-radius: 8px; scroll-margin-top: 16px; transition: background-color 0.2s, box-shadow 0.2s; }
+.tl-entry::before {
+    content: "";
     position: absolute;
-    top: 0;
-    left: 2em;
+    left: -18px;
+    top: 21px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--tl-navy);
+    border-radius: 50%;
+    background: var(--code-bg);
+    transition: background-color 0.2s;
+}
+.tl-entry.open { background: #fff; box-shadow: inset 0 0 0 1px var(--tl-line); }
+.tl-entry.open::before, .tl-entry:hover::before { background: var(--tl-navy); }
+.tl-head { margin: 0; font: inherit; }
+.tl-toggle {
+    display: grid;
+    grid-template-columns: var(--tl-thumb) minmax(0, 1fr) 18px;
+    gap: 18px;
+    align-items: start;
+    width: 100%;
+    padding: 12px 12px 12px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.tl-toggle:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: 2px; }
+.tl-thumb {
     display: block;
-    width: 1em;
-    height: 1em;
-    margin: 0.5em 0.5em 0.5em -0.5em;
-    outline: 10px solid var(--color-2);
-    background-color: var(--color-1);
-    transform: rotate(45deg);
-    transition: transform 0.2s ease-in;
+    width: var(--tl-thumb);
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border: 1px solid var(--tl-line);
+    border-radius: 4px;
+    background: #f8fafc;
 }
+.tl-text { display: block; min-width: 0; }
+.tl-kicker { display: block; color: var(--tl-muted); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.tl-title { display: block; margin: 2px 0 3px; color: var(--tl-ink); font-size: 17px; font-weight: 600; line-height: 1.35; }
+.tl-toggle:hover .tl-title, .tl-entry.open .tl-title { color: var(--tl-navy); }
+.tl-sub { display: block; color: #475569; font-size: 14.5px; line-height: 1.45; }
+.tl-authors strong { color: var(--tl-ink); font-weight: 600; }
+/* plus that turns into a minus */
+.tl-x { position: relative; width: 18px; height: 18px; margin-top: 22px; }
+.tl-x::before, .tl-x::after { content: ""; position: absolute; left: 3px; right: 3px; top: 8px; height: 2px; border-radius: 1px; background: var(--tl-navy); transition: transform 0.25s; }
+.tl-x::after { transform: rotate(90deg); }
+.tl-entry.open .tl-x::after { transform: rotate(0deg); }
 
-.timeline-event-thumbnail {
-    display: inline-block;
-    margin-bottom: 1.2em;
-    padding: 0.25em 1em 0.2em 1em;
-    color: white;
-    font-size: 0.75em;
-    background-color: var(--color-1);
-    box-shadow: inset 0 0 0 0em #ef795a;
-    transition: box-shadow 0.5s ease-in 0.1s;
+/* ---------- opened ---------- */
+.tl-more { transition: height 0.3s ease, opacity 0.25s ease; }
+.tl-more.tl-anim { overflow: hidden; }
+.tl-entry:not(.open) .tl-more { opacity: 0; }
+.tl-more-in {
+    padding: 0 26px 20px calc(12px + var(--tl-thumb) + 18px);
+    font-size: 15px;
+    line-height: 1.6;
 }
-
-a.project-link {
-    color: #007bff;
-    text-decoration: none;
+.tl-cap { margin: 0 0 4px; color: var(--tl-muted); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.tl-venue { margin: 0 0 12px; color: var(--tl-muted); font-style: italic; }
+.tl-abstract p, .tl-abstract ul { margin: 0 0 0.7em; }
+.tl-abstract ul { padding-left: 1.2em; list-style: disc; }
+.tl-abstract > :last-child { margin-bottom: 0; }
+.tl-abstract a, .tl-files a, .tl-keys a { color: var(--tl-navy); text-decoration: none; border-bottom: 1px solid #c7d2fe; }
+.tl-abstract a:hover, .tl-files a:hover { border-bottom-color: var(--tl-navy); }
+.tl-abstract .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tl-aside {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px 30px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--tl-line);
+    font-size: 14px;
+    line-height: 1.5;
 }
+.tl-files ul, ul.tl-files { margin: 0; padding: 0; list-style: none; }
+.tl-files li { padding: 2px 0; color: var(--tl-muted); }
+.tl-files li a { color: var(--tl-navy); }
+.tl-keys, .tl-keys p { margin: 0; color: var(--tl-muted); font-size: 13.5px; }
+.tl-perma { display: inline-block; margin-top: 10px; color: var(--tl-muted); font-size: 13px; text-decoration: none; }
+.tl-perma::before { content: "#"; margin-right: 4px; color: var(--tl-rule); font-weight: 700; }
+.tl-perma:hover { color: var(--tl-navy); }
 
-a.project-link:hover {
-    text-decoration: underline;
+/* a paper's BibTeX */
+.tl-actions { margin-top: 14px; }
+.tl-btn {
+    padding: 2px 10px;
+    border: 1px solid #c7d2fe;
+    border-radius: 4px;
+    background: #fff;
+    color: var(--tl-navy);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.6;
+    cursor: pointer;
 }
-
-.project-authors {
-    display: block;
-    color: var(--secondary);
-    font-size: 0.85em;
+.tl-btn:hover { border-color: var(--tl-navy); }
+.tl-btn:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: 2px; }
+.tl-bib-btn::after { content: ""; display: inline-block; margin-left: 7px; border: 4px solid transparent; border-top: 5px solid currentColor; border-bottom: 0; vertical-align: 2px; transition: transform 0.2s; }
+.tl-bib-btn[aria-expanded="true"] { background: var(--tl-navy); border-color: var(--tl-navy); color: #fff; }
+.tl-bib-btn[aria-expanded="true"]::after { transform: rotate(180deg); }
+.tl-bib { position: relative; margin-top: 10px; }
+.tl-bib pre {
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--tl-line);
+    border-radius: 6px;
+    background: #f8fafc;
+    color: var(--tl-text);
+    font: 12.5px/1.5 ui-monospace, Menlo, Consolas, monospace;
+    white-space: pre;
+    overflow-x: auto;
 }
+.tl-bib pre code { padding: 0; background: none; color: inherit; font: inherit; }
+.tl-copy { position: absolute; top: 8px; right: 8px; }
+.tl-copied { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-@media (max-width: 600px) {
-    .timeline-event-copy { left: 3em; width: calc(100% - 3em); padding: 2em 0.5em 2em 1em; }
+/* ---------- narrower screens ---------- */
+@media (max-width: 900px) {
+    .tl-page { --tl-rail: 112px; --tl-gap: 22px; --tl-thumb: 104px; }
+}
+/* phones: the rail turns into section headings */
+@media (max-width: 720px) {
+    .tl-page { --tl-thumb: 76px; }
+    .tl-intro { margin-left: 0; }
+    .tl-h1 { font-size: 26px; }
+    .tl-lede { font-size: 15px; }
+    .tl { margin-top: 18px; }
+    .tl-group { display: block; }
+    .tl-label { position: static; display: flex; align-items: baseline; gap: 8px; margin: 18px 0 4px; padding: 0 0 5px; border-bottom: 1px solid var(--tl-rule); text-align: left; }
+    .tl-count { display: inline; }
+    .tl-entries { padding-bottom: 0; border-left: 0; }
+    .tl-entry { margin-left: -6px; margin-right: -6px; }
+    .tl-entry::before { display: none; }
+    .tl-toggle { gap: 12px; padding: 10px 6px; }
+    .tl-title { font-size: 16px; }
+    .tl-sub { font-size: 14px; }
+    .tl-x { margin-top: 16px; }
+    .tl-more-in { padding: 0 12px 16px; font-size: 14.5px; }
+    .tl-aside { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .tl-bib pre { font-size: 11.5px; }
 }

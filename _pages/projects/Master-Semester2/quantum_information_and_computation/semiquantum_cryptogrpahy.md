@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester2/quantum_information_and_computation/semiqu
 url: /projects/Master-Semester2/quantum_information_and_computation/semiquantum_cryptography/
 weight: 3
 context: "Master, Semester 2 · Quantum Information & Computation"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "semi-quantum"
+blurb: "A presentation on semi-quantum key distribution and communication."
+preview: "img/projects/semiquantum.svg"
 author_profile: true
 ---
 

@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_
 url: /projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_systems_of_chaotic_equations/
 weight: 8
 context: "Master, Semester 1 · Numerical Methods with Applications to ODE & PDE"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "chaotic-systems"
+blurb: "A general Python solver for chaotic systems (Lorenz, Chen, Sprott-Jafari) with Euler, RK4 and Newton."
+preview: "img/projects/chaotic.svg"
 author_profile: true
 ---
 

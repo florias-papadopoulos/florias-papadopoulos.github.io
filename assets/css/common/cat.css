@@ -1,9 +1,11 @@
-/* Home page cat and its desktop world (layouts/partials/cat.html, assets/js/home-lab.js) */
+/* The cat (layouts/partials/cat.html, assets/js/cat-core.js) and its desktop world on the home page (assets/js/home-lab.js) */
 
 .world-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
 .cat-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
 /* the page content sits between the world (behind) and the cat (in front) */
 .main:has(.profile.home) { position: relative; z-index: 1; }
+/* on the Bachelor, Master and Papers tabs the cat lives in the window (assets/js/cat-pages.js) */
+.cat-layer.cat-viewport { position: fixed; inset: 0; width: auto; height: auto; }
 
 /* ---------- The three looks of the cat, chosen with the cat button in the top right corner (baseof.html) ---------- */
 :root, .cat-opt[data-look="ginger"] {

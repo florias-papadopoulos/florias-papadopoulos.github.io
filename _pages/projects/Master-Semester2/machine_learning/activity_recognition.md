@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester2/machine_learning/activity_recognition/
 url: /projects/Master-Semester2/machine_learning/activity_recognition/
 weight: 4
 context: "Master, Semester 2 · Machine Learning"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "activity-recognition"
+blurb: "Recognising activities from phone accelerometer data with KNN, SVM, decision trees and MLPs, evaluated leave-one-subject-out."
+preview: "img/projects/activity.svg"
 author_profile: true
 ---
 

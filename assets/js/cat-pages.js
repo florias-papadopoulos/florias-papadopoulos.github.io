@@ -1,0 +1,143 @@
+/* World of the cat on the Bachelor, Master and Papers tabs (the cat itself: assets/js/cat-core.js, bundled before this
+   file by layouts/partials/cat.html; the page: layouts/_default/timeline.html).
+
+   The cat lives in the window, not on the whole page: its ground is the bottom of the window, and it sits on the page
+   title, the semester (or year) labels of the rail and the entries that are in view, above their pictures so it does
+   not hide titles. When the page scrolls, it rides along on whatever it sits on and drops down when that leaves the
+   window. It never sits on opened entries and moves away soon when one opens under it. On phones it is small and stays
+   in a corner at the bottom, mostly napping. No floor of bits, symbols or reset button here (home page only). */
+(function () {
+    'use strict';
+    var layer = document.getElementById('cat-layer');
+    var page = document.querySelector('.tl-page');
+    if (!layer || !page || !window.SiteCat) return;
+    layer.classList.add('cat-viewport');
+
+    var api, phone = false, moveSoon = null;
+
+    function ground() { return layer.clientHeight - (phone ? 3 : 6); }
+    function rel(el) { return api.rel(el); }
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+
+    /* the parts of opened entries in view, in layer coordinates */
+    function openRects() {
+        var out = [];
+        Array.prototype.forEach.call(document.querySelectorAll('.tl-entry.open .tl-more'), function (m) {
+            if (!m.hidden) out.push(rel(m));
+        });
+        return out;
+    }
+    /* would the cat with its feet at t hide part of an opened entry? */
+    function covers(t) {
+        var sz = api.size(), x0 = t.x - sz.w / 2 + 6, x1 = t.x + sz.w / 2 - 6, y0 = t.y - sz.h + 6, y1 = t.y - 2;
+        return openRects().some(function (r) { return x1 > r.x && x0 < r.x + r.w && y1 > r.y && y0 < r.y + r.h; });
+    }
+    function inView(el) {
+        var r = el.getBoundingClientRect();
+        return r.width > 24 && r.bottom > 0 && r.top < window.innerHeight;
+    }
+
+    function perches() {
+        if (phone) return [];
+        var list = [], CH = api.size().h;
+        function push(sel, kind, extra) {
+            Array.prototype.forEach.call(document.querySelectorAll(sel), function (e) {
+                if (!inView(e)) return;
+                var p = { el: e, kind: kind };
+                for (var k in extra) p[k] = extra[k];
+                list.push(p);
+            });
+        }
+        push('.tl-h1-text', 'title', { w: 1.2, room: CH - 6 });
+        push('.tl-label-text', 'rail', { w: 1.6 });
+        push('.tl-toggle', 'row', { w: 0.7 });
+        return list;
+    }
+    /* on a row the cat sits over the pictures (the row above has its picture there too), never over the titles */
+    function spot(p, fx) {
+        if (p.kind !== 'row') return null;
+        var top = rel(p.el).y, th = p.el.querySelector('.tl-thumb'), w = api.size().w;
+        var r = th ? rel(th) : { x: rel(p.el).x + 12, w: w };
+        return { x: r.x + w / 2 - 4 + Math.max(0, r.w - w + 8) * fx, y: top };
+    }
+    function allow(p, t) {
+        if (p.kind !== 'ground' && t.y > ground() - 12) return false;
+        return phone || !covers(t);                /* on phones an opened entry fills the width: the corner is fine */
+    }
+    /* somewhere on the bottom edge: on desktop mostly in the margins beside the page, on phones in a corner */
+    function wander() {
+        var W = layer.clientWidth;
+        if (phone) return Math.random() < 0.75 ? rnd(W - 64, W - 34) : rnd(34, 64);
+        var m = page.getBoundingClientRect(), left = m.left - 50, right = W - m.right - 50;
+        if (Math.random() < 0.9 && Math.max(left, right) > 90) {
+            if (right > 90 && (left <= 90 || Math.random() < 0.5)) return rnd(m.right + 50, W - 40);
+            return rnd(40, m.left - 10);
+        }
+        return rnd(40, W - 40);
+    }
+    function arrive(p, r) {
+        if (phone) {
+            if (r < 0.45) api.nap(rnd(14000, 24000)); else { if (r > 0.8) api.groom(); api.next(rnd(7000, 13000)); }
+            return true;
+        }
+        if (p.kind === 'row') {                    /* a short stop on a row */
+            if (r < 0.3) api.groom();
+            api.next(rnd(1600, 3400));
+            return true;
+        }
+        if ((p.kind === 'rail' || p.kind === 'ground') && r < 0.16) { api.nap(); return true; }
+        return false;
+    }
+    function start() {
+        if (phone) return { kind: 'ground', x: layer.clientWidth - 48 };
+        var first = perches().filter(function (p) { return p.kind === 'rail' && api.spotOn(p, 0.5).y > api.size().h + 34 && api.spotOn(p, 0.5).y < ground() - 12; })[0];
+        if (first) { first.fx = 0.5; return first; }
+        return { kind: 'ground', x: wander() };
+    }
+
+    /* the page moved under the cat (scrolling, an entry opening): ride along, drop down, or make room */
+    function follow() {
+        if (!api || api.moving()) return;
+        var at = api.at(), pos = api.pos(), sz = api.size();
+        if (!at) return;
+        var s;
+        if (at.kind === 'ground') {
+            s = { x: pos.x, y: ground() };
+            api.place(s.x, s.y);
+        } else if (at.el) {
+            s = api.spotOn(at, at.fx != null ? at.fx : 0.5);
+            if (!at.el.isConnected || s.y > ground()) return api.fall(pos.x, ground());
+            if (s.y < sz.h * 0.75) return api.fall(s.x, s.y + 6);
+            api.place(s.x, s.y);
+        } else return;
+        if (!phone && covers(s)) {
+            if (!moveSoon) moveSoon = setTimeout(function () { moveSoon = null; if (!api.moving() && covers(api.pos())) api.decide(); }, 600);
+        }
+    }
+    var ticking = false;
+    function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () { ticking = false; follow(); });
+    }
+
+    window.SiteCat({
+        init: function (a) { api = a; },
+        size: function () {
+            phone = layer.clientWidth < 700;
+            return phone ? { w: 46, h: 38 } : { w: 70, h: 57 };
+        },
+        ground: ground,
+        reach: 520,
+        climb: 460,
+        perches: perches,
+        spot: spot,
+        allow: allow,
+        wander: wander,
+        arrive: arrive,
+        start: start
+    });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('tl-change', onScroll);
+    if (window.ResizeObserver) new ResizeObserver(onScroll).observe(page);
+})();

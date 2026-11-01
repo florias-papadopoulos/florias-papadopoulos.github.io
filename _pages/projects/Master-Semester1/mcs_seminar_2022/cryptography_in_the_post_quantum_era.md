@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester1/mcs_seminar_2022/cryptography_in_the_post_
 url: /projects/Master-Semester1/mcs_seminar_2022/cryptography_in_the_post_quantum_era/
 weight: 10
 context: "Master, Semester 1 · Master Seminar 2022"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "pq-seminar"
+blurb: "Graduate seminar talk on the quantum threat and the post-quantum families: hash, code and lattice based."
+preview: "img/projects/seminar.svg"
 author_profile: true
 ---
 

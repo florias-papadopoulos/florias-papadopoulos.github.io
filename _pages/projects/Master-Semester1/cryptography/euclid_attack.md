@@ -5,6 +5,11 @@ permalink: /projects/Master-Semester1/cryptography/euclid_attack/
 url: /projects/Master-Semester1/cryptography/euclid_attack/
 weight: 5
 context: "Master, Semester 1 · Cryptography"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "euclid-attack"
+blurb: "Explains and implements EUCLID-ATTACK, an attack on RSA with a small private exponent."
+preview: "img/projects/euclid.svg"
 author_profile: true
 ---
 

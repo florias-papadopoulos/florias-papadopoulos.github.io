@@ -5,6 +5,11 @@ permalink: /projects/Bachelor/bachelor_thesis/cryptography_in_the_post_quantum_e
 url: /projects/Bachelor/bachelor_thesis/cryptography_in_the_post_quantum_era/
 weight: 11
 context: "Bachelor · Bachelor Thesis"
+# Shown on the Bachelor/Master tab: #anchor opens this entry, blurb is the one-line summary under the title,
+# preview is the picture (static/img/projects). The abstract, files and keywords come from the text below.
+anchor: "bsc-thesis"
+blurb: "The quantum threat to today's cryptography, and two post-quantum families in depth: hash-based and code-based."
+preview: "img/projects/bsc.svg"
 author_profile: true
 ---
 
