@@ -1,10 +1,7 @@
-/* Home page cat and its research lab (markup in layouts/partials/cat.html, styles in assets/css/common/cat.css).
+/* Home page cat (markup in layouts/partials/cat.html, styles in assets/css/common/cat.css).
 
-   The cat walks, runs, climbs and jumps between page elements and a mountain range at the bottom of the page.
-   Around it, toys from the research on privacy-preserving proximity testing:
-   - two drones (w, q) with an l-infinity delta-region: each one learns only the bit "is something inside my
-     region?", shows it, and swerves to avoid collisions; the cat can ride them
-   You can drag the cat and the drones, and click the cat to pet it. */
+   The cat walks, runs, climbs and jumps between page elements and a mountain range at the bottom of the page
+   (no mountains on phones). You can drag the cat and click it to pet it. */
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');
@@ -20,10 +17,9 @@
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var CW = 88, CH = 72;
     var pos = { x: 0, y: 0 };                      /* the cat's feet, in layer coordinates */
-    var at = null;                                 /* where it is: {kind, el?, drone?} */
+    var at = null;                                 /* where it is: {kind, el?} */
     var timer = null, moving = false, token = 0;
     var ridge = [], wide = false, phone = false, side = 0;
-    var drones = [];
     var pets = 0;
     try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
 
@@ -41,13 +37,6 @@
         return t > -40 && t < window.innerHeight + 40;
     }
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-    function div(cls, parent, html) {
-        var d = document.createElement('div');
-        d.className = cls;
-        if (html) d.innerHTML = html;
-        (parent || layer).appendChild(d);
-        return d;
-    }
     function svgEl(tag, attrs, parent) {
         var e = document.createElementNS(NS, tag);
         for (var k in attrs) e.setAttribute(k, attrs[k]);
@@ -181,96 +170,6 @@
         layer.style.height = world.style.height = document.documentElement.scrollHeight + 'px';
     }
 
-    /* ---------- lab: drones with an l-infinity delta-region ---------- */
-    var DRONE_SVG = '<svg viewBox="0 0 64 30" aria-hidden="true">' +
-        '<g class="rotor"><ellipse cx="9" cy="5" rx="9" ry="2.2"/></g><g class="rotor"><ellipse cx="55" cy="5" rx="9" ry="2.2"/></g>' +
-        '<path class="arm" d="M9 6v6h46V6"/>' +
-        '<rect class="hull" x="18" y="9" width="28" height="13" rx="6"/>' +
-        '<circle class="led" cx="32" cy="15.5" r="2.4"/>' +
-        '<path class="arm" d="M24 22l-4 6M40 22l4 6"/></svg>';
-    function hex(x, y) { return ((Math.round(x) * 73856093) ^ (Math.round(y) * 19349663) ^ 0x5bd1e995) >>> 0; }
-    function makeDrones(geo) {
-        var delta = wide ? 62 : 34, box;     /* the whole delta-region stays on screen */
-        if (wide) box = { x0: geo.W - side + delta + 6, x1: geo.W - delta - 8, y0: delta + 46, y1: Math.max(delta + 120, geo.F - geo.peak - 50) };
-        else box = { x0: delta + 8, x1: geo.W - delta - 8, y0: geo.F - 92, y1: geo.F - 72 };
-        var names = wide ? ['w', 'q'] : ['q'];
-        drones = names.map(function (nm, i) {
-            var d = { name: nm, el: div('drone drone-' + nm, layer), box: box, delta: delta, w: 64, h: 30,
-                x: box.x0 + (box.x1 - box.x0) * (i ? 0.75 : 0.25), y: box.y0 + (box.y1 - box.y0) * (i ? 0.7 : 0.3),
-                vx: 0, vy: 0, tx: 0, ty: 0, hold: 0, drag: false, alert: false, encT: 0 };
-            d.el.innerHTML = '<div class="zone"></div>' + DRONE_SVG + '<span class="d-name">' + nm + '</span>' +
-                '<span class="d-bit">proximity: 0</span><span class="d-enc"></span>';
-            d.el.querySelector('.zone').style.cssText = 'width:' + 2 * delta + 'px;height:' + 2 * delta + 'px;margin:' + (-delta) + 'px 0 0 ' + (-delta) + 'px';
-            pickWaypoint(d);
-            draggable(d.el, {
-                start: function () { d.drag = true; },
-                move: function (p) { d.x = clamp(p.x, 20, geo.W - 20); d.y = clamp(p.y, 20, geo.F - 40); drawDrone(d); },
-                end: function () { d.drag = false; d.vx = d.vy = 0; pickWaypoint(d); }
-            });
-            drawDrone(d);
-            return d;
-        });
-    }
-    function pickWaypoint(d) {
-        var other = drones.filter(function (o) { return o !== d; })[0];
-        if (other && Math.random() < 0.35) {      /* sometimes head for the other drone, to show the avoidance */
-            d.tx = clamp(other.x + (Math.random() - 0.5) * 60, d.box.x0, d.box.x1);
-            d.ty = clamp(other.y + (Math.random() - 0.5) * 60, d.box.y0, d.box.y1);
-            return;
-        }
-        d.tx = d.box.x0 + Math.random() * (d.box.x1 - d.box.x0);
-        d.ty = d.box.y0 + Math.random() * (d.box.y1 - d.box.y0);
-    }
-    function drawDrone(d) {
-        d.el.style.left = d.x + 'px';
-        d.el.style.top = d.y + 'px';
-    }
-    function inside(d, x, y) { return Math.max(Math.abs(x - d.x), Math.abs(y - d.y)) <= d.delta; }
-
-    function tickDrones(dt, now) {
-        drones.forEach(function (d) {
-            var riding = at && at.kind === 'drone' && at.drone === d;
-            if (!d.drag && !reduce) {
-                if (now < d.hold) { d.vx *= 0.85; d.vy *= 0.85; }
-                else {
-                    var ax = (d.tx - d.x) * 1.6, ay = (d.ty - d.y) * 1.6;
-                    var sp = riding ? 55 : 95;
-                    d.vx += (clamp(ax, -sp, sp) - d.vx) * Math.min(1, dt * 2);
-                    d.vy += (clamp(ay, -sp, sp) - d.vy) * Math.min(1, dt * 2);
-                    if (Math.abs(d.tx - d.x) < 8 && Math.abs(d.ty - d.y) < 8) pickWaypoint(d);
-                }
-                d.x += d.vx * dt;
-                d.y += d.vy * dt;
-                d.x = clamp(d.x, d.box.x0, d.box.x1);
-                d.y = clamp(d.y, d.box.y0, d.box.y1);
-                drawDrone(d);
-            }
-            /* proximity: each drone only learns one bit, "is something inside my delta-region?" */
-            var near = false, what = '';
-            drones.forEach(function (o) {
-                if (o !== d && inside(d, o.x, o.y)) {
-                    near = true;
-                    what = 'drone';
-                    if (!d.drag && !reduce) {    /* collision avoidance: head away from the other drone */
-                        d.tx = clamp(d.x + Math.sign(d.x - o.x || 1) * 140, d.box.x0, d.box.x1);
-                        d.ty = clamp(d.y + Math.sign(d.y - o.y || 1) * 110, d.box.y0, d.box.y1);
-                    }
-                }
-            });
-            if (!riding && inside(d, pos.x, pos.y - CH / 2)) { near = true; what = what || 'cat'; }
-            if (near !== d.alert) {
-                d.alert = near;
-                d.el.classList.toggle('alert', near);
-                d.el.querySelector('.d-bit').textContent = near ? (what === 'cat' ? 'proximity: 1 · cat!' : 'proximity: 1 · avoid') : 'proximity: 0';
-            }
-            if (now - d.encT > 350) {
-                d.encT = now;
-                d.el.querySelector('.d-enc').textContent = 'Enc(x,y) ' + hex(d.x, d.y).toString(16).padStart(8, '0') + '…';
-            }
-            if (riding && !moving) place(d.x, d.y - d.h / 2 + 6);
-        });
-    }
-
     /* ---------- the cat ---------- */
     function place(x, y) {
         pos = { x: x, y: y };
@@ -378,16 +277,15 @@
             var lx = pos.x + (tg.x > pos.x ? 60 : -60);
             return leap(function () { return { x: lx, y: groundY(lx) }; }, function () { walkGround(tg.x, function () { settle(o.p); }); });
         }
-        if (fromGround && o.p.kind !== 'drone') {
+        if (fromGround) {
             var ux = tg.x + (pos.x < tg.x ? -70 : 70);
             return walkGround(ux, function () { leap(o.target, function () { settle(o.p); }); });
         }
-        if (o.p.kind === 'drone') o.p.drone.hold = performance.now() + 1400;     /* the drone waits for the cat */
         leap(o.target, function () { settle(o.p); });
     }
     function decide() {
         if (moving) return next(400);
-        var opts = [], fromGround = at && at.kind === 'ground', riding = at && at.kind === 'drone';
+        var opts = [], fromGround = at && at.kind === 'ground';
         function add(p, target, w) {
             var t = target();
             if (t.y < CH + 34) return;            /* no room above for the cat and its purr bubble */
@@ -402,10 +300,6 @@
             var fx = Math.random();
             add(p, function () { return spotOn(p, fx); },
                 p.kind === 'name' ? 2 : p.kind === 'chip' ? 1.3 : 1);
-        });
-        drones.forEach(function (d) {
-            if (riding && at.drone === d) return;
-            add({ kind: 'drone', drone: d }, function () { return { x: d.x, y: d.y - d.h / 2 + 6 }; }, riding ? 0.4 : 1.8);
         });
         if (ridge.length) {
             var reach = fromGround || Math.abs(groundY(pos.x) - pos.y) < 300;
@@ -438,7 +332,6 @@
     }
     function arrive(p) {
         var r = Math.random();
-        if (p.kind === 'drone') return next(4000 + Math.random() * 4000);      /* enjoy the ride */
         if (p.kind === 'name' && r < 0.75) {
             var best = null, bd = 1e9, reach = cat.classList.contains('left') ? -30 : 30;
             Array.prototype.forEach.call(h1.querySelectorAll('.ltr'), function (l) {
@@ -493,16 +386,12 @@
         cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, 2300);
         if (!moving) next(2900);
     }
-    /* the first surface below (x, y): page element, drone, or the mountains */
+    /* the first surface below (x, y): a page element or the mountains */
     function surfaceBelow(x, y) {
         var best = { y: groundY(x), p: { kind: 'ground', what: 'dropped' } };
         pagePerches().forEach(function (p) {
             var r = rel(p.el);
             if (x >= r.x + 6 && x <= r.x + r.w - 6 && r.y >= y - 4 && r.y < best.y && r.y > CH) best = { y: r.y, p: p };
-        });
-        drones.forEach(function (d) {
-            var top = d.y - d.h / 2 + 6;
-            if (Math.abs(x - d.x) < 32 && top >= y - 4 && top < best.y) best = { y: top, p: { kind: 'drone', drone: d } };
         });
         return best;
     }
@@ -525,7 +414,6 @@
             animate(reduce ? 1 : Math.sqrt(dist / 1300) * 1000 + 40, function (t) { place(x, y0 + dist * t * t); }, function () {
                 pose('');
                 cat.classList.remove('land'); void cat.offsetWidth; cat.classList.add('land');
-                if (s.p.kind === 'drone') place(s.p.drone.x, s.p.drone.y - s.p.drone.h / 2 + 6);
                 settle(s.p);
             });
         },
@@ -536,19 +424,9 @@
     });
 
     /* ---------- start ---------- */
-    function clearLab() {
-        Array.prototype.forEach.call(layer.querySelectorAll('.drone'), function (e) { e.remove(); });
-    }
     function layout() {
         sizeLayers();
-        var geo = buildTerrain();
-        clearLab();
-        if (!phone) {                              /* the lab only where there is room for it */
-            makeDrones(geo);
-        } else {
-            drones = [];
-        }
-        if (at && at.kind === 'drone') at = { kind: 'ground', what: 'wander' };
+        buildTerrain();
         if (!moving && at) {
             if (at.kind === 'ground') place(pos.x, groundY(pos.x));
             else if (at.el) { var s = spotOn(at, 0.5); place(s.x, s.y); }
@@ -561,13 +439,6 @@
         if (first) { var s = spotOn(first, 0.95); place(s.x, s.y); at = first; }
         else { place(layer.clientWidth / 2, groundY(layer.clientWidth / 2)); at = { kind: 'ground' }; }
         next(1600);
-        var last = performance.now();
-        (function loop(now) {
-            var dt = Math.min(0.05, (now - last) / 1000);
-            last = now;
-            tickDrones(dt, now);
-            requestAnimationFrame(loop);
-        })(last);
     }
     var resizeTimer;
     window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(layout, 150); });

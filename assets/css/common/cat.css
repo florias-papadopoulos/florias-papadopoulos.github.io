@@ -1,4 +1,4 @@
-/* Home page cat, mountains and research lab (layouts/partials/cat.html, assets/js/home-lab.js) */
+/* Home page cat and mountains (layouts/partials/cat.html, assets/js/home-lab.js) */
 
 .world-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
 .cat-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
@@ -19,41 +19,8 @@
 
 @keyframes t-flag { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(8deg) scaleX(0.9); } }
 
-/* ---------- Lab: drones ---------- */
-
-.drone { position: absolute; pointer-events: auto; touch-action: none; }
-.drone { width: 0; height: 0; cursor: grab; }
-.drone svg { position: absolute; left: -32px; top: -15px; width: 64px; height: 30px; overflow: visible; animation: drone-hover 1.8s ease-in-out infinite; }
-.drone .hull { fill: var(--d); stroke: #0f172a; stroke-width: 1.6; }
-.drone .arm { fill: none; stroke: #0f172a; stroke-width: 2; stroke-linecap: round; }
-.drone .rotor ellipse { fill: rgba(15, 23, 42, 0.35); transform-box: fill-box; transform-origin: center; animation: rotor 0.12s linear infinite; }
-.drone .led { fill: #4ade80; }
-.drone.alert .led { fill: #ef4444; animation: led 0.4s steps(1) infinite; }
-.drone-w { --d: #d6336c; }
-.drone-q { --d: #1e3a8a; }
-.drone .zone {
-    position: absolute;
-    left: 0;
-    top: 0;
-    border: 1.5px dashed var(--d);
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--d) 5%, transparent);
-    pointer-events: none;
-    transition: background 0.25s, border-color 0.25s;
-}
-.drone.alert .zone { border-style: solid; border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-.d-name, .d-bit, .d-enc { position: absolute; left: 0; transform: translateX(-50%); white-space: nowrap; pointer-events: none; font-family: ui-monospace, Menlo, Consolas, monospace; }
-.d-name { top: -36px; color: var(--d); font-weight: 800; font-size: 13px; font-style: italic; }
-.d-bit { top: 20px; padding: 1px 7px; border-radius: 999px; background: #fff; border: 1px solid #e2e8f0; color: #475569; font-size: 10.5px; }
-.drone.alert .d-bit { background: #ef4444; border-color: #ef4444; color: #fff; font-weight: 700; }
-.d-enc { top: 40px; color: #94a3b8; font-size: 9.5px; }
-
 .cat.held { cursor: grabbing; }
 .cat { touch-action: none; }
-
-@keyframes drone-hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-@keyframes rotor { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.25); } }
-@keyframes led { 50% { opacity: 0.2; } }
 
 /* ---------- Cat ---------- */
 

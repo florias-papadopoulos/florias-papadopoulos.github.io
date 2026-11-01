@@ -24,9 +24,10 @@ module:
       files: ["! **/*.md"]
     - source: files
       target: static/files
-    # Games (CryptoGames build) hidden for now: re-add this mount and the menu/button entries to publish /games/
-    # - source: games
-    #   target: static/games
+    # Teaching (the CryptoGames course games, built into teaching/) hidden for now: uncomment this mount and add
+    # a "Teaching" menu entry and button with url /teaching/ to publish it
+    # - source: teaching
+    #   target: static/teaching
 
 menu:
   main:
