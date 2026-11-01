@@ -49,10 +49,10 @@ Arcade.register('yarn-smash', function (api) {
     var dpr = 1, W = 1, H = 1, F = 1, CX = 0, HY = 0, PAW = 50, SKYM = 100, SKYV = 40, SS = 1, skyCache = {}, sprCache = {}, glowCache = {}, vignette = null;
 
     /* ---------- state ---------- */
-    var camZ = 0, camX = 0, camS = 0, camHY = 0, camT = 0, HOR = 0, speed = 0, clock = 0, playT = 0, phase = 'play', balls = 14, bonus = 0;
+    var camZ = 0, camX = 0, camS = 0, camHY = 0, camT = 0, HOR = 0, speed = 0, clock = 0, playT = 0, phase = 'play', balls = 15, bonus = 0;
     var smashed = 0, shownScore = -1, streak = 0, multi = 1, lastThrow = -9, stumble = 1, zoomT = 0, slowT = 0, bigT = 0, shake = 0, flash = 0;
     var runPh = 0, curZi = -1, thrown = false, firstPane = true, lowWarned = false, lastSay = -99, tips = {};
-    var VISF = 46, magT = 0, ricoT = 0, throwsN = 0, hitsN = 0, bestStreak = 0, worldCrash = 0, worldMiss = 0, medalsRun = [], guard = null, lockT = -1;
+    var boltT = 0, VISF = 46, magT = 0, ricoT = 0, throwsN = 0, hitsN = 0, bestStreak = 0, guard = null, lockT = -1;
     var charge = { id: null, x: 0, y: 0, t0: 0, v: 0, key: false };
     var ents = [], groups = [], props = [], flying = [], parts = [], rings = [], pops = [], motes = [], paws = [0, 0];
     var nextZ = 18, propZ = -4, nextGate = 1, lastDoorZ = -99, lastDotZ = -99, lastPowZ = 40, powKind = 0, prepZi = -1;
@@ -1164,7 +1164,7 @@ Arcade.register('yarn-smash', function (api) {
         magnet: 'Magnet orb: crystals fly to you', rico: 'Ricochet orb: balls break one more pane', bubble: 'Soap bubbles float up: pop them or let them rise',
         heart: 'A crystal heart in the glass: break it free', mirror: 'Ice mirrors bounce a missed ball back', lock: 'Hit all three small panes within 2 s',
         falls: 'Behind the waterfall the glass shows up late', guard: 'Break the glowing panel, then the next one',
-        charge: 'Hold to charge a heavy ball (2 yarn, cracks tough glass)'
+        charge: 'Hold to charge a heavy ball (2 yarn, cracks tough glass)', critter: 'Glass critters: hit them before they nip your yarn'
     };
     function group(z, kind) { var g = { z: z, panels: [], kind: kind, passed: false }; groups.push(g); return g; }
     function glass(g, Z, lx, w, y0, y1, opt) {
@@ -1262,6 +1262,7 @@ Arcade.register('yarn-smash', function (api) {
                 ents.push({ type: 'vase', z: vz, side: sd, lx: sd * Z.standX, stand: Z.stand, kind: (Math.random() * 3) | 0, col: pick(VASES), h: rnd(0.32, 0.46) });
             }
             if (u > 8 && Math.random() < 0.28) ents.push({ type: 'lamp', z: spot(), ph: rnd(0, 6), Z: Z, tip: 'lamp' });
+            if (u > 24 && Math.random() < clamp(0.1 + 0.34 * lvl + 0.12 * lap + (zi % NZ) * 0.025, 0, 0.75)) spawnCritters(spot(), Z, zi, lvl);
             if (z > 70 && z - lastDotZ > 60 && Math.random() < Z.dot * 2.5) { ents.push({ type: 'dot', z: spot(), ph: rnd(0, 6), tip: 'dot' }); lastDotZ = z; }
             if (z > 110 && z - lastPowZ > 150 && Math.random() < 0.5) {
                 var kd = ['big', 'magnet', 'slow', 'rico'][powKind++ % 4];
@@ -1278,6 +1279,8 @@ Arcade.register('yarn-smash', function (api) {
     var STANDTOP = { plinth: 0.62, stump: 0.5, geo: 0.56, ice: 0.6, crate: 0.5, spool: 0.55, rock: 0.46 };
     function pos(e, t) {
         var a;
+        if (e.type === 'critter') { critPos(e, t); return; }
+        if (e.type === 'shot') { shotPos(e, t); return; }
         SZ = e.z;
         if (e.type === 'vase') { SX = cx(e.z) + e.lx; SY = STANDTOP[e.stand] + e.h * 0.5; SR = 0.2; }
         else if (e.type === 'crystal') { SX = cx(e.z) + e.lx; SY = e.y + Math.sin(t * 2 + e.ph) * 0.08; SR = 0.3; }
@@ -1291,7 +1294,7 @@ Arcade.register('yarn-smash', function (api) {
         else if (e.type === 'dot') { SX = cx(e.z) + 1.2 * Math.sin(t * 2.4 + e.ph) + 0.25 * Math.sin(t * 5.3 + e.ph); SY = 0.12; SR = 0.36; }
         else { SX = cx(e.z) + DW / 2 - 0.18; SY = 1.0; SZ = e.z - 0.06; SR = 0.17; }  /* the hatch lever */
     }
-    function round(e) { return !e.broken && (e.type === 'vase' || e.type === 'crystal' || e.type === 'lamp' || e.type === 'dot' || e.type === 'power' || e.type === 'bubble'); }
+    function round(e) { return !e.broken && (e.type === 'vase' || e.type === 'crystal' || e.type === 'lamp' || e.type === 'dot' || e.type === 'power' || e.type === 'bubble' || e.type === 'critter' || e.type === 'shot'); }
     function pstate(e, t) {  /* a glass panel's world centre QX, turn QA and lift QY right now */
         var lx = e.lx, a = 0, m = e.mv;
         QY = 0;
@@ -1370,10 +1373,11 @@ Arcade.register('yarn-smash', function (api) {
                 pos(e, clock);
                 if (!P(SX, SY, SZ)) return;
                 d = SZ - camZ;
-                var now = near(Math.max(SR * 1.3 * pk, rr));
+                var cr = e.type === 'critter' || e.type === 'shot', hr = cr ? Math.max(SR * 1.9 * pk, rr + 8) : Math.max(SR * 1.3 * pk, rr);  /* small movers get a bigger tap area */
+                var now = near(hr);
                 pos(e, clock + flightT(SX - camX, SY - EYE + 0.45, d));  /* lead moving targets */
-                var lead = P(SX, SY, SZ) && near(Math.max(SR * 1.3 * pk, rr));
-                if (now || lead) consider(d, [SX, SY, SZ, e], e.type === 'vase' || e.type === 'crystal' || e.type === 'bubble' ? e : null);
+                var lead = P(SX, SY, SZ) && near(hr);
+                if (now || lead) consider(d, [SX, SY, SZ, e], e.type === 'vase' || e.type === 'crystal' || e.type === 'bubble' || cr ? e : null);
                 return;
             }
             if (e.type === 'glass' && !e.broken) {
@@ -1415,13 +1419,13 @@ Arcade.register('yarn-smash', function (api) {
             var bd = Math.pow(api.touch ? 48 : 40, 2);
             ents.forEach(function (e) {
                 if (!round(e) && !(e.type === 'door' && !e.open)) return;
-                if ((e.type === 'vase' || e.type === 'crystal' || e.type === 'door') && claims(e)) return;
+                if ((e.type === 'vase' || e.type === 'crystal' || e.type === 'door' || e.type === 'critter' || e.type === 'shot') && claims(e)) return;
                 pos(e, clock);
                 if (SZ - camZ < 1 || SZ - camZ > t + 1 || !P(SX, SY, SZ)) return;
                 var q = (px - sx) * (px - sx) + (py - sy) * (py - sy);
                 if (q >= bd) return;
                 bd = q;
-                if (e.type === 'lamp' || e.type === 'dot' || e.type === 'power') pos(e, clock + flightT(SX - camX, SY - EYE + 0.45, SZ - camZ));
+                if (e.type === 'lamp' || e.type === 'dot' || e.type === 'power' || e.type === 'critter' || e.type === 'shot') pos(e, clock + flightT(SX - camX, SY - EYE + 0.45, SZ - camZ));
                 best = [SX, SY, SZ, e];
             });
         }
@@ -1430,7 +1434,7 @@ Arcade.register('yarn-smash', function (api) {
         return [RX, RY, RZ];
     }
     function throwAt(sx, sy, heavy) {
-        if (phase !== 'play' || balls < (heavy ? 2 : 1) || rt - lastThrow < 0.1) return;
+        if (phase !== 'play' || balls < (heavy ? 2 : 1) || rt - lastThrow < (freezeT > 0 ? 0.5 : 0.1)) return;
         var tg = aim(sx, sy);
         rings.push({ x: sx, y: sy, t: 0 });
         if (!tg) return;
@@ -1478,7 +1482,7 @@ Arcade.register('yarn-smash', function (api) {
         return ex * ex + ey * ey + ez * ez < r * r ? s : -1;
     }
     function hitTest(e, ax, ay, az, bx, by, bz2, big) {
-        if (round(e)) { pos(e, clock); HIT = 'ball'; return segSphere(ax, ay, az, bx, by, bz2, SR + (big ? 0.34 : BR)); }
+        if (round(e)) { pos(e, clock); HIT = 'ball'; return segSphere(ax, ay, az, bx, by, bz2, SR + (big ? 0.34 : BR) + (e.type === 'critter' || e.type === 'shot' ? 0.1 : 0)); }
         if (e.type === 'glass') {
             if (e.broken) return -1;
             pstate(e, clock);
@@ -1536,7 +1540,6 @@ Arcade.register('yarn-smash', function (api) {
         if (th.left === 0) {
             if (th.hits) { streak++; hitsN++; bestStreak = Math.max(bestStreak, streak); }
             else {
-                worldMiss++;
                 if (multi > 1) say('Combo lost', '#cbd5e1');
                 streak = 0;
             }
@@ -1589,7 +1592,18 @@ Arcade.register('yarn-smash', function (api) {
         }
         e.broken = true; smashed++;
         pos(e, clock);
-        if (e.type === 'bubble') {
+        if (e.type === 'shot') {
+            burst(SX, SY, SZ, 0.15, 10, ['rgba(255,240,200,', 'rgba(200,230,255,', 'rgba(255,255,255,'], 0.8);
+            popAt(SX, SY, SZ, [255, 236, 180], 1); points(10); api.sfx('pop');
+        } else if (e.type === 'critter') {
+            var CC = CRIT[e.kind];
+            burst(SX, SY, SZ, 0.12, 10, [rgba(CC.c, 1).replace(/,1\)$/, ','), rgba(CC.g, 1).replace(/,1\)$/, ','), 'rgba(255,255,255,'], 0.8);
+            popAt(SX, SY, SZ, CC.g, 0.8); points(15); api.sfx('pop');
+            e.grp.left--;
+            if (e.grp.left === 0 && e.grp.n >= 2 && e.grp.n === e.grp.hits + 1) { addYarn(1); popAt(SX, SY, SZ, [255, 160, 210], 1.5); }  /* the whole group: a ball of yarn */
+            else if (Math.random() < 0.1) addYarn(1);
+            e.grp.hits = (e.grp.hits || 0) + 1;
+        } else if (e.type === 'bubble') {
             burst(SX, SY, SZ, SR * 0.8, 14, ['rgba(255,200,240,', 'rgba(200,240,255,', 'rgba(255,250,200,', 'rgba(255,255,255,'], 0.6);
             popAt(SX, SY, SZ, [255, 210, 245], 1.6); points(10); api.sfx('pop');
         } else if (e.type === 'vase') {
@@ -1681,7 +1695,7 @@ Arcade.register('yarn-smash', function (api) {
     function crash(kind) {
         if (zoomT > 0) { bonus += 10; api.sfx('pop'); return; }
         var lost = Math.min(balls, 3 + Math.min(2, Math.floor(curZi / NZ)));
-        balls -= lost; worldCrash++;
+        balls -= lost;
         stumble = 0.35; flash = RM ? 0 : 1; shake = RM ? 0 : 14;
         if (multi > 1) say('Combo lost', '#cbd5e1');
         streak = 0; multi = 1;
@@ -1692,11 +1706,173 @@ Arcade.register('yarn-smash', function (api) {
     }
 
 
+
+    /* ---------- glass critters: little groups that dart at the cat, one hit each; one that gets through nips a yarn ball ---------- */
+    var CRIT = {
+        isles: { c: [255, 238, 228], g: [255, 186, 150], r: 0.28, v: 2.2, y: 2.3 },   /* glass sparrows that swoop */
+        glow: { c: [140, 255, 222], g: [80, 255, 210], r: 0.26, v: 1.6, y: 0.3 },     /* glass beetles that hop */
+        geode: { c: [214, 176, 255], g: [190, 130, 255], r: 0.28, v: 2.4, y: 1.9 },   /* crystal bats that zigzag */
+        aurora: { c: [226, 246, 255], g: [150, 230, 255], r: 0.26, v: 1.8, y: 1.6 },  /* frost wisps that spiral */
+        clock: { c: [255, 222, 172], g: [255, 190, 100], r: 0.25, v: 3.0, y: 0.18 },  /* wind-up glass mice that scurry */
+        wool: { c: [255, 236, 170], g: [255, 170, 222], r: 0.27, v: 1.7, y: 1.5 },    /* glass bumblebees that wobble */
+        stars: { c: [196, 224, 255], g: [130, 230, 255], r: 0.26, v: 2.6, y: 1.8 }    /* tiny drones that dart */
+    };
+    function tri(x) { return Math.asin(Math.sin(x)) * 2 / Math.PI; }
+    function critPos(e, t) {
+        var C = CRIT[e.kind], a = e.t0 >= 0 ? Math.max(0, t - e.t0) : 0, z = e.z0 - C.v * a, ph = e.ph + t, lx = e.lx, y = C.y + e.dy, k = e.kind;
+        if (k === 'isles') { lx += Math.sin(ph * 1.3) * 0.7; y += 0.4 - Math.abs(Math.sin(ph * 0.9)) * 1.1; }
+        else if (k === 'glow') { y = 0.22 + Math.abs(Math.sin(ph * 3.2)) * 0.75; lx += Math.sin(ph * 0.8) * 0.4; }
+        else if (k === 'geode') { lx += tri(ph * 0.9) * 1.1; y += Math.sin(ph * 2.1) * 0.35; }
+        else if (k === 'aurora') { lx += Math.cos(ph * 2.6) * 0.55; y += Math.sin(ph * 2.6) * 0.55; }
+        else if (k === 'clock') { y = 0.16 + Math.abs(Math.sin(ph * 6)) * 0.12; lx += Math.sin(ph * 1.7) * 0.25; }
+        else if (k === 'wool') { lx += Math.sin(ph * 2.3) * 0.8; y += Math.sin(ph * 4.7) * 0.25; }
+        else {
+            var sg = Math.floor(ph * 1.3), fr = smooth((ph * 1.3 - sg) * 2.5), s0 = e.ph * 13;
+            lx += ((hash(sg + s0) * 2 - 1) * (1 - fr) + (hash(sg + 1 + s0) * 2 - 1) * fr) * 0.9;
+            y += ((hash(sg * 1.7 + s0) - 0.5) * (1 - fr) + (hash((sg + 1) * 1.7 + s0) - 0.5) * fr) * 0.8;
+        }
+        SX = cx(z) + lx; SY = y; SZ = z; SR = C.r;
+    }
+    function spawnCritters(z, Z, zi, lvl) {
+        var lap = Math.floor(zi / NZ), n = 2 + (Math.random() < 0.25 + lvl * 0.5 ? 1 : 0) + (lap ? 1 : 0), base = rnd(-0.7, 0.7), grp = { left: n, n: n }, ph0 = rnd(0, 6), trig = rnd(22, 30);
+        for (var i = 0; i < n; i++) {
+            ents.push({ type: 'critter', kind: Z.key, z0: z + i * 0.9, z: z + i * 0.9, lx: base + (i - (n - 1) / 2) * 0.55, dy: rnd(-0.15, 0.15),
+                        ph: ph0 + i * 0.45, t0: -1, trig: trig + i * 0.9, grp: grp, tip: 'critter' });
+        }
+    }
+    function stepCritters() {
+        for (var i = 0; i < ents.length; i++) {
+            var e = ents[i];
+            if (e.type !== 'critter' || e.broken) continue;
+            if (e.t0 < 0 && e.z0 - camZ < e.trig) e.t0 = clock;
+            critPos(e, clock); e.z = SZ;
+            if (!e.passed && SZ - camZ < 0.5) {
+                e.passed = true;
+                if (Math.abs(SX - camX) < 0.95 && SY < 2.7 && phase === 'play' && zoomT <= 0) {  /* it nips a ball of yarn away */
+                    e.broken = true; e.grp.left--;
+                    if (balls > 0) { balls--; if (yarnTick.t > 0.9 || yarnTick.n > 0) yarnTick.n = 0; yarnTick.n--; yarnTick.t = 0; }
+                    shake = Math.max(shake, RM ? 0 : 3); api.sfx('move');
+                    if (!tips.nip) { tips.nip = true; say('A critter nipped a ball of yarn', '#ffb3c0'); }
+                }
+            }
+        }
+    }
+
+
+    /* ---------- guardian attacks: each guardian winds up (a red ring of warning and a sound), then attacks in its own way ---------- */
+    var ATK = { isles: ['dive', 'bolts'], glow: ['dust'], geode: ['boulder'], aurora: ['shards'], clock: ['gears'], wool: ['shield'], stars: ['beam'] };
+    var freezeT = 0, blurN = 0;
+    function atkGap() { return clamp(6.2 - (guard.zi % NZ) * 0.45 - Math.floor(guard.zi / NZ) * 0.7, 2.4, 6.5); }
+    function guardHurt(n, text) {  /* an attack got through: it costs yarn, never the run */
+        var lost = Math.min(balls, n);
+        balls -= lost; if (lost) { yarnTick.n = -lost; yarnTick.t = 0; }
+        flash = RM ? 0 : 0.6; shake = Math.max(shake, RM ? 0 : 6);
+        api.sfx('hit'); api.cat('sad');
+        if (text && !tips['hurt' + text]) { tips['hurt' + text] = true; say(text, '#ffb3c0'); }
+    }
+    function shot(style, o) {  /* a guardian's projectile: a small round target that can be shot down */
+        var e = { type: 'shot', style: style, t0: clock, vx: 0, vy: 0, vz: 0, g: 0, r: 0.3 };
+        for (var k in o) e[k] = o[k];
+        e.z = e.z0; ents.push(e);
+        return e;
+    }
+    function shotPos(e, t) {
+        var a = Math.max(0, t - e.t0);
+        if (e.cling) { SZ = camZ + 2.6; SX = camX + camS * 2.6 + e.cx; SY = EYE + camHY - hy(SZ) + e.cy; SR = 0.55; return; }
+        SZ = e.z0 + e.vz * a; SX = cx(SZ) + e.lx0 + e.vx * a; SY = e.y0 + e.vy * a - 0.5 * e.g * a * a; SR = e.r;
+        if (e.style === 'gear') SY = e.r;
+    }
+    function startAttack() {
+        var list = ATK[guard.key], kind = list[(guard.na || 0) % list.length];
+        guard.na = (guard.na || 0) + 1;
+        guard.atk = { kind: kind, phase: 'tele', t: 0, dur: kind === 'beam' ? 1.3 : kind === 'shield' ? 0.8 : 1.05 };
+        api.sfx('move');
+        if (!tips['atk' + kind]) { tips['atk' + kind] = true; say(ATKTIP[kind], '#ffd0a0'); }
+    }
+    var ATKTIP = { dive: 'It winds up to dive: hit its glowing panel to stop it', bolts: 'Storm orbs: shoot them before the lightning strikes',
+                   dust: 'Glowing dust: pop the motes that cling to your view', boulder: 'Boulder! Shatter it in the air',
+                   shards: 'Ice shards: a hit freezes a paw for a moment', gears: 'Gear wheels rolling at you: break them',
+                   shield: 'Bubble shields: pop them first', beam: 'Star beam: hit the ray to cut it off' };
+    function fireAttack(a) {
+        guardPos(clock);
+        var k = a.kind, i, gz = GZ, gx = GX - cx(GZ), gy = GY;
+        api.sfx('jump');
+        if (k === 'bolts') {
+            for (i = 0; i < 3; i++) shot('orb', { z0: camZ + 8.5 + i * 2.5, lx0: (i - 1) * 1.2 + rnd(-0.2, 0.2), y0: 2.3, r: 0.32 });
+        } else if (k === 'dust') {
+            for (i = 0; i < 4; i++) shot('mote', { z0: gz, lx0: gx + rnd(-1, 1), y0: gy + rnd(-0.6, 0.6), vz: -rnd(4, 6), vx: rnd(-0.4, 0.4), vy: rnd(-0.35, 0), r: 0.28, vol: a });
+        } else if (k === 'boulder') {
+            var T = (gz - camZ) / (8 + speed);
+            shot('boulder', { z0: gz, lx0: gx, y0: gy + 0.6, vz: -8, vx: -gx / T, vy: (1.3 - gy - 0.6 + 4.5 * T * T) / T, g: 9, r: 0.42, spin: rnd(2, 4) });
+        } else if (k === 'shards') {
+            for (i = 0; i < 5; i++) shot('shard', { z0: gz, lx0: gx, y0: gy, vz: -9, vx: (i - 2) * 0.55 - gx / 2.2, vy: (1.4 - gy) / 1.3, r: 0.2, vol: a });
+        } else if (k === 'gears') {
+            for (i = 0; i < 2; i++) shot('gear', { z0: gz - 1, lx0: (i ? 0.6 : -0.6) + gx * 0.3, y0: 0.4, vz: -5.5, r: 0.4 });
+        } else if (k === 'shield') {
+            var n = 0;
+            guard.panels.forEach(function (p, j) { if (!p.broken && n < 2 && j >= guard.idx) { p.shield = 1; n++; } });
+            for (i = 0; i < 2; i++) shot('soap', { z0: gz, lx0: gx + (i ? 0.7 : -0.7), y0: gy - 0.4, vz: -4.5, vy: -0.3, r: 0.3 });
+        }
+    }
+    function stepAttack(dt) {  /* called during the fight */
+        if (!guard.atk) { guard.atkT = (guard.atkT === undefined ? 2.2 : guard.atkT) - dt; if (guard.atkT <= 0) { startAttack(); guard.atkT = atkGap(); } return; }
+        var a = guard.atk;
+        a.t += dt;
+        if (a.phase === 'tele') {
+            if (a.t >= a.dur) { a.phase = 'act'; a.t = 0; if (a.kind !== 'dive' && a.kind !== 'beam') { fireAttack(a); guard.atk = null; } else api.sfx('jump'); }
+            return;
+        }
+        if (a.kind === 'dive') {  /* the roc dives at the cat */
+            guard.dv = Math.min(11, a.t * 13);
+            if (guard.dv >= 11) { if (zoomT <= 0) guardHurt(2, 'The roc dived into you'); guard.atk = null; }
+        } else if (a.kind === 'beam') {  /* the star ray sweeps its beam across the road */
+            if (a.t >= 1.6) { if (zoomT <= 0) guardHurt(2, 'The star beam got you'); guard.atk = null; }
+        }
+    }
+    function interrupt() {  /* a hit on the guardian while it winds up or dives cancels the attack */
+        var a = guard.atk;
+        if (!a || !(a.kind === 'dive' || a.kind === 'beam' || a.phase === 'tele')) return;
+        guard.atk = null;
+        guardPos(clock); popAt(GX, GY, GZ, [255, 255, 255], 2.2); api.sfx('point');
+        if (!tips.interrupt) { tips.interrupt = true; say('Interrupted!', '#bff0ff'); }
+    }
+    function stepShots() {
+        for (var i = 0; i < ents.length; i++) {
+            var e = ents[i];
+            if (e.type !== 'shot' || e.broken) continue;
+            shotPos(e, clock); e.z = SZ;
+            if (e.cling) { if (clock - e.clT > 7) e.broken = true; continue; }
+            var dz = SZ - camZ;
+            if (e.style === 'mote' && dz < 2.9) {  /* the dust sticks to the view */
+                e.cling = true; e.clT = clock; e.cx = rnd(-0.75, 0.75); e.cy = rnd(-0.55, 0.45);
+                if (!e.vol.hurt) { e.vol.hurt = true; guardHurt(1, 'Dust in your eyes: pop it'); }
+                continue;
+            }
+            if (e.style === 'orb' && dz < 1.3) {  /* lightning strikes the marked spot */
+                e.broken = true; e.struck = clock;
+                pops.push({ x: SX, y: 0.05, z: SZ, c: [200, 230, 255], s: 2.5, t: 0 }); boltT = RM ? 0 : 0.2;
+                if (zoomT <= 0) guardHurt(1, 'Lightning! Shoot the storm orbs');
+                continue;
+            }
+            if (dz < 0.5) {
+                e.broken = true;
+                if (Math.abs(SX - camX) < (e.style === 'shard' ? 0.75 : 1.0) && SY < 2.8 && zoomT <= 0) {
+                    if (e.style === 'shard') { if (!e.vol.hurt) { e.vol.hurt = true; freezeT = 2.5; guardHurt(1, 'A frozen paw: slower throws for a moment'); } }
+                    else guardHurt(e.style === 'boulder' ? 2 : 1, e.style === 'boulder' ? 'The boulder hit you' : e.style === 'gear' ? 'A gear wheel ran you over' : 'Soap in your whiskers');
+                }
+            }
+        }
+    }
+
     /* ---------- glass guardians: a creature of glass panels drifts ahead before each gate; break the glowing panel, then the next ---------- */
     var GDES = {
-        isles: { c: [255, 160, 110], c2: [255, 236, 196], eyes: [[-0.12, 0.75], [0.12, 0.75]],
-                 panels: [[-0.25, 0.5, -2.4, 0.1, -0.35, -0.45], [0.25, 0.5, 2.4, 0.1, 0.35, -0.45], [-0.3, -0.45, 0.3, -0.45, 0, -1.6], [0, 1.15, 0.36, 0.45, 0, -0.4, -0.36, 0.45]],
-                 lines: [[0, -1.6, 0.25, -2.0, -0.2, -2.4, 0.15, -2.8]] },
+        isles: { roc: true, c: [120, 200, 255], c2: [255, 236, 150], eyes: [[-0.11, 1.02], [0.11, 1.02]],  /* the storm roc: beating crystal wings, a glowing core, lightning */
+                 body: [-0.42, 0.55, -0.17, 1.18, 0, 1.32, 0.17, 1.18, 0.42, 0.55, 0.34, -0.55, 0, -0.78, -0.34, -0.55],
+                 panels: [[-0.36, 0.38, -1.15, 1.25, -2.65, 1.6, -2.3, 0.9, -2.85, 0.35, -1.45, -0.12, -0.42, -0.22],
+                          [0.36, 0.38, 1.15, 1.25, 2.65, 1.6, 2.3, 0.9, 2.85, 0.35, 1.45, -0.12, 0.42, -0.22],
+                          [-0.26, -0.6, 0.26, -0.6, 0.75, -1.7, 0, -1.4, -0.75, -1.7], [0, 0.48, 0.33, 0, 0, -0.52, -0.33, 0]],
+                 flap: [1, 1, 0, 0], order3: [0, 1, 3],
+                 lines: [[-0.09, 1.28, -0.4, 1.78, -0.18, 1.5], [0.09, 1.28, 0.4, 1.78, 0.18, 1.5], [-0.07, 0.9, 0, 0.72, 0.07, 0.9]] },
         glow: { c: [70, 240, 200], c2: [220, 150, 255], eyes: [[-0.1, 0.45], [0.1, 0.45]],
                 panels: [[-0.2, 0.25, -2.1, 1.45, -2.5, 0.45, -0.3, -0.05], [0.2, 0.25, 2.1, 1.45, 2.5, 0.45, 0.3, -0.05], [0.25, -0.15, 1.7, -0.45, 1.35, -1.4, 0.2, -0.6], [-0.25, -0.15, -1.7, -0.45, -1.35, -1.4, -0.2, -0.6]],
                 lines: [[-0.08, 0.5, -0.4, 1.1, -0.8, 1.5], [0.08, 0.5, 0.4, 1.1, 0.8, 1.5], [0, 0.55, 0, -1.0]] },
@@ -1720,7 +1896,19 @@ Arcade.register('yarn-smash', function (api) {
     function half(s) { var p = [0.04 * s, 1.4]; for (var i = 1; i < 8; i++) { var a = Math.PI / 2 + i / 8 * Math.PI; p.push(s * Math.abs(Math.cos(a)) * 1.5, Math.sin(a) * 1.4); } p.push(0.04 * s, -1.4); return p; }
     var GX = 0, GY = 0, GZ = 0, GI = -1, guardDone = -1;
     function gscale() { return guard.key === 'geode' ? 1.15 : 1.45; }
-    function guardPos(t) { GZ = camZ + speed * (t - clock) + guard.D; GX = cx(GZ) + Math.sin(t * 0.7) * 0.8; GY = (guard.key === 'geode' ? 1.95 : 2.6) + Math.sin(t * 1.3) * 0.22; }
+    function guardPos(t) {  /* it swoops in from high up and to one side, then hovers ahead (the roc dives and banks) */
+        var e = 1 - guard.ent, roc = GDES[guard.key].roc;
+        GZ = camZ + speed * (t - clock) + guard.D - (guard.dv || 0);
+        GX = cx(GZ) + Math.sin(t * 0.7) * (roc ? 1.25 : 0.8) + e * e * guard.side * 7;
+        GY = (guard.key === 'geode' ? 1.95 : 2.6) + Math.sin(t * 1.3) * 0.22 + (roc ? Math.sin(t * 0.9) * 0.35 : 0) + e * e * 5.5 +
+             (guard.atk && guard.atk.kind === 'dive' ? (guard.atk.phase === 'tele' ? guard.atk.t / guard.atk.dur * 1.3 : 1.3 - (guard.dv || 0) * 0.15) : 0);
+    }
+    function panelPts(p) {  /* wing panels beat: their tips rise and fall */
+        if (!p.flap) return p.pts;
+        var f = guard.fl, out = [];
+        for (var i = 0; i < p.pts.length; i += 2) { var ax = Math.abs(p.pts[i]) / 2.7; out.push(p.pts[i] * (1 - 0.1 * Math.abs(f) * ax), p.pts[i + 1] + f * 0.6 * ax); }
+        return out;
+    }
     function inPoly(p, x, y) {
         var c = false;
         for (var i = 0, j = p.length - 2; i < p.length; j = i, i += 2) {
@@ -1730,23 +1918,31 @@ Arcade.register('yarn-smash', function (api) {
     }
     function startGuard(zi) {
         var key = ZONES[zi % NZ].key, d = GDES[key], lap = Math.floor(zi / NZ), n = Math.min(d.panels.length, 3 + (zi > 0 ? 1 : 0) + lap);
-        guard = { zi: zi, key: key, D: FAR + 6, state: 'in', idx: 0, n: n, dead: 0, panels: d.panels.slice(0, n).map(function (p) { return { pts: p, broken: false, flash: 0 }; }) };
+        var ids = n === 3 && d.order3 ? d.order3 : [0, 1, 2, 3, 4].slice(0, n);
+        guard = { zi: zi, key: key, D: FAR + 6, state: 'in', idx: 0, n: n, dead: 0, ent: 0, t: 0, fl: 0, side: Math.random() < 0.5 ? -1 : 1,
+                  panels: ids.map(function (i) { return { pts: d.panels[i], flap: d.flap ? d.flap[i] : 0, broken: false, flash: 0 }; }) };
         if (!tips.guard) { tips.guard = true; say(TIPS.guard, '#ffffff'); }
-        chat('A glass guardian!', 'wow', true);
+        chat(d.roc ? 'A storm roc! Look at those wings!' : 'A glass guardian!', 'wow', true); api.sfx('jump');
     }
     function stepGuard(dt) {
         var zi = zoneIdx(camZ), u = camZ - zi * ZL;
         if (!guard && phase === 'play' && u > ZL - 84 && u < ZL - 40 && guardDone !== zi) { guardDone = zi; startGuard(zi); }
         if (!guard) return;
         for (var i = 0; i < guard.panels.length; i++) guard.panels[i].flash = Math.max(0, guard.panels[i].flash - dt);
-        if (guard.state === 'in') { guard.D += (12.5 - guard.D) * Math.min(1, dt * 1.1); if (guard.D < 17) guard.state = 'fight'; }
-        else if (guard.state === 'fight') { guard.D += (12.5 - guard.D) * Math.min(1, dt); if (u > ZL - 22 || zi !== guard.zi) guard.state = 'swoop'; }
+        guard.t += dt; guard.fl = RM ? Math.sin(guard.t * 1.4) * 0.5 : Math.sin(guard.t * 3.4);
+        if (guard.state === 'in') { guard.ent = Math.min(1, guard.ent + dt / 1.8); guard.D += (12.5 - guard.D) * Math.min(1, dt * 1.1); if (guard.D < 17 && guard.ent >= 1) guard.state = 'fight'; }
+        else if (guard.state === 'fight') {
+            guard.D += (12.5 - guard.D) * Math.min(1, dt);
+            if (!guard.atk || guard.atk.kind !== 'dive') guard.dv = Math.max(0, (guard.dv || 0) - dt * 9);
+            stepAttack(dt);
+            if (u > ZL - 22 || zi !== guard.zi) { guard.state = 'swoop'; guard.atk = null; guard.dv = 0; }
+        }
         else if (guard.state === 'swoop') {
             guard.D -= dt * 24;
             if (guard.D < 1.2) {
                 if (zoomT <= 0 && phase === 'play' && guard.zi > 0) {  /* the first guardian only flies off */
                     var lost = Math.min(balls, 3);
-                    balls -= lost; yarnTick.n = -lost; yarnTick.t = 0; worldCrash++; flash = RM ? 0 : 0.7; shake = RM ? 0 : 8;
+                    balls -= lost; yarnTick.n = -lost; yarnTick.t = 0; flash = RM ? 0 : 0.7; shake = RM ? 0 : 8;
                     api.sfx('hit'); api.cat('sad'); say('The guardian swooped and got away', '#cbd5e1');
                 }
                 guard = null;
@@ -1758,7 +1954,7 @@ Arcade.register('yarn-smash', function (api) {
         guardPos(clock);
         if ((az < GZ) === (bz2 < GZ)) return -1;
         var s = (GZ - az) / (bz2 - az), gs = gscale(), x = (ax + (bx - ax) * s - GX) / gs, y = (ay + (by - ay) * s - GY) / gs;
-        for (var i = 0; i < guard.panels.length; i++) if (!guard.panels[i].broken && inPoly(guard.panels[i].pts, x, y)) { GI = i; return s; }
+        for (var i = 0; i < guard.panels.length; i++) if (!guard.panels[i].broken && inPoly(panelPts(guard.panels[i]), x, y)) { GI = i; return s; }
         return -1;
     }
     function guardPick(sx, sy, t) {  /* the world point on a guardian panel under the screen point, at time t */
@@ -1767,11 +1963,13 @@ Arcade.register('yarn-smash', function (api) {
         if (dz < 1) return null;
         var k = F / dz, lx = (sx - CX) / k + camX + camS * dz - GX, ly = EYE - hy(GZ) + camHY + (HOR - sy) / k - GY;
         var gs = gscale();
-        for (var i = 0; i < guard.panels.length; i++) if (!guard.panels[i].broken && inPoly(guard.panels[i].pts, lx / gs, ly / gs)) return [lx, ly];
+        for (var i = 0; i < guard.panels.length; i++) if (!guard.panels[i].broken && inPoly(panelPts(guard.panels[i]), lx / gs, ly / gs)) return [lx, ly];
         return null;
     }
     function guardSmash(i, hx, hy, hz, ball) {
         var p = guard.panels[i], d = GDES[guard.key];
+        interrupt();
+        if (p.shield) { p.shield = 0; p.flash = 0.2; popAt(hx, hy, hz, [255, 210, 245], 1.6); api.sfx('pop'); return true; }  /* a bubble shield pops first */
         if (i !== guard.idx && !(ball && ball.big)) { p.flash = 0.45; puff(hx, hy, hz - 0.05, 6); api.sfx('move'); return false; }
         p.broken = true; guard.idx++;
         while (guard.idx < guard.n && guard.panels[guard.idx].broken) guard.idx++;
@@ -1780,6 +1978,12 @@ Arcade.register('yarn-smash', function (api) {
         if (guard.idx >= guard.n) {
             guard.state = 'dead'; guardPos(clock);
             burst(GX, GY, GZ, 1.4, 40, [rgba(d.c, 1).replace(/,1\)$/, ','), rgba(d.c2, 1).replace(/,1\)$/, ','), 'rgba(255,255,255,'], 1.5);
+            if (d.roc) {  /* the roc goes out with a thunderclap: wing shards both sides, rings of light */
+                burst(GX - 2.2, GY + 0.6, GZ, 0.9, 22, ['rgba(150,215,255,', 'rgba(255,240,170,', 'rgba(255,255,255,'], 1.8);
+                burst(GX + 2.2, GY + 0.6, GZ, 0.9, 22, ['rgba(150,215,255,', 'rgba(255,240,170,', 'rgba(255,255,255,'], 1.8);
+                popAt(GX, GY, GZ, [255, 255, 255], 4.5); popAt(GX, GY, GZ, [140, 210, 255], 6);
+                boltT = RM ? 0 : 0.35; api.sfx('hit');
+            }
             addYarn(3); points(150); popAt(GX, GY, GZ, d.c2, 3);
             say('Guardian shattered! +3 yarn', '#ffe08a'); chat('We beat the guardian!', 'wow', true); api.sfx('win');
             shake = Math.max(shake, RM ? 0 : 6);
@@ -1787,7 +1991,7 @@ Arcade.register('yarn-smash', function (api) {
         return true;
     }
 
-    /* ---------- gate challenges, mirrors, ricochets, crystal hearts, magnets, bubbles and medals ---------- */
+    /* ---------- gate challenges, mirrors, ricochets, crystal hearts, magnets, bubbles ---------- */
     var locks = [];
     function lockHit(ls) {
         if (ls.done) return;
@@ -1882,27 +2086,10 @@ Arcade.register('yarn-smash', function (api) {
             }
         }
     }
-    var MEDAL = ['', 'bronze', 'silver', 'gold'], MEDC = ['', '#f0b080', '#e2e8f0', '#ffd25c'];
-    var medalStore = (function () {             /* world key -> best medal 1, 2 or 3; anything else that was stored is dropped */
-        var o = null, out = {};
-        try { o = JSON.parse(localStorage.getItem('yarn-smash-medals')); } catch (e) { /* none kept */ }
-        ZONES.forEach(function (W) { var m = o && typeof o === 'object' ? o[W.key] : 0; if (m === 1 || m === 2 || m === 3) out[W.key] = m; });
-        return out;
-    })();
-    function award(zi) {  /* a world finished: gold with no crash and at most 3 misses, silver with at most 1 crash, else bronze */
-        var Z = ZONES[zi % NZ], m = worldCrash === 0 && worldMiss <= 3 ? 3 : worldCrash <= 1 ? 2 : 1, isNew = m > (medalStore[Z.key] || 0);
-        medalsRun.push({ name: Z.name, m: m, isNew: isNew });
-        if (isNew) { medalStore[Z.key] = m; try { localStorage.setItem('yarn-smash-medals', JSON.stringify(medalStore)); } catch (e) { /* not kept */ } }
-        say(MEDAL[m].charAt(0).toUpperCase() + MEDAL[m].slice(1) + ' medal: ' + Z.name + (isNew ? ' (new)' : ''), MEDC[m], banner.dur);
-        worldCrash = 0; worldMiss = 0;
-    }
     function endText(score) {
-        var Z = ZONES[curZi % NZ], acc = throwsN ? Math.round(100 * hitsN / throwsN) : 0, n = [0, 0, 0, 0];
-        ZONES.forEach(function (W) { n[medalStore[W.key] || 0]++; });
-        var mt = medalsRun.length ? 'Medals: ' + medalsRun.map(function (m) { return m.name + ' ' + MEDAL[m.m] + (m.isNew ? ' (new)' : ''); }).join(', ')
-                                  : 'No medal this run: finish a world to earn one';
+        var Z = ZONES[curZi % NZ], acc = throwsN ? Math.round(100 * hitsN / throwsN) : 0;
         return 'Out of yarn!\n' + Math.floor(camZ) + ' m run, world ' + (curZi % NZ + 1) + ': ' + Z.name + (curZi >= NZ ? ', lap ' + (Math.floor(curZi / NZ) + 1) : '') +
-               '\n' + acc + '% hits, best combo ' + bestStreak + '\n' + mt + '\nCollection: ' + n[3] + ' gold, ' + n[2] + ' silver, ' + n[1] + ' bronze of ' + NZ + ' worlds';
+               '\n' + acc + '% hits, best combo ' + bestStreak;
     }
 
     /* ---------- motes: drifting petals, spores, sparks, snow, embers or stars, depending on the world ---------- */
@@ -1933,6 +2120,8 @@ Arcade.register('yarn-smash', function (api) {
         if (slowT > 0) slowT -= rdt;
         if (bigT > 0) bigT -= rdt;
         if (magT > 0) magT -= rdt;
+        if (boltT > 0) boltT -= rdt;
+        if (freezeT > 0) freezeT -= rdt;
         if (ricoT > 0) ricoT -= rdt;
         if (rt - skinT > 1) { skinT = rt; readSkin(); }
         if (charge.id !== null) charge.v = clamp((rt - charge.t0 - 0.22) / 0.6, 0, 1);
@@ -1955,7 +2144,6 @@ Arcade.register('yarn-smash', function (api) {
         if (ZONES[zi % NZ].key === 'isles') vis = FAR - (FAR - 18) * Math.min(smooth((fu - 34) / 14), smooth((112 - fu) / 8));
         VISF = vis;
         if (zi !== curZi) {
-            if (curZi >= 0 && zi === curZi + 1 && phase === 'play') award(curZi);
             curZi = zi;
             banner.zi = zi; banner.t = 0; banner.dur = zi ? 2.6 : 4.4;
             if (zi > 0) { chat(ZONES[zi % NZ].chat, 'wow', true); api.sfx('win'); }
@@ -1994,7 +2182,7 @@ Arcade.register('yarn-smash', function (api) {
         }
         stepMotes(dt);
         if (!tips.charge && throwsN > 12 && toast.t > 2.2 && banner.t > banner.dur) { tips.charge = true; say(TIPS.charge, '#ffe08a'); }
-        stepGuard(dt); stepLocks(); stepHoming(dt); stepBubbles();
+        stepGuard(dt); stepLocks(); stepHoming(dt); stepBubbles(); stepCritters(); stepShots();
         for (i = 0; i < ents.length; i++) if (ents[i].flash) ents[i].flash = Math.max(0, ents[i].flash - rdt);
         for (i = rings.length - 1; i >= 0; i--) { rings[i].t += rdt; if (rings[i].t > 0.35) rings.splice(i, 1); }
         for (i = pops.length - 1; i >= 0; i--) { pops[i].t += rdt; if (pops[i].t > 0.32) pops.splice(i, 1); }
@@ -2433,6 +2621,147 @@ Arcade.register('yarn-smash', function (api) {
         });
         ctx.globalAlpha = 1;
     }
+    function drawCritter(e) {  /* small glass creatures, one design per world, with a soft halo so they read on phones */
+        critPos(e, clock);
+        if (!P(SX, SY, SZ)) return;
+        var C = CRIT[e.kind], dz = SZ - camZ, A = fade(dz), k = pk, x = px, y = py, t = clock * (RM ? 0.35 : 1) + e.ph, fl = Math.sin(t * 16), kd = e.kind;
+        if (k * C.r < 1.2) return;
+        if (kd === 'glow' || kd === 'clock') shadow(SX, SZ, C.r * 0.9, A * 0.3);
+        halo(x, y, Math.max(7, C.r * 2.7 * k), C.g, A * 0.55);
+        ctx.globalAlpha = A;
+        ctx.save(); ctx.translate(x, y); ctx.scale(k * 1.25, k * 1.25); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.lineWidth = Math.max(0.01, 1.1 / k); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.fillStyle = rgba(C.c, 0.62);
+        function eyes(ex, ey, r) { ctx.fillStyle = '#2a2140'; ctx.beginPath(); ctx.arc(-ex, ey, r, 0, TAU); ctx.arc(ex, ey, r, 0, TAU); ctx.fill(); }
+        if (kd === 'isles') {  /* a glass sparrow, wings beating */
+            for (var s = -1; s <= 1; s += 2) {
+                ctx.beginPath(); ctx.moveTo(s * 0.05, -0.02); ctx.quadraticCurveTo(s * 0.2, -0.13 - fl * 0.1, s * 0.33, -0.03 - fl * 0.17); ctx.lineTo(s * 0.08, 0.06); ctx.closePath();
+                ctx.fillStyle = rgba(C.c, 0.55); ctx.fill(); ctx.stroke();
+            }
+            ctx.fillStyle = rgba(C.c, 0.75); ctx.beginPath(); ctx.ellipse(0, 0.02, 0.1, 0.13, 0, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, -0.12, 0.07, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#ffb066'; ctx.beginPath(); ctx.moveTo(-0.025, -0.1); ctx.lineTo(0.025, -0.1); ctx.lineTo(0, -0.06); ctx.fill();
+            eyes(0.03, -0.13, 0.012);
+        } else if (kd === 'glow') {  /* a glass beetle with glowing spots */
+            ctx.strokeStyle = rgba(C.g, 0.9);
+            ctx.beginPath(); for (var l = -1; l <= 1; l++) { ctx.moveTo(-0.12, l * 0.06); ctx.lineTo(-0.22, l * 0.08 + 0.05); ctx.moveTo(0.12, l * 0.06); ctx.lineTo(0.22, l * 0.08 + 0.05); }
+            ctx.moveTo(-0.04, -0.12); ctx.lineTo(-0.1, -0.22); ctx.moveTo(0.04, -0.12); ctx.lineTo(0.1, -0.22); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.fillStyle = rgba(C.c, 0.6);
+            ctx.beginPath(); ctx.ellipse(0, 0, 0.16, 0.13, 0, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, -0.13); ctx.lineTo(0, 0.13); ctx.stroke();
+            ctx.fillStyle = '#ffffff'; [[-0.07, -0.03], [0.08, 0.02], [-0.05, 0.07], [0.06, -0.06]].forEach(function (p) { ctx.beginPath(); ctx.arc(p[0], p[1], 0.022, 0, TAU); ctx.fill(); });
+        } else if (kd === 'geode') {  /* a crystal bat */
+            ctx.beginPath(); ctx.moveTo(0, -0.05);
+            [[-0.12, -0.12], [-0.21, -0.03 - fl * 0.1], [-0.31, -0.15 - fl * 0.15], [-0.27, 0.04], [-0.17, 0], [-0.1, 0.08], [0, 0.04], [0.1, 0.08], [0.17, 0], [0.27, 0.04], [0.31, -0.15 - fl * 0.15], [0.21, -0.03 - fl * 0.1], [0.12, -0.12]]
+                .forEach(function (p) { ctx.lineTo(p[0], p[1]); });
+            ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = rgba(C.c, 0.85); ctx.beginPath(); ctx.moveTo(0, -0.13); ctx.lineTo(0.06, 0); ctx.lineTo(0, 0.1); ctx.lineTo(-0.06, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#fff6b0'; ctx.beginPath(); ctx.arc(-0.025, -0.04, 0.014, 0, TAU); ctx.arc(0.025, -0.04, 0.014, 0, TAU); ctx.fill();
+        } else if (kd === 'aurora') {  /* a frost wisp: a star of ice with a curl of light */
+            var a0 = t * 2.6;
+            for (var j = 3; j >= 1; j--) { ctx.fillStyle = rgba(C.g, 0.18 * (4 - j) / 3); ctx.beginPath(); ctx.arc(-Math.cos(a0 - j * 0.35) * 0.06 * j, -Math.sin(a0 - j * 0.35) * 0.06 * j, 0.1 - j * 0.015, 0, TAU); ctx.fill(); }
+            ctx.rotate(RM ? 0 : t * 1.5); ctx.fillStyle = rgba(C.c, 0.85); ctx.beginPath();
+            for (var q = 0; q < 8; q++) { var rr = q % 2 ? 0.05 : 0.17, b = q / 8 * TAU; ctx.lineTo(Math.cos(b) * rr, Math.sin(b) * rr); }
+            ctx.closePath(); ctx.fill(); ctx.stroke();
+        } else if (kd === 'clock') {  /* a wind-up glass mouse */
+            ctx.beginPath(); ctx.moveTo(0.12, 0.04); ctx.quadraticCurveTo(0.3, 0.02, 0.26, -0.1); ctx.strokeStyle = rgba(C.g, 0.9); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,255,255,.95)';
+            ctx.beginPath(); ctx.ellipse(0, 0, 0.16, 0.1, 0, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(-0.1, -0.09, 0.05, 0, TAU); ctx.arc(-0.02, -0.11, 0.05, 0, TAU); ctx.fill(); ctx.stroke();
+            var kw = Math.abs(Math.cos(t * 8)) * 0.07 + 0.01;
+            ctx.fillStyle = '#e0a24a'; ctx.fillRect(0.02, -0.17, 0.02, 0.07); ctx.beginPath(); ctx.ellipse(0.03, -0.19, kw, 0.035, 0, 0, TAU); ctx.fill();
+            eyes(0, 0, 0); ctx.fillStyle = '#2a2140'; ctx.beginPath(); ctx.arc(-0.11, -0.02, 0.016, 0, TAU); ctx.fill();
+        } else if (kd === 'wool') {  /* a glass bumblebee */
+            ctx.fillStyle = 'rgba(255,255,255,.5)';
+            var wy = 0.5 + 0.5 * Math.abs(fl);
+            ctx.beginPath(); ctx.ellipse(-0.08, -0.13, 0.07, 0.11 * wy, -0.5, 0, TAU); ctx.ellipse(0.08, -0.13, 0.07, 0.11 * wy, 0.5, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.save(); ctx.beginPath(); ctx.arc(0, 0, 0.13, 0, TAU); ctx.fillStyle = rgba(C.c, 0.75); ctx.fill(); ctx.clip();
+            ctx.fillStyle = 'rgba(255,150,206,.75)'; ctx.fillRect(-0.15, -0.03, 0.3, 0.04); ctx.fillRect(-0.15, 0.06, 0.3, 0.04);
+            ctx.restore(); ctx.beginPath(); ctx.arc(0, 0, 0.13, 0, TAU); ctx.stroke();
+            eyes(0.045, -0.06, 0.016);
+        } else {  /* a tiny glass drone with a blinking light */
+            ctx.fillStyle = rgba(C.g, 0.35); ctx.beginPath(); ctx.ellipse(0, 0.09, 0.08, 0.04, 0, 0, TAU); ctx.fill();
+            ctx.fillStyle = rgba(C.c, 0.6); ctx.beginPath(); ctx.ellipse(0, 0, 0.2, 0.07, 0, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = rgba(C.c, 0.8); ctx.beginPath(); ctx.arc(0, -0.03, 0.09, Math.PI, TAU); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = RM || Math.sin(t * 9) > 0 ? '#ff7bd5' : '#5a4a8a'; ctx.beginPath(); ctx.arc(0, 0.04, 0.025, 0, TAU); ctx.fill();
+        }
+        ctx.restore(); ctx.globalAlpha = 1;
+    }
+    function drawShot(e) {  /* guardian projectiles */
+        shotPos(e, clock);
+        if (!P(SX, SY, SZ)) return;
+        var x = px, y = py, k = pk, A = e.cling ? Math.min(1, (7 - (clock - e.clT)) / 0.8) : fade(SZ - camZ), r = SR * k, st = e.style, t = clock - e.t0;
+        if (st === 'orb') {  /* a crackling storm orb above a warning ring on the road */
+            if (P(SX, 0.02, SZ)) {
+                var mk = px, my = py, sq = clamp(EYE / Math.max(0.5, SZ - camZ), 0.1, 0.8), pu = RM ? 0.8 : 0.6 + 0.4 * Math.sin(clock * 10);
+                ctx.globalAlpha = A; ctx.strokeStyle = 'rgba(255,90,90,' + pu.toFixed(2) + ')'; ctx.lineWidth = Math.max(2, 0.06 * pk);
+                ctx.beginPath(); ctx.ellipse(mk, my, 0.75 * pk, 0.75 * pk * sq, 0, 0, TAU); ctx.stroke();
+                ctx.strokeStyle = 'rgba(200,230,255,.5)'; ctx.lineWidth = Math.max(1, 0.025 * k); ctx.beginPath(); ctx.moveTo(x, y);
+                for (var s = 1; s <= 5; s++) ctx.lineTo(x + (hash(Math.floor(clock * 12) + s) - 0.5) * 0.25 * k * (s < 5 ? 1 : 0), y + (my - y) * s / 5);
+                ctx.stroke();
+            }
+            halo(x, y, r * 3, [150, 210, 255], A * 0.8);
+            ctx.globalAlpha = A; ctx.fillStyle = '#eaf6ff'; ctx.beginPath(); ctx.arc(x, y, r * 0.55, 0, TAU); ctx.fill();
+        } else if (st === 'mote') {  /* glowing moth dust: small in flight, a big blur once it clings */
+            halo(x, y, e.cling ? r * 2.4 : r * 2.6, e.cling ? [190, 140, 255] : [120, 255, 220], A * (e.cling ? 0.85 : 0.75));
+            ctx.globalAlpha = A * (e.cling ? 0.55 : 1); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, r * (e.cling ? 0.22 : 0.4), 0, TAU); ctx.fill();
+        } else if (st === 'boulder') {  /* a spinning crystal boulder */
+            halo(x, y, r * 2, [190, 130, 255], A * 0.5);
+            ctx.globalAlpha = A; ctx.save(); ctx.translate(x, y); ctx.rotate(RM ? 0 : t * e.spin);
+            ctx.fillStyle = '#8a62d0'; ctx.beginPath();
+            for (var i = 0; i < 7; i++) { var a = i / 7 * TAU, rr = r * (0.8 + 0.25 * hash(i + 3)); ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#d6c2ff'; ctx.beginPath(); ctx.moveTo(-r * 0.4, -r * 0.3); ctx.lineTo(r * 0.1, -r * 0.7); ctx.lineTo(r * 0.3, -r * 0.1); ctx.closePath(); ctx.fill();
+            ctx.restore();
+        } else if (st === 'shard') {  /* an ice shard */
+            halo(x, y, r * 2.2, [160, 230, 255], A * 0.6);
+            ctx.globalAlpha = A; ctx.fillStyle = '#e8faff'; ctx.strokeStyle = '#8fd8ff'; ctx.lineWidth = Math.max(1, r * 0.12);
+            ctx.beginPath(); ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r * 0.45, y); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x - r * 0.45, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+        } else if (st === 'gear') {  /* a rolling gear wheel */
+            shadow(SX, SZ, SR, A * 0.3);
+            ctx.globalAlpha = A; ctx.save(); ctx.translate(x, y); ctx.rotate(RM ? 0 : -t * 7);
+            ctx.drawImage(SPR.gear(1).cv, -r, -r, 2 * r, 2 * r); ctx.restore();
+        } else {  /* a little soap bubble */
+            ctx.globalAlpha = A; ctx.strokeStyle = 'rgba(255,170,230,.8)'; ctx.lineWidth = Math.max(1, r * 0.1);
+            ctx.fillStyle = 'rgba(220,240,255,.18)'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(x - r * 0.35, y - r * 0.35, r * 0.15, 0, TAU); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
+    function drawAttack(ox, oy, k, d, A) {  /* the wind-up warning, the roc's dive marker, the ray's beam, the sheep's shields */
+        var a = guard.atk;
+        guard.panels.forEach(function (p) {
+            if (!p.shield || p.broken) return;
+            var q = panelPts(p), mx = 0, my = 0, n = q.length / 2, rr = 0;
+            for (var j = 0; j < q.length; j += 2) { mx += q[j] / n; my += q[j + 1] / n; }
+            for (j = 0; j < q.length; j += 2) rr = Math.max(rr, Math.sqrt((q[j] - mx) * (q[j] - mx) + (q[j + 1] - my) * (q[j + 1] - my)));
+            ctx.globalAlpha = A; ctx.fillStyle = 'rgba(220,240,255,.22)'; ctx.strokeStyle = 'rgba(255,170,230,.9)'; ctx.lineWidth = Math.max(2, 0.06 * k);
+            ctx.beginPath(); ctx.arc(ox + mx * k, oy - my * k, (rr + 0.15) * k, 0, TAU); ctx.fill(); ctx.stroke();
+        });
+        if (!a) return;
+        if (a.phase === 'tele') {
+            var u = a.t / a.dur, pu = RM ? 0.8 : 0.55 + 0.45 * Math.sin(clock * 18);
+            ctx.globalAlpha = A * pu; ctx.strokeStyle = 'rgba(255,110,90,.9)'; ctx.lineWidth = Math.max(3, 0.12 * k);
+            ctx.beginPath(); ctx.arc(ox, oy, (3.2 - u * 1.6) * k, 0, TAU); ctx.stroke();
+            halo(ox, oy, 2.2 * k, [255, 120, 90], A * 0.35 * u);
+        }
+        if (a.kind === 'dive' && P(camX, 0.02, camZ + 3)) {  /* where it will land */
+            ctx.globalAlpha = A * (RM ? 0.7 : 0.5 + 0.5 * Math.sin(clock * 14)); ctx.strokeStyle = '#ff5a5a'; ctx.lineWidth = Math.max(2, 0.07 * pk);
+            ctx.beginPath(); ctx.ellipse(px, py, 1.1 * pk, 1.1 * pk * clamp(EYE / 3, 0.1, 0.6), 0, 0, TAU); ctx.stroke();
+        }
+        if (a.kind === 'beam') {  /* a thin warning line, then the sweeping beam */
+            var sw = a.phase === 'tele' ? -2.6 : -2.6 + 5.2 * clamp(a.t / 1.6, 0, 1);
+            if (P(camX + sw, 0.02, camZ + 2.5)) {
+                ctx.lineCap = 'round';
+                if (a.phase === 'tele') { ctx.globalAlpha = A * 0.8; ctx.strokeStyle = 'rgba(255,90,120,.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(px, py); ctx.stroke(); }
+                else {
+                    ctx.globalAlpha = A; ctx.strokeStyle = 'rgba(255,120,220,.35)'; ctx.lineWidth = Math.max(10, 0.5 * k); ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(px, py); ctx.stroke();
+                    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(3, 0.12 * k); ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(px, py); ctx.stroke();
+                    halo(px, py, 0.9 * pk, [255, 140, 230], A * 0.8);
+                }
+            }
+        }
+        ctx.globalAlpha = 1;
+    }
     var GUARDITEM = { type: 'guard', z: 0 };
     function drawGuard() {
         guardPos(clock);
@@ -2440,31 +2769,80 @@ Arcade.register('yarn-smash', function (api) {
         var d = GDES[guard.key], k = pk * gscale(), ox = px, oy = py, f = fogf(GZ - camZ) * 0.5;
         var A = fade(GZ - camZ) * (guard.state === 'dead' ? Math.max(0, 1 - guard.dead / 1.1) : 1);
         function path(p) { ctx.beginPath(); for (var i = 0; i < p.length; i += 2) { var X = ox + p[i] * k, Y = oy - p[i + 1] * k; if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); } }
+        if (guard.state === 'dead') {  /* a shock ring as it shatters */
+            ctx.globalAlpha = Math.max(0, 1 - guard.dead / 1.1); ctx.strokeStyle = rgba(d.c2, 0.8); ctx.lineWidth = Math.max(2, 0.12 * k);
+            ctx.beginPath(); ctx.arc(ox, oy, (0.5 + guard.dead * 4) * k, 0, TAU); ctx.stroke();
+        }
+        if (d.roc) {  /* the roc rides a little storm cloud of its own */
+            for (var sc = 0; sc < 7; sc++) {
+                var sa = sc / 7 * TAU + (RM ? 0 : clock * 0.4), sr = 1.5 + 0.4 * Math.sin(sc * 2.3);
+                halo(ox + Math.cos(sa) * sr * k, oy - (Math.sin(sa) * sr * 0.55 + 0.3) * k, 1.5 * k, [52, 58, 120], A * 0.42);
+            }
+        }
         halo(ox, oy, 3.4 * k, d.c, A * 0.42);
         ctx.globalAlpha = A; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
         if (d.body) { path(d.body); ctx.closePath(); ctx.fillStyle = mixa([44, 30, 74], FOG, f, 0.8); ctx.fill(); }
         ctx.strokeStyle = mixa(d.c, FOG, f, 0.9); ctx.lineWidth = Math.max(1.5, Math.min(10, 0.07 * k));
         d.lines.forEach(function (l) { path(l); ctx.stroke(); });
         var gr = ctx.createLinearGradient(ox - 2 * k, oy - 2 * k, ox + 2 * k, oy + 2 * k);
-        gr.addColorStop(0, rgba(d.c2, 0.6)); gr.addColorStop(0.45, rgba(d.c, 0.28)); gr.addColorStop(0.55, 'rgba(255,255,255,.5)'); gr.addColorStop(1, rgba(d.c, 0.45));
+        if (d.roc) { gr.addColorStop(0, rgba(d.c, 0.75)); gr.addColorStop(0.45, rgba([70, 120, 230], 0.55)); gr.addColorStop(0.55, 'rgba(255,255,255,.7)'); gr.addColorStop(1, rgba(d.c, 0.7)); }
+        else gr.addColorStop(0, rgba(d.c2, 0.6));
+        if (!d.roc) { gr.addColorStop(0.45, rgba(d.c, 0.28)); gr.addColorStop(0.55, 'rgba(255,255,255,.5)'); gr.addColorStop(1, rgba(d.c, 0.45)); }
         guard.panels.forEach(function (p, i) {
             if (p.broken) return;
             var act = i === guard.idx && guard.state !== 'dead';
-            path(p.pts); ctx.closePath();
+            var pts = panelPts(p);
+            path(pts); ctx.closePath();
             ctx.globalAlpha = A; ctx.fillStyle = gr; ctx.fill();
+            if (p.flap) {  /* feathers across a beating wing */
+                ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = Math.max(1, Math.min(4, 0.03 * k)); ctx.beginPath();
+                for (var fq = 4; fq < pts.length - 2; fq += 2) { ctx.moveTo(ox + pts[0] * k, oy - pts[1] * k); ctx.lineTo(ox + pts[fq] * k, oy - pts[fq + 1] * k); }
+                ctx.stroke(); path(pts); ctx.closePath();
+            }
             if (p.flash > 0) { ctx.fillStyle = 'rgba(255,80,110,' + Math.min(0.6, p.flash * 1.4).toFixed(2) + ')'; ctx.fill(); }
             if (act) {
                 var pu = RM ? 0.85 : 0.6 + 0.4 * Math.sin(clock * 7);
                 ctx.strokeStyle = rgba(d.c2, 0.5 * pu); ctx.lineWidth = Math.max(4, Math.min(30, 0.34 * k)); ctx.stroke();
                 ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(2, Math.min(8, 0.07 * k)); ctx.stroke();
-                var mx = 0, my = 0, n = p.pts.length / 2;
-                for (var j = 0; j < p.pts.length; j += 2) { mx += p.pts[j] / n; my += p.pts[j + 1] / n; }
+                var mx = 0, my = 0, n = pts.length / 2;
+                for (var j = 0; j < pts.length; j += 2) { mx += pts[j] / n; my += pts[j + 1] / n; }
                 var an = RM ? 0 : clock * 3;
                 halo(ox + (mx + Math.cos(an) * 0.35) * k, oy - (my + Math.sin(an) * 0.35) * k, 0.2 * k, [255, 255, 255], A);
                 ctx.globalAlpha = A;
             } else { ctx.strokeStyle = rgba(d.c, 0.3); ctx.lineWidth = Math.max(3, Math.min(16, 0.16 * k)); ctx.stroke(); ctx.strokeStyle = rgba(d.c, 0.95); ctx.lineWidth = Math.max(1.5, Math.min(8, 0.05 * k)); ctx.stroke(); }
         });
-        d.eyes.forEach(function (eY) { halo(ox + eY[0] * k, oy - eY[1] * k, 0.16 * k, d.c2, A); });
+        d.eyes.forEach(function (eY) { halo(ox + eY[0] * k, oy - eY[1] * k, (d.roc ? 0.22 : 0.16) * k, d.c2, A); });
+        if (guard.state !== 'dead') drawAttack(ox, oy, k, d, A);
+        if (d.roc) {  /* a golden hooked beak */
+            ctx.globalAlpha = A; ctx.fillStyle = '#ffcf5a';
+            ctx.beginPath(); ctx.moveTo(ox - 0.09 * k, oy - 0.92 * k); ctx.lineTo(ox + 0.09 * k, oy - 0.92 * k); ctx.quadraticCurveTo(ox + 0.04 * k, oy - 0.72 * k, ox, oy - 0.66 * k); ctx.closePath(); ctx.fill();
+        }
+        if (d.roc && guard.state !== 'dead') {  /* a glowing core, and lightning crackling between the unbroken panels */
+            var cs = [], core = [0, 0];
+            guard.panels.forEach(function (p) {
+                if (p.broken) return;
+                var q = panelPts(p), mx = 0, my = 0, n = q.length / 2;
+                for (var j = 0; j < q.length; j += 2) { mx += q[j] / n; my += q[j + 1] / n; }
+                cs.push([mx, my]);
+            });
+            halo(ox, oy, (0.7 + 0.15 * Math.sin(clock * 6)) * k, [255, 240, 160], A * 0.85);
+            var seed = RM ? 1 : Math.floor(clock * 14);
+            ctx.lineJoin = 'miter';
+            for (var b = 0; b < 2; b++) {
+                ctx.strokeStyle = b ? 'rgba(255,255,255,' + (RM ? 0.5 : 0.95) + ')' : rgba([150, 210, 255], RM ? 0.25 : 0.45);
+                ctx.lineWidth = b ? Math.max(1, 0.03 * k) : Math.max(3, 0.12 * k);
+                ctx.beginPath();
+                cs.forEach(function (c, ci) {
+                    if (Math.abs(c[0]) < 0.4 && Math.abs(c[1]) < 0.4) return;
+                    ctx.moveTo(ox + core[0] * k, oy - core[1] * k);
+                    for (var s2 = 1; s2 <= 6; s2++) {
+                        var u = s2 / 6, jx = s2 < 6 ? (hash(seed + ci * 7 + s2) - 0.5) * 0.35 : 0, jy = s2 < 6 ? (hash(seed * 1.3 + ci * 5 + s2) - 0.5) * 0.35 : 0;
+                        ctx.lineTo(ox + (c[0] * u + jx) * k, oy - (c[1] * u + jy) * k);
+                    }
+                });
+                ctx.stroke();
+            }
+        }
         ctx.globalAlpha = 1;
     }
 
@@ -2483,6 +2861,8 @@ Arcade.register('yarn-smash', function (api) {
         else if (t === 'mirror') drawMirror(e);
         else if (t === 'guard') { if (guard) drawGuard(); }
         else if (t === 'bubble') { if (!e.broken) drawBubble(e); }
+        else if (t === 'critter') { if (!e.broken) drawCritter(e); }
+        else if (t === 'shot') { if (!e.broken) drawShot(e); }
         else if (!e.broken) { if (t === 'crystal') drawCrystal(e); else if (t === 'dot') drawDot(e); else if (t === 'power') drawPower(e); }
         ctx.globalAlpha = 1;
     }
@@ -2656,6 +3036,7 @@ Arcade.register('yarn-smash', function (api) {
         ctx.drawImage(vignette, 0, 0, W, H);
         if (slowT > 0) { ctx.fillStyle = 'rgba(120,170,255,' + (0.12 * Math.min(1, slowT)).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
         if (bigT > 0) { ctx.fillStyle = 'rgba(190,140,255,' + (0.06 * Math.min(1, bigT)).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+        if (boltT > 0) { ctx.fillStyle = 'rgba(235,245,255,' + (boltT * 1.2).toFixed(2) + ')'; ctx.fillRect(0, 0, W, H); }
         if (flash > 0) { ctx.fillStyle = 'rgba(255,150,170,' + (flash * 0.3).toFixed(2) + ')'; ctx.fillRect(0, 0, W, H); }
     }
     function draw() {
@@ -2690,6 +3071,11 @@ Arcade.register('yarn-smash', function (api) {
         var bob = RM ? 0 : Math.sin(runPh) * PAW * 0.08 * Math.min(1, speed / 4), wind = charge.v * PAW * 0.45;
         drawPaw(W * 0.24, H - PAW * 0.3 - paws[0] * PAW * 1.1 + bob + wind, PAW, paws[0]);
         drawPaw(W * 0.76, H - PAW * 0.3 - paws[1] * PAW * 1.1 - bob + wind, PAW, paws[1]);
+        if (freezeT > 0) {  /* a frozen paw: a cap of ice on the left paw */
+            var fx = W * 0.24, fy = H - PAW * 0.3 - paws[0] * PAW * 1.1 + bob + wind;
+            ctx.globalAlpha = Math.min(1, freezeT) * 0.75; ctx.fillStyle = 'rgba(190,235,255,.85)'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.ellipse(fx, fy - PAW * 0.1, PAW * 1.05, PAW * 0.95, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.globalAlpha = 1;
+        }
         if (charge.id !== null && rt - charge.t0 > 0.22) {  /* the charge, a thin bar at the very bottom between the paws */
             var bw = Math.min(150, W * 0.3), bx0 = CX - bw / 2, by0 = H - 12, full = charge.v >= 1;
             ctx.fillStyle = 'rgba(20,14,42,.55)'; rrect(bx0 - 3, by0 - 3, bw + 6, 9, 4.5); ctx.fill();
