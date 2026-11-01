@@ -23,7 +23,7 @@ In this assignment, we were tasked with developing an activity recognition syste
 - [Interactive Python Notebook - Notebook 2](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/tree/master/_pages/projects/Master-Semester2/machine_learning/2.%20All%20Trainings%20(Questions%201%2C%202%20and%203)/Notebook_2.ipynb) (greek)
 - [Interactive Python Notebook - Notebook 3](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/tree/master/_pages/projects/Master-Semester2/machine_learning/3.%20Questions%204%20and%205/Notebook_3.ipynb) (greek)
 - [Interactive Python Notebook - Notebook 4](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/tree/master/_pages/projects/Master-Semester2/machine_learning/4.%20Optional%20(Question%206)/Notebook_4.ipynb) (greek)
-- The corresponding .csv files are included in the repository, in the respective folders. 
+- Our processed .csv files are in the respective folders. The raw sensor data (ten files of about 31 MB) is not included: it is the public smartphone activity dataset of Shoaib et al. (University of Twente, 2014), available from the [Pervasive Systems datasets page](https://www.utwente.nl/en/eemcs/ps/research/dataset/); see [DATASET.md](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/tree/master/_pages/projects/Master-Semester2/machine_learning/1.%20Preprocessing%20and%20Feature%20Extraction/DATASET.md).
 
 ## ❖ Keywords
 
