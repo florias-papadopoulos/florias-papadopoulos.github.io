@@ -2625,8 +2625,8 @@ function kart(api, duo) {
     var FAIL = {
         nocode: ['Code not found', 'There is no race with that code, or it has expired (codes last two minutes). Check the letters, or ask your friend for a new code.'],
         taken: ['That race is taken', 'Someone already joined with this code. Ask your friend for a new one.'],
-        direct: ['Could not connect', 'Your two devices could not reach each other, not even through the relay. Check that both are online, ' +
-            'turn off any VPN, and try again.'],
+        direct: ['Could not connect', 'Your two devices could not reach each other directly. Racing works best with both on the same ' +
+            'home wifi; a phone\'s hotspot, two mobile networks, VPNs and some university, hotel or café networks keep devices apart.'],
         server: ['Could not reach the server', 'Check your internet connection and try again.'],
         full: ['Too many races right now', 'Please try again in a minute.'],
         none: ['Not available here', 'Racing a friend needs the site\'s small server, which this copy of the site does not have.'],

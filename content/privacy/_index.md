@@ -14,7 +14,7 @@ short:
   - "A visit counter keeps **daily totals** of five things (page, referring site, device type, browser family, country). No IP addresses, nothing about any one visitor."
   - "If your browser sends Do Not Track or Global Privacy Control, your visits are not counted at all."
   - "Your settings and game scores stay in your browser."
-  - "The two-player game passes two devices' connection details (with their IP addresses) on between them and deletes them within two minutes. The race itself runs directly between the two devices, or, when they cannot reach each other, encrypted through Cloudflare's relay."
+  - "The two-player game passes two devices' connection details (with their IP addresses) on between them and deletes them within two minutes. The race itself runs directly between the two devices."
 ---
 
 ## Who runs this site
@@ -44,8 +44,6 @@ Only these daily totals are kept. There are no cookies, no IP addresses are stor
 In Kitty Kart Duo on the [Games](/games/) page, two people race each other from their own phones or computers. To find each other, each of the two devices sends one short connection message, which contains its network addresses, including its IP address. The counter on Cloudflare holds the two messages under a four letter code only to pass them on: it deletes them as soon as the host's device has picked up the answer, and at the latest after two minutes. It stores nothing else and logs nothing. To learn its own public address, each device also asks Cloudflare's STUN service, which sees that request like any other connection.
 
 After that the two devices talk directly, and nothing about the race goes through a server. As with any direct connection, each of the two devices sees the other's IP address, so race with people you are happy to share that with.
-
-Some networks keep two devices from reaching each other directly, for example a phone's hotspot, two different mobile networks, or a strict wifi. Then the race goes through Cloudflare's relay service (TURN) instead: for this, the counter gives each device a relay password that expires after two hours, and Cloudflare passes the race data between the two devices. That data is encrypted between the two devices, so the relay cannot read it; like any server, it sees the two devices' IP addresses while it passes the data on. The counter only counts how many relay passwords it hands out each day, to cap them, and keeps nothing else.
 
 ## The page "What this site knows about you"
 
