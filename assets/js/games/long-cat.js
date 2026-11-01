@@ -1,9 +1,9 @@
-/* Long Cat (game id yarn-trail): a cat walks a grid and eats fish, and every fish makes it longer: head in front,
+/* Long Cat: a cat walks a grid and eats fish, and every fish makes it longer: head in front,
    a striped furry body behind, back paws and a swishing tail at the end.
    Bumping into its own body, a houseplant or the wall ends the walk. Bonuses: golden fish (+3, gone after a few seconds),
    a mouse that runs away (+5) and catnip (slow motion, walk through yourself). Easy: the walls wrap around and there
    are no plants; hard: faster, more plants, a quicker mouse. Uses the shell API of assets/js/games/arcade.js. */
-Arcade.register('yarn-trail', function (api) {
+Arcade.register('long-cat', function (api) {
     'use strict';
     api.css(
         '.yt { position: absolute; inset: 0; }' +

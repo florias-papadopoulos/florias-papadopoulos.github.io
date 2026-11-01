@@ -5,7 +5,7 @@ layout: arcade
 # Each game is assets/js/games/<id>.js (loaded only when opened). group: simple or complex (the two sections of the page).
 # levels: true shows the Easy/Normal/Hard picker while playing (the game reads it with api.level()).
 games:
-  - { id: yarn-trail,     title: "Long Cat",            emoji: "🐈", desc: "Eat fish, grow the longest cat, don't trip over your own tail.", group: simple, levels: true }
+  - { id: long-cat,       title: "Long Cat",            emoji: "🐈", desc: "Eat fish, grow the longest cat, don't trip over your own tail.", group: simple, levels: true }
   - { id: whack-a-mouse,  title: "Whack-a-Mouse",       emoji: "🐭", desc: "Tap the mice before they hide.", group: simple, levels: true }
   - { id: paw-pairs,      title: "Paw Pairs",           emoji: "🃏",  desc: "Flip cards, find the matching cats.", group: simple, levels: true }
   - { id: four-in-a-row,  title: "Four in a Row",       emoji: "🔴",  desc: "Line up four, or five, paws before the cat does.", group: simple, levels: true }

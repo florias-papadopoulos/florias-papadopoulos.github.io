@@ -50,6 +50,16 @@
     }
     var bests = store('arcade-best') || {};
     var levels = store('arcade-level') || {};
+    /* games that were renamed: old links still open them, and their saved bests and levels move along */
+    var RENAMED = { 'yarn-trail': 'long-cat' };
+    Object.keys(RENAMED).forEach(function (old) {
+        var now = RENAMED[old], moved = false;
+        Object.keys(bests).forEach(function (k) {
+            if (k === old || k.indexOf(old + '/') === 0) { var nk = now + k.slice(old.length); if (!(nk in bests)) bests[nk] = bests[k]; delete bests[k]; moved = true; }
+        });
+        if (old in levels) { if (!(now in levels)) levels[now] = levels[old]; delete levels[old]; moved = true; }
+        if (moved) { store('arcade-best', bests); store('arcade-level', levels); }
+    });
     var levelPick = stage.querySelector('.stage-level');
     function levelOf(id) { return byId[id] && byId[id].levels && levels[id] || 'normal'; }
     function bestKey(id) { var l = levelOf(id); return l === 'normal' ? id : id + '/' + l; }   /* normal: the old key */
@@ -270,6 +280,7 @@
     }
     function route() {
         var m = /^#play\/([\w-]+)$/.exec(location.hash);
+        if (m && RENAMED[m[1]]) { history.replaceState(null, '', '#play/' + RENAMED[m[1]]); m[1] = RENAMED[m[1]]; }
         if (m) open(m[1]); else close();
     }
     Array.prototype.forEach.call(root.querySelectorAll('.game-card'), function (c) {
