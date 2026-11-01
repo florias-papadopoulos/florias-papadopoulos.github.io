@@ -2625,8 +2625,8 @@ function kart(api, duo) {
     var FAIL = {
         nocode: ['Code not found', 'There is no race with that code, or it has expired (codes last two minutes). Check the letters, or ask your friend for a new code.'],
         taken: ['That race is taken', 'Someone already joined with this code. Ask your friend for a new one.'],
-        direct: ['Could not connect', 'Your two devices could not reach each other directly. Try both on the same wifi, or let one phone share its hotspot. ' +
-            'Some university, hotel or café networks keep devices from talking to each other.'],
+        direct: ['Could not connect', 'Your two devices could not reach each other, not even through the relay. Check that both are online, ' +
+            'turn off any VPN, and try again.'],
         server: ['Could not reach the server', 'Check your internet connection and try again.'],
         full: ['Too many races right now', 'Please try again in a minute.'],
         none: ['Not available here', 'Racing a friend needs the site\'s small server, which this copy of the site does not have.'],
@@ -2787,8 +2787,20 @@ function kart(api, duo) {
         roomCode = null;
         try { fetch(SERVER + '/room/' + c + '/close', { method: 'POST', keepalive: true, cache: 'no-store', credentials: 'omit' }).catch(function () {}); } catch (e) { /* offline */ }
     }
-    function peer() {
-        var p = new RTCPeerConnection({ iceServers: ICE }), g = gen;
+    /* the ICE servers from the counter: STUN, plus a relay (TURN) for when the two devices cannot reach each other
+       directly (a phone hotspot, two mobile networks, a strict wifi); just STUN if the counter does not answer in 4 s */
+    function iceServers() {
+        return new Promise(function (done) {
+            var over = false;
+            function end(list) { if (!over) { over = true; done(list); } }
+            api.timeout(function () { end(ICE); }, 4000);
+            ask('GET', '/turn').then(function (r) {
+                end(r.status === 200 && Array.isArray(r.data.iceServers) && r.data.iceServers.length ? r.data.iceServers : ICE);
+            }, function () { end(ICE); });
+        });
+    }
+    function peer(ice) {
+        var p = new RTCPeerConnection({ iceServers: ice || ICE }), g = gen;
         fast = p.createDataChannel('fast', { negotiated: true, id: 0, ordered: false, maxRetransmits: 0 });
         sure = p.createDataChannel('sure', { negotiated: true, id: 1 });
         fast.onmessage = function (e) { if (g === gen) { heard = performance.now(); onFast(e.data); } };
@@ -2811,9 +2823,12 @@ function kart(api, duo) {
         var g = gen;
         role = 'host';
         msg('Getting a code', 'One moment…', [['Cancel', menu]]);
-        pc = peer();
-        pc.createOffer().then(function (o) { return pc.setLocalDescription(o); })
-            .then(function () { return gathered(pc); })
+        iceServers().then(function (ice) {
+            if (g !== gen) return null;
+            pc = peer(ice);
+            return pc.createOffer();
+        }).then(function (o) { return o ? pc.setLocalDescription(o) : null; })
+            .then(function () { return g === gen ? gathered(pc) : null; })
             .then(function () { return g === gen ? ask('POST', '/room', { offer: pc.localDescription.sdp }) : null; })
             .then(function (r) {
                 if (!r || g !== gen) return;
@@ -2848,10 +2863,11 @@ function kart(api, duo) {
         var g = gen;
         role = 'guest';
         msg('Joining', 'Looking for the race…', [['Cancel', joinScreen]]);
-        ask('GET', '/room/' + c).then(function (r) {
+        Promise.all([ask('GET', '/room/' + c), iceServers()]).then(function (both) {
+            var r = both[0];
             if (g !== gen) return null;
             if (r.status !== 200 || typeof r.data.offer !== 'string') { fail(r.status === 404 ? 'nocode' : 'server'); return null; }
-            pc = peer();
+            pc = peer(both[1]);
             return pc.setRemoteDescription({ type: 'offer', sdp: r.data.offer })
                 .then(function () { return pc.createAnswer(); })
                 .then(function (a) { return pc.setLocalDescription(a); })
