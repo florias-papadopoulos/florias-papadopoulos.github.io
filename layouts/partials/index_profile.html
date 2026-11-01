@@ -1,6 +1,8 @@
 {{- /* Home page (content in config.yml, profileMode): hero, tagline, route from the first stop to now,
-       latest news, links. The cat and its research lab around the page: layouts/partials/cat.html */ -}}
+       latest news, the latest LinkedIn posts (only when there are some), links. The cat and its research lab
+       around the page: layouts/partials/cat.html */ -}}
 {{- $projects := where site.RegularPages "Section" "projects" }}
+{{- $linkedin := site.Params.profileMode.linkedin }}
 {{- with site.Params.profileMode }}
 <div class="profile home" id="home">
     <div class="profile_inner home-panel">
@@ -76,6 +78,10 @@
         </div>
         {{- end }}
 
+        {{- /* with LinkedIn posts, the news and the posts share a row (layouts/partials/linkedin.html) */ -}}
+        {{- if $linkedin }}
+        <div class="feeds">
+        {{- end }}
         {{- with .news }}
         <section class="news" aria-label="Latest news">
             <h2 class="news-head">Latest news</h2>
@@ -92,6 +98,10 @@
                 {{- end }}
             </ul>
         </section>
+        {{- end }}
+        {{- with $linkedin }}
+        {{ partial "linkedin.html" . }}
+        </div>
         {{- end }}
 
         <div class="links">

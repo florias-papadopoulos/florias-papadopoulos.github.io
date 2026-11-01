@@ -109,6 +109,43 @@ params:
       - date: "2026"
         text: "New paper at **ACM ASIA CCS 2026**: Privacy-preserving Proximity Testing from Geometric Fuzzy Matching"
         url: https://dl.acm.org/doi/10.1145/3779208.3785374
+    # Latest LinkedIn posts on the home page, newest first; nothing is shown while the list is empty ([]).
+    # One post at a time with arrows and dots: a card in the right margin on wide screens, next to the news on
+    # smaller ones, below it on phones. Each post:
+    #   date:  shown as written, e.g. "28 Oct 2026"
+    #   text:  a short excerpt (about two sentences), may use **bold**
+    #   image: optional, a picture under static/, e.g. img/linkedin/my-post.jpg (shown 16:9, cropped to fill)
+    #   alt:   optional, describes the picture (default: the start of the text)
+    #   url:   the link to the post (Share > Copy link on LinkedIn)
+    # tools/linkedin_post.py URL [URL ...] fetches a public post's text and picture and prints such an entry
+    # (--write adds it here). linkedinUrl is the "All posts" link (default: the LinkedIn entry of socialIcons).
+    linkedin:
+      - date: "Sep 2026"
+        text: "Short talk at **Swiss Crypto Day 2026**, ETH Zürich: around 150 people in the room, my biggest audience so far."
+        image: img/linkedin/swiss-crypto-day.jpg
+        alt: "Giving a talk in a lecture hall at ETH Zürich"
+        url: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_cydfellowship-share-7505560149105856512-eSYg/
+      - date: "Sep 2026"
+        text: "One summer, four stops: talks on proximity testing in Germany, Switzerland and Italy."
+        image: img/linkedin/summer-four-stops.jpg
+        alt: "Short talk at the ALPEC 2026 summer school in Trento"
+        url: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_really-enjoyed-all-four-of-these-new-topics-ugcPost-7504106199747923969-pcNe/
+      - date: "Jun 2026"
+        text: "Presented our paper **Privacy-preserving Proximity Testing from Geometric Fuzzy Matching** at ACM AsiaCCS '26 in Bangalore."
+        image: img/linkedin/asiaccs-talk.jpg
+        alt: "Presenting the paper at ACM AsiaCCS 2026"
+        url: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_cydfellowship-acmasiaccs2026-asiaccs2026-ugcPost-7469375426713526272-uBmJ/
+      - date: "Jun 2026"
+        text: "HSG features the focus of my **CYD Fellowship**: privacy-preserving primitives for proximity tracking and collision avoidance."
+        image: img/linkedin/hsg-feature.jpg
+        alt: "Working on a drone in the lab with colleagues"
+        url: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_cydfellowship-share-7467521422588903424-AMZY/
+      - date: "Dec 2025"
+        text: "Hosted high school students at HSG: the Enigma machine and a first look at cybersecurity."
+        image: img/linkedin/enigma-students.jpg
+        alt: "High school students at an Enigma machine session at HSG"
+        url: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_great-to-host-high-school-students-and-see-ugcPost-7406977583768035328-zYWJ/
+    linkedinUrl: https://www.linkedin.com/in/florias-papadopoulos-b035ab233
     imageUrl: my_profile_square.jpg
     imageTitle: Florias Papadopoulos
     imageWidth: 168
