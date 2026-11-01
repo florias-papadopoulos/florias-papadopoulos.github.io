@@ -1,12 +1,19 @@
-/* Four in a Row: drop your paws into a 7 x 6 board, connect four before the cat's fish do. Rounds go on until the
-   cat has won three of them; score = your round wins. Easy: the cat looks two moves ahead, is often distracted and
-   you may take back two moves a round; normal: four moves ahead; hard: alpha-beta search with iterative deepening,
-   a transposition table and forced-move extensions under a 300 ms budget (about ten moves ahead on a laptop). */
-Arcade.register('four-in-a-row', function (api) {
+/* Four in a Row: drop your paws into the board, connect four (7 x 6 board) or, in the five mode, five (9 x 7 board)
+   before the cat's fish do. The mode toggle above the board is remembered and starts a fresh run. Rounds go on until
+   the cat has won three of them; score = your round wins (one best per difficulty, shared by both modes).
+   Easy: the cat looks two moves ahead, is often distracted and you may take back two moves a round; normal: four
+   moves ahead; hard: alpha-beta search with iterative deepening, a transposition table and forced-move extensions
+   under a 300 ms budget (about ten moves ahead on a laptop in the four mode). */
+Arcade.register('four-in-a-row', function fr(api) {
     'use strict';
     api.css(
         '.fr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }' +
         '.fr-head { display: flex; flex-direction: column; align-items: center; gap: 8px; }' +
+        '.fr-mode { display: flex; padding: 3px; border-radius: 999px; background: #e7eefb; box-shadow: inset 0 1px 2px rgba(30, 58, 138, .12); }' +
+        '.fr-mode button { padding: 4px 13px; border: none; border-radius: 999px; background: none; color: #5b6b86; font: inherit; font-size: .84rem;' +
+        '  font-weight: 700; cursor: pointer; transition: background-color .15s, color .15s; }' +
+        '.fr-mode button[aria-pressed="true"] { background: #fff; color: #1e3a8a; box-shadow: 0 2px 0 #c9d7f2; cursor: default; }' +
+        '.fr-mode button:focus-visible { outline: 3px solid #f6a23a; outline-offset: 1px; }' +
         '.fr-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }' +
         '.fr-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px 3px 4px; border-radius: 999px; background: #fff;' +
         '  box-shadow: 0 2px 0 #e9dfcf; color: #475569; font-size: .88rem; font-weight: 700; font-variant-numeric: tabular-nums; }' +
@@ -20,7 +27,7 @@ Arcade.register('four-in-a-row', function (api) {
         '.fr-turn { min-height: 1.3em; font-weight: 700; color: #475569; }' +
         '.fr-play { position: relative; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }' +
         '.fr-aim { position: relative; height: var(--cs); }' +
-        '.fr-board { position: relative; display: grid; grid-template-columns: repeat(7, var(--cs)); grid-auto-rows: var(--cs);' +
+        '.fr-board { position: relative; display: grid; grid-template-columns: repeat(var(--cols), var(--cs)); grid-auto-rows: var(--cs);' +
         '  padding: var(--pad); border-radius: calc(var(--cs) * .34); background: linear-gradient(170deg, #b9d0f6, #9dbcef);' +
         '  box-shadow: 0 7px 0 #7fa2e2, 0 18px 34px rgba(30, 58, 138, .16), inset 0 2px 0 rgba(255, 255, 255, .55); }' +
         '.fr-hole { margin: calc(var(--off) - 1px); border-radius: 50%; background: #f7f4ee; box-shadow: inset 0 4px 0 #d6e0f2, inset 0 -1px 0 #fff; }' +
@@ -47,27 +54,38 @@ Arcade.register('four-in-a-row', function (api) {
         '@keyframes fr-bit { 55% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 1; }' +
         '  100% { transform: translate(var(--x), calc(var(--y) + 110px)) rotate(var(--r)); opacity: 0; } }');
 
-    var COLS = 7, ROWS = 6, YOU = 1, CAT = 2, WIN = 1000000, LIVES = 3;
+    var MODES = {                                 /* columns, rows, discs in a row, weights of an open line with 0, 1, 2, ... discs */
+        four: { cols: 7, rows: 6, n: 4, name: 'Four', w: [0, 1, 8, 50, 1000] },
+        five: { cols: 9, rows: 7, n: 5, name: 'Five', w: [0, 1, 4, 20, 90, 1000] }
+    };
+    var mode = fr.mode || 'four';                 /* kept on the factory too, in case localStorage is not available */
+    try { mode = localStorage.getItem('arcade-fr-mode') || mode; } catch (e) { /* private mode: keep the factory's */ }
+    if (!MODES[mode]) mode = 'four';
+    var M = MODES[mode], COLS = M.cols, ROWS = M.rows, N = M.n;
+    var YOU = 1, CAT = 2, WIN = 1000000, LIVES = 3;
     var level = api.level();
     var CFG = {                                   /* search depth, time budget (ms), chance of a random move, undos per round */
         easy: { depth: 2, ms: 60, mistake: 0.4, undo: 2 },
         normal: { depth: 4, ms: 150, mistake: 0.05, undo: 0 },
-        hard: { depth: 42, ms: 300, mistake: 0, undo: 0 }
+        hard: { depth: 63, ms: 300, mistake: 0, undo: 0 }
     }[level];
-    var ORDER = [3, 2, 4, 1, 5, 0, 6];            /* centre first: better moves first, more pruning */
+    var MID = (COLS - 1) / 2, ORDER = [];         /* centre first: better moves first, more pruning */
+    for (var k = 0; k < COLS; k++) ORDER.push(k);
+    ORDER.sort(function (a, b) { return Math.abs(a - MID) - Math.abs(b - MID) || a - b; });
     var ART = [0,                                 /* indexed by player: paw print, fish */
         '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="25" rx="7.5" ry="6.5"/><circle cx="11" cy="17" r="3.2"/>' +
         '<circle cx="16.5" cy="11.5" r="3.2"/><circle cx="23.5" cy="11.5" r="3.2"/><circle cx="29" cy="17" r="3.2"/></svg>',
         '<svg viewBox="0 0 40 40"><path d="M7 20c4-6 12-8 18-4l7-5v18l-7-5c-6 4-14 2-18-4z"/><circle class="eye" cx="13" cy="19" r="1.7"/></svg>'];
 
-    /* every line of four as cell indices (cell = column * 6 + row, row 0 at the bottom), and the lines through each cell */
-    var LINES = [], AT = [], k;
+    /* every line of N as cell indices (cell = column * ROWS + row, row 0 at the bottom), and the lines through each cell */
+    var LINES = [], AT = [], STEPS = [];
+    for (k = 0; k < N; k++) STEPS.push(k);
     for (k = 0; k < COLS * ROWS; k++) AT.push([]);
     [[1, 0], [0, 1], [1, 1], [1, -1]].forEach(function (d) {
         for (var c = 0; c < COLS; c++) for (var r = 0; r < ROWS; r++) {
-            var ce = c + 3 * d[0], re = r + 3 * d[1];
+            var ce = c + (N - 1) * d[0], re = r + (N - 1) * d[1];
             if (ce >= COLS || re < 0 || re >= ROWS) continue;
-            var line = [0, 1, 2, 3].map(function (s) { return (c + s * d[0]) * ROWS + r + s * d[1]; });
+            var line = STEPS.map(function (s) { return (c + s * d[0]) * ROWS + r + s * d[1]; });
             line.forEach(function (i) { AT[i].push(LINES.length); });
             LINES.push(line);
         }
@@ -75,7 +93,8 @@ Arcade.register('four-in-a-row', function (api) {
 
     var wrap = document.createElement('div');
     wrap.className = 'fr' + (api.reducedMotion ? ' fr-calm' : '');
-    wrap.innerHTML = '<div class="fr-head"><div class="fr-bar">' +
+    wrap.innerHTML = '<div class="fr-head"><div class="fr-mode" role="group" aria-label="Game mode">' +
+        '<button type="button" data-m="four">Four in a row</button><button type="button" data-m="five">Five in a row</button></div><div class="fr-bar">' +
         '<span class="fr-chip" title="Your round wins"><span class="fr-tok fr-you">' + ART[YOU] + '</span>You <b class="fr-wins">0</b></span>' +
         '<span class="fr-round"></span>' +
         '<span class="fr-chip" title="Rounds the cat has won (three end the game)"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Cat ' +
@@ -88,11 +107,14 @@ Arcade.register('four-in-a-row', function (api) {
     var play = wrap.querySelector('.fr-play'), aim = wrap.querySelector('.fr-aim'), aimTok = aim.firstChild;
     var boardEl = wrap.querySelector('.fr-board'), turnEl = wrap.querySelector('.fr-turn'), undoBtn = wrap.querySelector('.fr-undo');
     var colEl = wrap.querySelector('.fr-col'), ghost = wrap.querySelector('.ghost'), pips = wrap.querySelectorAll('.fr-pip');
+    var modeBtns = wrap.querySelectorAll('.fr-mode button');
+    modeBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.m === mode); });
+    wrap.style.setProperty('--cols', COLS);
     for (k = 0; k < COLS * ROWS; k++) boardEl.appendChild(document.createElement('div')).className = 'fr-hole';
 
     var cs = 60, pad = 7, off = 5;
     function fit(s) {
-        cs = Math.max(30, Math.floor(Math.min((s.w - 24) / 7.3, (s.h - 130) / 7.7, 72)));
+        cs = Math.max(30, Math.floor(Math.min((s.w - 24) / (COLS + 0.3), (s.h - 170) / (ROWS + 1.7), 72)));
         pad = Math.round(cs * 0.12);
         off = Math.round(cs * 0.08);
         var v = { cs: cs, pad: pad, off: off, ts: cs - 2 * off };
@@ -104,21 +126,21 @@ Arcade.register('four-in-a-row', function (api) {
     var grid = new Int8Array(COLS * ROWS), heights = new Int8Array(COLS), moves = 0;
     var cnt = new Int8Array(LINES.length * 3);    /* discs of each player in each line */
     var score = 0;                                /* the evaluation from the cat's side: sum of lineValue over all lines */
-    var W = [0, 1, 8, 50, 1000];                  /* an open line with 1, 2, 3 discs of one player */
+    var W = M.w;
     var ZA = new Int32Array(COLS * ROWS * 3), ZB = new Int32Array(COLS * ROWS * 3), hashA = 0, hashB = 0;   /* Zobrist keys */
     for (k = 0; k < ZA.length; k++) { ZA[k] = Math.random() * 4294967296 | 0; ZB[k] = Math.random() * 4294967296 | 0; }
     function lineValue(n) {                       /* lines with both colours in them are dead */
         var a = cnt[n * 3 + CAT], b = cnt[n * 3 + YOU];
         return b ? (a ? 0 : -W[b]) : W[a];
     }
-    function put(c, p) {                          /* drop p into column c; true if that connects four */
+    function put(c, p) {                          /* drop p into column c; true if that connects N */
         var i = c * ROWS + heights[c]++, ls = AT[i], won = false;
         grid[i] = p;
         moves++;
         hashA ^= ZA[i * 3 + p]; hashB ^= ZB[i * 3 + p];
         for (var n = 0; n < ls.length; n++) {
             score -= lineValue(ls[n]);
-            if (++cnt[ls[n] * 3 + p] === 4) won = true;
+            if (++cnt[ls[n] * 3 + p] === N) won = true;
             score += lineValue(ls[n]);
         }
         return won;
@@ -134,10 +156,10 @@ Arcade.register('four-in-a-row', function (api) {
             score += lineValue(ls[n]);
         }
     }
-    function wins(c, p) {                         /* would p connect four by dropping into column c? */
+    function wins(c, p) {                         /* would p connect N by dropping into column c? */
         if (heights[c] === ROWS) return false;
         var ls = AT[c * ROWS + heights[c]];
-        for (var n = 0; n < ls.length; n++) if (cnt[ls[n] * 3 + p] === 3) return true;
+        for (var n = 0; n < ls.length; n++) if (cnt[ls[n] * 3 + p] === N - 1) return true;
         return false;
     }
 
@@ -192,7 +214,7 @@ Arcade.register('four-in-a-row', function (api) {
         var legal = ORDER.filter(function (c) { return heights[c] < ROWS; }), c, n;
         for (n = 0; n < legal.length; n++) if (wins(legal[n], CAT)) return { col: legal[n], value: WIN };
         if (Math.random() < CFG.mistake) return { col: legal[Math.floor(Math.random() * legal.length)], value: 0 };   /* the cat gets distracted */
-        if (moves === 0 && level !== 'easy') return { col: 3, value: 0 };   /* the centre is the best first move */
+        if (moves === 0 && level !== 'easy') return { col: ORDER[0], value: 0 };   /* the centre is the best first move */
         deadline = performance.now() + CFG.ms;
         stopped = false;
         nodes = 0;
@@ -220,7 +242,7 @@ Arcade.register('four-in-a-row', function (api) {
     }
 
     /* ---------- board and turns ---------- */
-    var toks, history, wins0 = 0, losses = 0, round = 0, cursor = 3, busy = true, over = false, lastSay = 0, gen = 0;
+    var toks, history, wins0 = 0, losses = 0, round = 0, cursor = ORDER[0], busy = true, over = false, lastSay = 0, gen = 0;
     var undos = 0, boasted = false;
     function later(fn, ms) {                      /* a timeout that is dropped once a new round has begun */
         var g = gen;
@@ -285,11 +307,11 @@ Arcade.register('four-in-a-row', function (api) {
         }
         later(function () {
             if (!won) return then(null);
-            for (var n = 0; n < AT[i].length; n++) if (cnt[AT[i][n] * 3 + p] === 4) return then(LINES[AT[i][n]]);
+            for (var n = 0; n < AT[i].length; n++) if (cnt[AT[i][n] * 3 + p] === N) return then(LINES[AT[i][n]]);
         }, ms);
     }
-    function strike(line) {                       /* a line through the winning four */
-        var a = xy(line[0]), b = xy(line[3]);
+    function strike(line) {                       /* a line through the winning discs */
+        var a = xy(line[0]), b = xy(line[N - 1]);
         var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('class', 'fr-strike');
         svg.innerHTML = '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"/>';
@@ -325,7 +347,7 @@ Arcade.register('four-in-a-row', function (api) {
         if (p === YOU) {
             wins0++;
             showScore();
-            status('Four paws in a row!');
+            status(M.name + ' paws in a row!');
             api.sfx('point');
             confetti();
             chat(['Hmph.', 'Lucky paw!', 'I was just warming up.', 'Again!'][wins0 % 4], 'sad', true);
@@ -334,15 +356,15 @@ Arcade.register('four-in-a-row', function (api) {
             losses++;
             showScore();
             if (losses < LIVES) {
-                status('Four fish in a row. ' + (LIVES - losses) + (LIVES - losses === 1 ? ' life left' : ' lives left'));
+                status(M.name + ' fish in a row. ' + (LIVES - losses) + (LIVES - losses === 1 ? ' life left' : ' lives left'));
                 api.sfx('hit');
-                chat(['Meow! Four fish.', 'Mine!', 'Purrfect line.'][losses % 3], 'happy', true);
+                chat(['Meow! ' + M.name + ' fish.', 'Mine!', 'Purrfect line.'][losses % 3], 'happy', true);
                 later(newRound, 2200);
             } else {
                 over = true;
-                status('Four fish in a row');
+                status(M.name + ' fish in a row');
                 api.say('Meow! Three rounds to me.', 2000);
-                api.end({ score: wins0, win: false, text: 'The cat won three rounds.\nYou won ' + wins0 + (wins0 === 1 ? ' round' : ' rounds') + ' on ' + level + '.' });
+                api.end({ score: wins0, win: false, text: 'The cat won three rounds.\nYou won ' + wins0 + (wins0 === 1 ? ' round' : ' rounds') + '\n(' + M.name.toLowerCase() + ' in a row, ' + level + ')' });
             }
         } else {
             status('A draw. Again!');
@@ -445,6 +467,14 @@ Arcade.register('four-in-a-row', function (api) {
     });
     api.on(play, 'pointerleave', function () { hovering = false; showAim(); });
     if (undoBtn) api.on(undoBtn, 'click', function () { undoBtn.blur(); undo(); });
+    /* the mode toggle: remember the choice and start a fresh run */
+    api.on(wrap.querySelector('.fr-mode'), 'click', function (e) {
+        var b = e.target.closest('button');
+        if (!b || b.dataset.m === mode) return;
+        fr.mode = b.dataset.m;
+        try { localStorage.setItem('arcade-fr-mode', fr.mode); } catch (err) { /* remembered on the factory only */ }
+        api.restart();
+    });
     api.on(document, 'keydown', function (e) {
         if (busy || over || e.ctrlKey || e.metaKey || e.altKey) return;
         var key = e.key, active = document.activeElement;
@@ -455,7 +485,7 @@ Arcade.register('four-in-a-row', function (api) {
         } else if (key === 'Enter' || key === ' ' || key === 'ArrowDown') {
             if (key !== 'ArrowDown' && active && active.tagName === 'BUTTON') return;   /* the button's own click wins */
             youDrop(cursor);
-        } else if (/^[1-7]$/.test(key)) {
+        } else if (/^[1-9]$/.test(key) && +key <= COLS) {
             youDrop(+key - 1);
         } else if (key === 'u' || key === 'Backspace') {
             undo();
@@ -465,7 +495,7 @@ Arcade.register('four-in-a-row', function (api) {
 
     fit(api.size());
     api.onResize(fit);
-    if (level === 'hard') api.say('Hard: I think ten moves ahead. Good luck!', 2400);
+    if (level === 'hard') api.say('Hard: I think far ahead. Good luck!', 2400);
     else if (level === 'easy') api.say('Easy: I will go gently. Undo is allowed.', 2400);
     newRound();
 });
