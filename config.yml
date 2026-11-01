@@ -106,6 +106,15 @@ params:
     # Latest news on the home page, newest first. date is shown as written, text may use **bold**,
     # url is optional (links starting with http open in a new tab). The list scrolls after three items.
     news:
+      - date: "Sep 2026"
+        text: "Talk at **Swiss Crypto Day 2026**, ETH Zürich"
+        url: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_cydfellowship-share-7505560149105856512-eSYg/
+      - date: "Jun 2026"
+        text: "Presented our paper at **ACM AsiaCCS '26** in Bangalore"
+        url: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_cydfellowship-acmasiaccs2026-asiaccs2026-ugcPost-7469375426713526272-uBmJ/
+      - date: "Jun 2026"
+        text: "HSG features my **CYD Fellowship** research: optimising drone safety"
+        url: https://www.unisg.ch/en/hsg-at-a-glance/optimising-drone-safety/
       - date: "2026"
         text: "New paper at **ACM ASIA CCS 2026**: Privacy-preserving Proximity Testing from Geometric Fuzzy Matching"
         url: https://dl.acm.org/doi/10.1145/3779208.3785374
@@ -176,6 +185,9 @@ params:
     favicon32x32: favicon-32x32.png?v=key
     apple_touch_icon: apple-touch-icon.png?v=key
     safari_pinned_tab: safari-pinned-tab.svg?v=key
+  # The visit counter (tools/stats-worker, shown on /stats/). Empty means the counter is off and nothing is sent;
+  # set it to the Worker URL (e.g. https://site-stats.NAME.workers.dev, no trailing slash) to switch it on.
+  statsEndpoint: ""
   cover:
     hiddenInList: false
     hiddenInSingle: true

@@ -7,7 +7,7 @@
     --navy: #1e3a8a;
     --pink: #d6336c;
     --line: #e2e8f0;
-    --gap-v: clamp(10px, 1.7vh, 18px);
+    --gap-v: clamp(8px, 1.25vh, 18px);
 }
 
 .main:has(.profile.home) { max-width: 940px; min-height: 0; padding-top: 0; padding-bottom: 0; }
@@ -152,7 +152,7 @@ a.badge:hover, a.badge:focus-visible { border-color: var(--navy); color: var(--n
 /* ---------- Latest news: a short feed, newest first, scrolls after three items ---------- */
 .news { width: 100%; text-align: left; }
 .news-head { margin: 0 0 2px; color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-.news-list { max-height: 6.6em; overflow-y: auto; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.news-list { max-height: 3.65em; overflow-y: auto; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
 .news-list li { display: flex; align-items: baseline; gap: 14px; padding: 4px 2px; border-bottom: 1px solid var(--line); font-size: 0.9rem; line-height: 1.35; }
 .news-list time { flex: none; min-width: 4.5em; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.75rem; }
 .news-list a { text-decoration: underline; text-decoration-color: #cbd5e1; text-underline-offset: 3px; }
