@@ -6,8 +6,14 @@
    line, time the shortcuts, use items with care and have personalities (aggressive, consistent, item-happy).
    A track is a closed path resampled into N evenly spaced points, plus a shortcut path whose points map onto the
    main ones; karts find their nearest point to know where they are, and a lap counts only after all checkpoints
-   were passed in order. Shell API: arcade.js. */
-Arcade.register('kitty-kart', function (api) {
+   were passed in order. Shell API: arcade.js.
+   The same file is Kitty Kart Duo (id kitty-kart-duo): two players on two devices race each other and two computer
+   cats; see the Duo part at the end. Single player is untouched by it: pal stays null, host and remote false. */
+(function () {
+Arcade.register('kitty-kart', function (api) { return kart(api, false); });
+Arcade.register('kitty-kart-duo', function (api) { return kart(api, true); });
+
+function kart(api, duo) {
     'use strict';
     api.css(
         '.kk, .kk-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }' +
@@ -59,6 +65,38 @@ Arcade.register('kitty-kart', function (api) {
         '.kk-use { left: 14px; bottom: 100px; width: 64px; height: 64px; background: #fff7d6; box-shadow: 0 4px 0 #e5c76b; }' +
         '.kk-use canvas { width: 40px; height: 40px; display: block; }' +
         '.kk-empty canvas { opacity: .45; }' +
+        /* Kitty Kart Duo: the lobby, the host's level buttons and the results */
+        '.kk-lobby, .kk-res { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 12px;' +
+        '  background: rgba(15,23,42,.38); overflow-y: auto; }' +
+        '.kk.kk-lobby-on .kk-lobby { display: flex; } .kk.kk-lobby-on .kk-pick { display: none; } .kk.kk-res-on .kk-res { display: flex; }' +
+        '.kk-lb { max-width: 460px; } .kk-lb section { display: none; } .kk-lb section.kk-on { display: block; }' +
+        '.kk-lb-p { margin: 0 0 14px; color: #475569; font-size: .92rem; line-height: 1.45; }' +
+        '.kk-lb-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }' +
+        '.kk-lb-btn { padding: 9px 18px; border: 2px solid #e2e8f0; border-radius: 14px; background: #fff; color: #0f172a; font: inherit;' +
+        '  font-weight: 800; cursor: pointer; touch-action: manipulation; }' +
+        '.kk-lb-btn:hover { border-color: #f3a5c0; } .kk-lb-btn:disabled { opacity: .45; cursor: default; border-color: #e2e8f0; }' +
+        '.kk-lb-btn[hidden] { display: none; }' +
+        '.kk-lb-go { border-color: #d6336c; background: #d6336c; color: #fff; } .kk-lb-go:hover { border-color: #a61e4d; }' +
+        '.kk-lb-big { flex: 1 1 150px; padding: 16px 12px; font-size: 1.05rem; }' +
+        '.kk-lb-small { margin: 14px 0 0; color: #5b6b80; font-size: .76rem; line-height: 1.35; } .kk-lb-small a { color: #1e3a8a; }' +
+        '.kk-code { margin: 2px 0 10px; color: #1e3a8a; font: 800 3.6rem/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .16em; }' +
+        '.kk-lb-wait { margin: 0 0 14px; color: #d6336c; font-weight: 800; }' +
+        '.kk-in { width: 7.2em; padding: 7px 8px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; color: #1e3a8a;' +
+        '  font: 800 1.6rem/1.1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .18em; text-align: center; text-transform: uppercase;' +
+        '  user-select: text; -webkit-user-select: text; touch-action: manipulation; }' +
+        '.kk-in:focus { outline: none; border-color: #d6336c; }' +
+        '.kk-lb-err { min-height: 1.3em; margin: 10px 0; color: #d6336c; font-size: .88rem; font-weight: 700; }' +
+        '.kk-lvl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; margin: 0 0 10px; color: #5b6b80; font-size: .85rem; font-weight: 700; }' +
+        '.kk-lvl[hidden] { display: none; } .kk-lvl span { margin-right: 4px; }' +
+        '.kk-lvl button { padding: 4px 12px; border: 2px solid #e2e8f0; border-radius: 999px; background: #fff; color: #0f172a; font: inherit; cursor: pointer; touch-action: manipulation; }' +
+        '.kk-lvl button.kk-sel { border-color: #d6336c; color: #d6336c; }' +
+        '.kk-pick-back { margin-top: 10px; } .kk-pick-back[hidden] { display: none; }' +
+        '.kk-res-list { margin: 0 0 12px; padding: 0; list-style: none; text-align: left; }' +
+        '.kk-res-list li { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700; }' +
+        '.kk-res-list li.kk-me { color: #d6336c; } .kk-res-list b { width: 1.2em; color: #5b6b80; }' +
+        '.kk-res-list i { flex: none; width: 14px; height: 14px; border-radius: 50%; }' +
+        '.kk-res-list em { margin-left: auto; color: #1e3a8a; font-family: ui-monospace, Menlo, Consolas, monospace; font-style: normal; white-space: nowrap; }' +
+        '.kk-narrow .kk-code { font-size: 2.8rem; }' +
         '@keyframes kk-pop { from { transform: translate(-50%, -50%) scale(.4); } to { transform: translate(-50%, -50%) scale(1); } }');
 
     var N = 480, CP = 12, SEG = N / CP, LAPS = 3, HW = 52, PAD = 380, BRAKE = 520, REV = 90, R = 12;
@@ -315,7 +353,7 @@ Arcade.register('kitty-kart', function (api) {
         effect: function (c, dt) {  /* the sprinkler: its jet sweeps round and makes the road wet */
             var s = this.spr, th = clock * 1.3, dx = c.x - s.x, dy = c.y - s.y, d = Math.hypot(dx, dy);
             if (c.z > 0 || d > 190 || d < 12 || Math.abs(wrap(Math.atan2(dy, dx) - th)) > 0.17) return;
-            if (c.slip < 0.1) { stat('sprinkler'); if (c === me && clock - lastSay > 4) say('Sprinkler! Wet paws!'); }
+            if (c.slip < 0.1) { stat('sprinkler'); if (quiet(c, 4)) say('Sprinkler! Wet paws!', c); }
             c.slip = Math.max(c.slip, 0.45);
             c.vx += Math.cos(th) * 150 * dt; c.vy += Math.sin(th) * 150 * dt;
         },
@@ -469,7 +507,7 @@ Arcade.register('kitty-kart', function (api) {
                 if (u * u + v * v > 1 || sp < 40) continue;
                 if (c.slip <= 0) {
                     for (var k = 0; k < 7; k++) puff('drop', c.x, c.y, c.vx * 0.3 + (Math.random() - 0.5) * 160, c.vy * 0.3 + (Math.random() - 0.5) * 160, 0.45, 2 + Math.random() * 2);
-                    if (c === me && phase === 'race') { api.sfx('move'); if (clock - lastSay > 5) say('Splash! Slippery!'); }
+                    if (mine(c) && phase === 'race') { sfx(c, 'move'); if (quiet(c, 5)) say('Splash! Slippery!', c); }
                 }
                 c.slip = 0.55;
             }
@@ -480,7 +518,7 @@ Arcade.register('kitty-kart', function (api) {
                 var d = Math.sqrt(d2) || 1;
                 q.hit = clock; q.vx = c.vx * 0.9 + ex / d * 90; q.vy = c.vy * 0.9 + ey / d * 90; q.va = (Math.random() - 0.5) * 18;
                 c.vx *= 0.9; c.vy *= 0.9;
-                if (c === me) api.sfx('tap');
+                sfx(c, 'tap');
             }
         },
         wait: function (c) {  /* the computer cats stop for the tram */
@@ -652,7 +690,7 @@ Arcade.register('kitty-kart', function (api) {
                 if (vn < 0) { c.vx -= ex / ed * vn * 1.5; c.vy -= ey / ed * vn * 1.5; }
                 if (clock - (c.turtleT || -9) > 1) {
                     c.turtleT = clock; stat('turtle');
-                    if (c === me) { api.sfx('hit'); if (clock - lastSay > 3) say('Oops, sorry Mr Turtle!'); }
+                    sfx(c, 'hit'); if (quiet(c, 3)) say('Oops, sorry Mr Turtle!', c);
                 }
             }
             c.bt = (c.bt || 0) - dt;
@@ -669,7 +707,7 @@ Arcade.register('kitty-kart', function (api) {
                 var p = (clock + q.off) % 3.6, was = q.open;
                 q.open = p < 2.3 ? Math.min(1, p / 0.3) : p < 2.42 ? 1 - (p - 2.3) / 0.12 : 0;
                 q.warn = p > 1.8 && p < 2.3;
-                if (was > 0.5 && q.open <= 0.5 && phase !== 'pick') karts.forEach(function (c) {
+                if (was > 0.5 && q.open <= 0.5 && phase !== 'pick' && !remote) karts.forEach(function (c) {
                     if (c.z <= 0 && Math.hypot(c.x - q.x, c.y - q.y) < 28) { stat('clam'); spinOut(c, 0.9, 'A clam nipped your tail!', 0); }
                 });
             });
@@ -905,11 +943,11 @@ Arcade.register('kitty-kart', function (api) {
             if (c.dist > rim) {  /* the rocks on the rim stop you from driving into space */
                 var px = c.px, py = c.py, nx = (c.x - px) / c.dist, ny = (c.y - py) / c.dist, vn = c.vx * nx + c.vy * ny;
                 c.x = px + nx * rim; c.y = py + ny * rim;
-                if (vn > 0) { c.vx -= nx * vn * 1.4; c.vy -= ny * vn * 1.4; if (c === me && vn > 60 && clock - hitAt > 0.5) { hitAt = clock; api.sfx('hit'); } }
+                if (vn > 0) { c.vx -= nx * vn * 1.4; c.vy -= ny * vn * 1.4; if (mine(c) && vn > 60 && clock - c.hitAt > 0.5) { c.hitAt = clock; sfx(c, 'hit'); } }
             }
         },
         update: function (dt) {  /* meteor showers: a warning ring first, then the rock */
-            if (phase !== 'race') return;
+            if (phase !== 'race' || remote) return;
             var i, m, self = this;
             this.metT -= dt;
             if (this.metT <= 0) {
@@ -924,7 +962,7 @@ Arcade.register('kitty-kart', function (api) {
                 if (m.t >= 1.5 && !m.hit) {
                     m.hit = true;
                     for (var k = 0; k < 10; k++) puff('dust', m.x, m.y, (Math.random() - 0.5) * 220, (Math.random() - 0.5) * 220, 0.9, 6 + Math.random() * 6);
-                    if (Math.hypot(me.x - m.x, me.y - m.y) < 500) api.sfx('hit');
+                    near(m.x, m.y, 500, 'hit');
                     karts.forEach(function (c) { if (c.z < 20 && !(c.fall > 0) && Math.hypot(c.x - m.x, c.y - m.y) < 50) { stat('meteor'); spinOut(c, 1, 'Meteor! Ouch!'); } });
                 }
                 if (m.t > 3.2) self.met.splice(i, 1);
@@ -1096,7 +1134,7 @@ Arcade.register('kitty-kart', function (api) {
         effect: function (c) {
             var i;
             if (c.alt && c.z <= 0 && c.ai >= this.s0 && c.ai <= this.s1 && gateOpen(clock) < 0.5) {  /* the lava surge on the bridge */
-                if (!(c.hot > 0)) { stat('surge'); if (c === me) { api.sfx('hit'); say('Hot paws! The lava is up!'); } }
+                if (!(c.hot > 0)) { stat('surge'); if (mine(c)) { sfx(c, 'hit'); say('Hot paws! The lava is up!', c); } }
                 c.hot = 0.5; c.slip = Math.max(c.slip, 0.3);
             }
             if (c.z > 0 || c.rampT > 0) return;
@@ -1105,7 +1143,7 @@ Arcade.register('kitty-kart', function (api) {
                 if (Math.hypot(c.x - v.x, c.y - v.y) > 22) continue;
                 c.vz = 80; c.z = 0.01; c.rampT = 0.9; stat('vent');
                 var sd = i % 2 ? 1 : -1; c.vx += -Math.sin(v.a) * sd * 90; c.vy += Math.cos(v.a) * sd * 90;
-                if (c === me) { api.sfx('jump'); if (clock - lastSay > 4) say('Whoosh! Hot air!'); }
+                sfx(c, 'jump'); if (quiet(c, 4)) say('Whoosh! Hot air!', c);
             }
         },
         update: function (dt) {
@@ -1113,10 +1151,10 @@ Arcade.register('kitty-kart', function (api) {
                 v.t -= dt;
                 if (v.t <= 0 && vis(v.x, v.y, 80)) { v.t = 0.12; puff(Math.random() < 0.3 ? 'lava' : 'dust', v.x, v.y, (Math.random() - 0.5) * 30, -40 - Math.random() * 40, 0.9, 2 + Math.random() * 4); }
             });
-            if (phase !== 'race') return;
+            if (phase !== 'race' || remote) return;
             strikes(this.burst, dt, [2.4, 2.4], function (m) {
                 for (var k = 0; k < 14; k++) puff('lava', m.x, m.y, (Math.random() - 0.5) * 240, (Math.random() - 0.5) * 240, 0.9, 3 + Math.random() * 4);
-                if (Math.hypot(me.x - m.x, me.y - m.y) < 500) api.sfx('hit');
+                near(m.x, m.y, 500, 'hit');
                 karts.forEach(function (c) {
                     if (c.z < 20 && !(c.fall > 0) && Math.hypot(c.x - m.x, c.y - m.y) < 48) { stat('burst'); if (spinOut(c, 0.9, 'Lava burst! Hot hot hot!')) c.hot = 0.8; }
                 });
@@ -1235,7 +1273,7 @@ Arcade.register('kitty-kart', function (api) {
         effect: function (c) {
             var i;
             if (c.alt) for (i = 0; i < this.saps.length; i++) if (Math.hypot(c.x - this.saps[i].x, c.y - this.saps[i].y) < 20) {
-                if (!(c.sticky > 0)) { stat('sap'); if (c === me && clock - lastSay > 3) say('Sticky sap!'); }
+                if (!(c.sticky > 0)) { stat('sap'); if (quiet(c, 3)) say('Sticky sap!', c); }
                 c.sticky = 0.35;
             }
             if (c.z > 0) return;
@@ -1342,7 +1380,7 @@ Arcade.register('kitty-kart', function (api) {
             if (c.z <= 0 && !c.alt) for (i = 0; i < this.sand.length; i++) {
                 var s = this.sand[i], dx = c.x - s.x, dy = c.y - s.y, u = (dx * Math.cos(s.a) + dy * Math.sin(s.a)) / 48, v = (dy * Math.cos(s.a) - dx * Math.sin(s.a)) / 26;
                 if (u * u + v * v > 1) continue;
-                if (!(c.loose > 0)) { stat('sand'); if (c === me && clock - lastSay > 4) say('Soft sand, slidey paws!'); }
+                if (!(c.loose > 0)) { stat('sand'); if (quiet(c, 4)) say('Soft sand, slidey paws!', c); }
                 c.loose = 0.25;
             }
             if (c.alt && c.on && c.z <= 0) c.loose = Math.max(c.loose, 0.1);  /* the riverbed is loose too */
@@ -1350,15 +1388,15 @@ Arcade.register('kitty-kart', function (api) {
                 var w = this.weeds[i], wx = w.x0 + w.ux * w.s, wy = w.y0 + w.uy * w.s;
                 if (c.z > 10 || Math.hypot(c.x - wx, c.y - wy) > R + 16 || clock - (c.weedT || -9) < 1) continue;
                 c.weedT = clock; c.vx *= 0.65; c.vy *= 0.65; c.a += (Math.random() - 0.5) * 0.5; stat('tumbleweed');
-                if (c === me) { api.sfx('hit'); if (clock - lastSay > 3) say('Tumbleweed!'); }
+                sfx(c, 'hit'); if (quiet(c, 3)) say('Tumbleweed!', c);
             }
         },
         update: function (dt) {
             this.weeds.forEach(function (w) { w.s += w.sp * dt; w.rot += w.sp * dt / 16; if (w.s > 340) w.s = -340 - Math.random() * 200; });
-            if (phase !== 'race') return;
+            if (phase !== 'race' || remote) return;
             var st = this.storm;
             if (st.on > 0) { st.on -= dt; if (st.on <= 0) { st.t = 16 + Math.random() * 8; this.aiSlow = 1; } }
-            else { st.t -= dt; if (st.t <= 0) { st.on = 5; this.aiSlow = 0.94; stat('storm'); if (clock - lastSay > 1) say('Sandstorm! Hold on!'); } }
+            else { st.t -= dt; if (st.t <= 0) { st.on = 5; this.aiSlow = 0.94; stat('storm'); if (quiet(me, 1)) say('Sandstorm! Hold on!'); if (quiet(pal, 1)) say('Sandstorm! Hold on!', pal); } }
         },
         under: function () {
             this.weeds.forEach(function (w) {
@@ -1462,7 +1500,7 @@ Arcade.register('kitty-kart', function (api) {
                 r = this.rings[i];
                 if (Math.hypot(c.x - r.x, c.y - r.y) < 22 && clock - (c.ringT || -9) > 0.6) {
                     c.ringT = clock; c.boost = Math.max(c.boost, 1.1); stat('ring');
-                    if (c === me) api.sfx('point');
+                    sfx(c, 'point');
                 }
             }
             for (i = 0; i < this.whirls.length; i++) {  /* blossom whirlwinds spin you round */
@@ -1580,7 +1618,7 @@ Arcade.register('kitty-kart', function (api) {
     function arrow(d) { return '<svg viewBox="0 0 24 24"><path d="' + d + '"/></svg>'; }
     var TOUCH_HINT = 'Hold Gas, steer with the arrows, tap the item button to use an item';
     var wrapEl = document.createElement('div');
-    wrapEl.className = 'kk kk-picking' + (api.touch ? ' kk-touch' : '');
+    wrapEl.className = 'kk kk-picking' + (api.touch ? ' kk-touch' : '') + (duo ? ' kk-lobby-on' : '');
     wrapEl.innerHTML = '<canvas class="kk-cv"></canvas>' +
         '<div class="kk-hud"><span class="kk-pill kk-pos">4th</span><span class="kk-pill"><small>Lap</small><b class="kk-lap">1/3</b></span>' +
         '<span class="kk-pill kk-time">0.0</span><span class="kk-pill kk-slot kk-empty" title="Item"><canvas width="64" height="64"></canvas></span></div>' +
@@ -1656,7 +1694,7 @@ Arcade.register('kitty-kart', function (api) {
     }
     function showBests() {
         cards.forEach(function (b, i) {
-            var t = saved.best[MAPS[i].id];
+            var t = duo ? null : saved.best[MAPS[i].id];  /* racing a friend keeps no best times */
             b.querySelector('.kk-mbest').textContent = typeof t === 'number' ? 'Best ' + t.toFixed(1) + ' s' : '';
             b.classList.toggle('kk-sel', i === sel);
             b.setAttribute('aria-pressed', i === sel ? 'true' : 'false');
@@ -1729,7 +1767,8 @@ Arcade.register('kitty-kart', function (api) {
     karts.forEach(function (c, i) { c.phase = i * 1.7; c.lane = (i % 2 ? 1 : -1) * 0.3 * HW; });
     var me = karts[0], keys = {}, pads = {};
     var phase = 'pick', clock = 0, raceTime = 0, finishers = 0, place = 4, camX = 0, camY = 0, shake = 0;
-    var shown = { pos: '', lap: '', time: '', count: '' }, lastSay = -99, hitAt = -99, wrongFor = 0;
+    var shown = { pos: '', lap: '', time: '', count: '' }, lastSay = -99, wrongFor = 0;
+    var pal = null, host = false, remote = false;  /* a race with a friend: their kart, and whether this device hosts it or only shows it */
 
     function reset() {
         karts.forEach(function (c, i) {
@@ -1738,7 +1777,7 @@ Arcade.register('kitty-kart', function (api) {
             c.a = A[j]; c.vx = c.vy = c.vf = c.steer = c.thr = 0;
             c.k = 0; c.fin = 0; c.prog = 0; c.z = c.vz = c.slip = c.rampT = 0;
             c.item = null; c.itemT = 0; c.boost = c.shield = c.spin = c.nap = c.laser = c.fall = c.tangled = c.loose = c.sticky = c.hot = 0;
-            c.useAlt = false; c.decided = -1; c.altLap = -1; c.P = persona(i);
+            c.useAlt = false; c.decided = -1; c.altLap = -1; c.P = persona(i); c.said = c.hitAt = -99;
             nearest(c);
         });
         parts.length = yarns.length = milks.length = rings.length = 0;
@@ -1755,10 +1794,11 @@ Arcade.register('kitty-kart', function (api) {
         dirty = true;
         fit(api.size());
         showBests();
-        saved.map = MAP.id; persist();
+        if (!duo) { saved.map = MAP.id; persist(); }
     }
     function go() {  /* the picked track: on to the countdown */
         if (phase !== 'pick') return;
+        if (duo) { picked(); return; }  /* racing a friend: the host's pick (Duo part below) */
         phase = 'count'; clock = 0; keys = {};
         wrapEl.classList.remove('kk-picking');
         if (document.activeElement && wrapEl.contains(document.activeElement)) document.activeElement.blur();
@@ -1793,7 +1833,7 @@ Arcade.register('kitty-kart', function (api) {
             if (c.z <= 0) {
                 c.z = c.vz = 0;
                 for (i = 0; i < 6; i++) puff('dust', c.x, c.y, (Math.random() - 0.5) * 90, (Math.random() - 0.5) * 90, 0.8, 5 + Math.random() * 5);
-                if (c === me) api.sfx('tap');
+                sfx(c, 'tap');
             }
         } else {
             if (c.rampT <= 0 && c.vf > 110) {  /* ramps on the road and on the shortcut */
@@ -1801,7 +1841,7 @@ Arcade.register('kitty-kart', function (api) {
                 for (i = 0; i < rp.length && !up; i++) if (!c.alt && (c.idx - rp[i] + N) % N <= 1 && c.dist < HW) up = true;
                 if (up) {
                     c.vz = c.vf * (MAP.jumpK || 0.22); c.z = 0.01; c.rampT = 1.5;
-                    if (c === me) { api.sfx('jump'); if (clock - lastSay > 6 && MAP.jumpSay) say(MAP.jumpSay); }
+                    sfx(c, 'jump'); if (quiet(c, 6) && MAP.jumpSay) say(MAP.jumpSay, c);
                 }
             }
             if (!(c.z > 0) && ALT && c.alt) {  /* falling into a gap, or off a narrow shortcut */
@@ -1813,7 +1853,7 @@ Arcade.register('kitty-kart', function (api) {
         if (!air) for (i = 0; i < boosts.length; i++) {  /* boost pads */
             var b = boosts[i], dx = c.x - b.x, dy = c.y - b.y;
             if (Math.abs(dx * b.ca + dy * b.sa) < 24 && Math.abs(dy * b.ca - dx * b.sa) < 20) {
-                if (c.boost < 0.5) { stat('pad'); if (c === me) api.sfx('point'); }
+                if (c.boost < 0.5) { stat('pad'); sfx(c, 'point'); }
                 c.boost = Math.max(c.boost, 1);
             }
         }
@@ -1826,7 +1866,7 @@ Arcade.register('kitty-kart', function (api) {
                 c.vx -= gc * vn * 1.3; c.vy -= gs * vn * 1.3;
                 if (Math.abs(vn) > 40 && clock - (c.gateT || -9) > 0.6) {
                     c.gateT = clock; stat('gate');
-                    if (c === me) { api.sfx('hit'); if (clock - lastSay > 3) say(MAP.gate === 'boom' ? 'Barrier down! Wait for it.' : 'Bonk! The gate is shut.'); }
+                    sfx(c, 'hit'); if (quiet(c, 3)) say(MAP.gate === 'boom' ? 'Barrier down! Wait for it.' : 'Bonk! The gate is shut.', c);
                 }
             }
         }
@@ -1899,8 +1939,9 @@ Arcade.register('kitty-kart', function (api) {
         c.thr = c.vf < vt ? 1 : c.vf > vt + 12 ? -1 : 0;
         obey(c, c === me && test && test.rash);
     }
+    function lead() { return pal && pal.prog > me.prog ? pal : me; }  /* the player the computer cats measure themselves by */
     function catchUp(c) {  /* only a little help when far behind; on Normal they ease off a touch when far ahead */
-        var gap = me.prog - c.prog;
+        var gap = lead().prog - c.prog;
         return 1 + clamp((gap - SEG * 3) / (SEG * 25), 0, LEVEL === 'hard' ? 0.03 : 0.04) - (LEVEL === 'normal' ? clamp((-gap - SEG * 8) / (SEG * 30), 0, 0.03) : 0);
     }
     function aiItemSmart(c, dt) {  /* Normal and Hard: hold items for the right moment */
@@ -1961,7 +2002,7 @@ Arcade.register('kitty-kart', function (api) {
     function inBridge(i) { return (i - MAP.bridge.i0 + N) % N <= MAP.bridge.i1 - MAP.bridge.i0; }
     function fallOff(c, j) {
         c.fall = 1.3; c.fallTo = j; c.vx = c.vy = 0; c.z = c.vz = 0; stat('fall');
-        if (c === me) { api.sfx('hit'); api.cat('sad'); say(MAP.fallSay || 'Oops! Back you go.'); }
+        if (mine(c)) { sfx(c, 'hit'); mood(c, 'sad'); say(MAP.fallSay || 'Oops! Back you go.', c); }
     }
     function respawn(c) {  /* back on the road a little before where you fell */
         var j = ix(c.fallTo - 4);
@@ -1988,10 +2029,10 @@ Arcade.register('kitty-kart', function (api) {
         if (c.shield > 0) {
             c.shield = 0; stat('blocked');
             for (var k = 0; k < 8; k++) puff('card', c.x, c.y, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, 0.6, 3);
-            if (c === me) { api.sfx('pop'); say('The box saved you!'); }
+            if (mine(c)) { sfx(c, 'pop'); say('The box saved you!', c); }
             return false;
         }
-        if (c === me && why) { api.cat('sad'); api.sfx('hit'); say(why); }
+        if (mine(c) && why) { mood(c, 'sad'); sfx(c, 'hit'); say(why, c); }
         return true;
     }
     function spinOut(c, t, why, rate) {
@@ -2001,11 +2042,13 @@ Arcade.register('kitty-kart', function (api) {
     }
     function useItem(c) {
         var it = c.item, i, o, ca = Math.cos(c.a), sa = Math.sin(c.a);
-        if (!it || phase !== 'race' || c.fall > 0) return;
+        if (remote) { if (c === me && it && phase === 'race' && !c.fin) uses++; return; }  /* on the friend's device: the host uses it */
+        if (!it || phase !== 'race' || c.fall > 0 || c.fin) return;
         c.item = null;
         stat('use-' + it);
-        if (c === me) { stat('use-me'); slot(); if (clock - lastSay > 1) say(USE[it]); }
-        if (c === me || Math.hypot(c.x - me.x, c.y - me.y) < 450) api.sfx(USE_SFX[it]);
+        if (c === me) { stat('use-me'); slot(); }
+        if (quiet(c, 1)) say(USE[it], c);
+        near(c.x, c.y, 450, USE_SFX[it], c);
         if (it === 'yarn') {  /* thrown ahead, it follows the road and tangles the first cat it meets */
             var v = Math.max(c.vf, 0) + 430;
             yarns.push({ x: c.x + ca * 22, y: c.y + sa * 22, vx: ca * v, vy: sa * v, sp: v, owner: c, t: 0, roll: 0, trail: [], useAlt: c.useAlt });
@@ -2066,7 +2109,7 @@ Arcade.register('kitty-kart', function (api) {
                 t.t = 4; c.item = roll(rankOf(c)); c.itemT = (0.5 + Math.random() * 2) * (c.P ? c.P.hold : 1);
                 for (var k = 0; k < 7; k++) puff('spark', t.x, t.y, (Math.random() - 0.5) * 170, (Math.random() - 0.5) * 170, 0.5, 2.6);
                 stat('pick');
-                if (c === me) { stat('pick-me'); api.sfx('pop'); api.cat('wow'); slot(); if (clock - lastSay > 1.5) say(NAMES[c.item] + '!'); }
+                if (mine(c)) { if (c === me) { stat('pick-me'); slot(); } sfx(c, 'pop'); mood(c, 'wow'); if (quiet(c, 1.5)) say(NAMES[c.item] + '!', c); }
                 break;
             }
         }
@@ -2089,7 +2132,7 @@ Arcade.register('kitty-kart', function (api) {
                 if ((c === y.owner && y.t < 0.6) || c.fall > 0 || c.z > 12 || Math.hypot(c.x - y.x, c.y - y.y) > R + 9) continue;
                 gone = true; stat('hit-yarn');
                 if (spinOut(c, 1.3, 'Tangled in yarn!')) c.tangled = 1.3;
-                if (y.owner === me && c !== me) { api.sfx('pop'); api.cat('happy'); if (clock - lastSay > 1) say('Got them with the yarn!'); }
+                if (mine(y.owner) && c !== y.owner) { sfx(y.owner, 'pop'); mood(y.owner, 'happy'); if (quiet(y.owner, 1)) say('Got them with the yarn!', y.owner); }
             }
             if (gone) {
                 for (j = 0; j < 6; j++) { var q = puff('spark', y.x, y.y, (Math.random() - 0.5) * 140, (Math.random() - 0.5) * 140, 0.5, 2.4); if (q) q.c = '#f472b6'; }
@@ -2130,14 +2173,34 @@ Arcade.register('kitty-kart', function (api) {
     function laps(c) { return c.k > 0 ? Math.floor((c.k - 1) / CP) : 0; }
     function lapDone(c) {
         var l = laps(c);
-        if (l >= LAPS && !c.fin) { c.fin = raceTime; finishers++; if (c === me) finish(); return; }
-        if (c !== me) return;
-        api.sfx('pop');
-        if (l === LAPS - 1) { api.cat('wow'); say('Final lap!'); }
+        if (l >= LAPS && !c.fin) { c.fin = raceTime; finishers++; if (c === me) finish(); else if (host && c === pal && me.fin) phase = 'done'; return; }
+        if (!mine(c)) return;
+        sfx(c, 'pop');
+        if (l === LAPS - 1) { mood(c, 'wow'); say('Final lap!', c); }
     }
     function ordinal(p) { return p + ['st', 'nd', 'rd', 'th'][Math.min(p, 4) - 1]; }
-    function say(t) { lastSay = clock; api.say(t, 1800); }
+    /* Who hears what happens to a kart: the player on this device and, when hosting a race with a friend, the friend's
+       kart too: its sounds, cat moods and speech bubbles are sent over (tell, in the Duo part below). */
+    function mine(c) { return c === me || (host && c === pal); }
+    function quiet(c, s) { return mine(c) && clock - (c === me ? lastSay : c.said) > s; }  /* nothing said to c for s seconds */
+    function sfx(c, n) { if (c === me) api.sfx(n); else if (host && c === pal) tell('s', n); }
+    function mood(c, m) { if (c === me) api.cat(m); else if (host && c === pal) tell('c', m); }
+    function say(t, c) {
+        if (!c || c === me) { lastSay = clock; api.say(t, 1800); }
+        else if (host && c === pal) { c.said = clock; tell('t', t); }
+    }
+    function near(x, y, r, n, c) {  /* a sound for each player who drives c or is close to (x, y) */
+        if (me === c || Math.hypot(me.x - x, me.y - y) < r) api.sfx(n);
+        if (host && (pal === c || Math.hypot(pal.x - x, pal.y - y) < r)) sfx(pal, n);
+    }
+    function bump(c, v) {  /* a hard knock between karts: a sound, and the view shakes */
+        if (!mine(c) || v <= 50 || clock - c.hitAt <= 0.5) return;
+        c.hitAt = clock;
+        if (c === me) { api.sfx('hit'); if (!api.reducedMotion) shake = Math.min(6, v / 25); }
+        else tell('k', Math.round(v));
+    }
     function finish() {
+        if (duo) { duoFinish(); return; }
         phase = 'done';
         count('');
         place = finishers;
@@ -2160,7 +2223,7 @@ Arcade.register('kitty-kart', function (api) {
             var imp = -vn * 0.7;  /* a soft bounce, both lose a little speed */
             a.vx -= nx * imp; a.vy -= ny * imp; b.vx += nx * imp; b.vy += ny * imp;
             a.vx *= 0.96; a.vy *= 0.96; b.vx *= 0.96; b.vy *= 0.96;
-            if (i === 0 && -vn > 50 && clock - hitAt > 0.5) { hitAt = clock; api.sfx('hit'); if (!api.reducedMotion) shake = Math.min(6, -vn / 25); }
+            bump(a, -vn); bump(b, -vn);
         }
     }
 
@@ -2401,6 +2464,10 @@ Arcade.register('kitty-kart', function (api) {
         drawUnder();
         for (i = 3; i >= 0; i--) if (!(karts[i].z > 0)) drawKart(karts[i]);
         for (i = 3; i >= 0; i--) if (karts[i].z > 0) drawKart(karts[i]);
+        if (pal && vis(pal.x, pal.y, 40)) {  /* racing a friend: their kart has a name tag */
+            ctx.font = '800 12px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.fillStyle = '#1e3a8a';
+            ctx.strokeText('Friend', pal.x, pal.y - 22 - pal.z * 0.5); ctx.fillText('Friend', pal.x, pal.y - 22 - pal.z * 0.5);
+        }
         drawOver();
         if (MAP.over) MAP.over();
         if (MAP.screen) MAP.screen();
@@ -2409,17 +2476,17 @@ Arcade.register('kitty-kart', function (api) {
         ctx.fillStyle = MAP.col.panel; rrect(mx - 6, my - 6, mw + 12, mh + 12, 12); ctx.fill();
         ctx.drawImage(mini, mx, my, mw, mh);
         for (i = 3; i >= 0; i--) {
-            var c = karts[i];
-            ctx.beginPath(); ctx.arc(mx + c.x * mmK, my + c.y * mmK, i ? 3.5 : 4.5, 0, 7);
-            ctx.fillStyle = i ? c.body : c.fur; ctx.fill();
-            ctx.strokeStyle = i ? '#fff' : OL; ctx.lineWidth = 1.5; ctx.stroke();
+            var c = karts[i], you = c === me;
+            ctx.beginPath(); ctx.arc(mx + c.x * mmK, my + c.y * mmK, you ? 4.5 : 3.5, 0, 7);
+            ctx.fillStyle = you || c === pal ? c.fur : c.body; ctx.fill();
+            ctx.strokeStyle = you ? OL : '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
         }
     }
     function setText(el, key, v) { if (shown[key] !== v) { shown[key] = v; el.textContent = v; } }
     function show() {
         setText(posEl, 'pos', ordinal(place));
         setText(lapEl, 'lap', Math.min(LAPS, laps(me) + 1) + '/' + LAPS);
-        var t = raceTime.toFixed(1);
+        var t = (me.fin || raceTime).toFixed(1);
         if (shown.time !== t) { setText(timeEl, 'time', t); api.score(t, 'Time'); }
     }
     function count(text, cls) {
@@ -2435,6 +2502,7 @@ Arcade.register('kitty-kart', function (api) {
     if (test) test.state = function () { return { phase: phase, map: MAP.id, lap: laps(me), place: place, time: raceTime, item: me.item, idx: me.idx, alt: me.alt, ai: me.ai, altn: ALT ? ALT.n : 0, storm: !!(MAP.storm && MAP.storm.on > 1.2 && MAP.storm.on < 3.8), yarns: yarns.length, milks: milks.length, fx: yarns.concat(milks, karts.filter(function (c) { return c.shield > 0 || c.tangled > 0 || c.nap > 0 || c.laser > 0; })).filter(function (o) { return Math.hypot(o.x - me.x, o.y - me.y) < 300; }).length, met: MAP.met ? MAP.met.filter(function (m) { return m.t < 1.5 && Math.hypot(m.x - me.x, m.y - me.y) < 260; }).length : 0, fin: karts.map(function (c) { return c.fin; }) }; };
     function stat(k) { if (test) test.stats[k] = (test.stats[k] || 0) + 1; }
     function update(dt) {
+        if (remote) { view(dt); return; }  /* the friend's device only shows the race (Duo part below) */
         clock += dt;
         if (MAP.update) MAP.update(dt);
         moveParts(dt);
@@ -2444,10 +2512,11 @@ Arcade.register('kitty-kart', function (api) {
             if (clock >= 0.6 && n >= 1 && shown.count !== String(n)) { count(String(n)); api.sfx('tap'); }
             if (n < 1) { phase = 'race'; count('Go!', 'kk-go'); api.sfx('point'); hintEl.style.display = 'none'; }
         } else {
-            if (phase === 'done' && test && finishers < 4) raceTime += dt;  /* test only: time the others too */
+            if (phase === 'done' && (test || duo) && finishers < 4) raceTime += dt;  /* test only, and racing a friend: time the others too */
             if (phase === 'race') {
                 raceTime += dt;
-                if (test && test.bot) {  /* test only: the player bot, basic (the old driver) or perfect (the smart one) */
+                if (me.fin) autopilot(me, 0.45);  /* racing a friend: the race goes on after you finish */
+                else if (test && test.bot) {  /* test only: the player bot, basic (the old driver) or perfect (the smart one) */
                     me.P = test.mode === 'perfect' ? PERFECT : null;
                     decide(me);
                     if (me.P) smart(me, PERFECT, 1); else autopilot(me, 0.98);
@@ -2463,17 +2532,18 @@ Arcade.register('kitty-kart', function (api) {
             } else autopilot(me, 0.45);  /* after the finish: a slow lap of honour */
             for (var i = 1; i < 4; i++) {
                 var c = karts[i];  /* a little rubber band: the others ease off when far ahead and push when behind */
+                if (c === pal) { steerPal(dt); continue; }
                 decide(c);
                 if (c.fin) autopilot(c, 0.6);
                 else if (c.P) { smart(c, c.P, catchUp(c)); aiItemSmart(c, dt); }
-                else { autopilot(c, c.skill * (1 + clamp((me.prog - c.prog) / (SEG * 30), -0.07, 0.05))); aiItem(c, dt); }
+                else { autopilot(c, c.skill * (1 + clamp((lead().prog - c.prog) / (SEG * 30), -0.07, 0.05))); aiItem(c, dt); }
             }
             for (i = 0; i < 4; i++) step(karts[i], dt);
             collide();
             for (i = 0; i < 4; i++) progress(karts[i]);
             pickups(dt);
             moveItems(dt);
-            if (phase === 'race') {
+            if (phase === 'race' && !me.fin) {
                 var p = 1;
                 for (i = 1; i < 4; i++) if (karts[i].fin || karts[i].prog > me.prog) p++;
                 if (p !== place && clock - lastSay > 6) {
@@ -2492,19 +2562,21 @@ Arcade.register('kitty-kart', function (api) {
         camY += (me.y + me.vy * 0.4 - camY) * Math.min(1, dt * 4);
         shake = Math.max(0, shake - dt * 20);
     }
-    api.loop(function (dt) {
+    api.loop(function (dt, now) {
         for (var s = test ? test.steps : 1; s > 0; s--) update(dt);
         var vw = W / 2 / zoom, vh = H / 2 / zoom;  /* keep the view inside the field */
         camX = vw * 2 < WW ? clamp(camX, vw, WW - vw) : WW / 2;
         camY = vh * 2 < WH ? clamp(camY, vh, WH - vh) : WH / 2;
         draw();
         show();
+        if (duo) duoTick(now);
     });
 
     /* ---------- controls: keys on desktop, buttons on touch screens ---------- */
     var KEYMAP = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
     api.on(window, 'keydown', function (e) {
         var key = (e.key || '').toLowerCase(), k = KEYMAP[key];
+        if (duo && wrapEl.classList.contains('kk-lobby-on')) return;  /* typing a code, or reading the lobby */
         if (phase === 'pick') {  /* in the picker: arrows choose, Enter or Space races */
             if (k) {
                 var cols = W < 600 ? 2 : 4;
@@ -2534,11 +2606,561 @@ Arcade.register('kitty-kart', function (api) {
         }
     });
 
+    /* ---------- Kitty Kart Duo: a race with a friend on another device ----------
+       One player hosts and gets a four letter code from the site's counter (api.server, tools/stats-worker/worker.js);
+       the friend types it in. The counter only passes the two WebRTC offers on, then forgets them; from then on the two
+       devices talk directly over two data channels: "fast" (unordered, never resent) for the friend's keys and the
+       host's snapshots, "sure" (reliable, in order) for what must arrive: start, go, sounds and speech, leaving.
+       The host runs the race as if alone, with the friend's kart (pal, karts[1]) steered by the keys they send. The
+       friend's device runs no race at all: it shows the host's snapshots (30 a second) LAG seconds late, blending the
+       two around that moment so that everything moves smoothly. Nothing is saved: no best times, no last track. */
+    var LAG = 0.1, SNAP_MS = 33, KF = 13, ICE = [{ urls: 'stun:stun.cloudflare.com:3478' }], PH = ['pick', 'count', 'race', 'done'];
+    var SERVER = (api.server || '').replace(/\/+$/, '');
+    var pc = null, fast = null, sure = null, gen = 0, linked = false, role = '', roomCode = null, codeAt = 0, heard = 0;
+    var raceNo = 0, ready = false, snapAt = 0, snapSeq = 0, yarnId = 0, doneAt = 0, myDone = false, palUsed = 0;
+    var palIn = { thr: 0, want: 0, use: 0, seq: 0, at: 0 };
+    var snaps = [], vclock = -1, lastSeq = 0, cd = -1, sinceGo = 0, uses = 0, inSeq = 0, sentAt = 0, heldItem = null, resKey = '';
+    var duoLevel = 'normal', lobbyEl = null, resEl = null, pickBack = null, acts = [];
+    var CAT_NAMES = [null, null, 'Black cat', 'White cat'];
+    var FAIL = {
+        nocode: ['Code not found', 'There is no race with that code, or it has expired (codes last two minutes). Check the letters, or ask your friend for a new code.'],
+        taken: ['That race is taken', 'Someone already joined with this code. Ask your friend for a new one.'],
+        direct: ['Could not connect', 'Your two devices could not reach each other directly. Try both on the same wifi, or let one phone share its hotspot. ' +
+            'Some university, hotel or café networks keep devices from talking to each other.'],
+        server: ['Could not reach the server', 'Check your internet connection and try again.'],
+        full: ['Too many races right now', 'Please try again in a minute.'],
+        none: ['Not available here', 'Racing a friend needs the site\'s small server, which this copy of the site does not have.'],
+        old: ['Not in this browser', 'Racing a friend needs WebRTC, which this browser does not offer. A current Firefox, Chrome or Safari has it.']
+    };
+    if (duo) {
+        try { var pref = JSON.parse(localStorage.getItem('kitty-kart-duo')); if (pref && /^(easy|normal|hard)$/.test(pref.level)) duoLevel = pref.level; } catch (e) { /* none yet */ }
+        lobbyEl = document.createElement('div');
+        lobbyEl.className = 'kk-lobby';
+        lobbyEl.innerHTML = '<div class="kk-pick-box kk-lb" role="dialog" aria-label="Race a friend">' +
+            '<section data-s="menu"><h3>Race a friend</h3><p class="kk-lb-p">Open this game on two phones or computers. One of you hosts and gets a code, ' +
+            'the other joins with it. The race runs straight between your two devices; the same wifi works best.</p>' +
+            '<div class="kk-lb-row"><button type="button" class="kk-lb-btn kk-lb-big" data-a="host">Host a race</button>' +
+            '<button type="button" class="kk-lb-btn kk-lb-big" data-a="join">Join a race</button></div>' +
+            '<p class="kk-lb-small">Your two devices see each other\'s network address, as with any direct connection. <a href="/privacy/">Privacy</a></p></section>' +
+            '<section data-s="code"><h3>Your race code</h3><p class="kk-code"></p>' +
+            '<p class="kk-lb-p">Read it out to your friend. They open this game, tap Join a race and type it.</p>' +
+            '<p class="kk-lb-wait">Waiting for your friend…</p><div class="kk-lb-row"><button type="button" class="kk-lb-btn" data-a="menu">Cancel</button></div></section>' +
+            '<section data-s="join"><h3>Join a race</h3><p class="kk-lb-p">Type the code shown on your friend\'s screen.</p>' +
+            '<div class="kk-lb-row"><input class="kk-in" type="text" maxlength="4" autocomplete="off" autocorrect="off" autocapitalize="characters" ' +
+            'spellcheck="false" enterkeyhint="go" aria-label="Race code"><button type="button" class="kk-lb-btn kk-lb-go" data-a="go">Join</button></div>' +
+            '<p class="kk-lb-err" role="alert"></p><div class="kk-lb-row"><button type="button" class="kk-lb-btn" data-a="menu">Back</button></div></section>' +
+            '<section data-s="msg"><h3></h3><p class="kk-lb-p"></p><div class="kk-lb-row"></div></section></div>';
+        wrapEl.appendChild(lobbyEl);
+        resEl = document.createElement('div');
+        resEl.className = 'kk-res';
+        resEl.innerHTML = '<div class="kk-pick-box kk-lb" role="dialog" aria-label="Results"><h3>Results</h3><ol class="kk-res-list"></ol>' +
+            '<p class="kk-lb-p kk-res-note"></p><div class="kk-lb-row"><button type="button" class="kk-lb-btn kk-lb-go" data-a="again">Rematch</button>' +
+            '<button type="button" class="kk-lb-btn" data-a="new">New track</button><button type="button" class="kk-lb-btn" data-a="leave">Leave</button></div></div>';
+        wrapEl.appendChild(resEl);
+        /* the track picker, for the host: also the computer cats' level, and a way back */
+        var pickBox = wrapEl.querySelector('.kk-pick-box'), lv = document.createElement('div');
+        pickBox.querySelector('h3').textContent = 'Pick a track for your race';
+        lv.className = 'kk-lvl';
+        lv.innerHTML = '<span>Computer cats</span><button type="button" data-l="easy">Easy</button><button type="button" data-l="normal">Normal</button><button type="button" data-l="hard">Hard</button>';
+        pickBox.insertBefore(lv, mapsEl);
+        pickBack = document.createElement('button');
+        pickBack.type = 'button'; pickBack.className = 'kk-lb-btn kk-pick-back'; pickBack.textContent = 'Back';
+        pickBox.appendChild(pickBack);
+        var levelBtns = function () { Array.prototype.forEach.call(lv.querySelectorAll('button'), function (b) { b.classList.toggle('kk-sel', b.dataset.l === duoLevel); }); };
+        levelBtns();
+        api.on(lv, 'click', function (e) { var b = e.target.closest('button'); if (b) { duoLevel = b.dataset.l; levelBtns(); } });
+        api.on(pickBack, 'click', function () { menu(); });
+        api.on(lobbyEl, 'click', function (e) {
+            var b = e.target.closest('button');
+            if (!b) return;
+            var a = b.dataset.a;
+            if (a === 'host') {
+                if (!SERVER) fail('none'); else if (!window.RTCPeerConnection) fail('old'); else showPicker();
+            } else if (a === 'join') {
+                if (!SERVER) fail('none'); else if (!window.RTCPeerConnection) fail('old'); else joinScreen();
+            } else if (a === 'go') joinRoom();
+            else if (a === 'menu') menu();
+            else if (b.dataset.i) acts[+b.dataset.i]();
+        });
+        var codeIn = lobbyEl.querySelector('.kk-in');
+        api.on(codeIn, 'input', function () {
+            var v = codeIn.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+            if (v !== codeIn.value) codeIn.value = v;
+            lobbyEl.querySelector('.kk-lb-err').textContent = '';
+        });
+        api.on(codeIn, 'keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); joinRoom(); } });
+        api.on(resEl, 'click', function (e) {
+            var b = e.target.closest('button');
+            if (!b || b.disabled) return;
+            if (b.dataset.a === 'again') startRace();
+            else if (b.dataset.a === 'new') { send({ t: 'pick' }); showPicker(); }
+            else if (b.dataset.a === 'leave') leave();
+        });
+        /* silence: no word from the friend for 5 s means they are gone (a little grace after this tab was hidden) */
+        api.interval(function () {
+            if (!linked) return;
+            send({ t: 'ping' });
+            if (performance.now() - heard > 5000) lost();
+        }, 1000);
+        api.on(document, 'visibilitychange', function () { if (!document.hidden) heard = Math.max(heard, performance.now() - 3000); });
+        api.on(window, 'pagehide', function () { if (linked) send({ t: 'bye' }); if (roomCode) closeRoom(); });
+        lobby('menu');
+    }
+
+    /* the lobby: one of its parts at a time (menu, code, join, msg), or none */
+    function lobby(name) {
+        wrapEl.classList.toggle('kk-lobby-on', !!name);
+        Array.prototype.forEach.call(lobbyEl.querySelectorAll('section'), function (s) { s.classList.toggle('kk-on', s.dataset.s === name); });
+    }
+    function msg(title, text, list) {  /* a message with buttons: list of [label, action, main] */
+        var s = lobbyEl.querySelector('[data-s="msg"]'), row = s.querySelector('.kk-lb-row');
+        s.querySelector('h3').textContent = title;
+        s.querySelector('p').textContent = text;
+        row.innerHTML = '';
+        acts = [];
+        list.forEach(function (o, i) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'kk-lb-btn' + (o[2] ? ' kk-lb-go' : ''); b.textContent = o[0]; b.dataset.i = i;
+            acts.push(o[1]); row.appendChild(b);
+        });
+        lobby('msg');
+    }
+    function menu() { teardown(true); lobby('menu'); }
+    function joinScreen() {
+        teardown(true);
+        lobby('join');
+        var inp = lobbyEl.querySelector('.kk-in');
+        lobbyEl.querySelector('.kk-lb-err').textContent = '';
+        try { inp.focus(); } catch (e) { /* fine */ }
+    }
+    function showPicker() {  /* the host picks a track (and, before a friend is there, the level of the computer cats) */
+        phase = 'pick'; ready = false;
+        wrapEl.classList.add('kk-picking'); wrapEl.classList.remove('kk-res-on');
+        lobby(null);
+        wrapEl.querySelector('.kk-pick-tip').textContent = (api.touch ? 'Tap a track' : 'Click a track, or arrows and Enter') + (linked ? ' to race' : ' to get your code');
+        pickBack.hidden = linked;
+        wrapEl.querySelector('.kk-lvl').hidden = linked;
+    }
+    function picked() {
+        try { localStorage.setItem('kitty-kart-duo', JSON.stringify({ level: duoLevel })); } catch (e) { /* private mode: fine */ }
+        if (linked) startRace(); else hostRoom();
+    }
+    function fail(kind) {
+        var was = role;
+        teardown(true);
+        var again = kind === 'none' || kind === 'old' ? [] : [[kind === 'nocode' || kind === 'taken' ? 'Try another code' : 'Try again', was === 'guest' ? joinScreen : was === 'host' ? hostRoom : menu, 1]];
+        msg(FAIL[kind][0], FAIL[kind][1], again.concat([['Back to the lobby', menu]]));
+    }
+    function lost() {  /* the friend left, closed the game or lost the connection */
+        teardown(true);
+        msg('Your friend left', 'The connection to your friend has ended.', [['Back to the lobby', menu, 1]]);
+    }
+    function leave() { send({ t: 'bye' }); menu(); }
+
+    /* ---------- signalling: the counter passes the offer and the answer on ---------- */
+    function ask(method, path, body) {
+        return fetch(SERVER + path, { method: method, cache: 'no-store', credentials: 'omit',
+            headers: body ? { 'Content-Type': 'text/plain' } : {}, body: body ? JSON.stringify(body) : null })
+            .then(function (r) {
+                if (r.status !== 200) return { status: r.status };
+                return r.json().then(function (d) { return { status: 200, data: d || {} }; });
+            });
+    }
+    function closeRoom() {  /* the host stops waiting: the counter deletes the room now rather than after two minutes */
+        var c = roomCode;
+        roomCode = null;
+        try { fetch(SERVER + '/room/' + c + '/close', { method: 'POST', keepalive: true, cache: 'no-store', credentials: 'omit' }).catch(function () {}); } catch (e) { /* offline */ }
+    }
+    function peer() {
+        var p = new RTCPeerConnection({ iceServers: ICE }), g = gen;
+        fast = p.createDataChannel('fast', { negotiated: true, id: 0, ordered: false, maxRetransmits: 0 });
+        sure = p.createDataChannel('sure', { negotiated: true, id: 1 });
+        fast.onmessage = function (e) { if (g === gen) { heard = performance.now(); onFast(e.data); } };
+        sure.onmessage = function (e) { if (g === gen) { heard = performance.now(); onSure(e.data); } };
+        sure.onopen = function () { if (g === gen) linkUp(); };
+        sure.onclose = function () { if (g === gen && linked) lost(); };
+        p.onconnectionstatechange = function () { if (g === gen && p.connectionState === 'failed') { if (linked) lost(); else fail('direct'); } };
+        return p;
+    }
+    function gathered(p) {  /* the description is sent once, with every way to reach this device: wait for them (4 s at most) */
+        return new Promise(function (done) {
+            if (p.iceGatheringState === 'complete') { done(); return; }
+            api.timeout(done, 4000);
+            p.addEventListener('icegatheringstatechange', function () { if (p.iceGatheringState === 'complete') done(); });
+        });
+    }
+    function linkWait(g) { api.timeout(function () { if (g === gen && !linked) fail('direct'); }, 15000); }
+    function hostRoom() {
+        teardown(true);
+        var g = gen;
+        role = 'host';
+        msg('Getting a code', 'One moment…', [['Cancel', menu]]);
+        pc = peer();
+        pc.createOffer().then(function (o) { return pc.setLocalDescription(o); })
+            .then(function () { return gathered(pc); })
+            .then(function () { return g === gen ? ask('POST', '/room', { offer: pc.localDescription.sdp }) : null; })
+            .then(function (r) {
+                if (!r || g !== gen) return;
+                if (r.status !== 200 || !/^[A-Z]{4}$/.test(r.data.code)) { fail(r.status === 503 ? 'full' : 'server'); return; }
+                roomCode = r.data.code; codeAt = Date.now();
+                lobbyEl.querySelector('.kk-code').textContent = roomCode;
+                lobby('code');
+                api.timeout(function () { waitAnswer(g); }, 1200);
+            })
+            .catch(function () { if (g === gen) fail('server'); });
+    }
+    function waitAnswer(g) {  /* the host asks every 1.2 s whether the friend has answered */
+        if (g !== gen || !roomCode) return;
+        if (Date.now() - codeAt > 115000) { expired(); return; }
+        ask('GET', '/room/' + roomCode + '/answer').then(function (r) {
+            if (g !== gen) return;
+            if (r.status === 204) { api.timeout(function () { waitAnswer(g); }, 1200); return; }
+            if (r.status !== 200 || typeof r.data.answer !== 'string') { roomCode = null; expired(); return; }
+            roomCode = null;  /* the counter has deleted the room */
+            msg('Connecting', 'Your friend is joining…', [['Cancel', menu]]);
+            pc.setRemoteDescription({ type: 'answer', sdp: r.data.answer }).then(function () { linkWait(g); }, function () { if (g === gen) fail('direct'); });
+        }, function () { if (g === gen) api.timeout(function () { waitAnswer(g); }, 2500); });  /* a hiccup: ask again */
+    }
+    function expired() {
+        teardown(true);
+        msg('Your code expired', 'Codes last two minutes. Get a new one when your friend is ready.', [['New code', hostRoom, 1], ['Back to the lobby', menu]]);
+    }
+    function joinRoom() {
+        var c = lobbyEl.querySelector('.kk-in').value.toUpperCase().replace(/[^A-Z]/g, '');
+        if (c.length !== 4) { lobbyEl.querySelector('.kk-lb-err').textContent = 'The code has four letters.'; return; }
+        teardown(true);
+        var g = gen;
+        role = 'guest';
+        msg('Joining', 'Looking for the race…', [['Cancel', joinScreen]]);
+        ask('GET', '/room/' + c).then(function (r) {
+            if (g !== gen) return null;
+            if (r.status !== 200 || typeof r.data.offer !== 'string') { fail(r.status === 404 ? 'nocode' : 'server'); return null; }
+            pc = peer();
+            return pc.setRemoteDescription({ type: 'offer', sdp: r.data.offer })
+                .then(function () { return pc.createAnswer(); })
+                .then(function (a) { return pc.setLocalDescription(a); })
+                .then(function () { return gathered(pc); })
+                .then(function () { return g === gen ? ask('POST', '/room/' + c, { answer: pc.localDescription.sdp }) : null; })
+                .then(function (r2) {
+                    if (!r2 || g !== gen) return;
+                    if (r2.status !== 204) { fail(r2.status === 404 ? 'nocode' : r2.status === 409 ? 'taken' : 'server'); return; }
+                    msg('Connecting', 'Almost there…', [['Cancel', menu]]);
+                    linkWait(g);
+                });
+        }).catch(function () { if (g === gen) fail('server'); });
+    }
+    /* back to no friend: closes the connection; fresh: also puts the track back as in the lobby (not when the game closes) */
+    function teardown(fresh) {
+        gen++;
+        if (roomCode) closeRoom();
+        var p = pc;
+        linked = ready = false; pc = fast = sure = null; role = '';
+        if (p) try { p.close(); } catch (e) { /* already closed */ }
+        host = remote = false; pal = null; me = karts[0];
+        snaps = []; vclock = -1; cd = -1; sinceGo = 0; myDone = false;
+        if (!fresh) return;
+        phase = 'pick'; keys = {}; pads = {}; raceTime = 0; place = 4;
+        Array.prototype.forEach.call(wrapEl.querySelectorAll('.kk-on'), function (b) { if (b.dataset.k) b.classList.remove('kk-on'); });
+        wrapEl.classList.add('kk-picking'); wrapEl.classList.remove('kk-res-on');
+        count(''); hintEl.style.display = '';
+        choose(sel);
+    }
+
+    /* ---------- the two devices linked ---------- */
+    function send(o) { if (sure && sure.readyState === 'open') try { sure.send(JSON.stringify(o)); } catch (e) { /* closing */ } }
+    function tell(k, v) { send({ t: 'fx', k: k, v: v }); }
+    function linkUp() {
+        linked = true; heard = performance.now();
+        if (role === 'host') { host = true; pal = karts[1]; startRace(); }
+        else { remote = true; me = karts[1]; pal = karts[0]; slot(); msg('Connected', 'Your friend is starting the race…', [['Leave', leave]]); }
+    }
+    function startRace() {  /* the host: the picked track, for both */
+        raceNo++; ready = false;
+        LEVEL = duoLevel;
+        choose(sel);
+        phase = 'pick';
+        wrapEl.classList.add('kk-picking'); wrapEl.classList.remove('kk-res-on');
+        send({ t: 'start', n: raceNo, map: MAP.id });
+        msg('Get ready', 'Waiting for your friend\'s screen…', [['Leave', leave]]);
+    }
+    function begin() {  /* both: the countdown starts (the host's "go" reaches the friend a moment later) */
+        raceTime = 0; finishers = 0; place = 4; wrongFor = 0; shake = 0; lastSay = -99; doneAt = 0; myDone = false; sinceGo = 0; resKey = '';
+        phase = 'count'; clock = 0; keys = {};
+        count(''); hintEl.style.display = '';
+        lobby(null);
+        wrapEl.classList.remove('kk-picking', 'kk-res-on');
+        if (document.activeElement && wrapEl.contains(document.activeElement)) document.activeElement.blur();
+        api.sfx('tap');
+        if (host) { send({ t: 'go', n: raceNo }); ready = true; palIn = { thr: 0, want: 0, use: palIn.use, seq: 0, at: 0 }; palUsed = palIn.use; }
+        else cd = 0;
+    }
+    function onSure(text) {
+        var m, i;
+        try { m = JSON.parse(text); } catch (e) { return; }
+        if (!m || typeof m !== 'object') return;
+        if (m.t === 'bye') { lost(); return; }
+        if (host) { if (m.t === 'ready' && m.n === raceNo && phase === 'pick') begin(); return; }
+        if (!remote) return;
+        if (m.t === 'start' && typeof m.n === 'number') {
+            for (i = 0; i < MAPS.length && MAPS[i].id !== m.map; i++);
+            if (i === MAPS.length) return;
+            raceNo = m.n; snaps = []; vclock = -1; lastSeq = 0; myDone = false; heldItem = null; cd = -1; sinceGo = 0;
+            phase = 'pick';
+            wrapEl.classList.add('kk-picking'); wrapEl.classList.remove('kk-res-on');
+            choose(i);
+            msg('Get ready', MAP.name + ', three laps.', [['Leave', leave]]);
+            send({ t: 'ready', n: raceNo });
+        } else if (m.t === 'go' && m.n === raceNo) begin();
+        else if (m.t === 'pick') {
+            wrapEl.classList.remove('kk-res-on');
+            msg('Your friend is picking a track', 'The next race starts as soon as they choose.', [['Leave', leave]]);
+        } else if (m.t === 'fx') {
+            if (m.k === 's' && /^(tap|pop|point|hit|jump|move)$/.test(m.v)) api.sfx(m.v);
+            else if (m.k === 'c' && /^(happy|sad|wow)$/.test(m.v)) api.cat(m.v);
+            else if (m.k === 't' && typeof m.v === 'string') say(m.v.slice(0, 80));
+            else if (m.k === 'k' && typeof m.v === 'number') { api.sfx('hit'); if (!api.reducedMotion) shake = Math.min(6, m.v / 25); }
+        }
+    }
+    function onFast(text) {
+        var m;
+        try { m = JSON.parse(text); } catch (e) { return; }
+        if (!Array.isArray(m) || m[0] !== raceNo || typeof m[1] !== 'number') return;
+        if (host) {  /* the friend's keys: [race, number, throttle, steering, items used so far] */
+            if (m[1] <= palIn.seq) return;
+            palIn.seq = m[1]; palIn.at = performance.now();
+            palIn.thr = clamp(+m[2] || 0, -1, 1); palIn.want = clamp(+m[3] || 0, -1, 1);
+            var u = Math.floor(+m[4] || 0);
+            if (u > palIn.use) palIn.use = u;
+        } else if (remote) {  /* a snapshot, see pack */
+            if (m[1] <= lastSeq || m.length < 11 || !Array.isArray(m[6]) || m[6].length !== 4 * KF) return;
+            lastSeq = m[1];
+            snaps.push(m);
+            if (snaps.length > 30) snaps.shift();
+        }
+    }
+    function steerPal(dt) {  /* the host drives the friend's kart with the keys they send (none for a moment: let go) */
+        var c = pal, fresh = performance.now() - palIn.at < 400;
+        if (c.fin || phase !== 'race') { autopilot(c, 0.45); return; }
+        c.thr = fresh ? palIn.thr : 0;
+        c.steer += ((fresh ? palIn.want : 0) - c.steer) * Math.min(1, dt * 10);
+        if (c.laser > 0) c.steer = c.steer * 0.3 + 0.7 * clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1);
+        if (palIn.use > palUsed) { palUsed = palIn.use; useItem(c); }
+    }
+    function rd(v, k) { return Math.round(v * k) / k; }
+    /* a snapshot: [race, number, clock, race time, phase, fish tins taken (bits), karts (KF numbers each), yarn balls
+       (id, x, y, roll), spilt milk (x, y, age), bell rings (kart, age), the track's moving hazards (see hzPack)] */
+    function pack() {
+        var ks = [], ys = [], ms = [], rs = [], mask = 0, i, c;
+        for (i = 0; i < 4; i++) {
+            c = karts[i];
+            ks.push(rd(c.x, 10), rd(c.y, 10), rd(wrap(c.a), 1000), rd(Math.max(0, c.z), 10), Math.round(c.vx), Math.round(c.vy), rd(c.steer, 100),
+                (c.boost > 0 ? 1 : 0) | (c.shield > 0 ? 2 : 0) | (c.tangled > 0 ? 4 : 0) | (c.nap > 0 ? 8 : 0) | (c.laser > 0 ? 16 : 0) | (c.dotS > 0 ? 32 : 0) | (c.spin > 0 ? 64 : 0),
+                c.fall > 0 ? rd(c.fall, 100) : 0, c.k, rd(c.prog, 10), rd(c.fin, 100), c.item ? ITEMS.indexOf(c.item) + 1 : 0);
+        }
+        for (i = 0; i < tins.length; i++) if (tins[i].t > 0) mask |= 1 << i;
+        yarns.forEach(function (y) { if (!y.id) y.id = ++yarnId; ys.push(y.id, rd(y.x, 10), rd(y.y, 10), rd(y.roll % 6.2832, 100)); });
+        milks.forEach(function (m) { ms.push(rd(m.x, 10), rd(m.y, 10), rd(m.t, 10)); });
+        rings.forEach(function (g) { rs.push(karts.indexOf(g.who), rd(g.t, 100)); });
+        return [raceNo, ++snapSeq, rd(clock, 1000), rd(raceTime, 100), PH.indexOf(phase), mask, ks, ys, ms, rs, hzPack()];
+    }
+    function hzPack() {  /* what moves on the track and is not worked out from the clock alone */
+        var m = MAP, out = [];
+        if (m === CITY) {
+            out.push(rd(m.tram.s, 10), m.tram.dir, rd(m.tram.wait, 100));
+            m.cones.forEach(function (q, i) { if (q.vx || q.vy || clock - q.hit < 3) out.push(i, rd(q.x, 10), rd(q.y, 10), rd(q.a, 100)); });
+        } else if (m === REEF) out.push(rd(m.turtle.s, 10), m.turtle.dir);
+        else if (m === MOON || m === VOLCANO) (m === MOON ? m.met : m.burst.list).forEach(function (q) { out.push(rd(q.x, 10), rd(q.y, 10), rd(q.t, 100)); });
+        else if (m === DESERT) { out.push(rd(m.storm.on, 100)); m.weeds.forEach(function (w) { out.push(rd(w.s, 10), rd(w.rot, 100)); }); }
+        return out;
+    }
+    function mix(u, v, f, jump) { return typeof u !== 'number' || Math.abs(v - u) > jump ? v : u + (v - u) * f; }
+    function hzSet(a, b, f) {
+        var m = MAP, i, j;
+        if (!Array.isArray(a) || !Array.isArray(b)) return;
+        if (m === CITY && b.length >= 3) {
+            m.tram.s = mix(a[0], b[0], f, 60); m.tram.dir = b[1]; m.tram.wait = b[2];
+            for (i = 3; i + 3 < b.length; i += 4) { var q = m.cones[b[i]]; if (q) { q.x = b[i + 1]; q.y = b[i + 2]; q.a = b[i + 3]; q.vx = q.vy = q.va = 0; } }
+        } else if (m === REEF && b.length >= 2) { m.turtle.s = mix(a[0], b[0], f, 30); m.turtle.dir = b[1]; }
+        else if (m === MOON || m === VOLCANO) {
+            var old = m === MOON ? m.met : m.burst.list, list = [], at = m === MOON ? 1.5 : 1.4;
+            for (i = 0; i + 2 < b.length; i += 3) {
+                var o = null;
+                for (j = 0; j < old.length; j++) if (old[j].x === b[i] && old[j].y === b[i + 1]) o = old[j];
+                o = o || { x: b[i], y: b[i + 1] };
+                o.t = b[i + 2];
+                if (o.t >= at && !o.hit) {  /* the rock lands, or the lava bursts: the same puffs as on the host */
+                    o.hit = true;
+                    for (j = 0; j < 12; j++) puff(m === MOON ? 'dust' : 'lava', o.x, o.y, (Math.random() - 0.5) * 230, (Math.random() - 0.5) * 230, 0.9, m === MOON ? 6 + Math.random() * 6 : 3 + Math.random() * 4);
+                }
+                list.push(o);
+            }
+            if (m === MOON) m.met = list; else m.burst.list = list;
+        } else if (m === DESERT && b.length >= 7) {
+            m.storm.on = b[0];
+            m.weeds.forEach(function (w, n) { w.s = mix(a[1 + n * 2], b[1 + n * 2], f, 60); w.rot = mix(a[2 + n * 2], b[2 + n * 2], f, 3); });
+        }
+    }
+    /* the friend's device, every frame: the moment LAG behind the newest snapshot, blended from the two around it */
+    function view(dt) {
+        var i, j, c, n = snaps.length, s0 = null, s1 = null, f = 0;
+        if (n) {
+            var last = snaps[n - 1], aim = last[2] - LAG;
+            vclock += dt;
+            if (vclock < 0 || Math.abs(aim - vclock) > 0.5) vclock = aim; else vclock += (aim - vclock) * Math.min(1, dt * 2);
+            s0 = s1 = snaps[0];
+            for (i = 0; i < n; i++) { if (snaps[i][2] <= vclock) s0 = s1 = snaps[i]; else { s1 = snaps[i]; break; } }
+            if (s1 !== s0) f = clamp((vclock - s0[2]) / (s1[2] - s0[2]), 0, 1);
+            while (snaps.length > 2 && snaps[1][2] <= vclock) snaps.shift();
+            clock = Math.max(0, Math.min(vclock, last[2]));
+        } else clock += dt;
+        if (MAP.update) MAP.update(dt);
+        moveParts(dt);
+        if (s0) {
+            raceTime = s0[3] + (s1[3] - s0[3]) * f;
+            phase = PH[s1[4]] || phase;
+            var a = s0[6], b = s1[6];
+            for (i = 0; i < 4; i++) {
+                c = karts[i];
+                var o = i * KF, fl = b[o + 7], wasZ = c.z;
+                c.x = mix(a[o], b[o], f, 150); c.y = mix(a[o + 1], b[o + 1], f, 150);
+                c.a = a[o + 2] + wrap(b[o + 2] - a[o + 2]) * f;
+                c.z = mix(a[o + 3], b[o + 3], f, 1e9); c.vx = b[o + 4]; c.vy = b[o + 5]; c.steer = mix(a[o + 6], b[o + 6], f, 1e9);
+                c.boost = fl & 1 ? 1 : 0; c.shield = fl & 2 ? 1 : 0; c.tangled = fl & 4 ? 1 : 0; c.nap = fl & 8 ? 1 : 0;
+                c.laser = fl & 16 ? 1 : 0; c.dotS = fl & 32 ? 1 : -1; c.spin = fl & 64 ? 1 : 0;
+                c.fall = b[o + 8] > 0 ? mix(a[o + 8] || b[o + 8], b[o + 8], f, 1e9) : 0;
+                c.k = b[o + 9]; c.prog = b[o + 10]; c.fin = b[o + 11]; c.item = ITEMS[b[o + 12] - 1] || null;
+                c.vf = c.vx * Math.cos(c.a) + c.vy * Math.sin(c.a);
+                if (c.laser) setDot(c, i);
+                if (wasZ > 0 && !(c.z > 0)) for (j = 0; j < 6; j++) puff('dust', c.x, c.y, (Math.random() - 0.5) * 90, (Math.random() - 0.5) * 90, 0.8, 5 + Math.random() * 5);
+                if (c.boost && Math.random() < 0.6) puff('leaf', c.x - Math.cos(c.a) * 18, c.y - Math.sin(c.a) * 18, -c.vx * 0.2 + (Math.random() - 0.5) * 60, -c.vy * 0.2 + (Math.random() - 0.5) * 60, 0.5, 3);
+                if (MAP === REEF && Math.abs(c.vf) > 40 && vis(c.x, c.y, 40) && (c.bt = (c.bt || 0) - dt) <= 0) {
+                    c.bt = 0.12;
+                    puff('bub', c.x - Math.cos(c.a) * 17, c.y - Math.sin(c.a) * 17, -c.vx * 0.1 + (Math.random() - 0.5) * 20, -c.vy * 0.1 + (Math.random() - 0.5) * 20, 1.1, 2 + Math.random() * 2.5);
+                }
+            }
+            for (i = 0; i < tins.length; i++) {
+                var gone = (s1[5] >> i) & 1;
+                if (gone && !(tins[i].t > 0)) for (j = 0; j < 7; j++) puff('spark', tins[i].x, tins[i].y, (Math.random() - 0.5) * 170, (Math.random() - 0.5) * 170, 0.5, 2.6);
+                tins[i].t = gone;
+            }
+            var had = {}, now = [], ya = s0[7], yb = s1[7];
+            yarns.forEach(function (y) { had[y.id] = y; });
+            for (i = 0; i + 3 < yb.length; i += 4) {
+                var y = had[yb[i]] || { id: yb[i], trail: [] }, x = yb[i + 1], yy = yb[i + 2];
+                for (j = 0; j + 3 < ya.length; j += 4) if (ya[j] === y.id) { x = ya[j + 1] + (x - ya[j + 1]) * f; yy = ya[j + 2] + (yy - ya[j + 2]) * f; break; }
+                y.x = x; y.y = yy; y.roll = yb[i + 3];
+                y.trail.push(x, yy);
+                if (y.trail.length > 18) y.trail.splice(0, 2);
+                delete had[y.id]; now.push(y);
+            }
+            Object.keys(had).forEach(function (k) {  /* a yarn ball that hit someone or rolled away */
+                for (j = 0; j < 6; j++) { var q = puff('spark', had[k].x, had[k].y, (Math.random() - 0.5) * 140, (Math.random() - 0.5) * 140, 0.5, 2.4); if (q) q.c = '#f472b6'; }
+            });
+            yarns = now;
+            milks = [];
+            for (i = 0; i + 2 < s1[8].length; i += 3) milks.push({ x: s1[8][i], y: s1[8][i + 1], t: s1[8][i + 2] });
+            rings = [];
+            for (i = 0; i + 1 < s1[9].length; i += 2) rings.push({ who: karts[s1[9][i]] || karts[0], t: s1[9][i + 1] });
+            hzSet(s0[10], s1[10], f);
+        }
+        nearest(me);
+        if (cd >= 0) {  /* the countdown runs on this device's own clock, from the host's "go" */
+            cd += dt;
+            var left = 3 - Math.floor(cd - 0.6);
+            if (cd >= 0.6 && left >= 1 && shown.count !== String(left)) { count(String(left)); api.sfx('tap'); }
+            if (left < 1) { cd = -1; sinceGo = 0.001; count('Go!', 'kk-go'); api.sfx('point'); hintEl.style.display = 'none'; }
+        }
+        if (sinceGo > 0) {
+            sinceGo += dt;
+            if (sinceGo > 0.8 && shown.count === 'Go!') count('');
+            if (!me.fin && phase === 'race') {
+                var p = rankOf(me);
+                if (p !== place && clock - lastSay > 6) {
+                    if (p === 1) { api.cat('happy'); say('Purr! You took the lead!'); }
+                    else if (p < place) { api.cat('wow'); say('Nice pass!'); }
+                    else if (p === 2 && place === 1) { api.cat('sad'); say('Hiss! Catch them!'); }
+                }
+                place = p;
+                var wrong = Math.abs(wrap(me.a - me.ang)) > 2.1 && me.vf > 20 && !me.spin && !me.fall;
+                wrongFor = wrong ? wrongFor + dt : 0;
+                if (sinceGo > 1.4) count(wrongFor > 0.8 ? 'Wrong way!' : '', 'kk-warn');
+            }
+        }
+        if (me.fin && !myDone && sinceGo > 0) duoFinish();
+        if (me.item !== heldItem) { heldItem = me.item; slot(); }
+        camX += (me.x + me.vx * 0.4 - camX) * Math.min(1, dt * 4);
+        camY += (me.y + me.vy * 0.4 - camY) * Math.min(1, dt * 4);
+        shake = Math.max(0, shake - dt * 20);
+    }
+    function duoFinish() {  /* this player is through; the race goes on until both are (then the host can start another) */
+        myDone = true; doneAt = clock; place = rankOf(me);
+        count(''); show();
+        var beat = !pal.fin || me.fin < pal.fin;
+        api.cat(beat ? 'happy' : 'sad'); api.sfx(beat ? 'win' : 'lose');
+        api.say(place === 1 ? 'Purrfect! First place!' : beat ? 'Ahead of your friend!' : 'Your friend was quicker. Rematch?', 2400);
+        if (host && pal.fin) phase = 'done';
+        resKey = '';
+        api.timeout(function () { if (myDone) wrapEl.classList.add('kk-res-on'); }, 650);
+    }
+    function results() {  /* the results box, rebuilt when something in it changes */
+        var order = karts.slice().sort(function (a, b) { return ahead(a, b) ? -1 : ahead(b, a) ? 1 : 0; });
+        var again = host && (phase === 'done' || clock - doneAt > 30);
+        var key = order.map(function (c) { return karts.indexOf(c) + ':' + c.fin; }).join() + again + host;
+        if (key === resKey) return;
+        resKey = key;
+        var list = resEl.querySelector('.kk-res-list');
+        list.innerHTML = '';
+        order.forEach(function (c, i) {
+            var li = document.createElement('li');
+            li.innerHTML = '<b></b><i></i><span></span><em></em>';
+            if (c === me) li.className = 'kk-me';
+            li.querySelector('b').textContent = i + 1;
+            li.querySelector('i').style.background = c.body;
+            li.querySelector('span').textContent = c === me ? 'You' : c === pal ? 'Your friend' : CAT_NAMES[karts.indexOf(c)];
+            li.querySelector('em').textContent = c.fin ? c.fin.toFixed(1) + ' s' : 'still racing';
+            list.appendChild(li);
+        });
+        resEl.querySelector('.kk-res-note').textContent = host ? (phase === 'done' ? 'Race again on this track, or pick another.' : 'Waiting for your friend to finish…') :
+            pal.fin ? 'Your friend picks what comes next.' : 'Your friend is still racing.';
+        resEl.querySelector('[data-a="again"]').hidden = resEl.querySelector('[data-a="new"]').hidden = !host;
+        resEl.querySelector('[data-a="again"]').disabled = resEl.querySelector('[data-a="new"]').disabled = !again;
+    }
+    function duoTick(now) {  /* after every frame: snapshots out (host), keys out (friend), the results box */
+        if (myDone) results();
+        if (!linked || !fast || fast.readyState !== 'open') return;
+        if (host && ready && now - snapAt >= SNAP_MS - 4 && fast.bufferedAmount < 65536) {
+            snapAt = now;
+            var t = JSON.stringify(pack());
+            if (test) test.snapBytes = Math.max(test.snapBytes || 0, t.length);
+            fast.send(t);
+        }
+        if (remote && phase !== 'pick' && now - sentAt >= 15) {
+            sentAt = now;
+            var thr = (keys.up || pads.up ? 1 : 0) - (keys.down || pads.down ? 1 : 0), want = (keys.right || pads.right ? 1 : 0) - (keys.left || pads.left ? 1 : 0);
+            if (test && test.bot && phase === 'race' && !me.fin) {  /* test only: the computer drives the friend's keys */
+                autopilot(me, test.skill || 0.9); thr = me.thr; want = me.steer;
+                if (me.item && Math.random() < 0.02) uses++;
+            }
+            fast.send(JSON.stringify([raceNo, ++inSeq, thr, rd(want, 100), uses]));
+        }
+    }
+    if (test) test.duo = function () {
+        return { role: host ? 'host' : remote ? 'guest' : role, linked: linked, code: roomCode, race: raceNo, phase: phase, place: place, time: raceTime,
+            lobby: wrapEl.classList.contains('kk-lobby-on') ? (lobbyEl.querySelector('section.kk-on') || {}).dataset.s : null,
+            title: (lobbyEl.querySelector('[data-s="msg"] h3') || {}).textContent, results: wrapEl.classList.contains('kk-res-on'),
+            snaps: snaps.length, snapBytes: test.snapBytes || 0, map: MAP.id, uses: uses, palUsed: palUsed,
+            karts: karts.map(function (c) { return [Math.round(c.x), Math.round(c.y), c.k, c.fin, c.item]; }), me: karts.indexOf(me) };
+    };
+
     load(MAP);
     reset();
     fit(api.size());
     api.onResize(fit);
     showBests();
     show();
-    return { destroy: function () { if (window.__kk === test) try { delete window.__kk; } catch (e) { window.__kk = undefined; } } };
-});
+    return { destroy: function () {
+        if (window.__kk === test) try { delete window.__kk; } catch (e) { window.__kk = undefined; }
+        if (duo) { send({ t: 'bye' }); teardown(false); }
+    } };
+}
+})();

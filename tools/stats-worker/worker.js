@@ -4,7 +4,16 @@
 //   GET  /stats  the totals of the ?days=7, 30 or 90 days up to yesterday (UTC), read by the site's /stats/ page. Today is
 //                left out and anything under MIN views is grouped as "(other)", so no single visit can be read off it.
 //   GET  /whoami the country this request would be counted under (for the /you/ page; nothing is stored)
-// Table (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country.
+// Two-player games (Kitty Kart Duo on /games/): the two devices pass each other one "how to reach me" message (WebRTC
+// SDP, which holds their network addresses), then race directly. A room keeps them for at most ROOM_TTL, then is deleted.
+//   POST /room               the host opens a room: {"offer": "v=0..."} -> {"code": "BDFG"} (503 when MAX_ROOMS are open)
+//   GET  /room/BDFG          the friend reads the offer: {"offer": "v=0..."}, 404 when there is no such room (or it expired)
+//   POST /room/BDFG          the friend answers: {"answer": "v=0..."}, 409 when the room already has an answer
+//   GET  /room/BDFG/answer   the host waits: {"answer": "v=0..."} once it is there, and the room is deleted; 204 until then
+//   POST /room/BDFG/close    the host gives up waiting: the room is deleted
+// Every request first deletes the rooms older than ROOM_TTL (so does the scheduled handler, if a cron trigger is set).
+// Tables (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country;
+//                      rooms(code, offer, answer, at), at = when the room was opened (ms).
 const SITE = 'https://florias-papadopoulos.github.io';
 const BROWSERS = ['Firefox', 'Chrome', 'Safari', 'Edge', 'Opera', 'Other'];
 const TOP = 40;   // /stats lists at most this many pages, referrers, countries... (keeps the answer small whatever is sent)
@@ -16,18 +25,25 @@ const PAGES = ['/', '/bachelor/', '/master/', '/papers/', '/games/', '/projects/
 const MAX_REFS = 50;      // distinct referring sites a day; later new ones are counted as "(other site)"
 const DAY_CAP = 5000;     // page views counted a day; past it nothing is written, so fake hits cannot use up the database quota
 const MAX_BODY = 1000;    // bytes; a real /hit body is under 100
+const ROOM_TTL = 120000;  // ms a room lives at most
+const MAX_ROOMS = 100;    // rooms open at once; past it new ones are refused
+const MAX_SDP = 6000;     // bytes; an offer or answer with its network addresses is usually 1 to 3 KB
+const LETTERS = 'BCDFGHJKLMNPQRSTVWXZ';  // room codes: no vowels (so no words), no I or O to mix up with 1 or 0
 
 function headers(extra) {
     return Object.assign({ 'Access-Control-Allow-Origin': SITE, 'Vary': 'Origin' }, extra || {});
 }
 
 export default {
-    async fetch(req, env) {
+    async fetch(req, env, ctx) {
         const url = new URL(req.url);
         if (req.method === 'OPTIONS') {
             return new Response(null, { headers: headers({ 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type' }) });
         }
         try {
+            if (url.pathname === '/room' || url.pathname.indexOf('/room/') === 0) return await room(req, url, env);
+            /* old rooms go on every other request too, after the answer (and never in its way) */
+            if (ctx && ctx.waitUntil) ctx.waitUntil(Promise.resolve().then(function () { return sweep(env); }).catch(function () {}));
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
             if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
             if (url.pathname === '/whoami' && req.method === 'GET') {
@@ -38,8 +54,74 @@ export default {
             return new Response('Error', { status: 500, headers: headers() });
         }
         return new Response('Not found', { status: 404, headers: headers() });
-    }
+    },
+    async scheduled(ev, env, ctx) { ctx.waitUntil(sweep(env)); }
 };
+
+/* ---------- rooms for two-player games ---------- */
+function sweep(env) { return env.DB.prepare('DELETE FROM rooms WHERE at < ?1').bind(Date.now() - ROOM_TTL).run(); }
+
+function reply(status, obj) {
+    return new Response(obj ? JSON.stringify(obj) : null,
+        { status: status, headers: headers(Object.assign({ 'Cache-Control': 'no-store' }, obj ? { 'Content-Type': 'application/json' } : {})) });
+}
+
+/* an offer or answer as the browser makes it: a string that starts like SDP, not too long */
+function sdp(d, key) {
+    const v = d && d[key];
+    return typeof v === 'string' && v.slice(0, 3) === 'v=0' && v.length <= MAX_SDP ? v : null;
+}
+
+function newCode() {
+    const b = new Uint8Array(12);
+    crypto.getRandomValues(b);
+    let c = '';
+    for (let i = 0; i < b.length && c.length < 4; i++) if (b[i] < 240) c += LETTERS[b[i] % LETTERS.length];  /* 240 = 12 * 20: no letter favoured */
+    return c.length === 4 ? c : null;
+}
+
+async function room(req, url, env) {
+    if (req.headers.get('Origin') !== SITE) return reply(403);
+    await sweep(env);
+    const m = /^\/room(?:\/([A-Z]{4})(\/answer|\/close)?)?$/.exec(url.pathname);
+    if (!m) return reply(404);
+    const code = m[1], what = m[2], post = req.method === 'POST', get = req.method === 'GET';
+    if (!code) {   /* POST /room: open one */
+        if (!post) return reply(404);
+        const offer = sdp(await body(req, MAX_SDP + 200), 'offer');
+        if (!offer) return reply(400);
+        const open = await env.DB.prepare('SELECT COUNT(*) AS n FROM rooms').first();
+        if (open && open.n >= MAX_ROOMS) return reply(503);
+        for (let tries = 0; tries < 6; tries++) {
+            const c = newCode();
+            if (!c) continue;
+            const r = await env.DB.prepare('INSERT INTO rooms (code, offer, at) VALUES (?1, ?2, ?3) ON CONFLICT(code) DO NOTHING').bind(c, offer, Date.now()).run();
+            if (r && r.meta && r.meta.changes === 1) return reply(200, { code: c });
+        }
+        return reply(503);
+    }
+    if (what === '/close') {
+        if (!post) return reply(404);
+        await env.DB.prepare('DELETE FROM rooms WHERE code = ?1').bind(code).run();
+        return reply(204);
+    }
+    const row = await env.DB.prepare('SELECT offer, answer FROM rooms WHERE code = ?1').bind(code).first();
+    if (what === '/answer') {   /* the host waiting for the answer */
+        if (!get) return reply(404);
+        if (!row) return reply(404);
+        if (row.answer === null || row.answer === undefined) return reply(204);
+        await env.DB.prepare('DELETE FROM rooms WHERE code = ?1').bind(code).run();
+        return reply(200, { answer: row.answer });
+    }
+    if (get) return row ? reply(200, { offer: row.offer }) : reply(404);
+    if (!post) return reply(404);
+    const answer = sdp(await body(req, MAX_SDP + 200), 'answer');
+    if (!answer) return reply(400);
+    if (!row) return reply(404);
+    if (row.answer !== null && row.answer !== undefined) return reply(409);
+    const r = await env.DB.prepare('UPDATE rooms SET answer = ?2 WHERE code = ?1 AND answer IS NULL').bind(code, answer).run();
+    return reply(r && r.meta && r.meta.changes === 1 ? 204 : 409);
+}
 
 async function hit(req, env) {
     const ua = req.headers.get('User-Agent') || '';

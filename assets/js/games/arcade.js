@@ -24,9 +24,14 @@
      api.cat(mood)               the cat in the corner: 'happy', 'sad', 'wow', 'think' or 'idle'
      api.say(text, ms)           a speech bubble from the cat
      api.sfx(name)               'tap', 'pop', 'point', 'hit', 'jump', 'move', 'win', 'lose'
+     api.server                  the address of the site's own small server (params.statsEndpoint), '' when there is none
      api.touch                   true on touch screens
      api.reducedMotion           true if the visitor prefers less motion
      api.restart()               start the game again
+
+   One file can register more than one id: an entry in content/games/_index.md with "script: <file>" loads
+   assets/js/games/<file>.js and runs the game registered under its own id. "restart: false" hides the restart button
+   (for a game that a restart would break, like one linked to another player).
 
    Sound: short effects only, generated with the Web Audio API (nothing downloaded). */
 (function () {
@@ -195,10 +200,12 @@
         var key = bestKey(id), b = bests[key];
         stage.querySelector('.stage-best').textContent = b == null ? '' : 'Best ' + b;
         if (levelPick) { levelPick.hidden = !g.levels; levelPick.value = levelOf(id); }
+        stage.querySelector('.stage-restart').hidden = g.restart === false;
         catMood('idle');
         if (bubble) { bubble.remove(); bubble = null; }   /* no leftover speech bubble from the previous round */
         var api = {
             el: area,
+            server: root.dataset.server || '',
             touch: window.matchMedia('(pointer: coarse)').matches,
             reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
             size: function () { return { w: area.clientWidth, h: area.clientHeight }; },

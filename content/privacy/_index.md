@@ -14,6 +14,7 @@ short:
   - "A visit counter keeps **daily totals** of five things (page, referring site, device type, browser family, country). No IP addresses, nothing about any one visitor."
   - "If your browser sends Do Not Track or Global Privacy Control, your visits are not counted at all."
   - "Your settings and game scores stay in your browser."
+  - "The two-player game passes two devices' connection details (with their IP addresses) on between them and deletes them within two minutes. The race itself runs directly between the two devices."
 ---
 
 ## Who runs this site
@@ -37,6 +38,12 @@ To know how many people visit, each page view sends one small request to a count
 Only these daily totals are kept. There are no cookies, no IP addresses are stored, and nothing links one page view to another or to you. The totals are public on [Site stats](/stats/). Cloudflare processes the request to run the counter, under the [Cloudflare Privacy Policy](https://www.cloudflare.com/privacypolicy/).
 
 **How to opt out:** turn on Do Not Track or Global Privacy Control in your browser, and the counter receives nothing from your visits. On [Site stats](/stats/) you can also switch counting off for one browser.
+
+## Racing a friend: Kitty Kart Duo
+
+In Kitty Kart Duo on the [Games](/games/) page, two people race each other from their own phones or computers. To find each other, each of the two devices sends one short connection message, which contains its network addresses, including its IP address. The counter on Cloudflare holds the two messages under a four letter code only to pass them on: it deletes them as soon as the host's device has picked up the answer, and at the latest after two minutes. It stores nothing else and logs nothing. To learn its own public address, each device also asks Cloudflare's STUN service, which sees that request like any other connection.
+
+After that the two devices talk directly, and nothing about the race goes through a server. As with any direct connection, each of the two devices sees the other's IP address, so race with people you are happy to share that with.
 
 ## The page "What this site knows about you"
 
