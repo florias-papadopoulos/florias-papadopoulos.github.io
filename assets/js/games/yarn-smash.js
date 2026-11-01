@@ -104,7 +104,7 @@ Arcade.register('yarn-smash', function (api) {
         var look = document.documentElement.getAttribute('data-cat') || 'ginger';
         SK.fur = v('--fur-bot', FUR); SK.light = v('--fur-top', '#ffc06e'); SK.stripe = v('--stripe', STRIPE);
         SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;
-        SK.line = look === 'tuxedo' || look === 'bat' ? '#17181c' : OL;
+        SK.line = look === 'tuxedo' || look === 'bat' || look === 'hacker' ? '#17181c' : OL;
     }
 
     /* ---------- path ---------- */
