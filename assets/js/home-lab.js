@@ -132,16 +132,73 @@
     }
     /* the angle something comes to rest at: letters stay fallen over on their nearest side, symbols stand up */
     function restAngle(it) { return it.src ? Math.round((it.rot - 90) / 180) * 180 + 90 : 0; }
-    /* the top of whatever is under x between heights y0 and y1 (page elements, glyphs, the floor), or null */
-    function landing(x, y0, y1) {
+    /* the top of whatever is under x between heights y0 and y1 (page elements, glyphs, other loose things, the floor),
+       or null; self is the thing asking, which cannot stand on itself */
+    function landing(x, y0, y1, self) {
         var best = null, gy = groundY(x);
         if (gy >= y0 - 1 && gy <= y1 + 1) best = gy;
-        perches().forEach(function (p) {
-            if (p.kind === 'name') return;
-            var r = rel(p.el);
-            if (x >= r.x + 2 && x <= r.x + r.w - 2 && r.y >= y0 - 1 && r.y <= y1 + 1 && (best === null || r.y < best)) best = r.y;
-        });
+        function top(r) { if (x >= r.x + 2 && x <= r.x + r.w - 2 && r.y >= y0 - 1 && r.y <= y1 + 1 && (best === null || r.y < best)) best = r.y; }
+        perches().forEach(function (p) { if (p.kind !== 'name') top(rel(p.el)); });
+        loose.forEach(function (o) { if (o !== self && !o.held) top(box(o)); });
         return best;
+    }
+    /* the box something loose takes up as it is turned now (a letter on its side is wide and low), bottom at it.y */
+    function box(it) {
+        var a = it.rot * Math.PI / 180, c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a));
+        var w = it.w * c + it.h * sn, h = it.w * sn + it.h * c;
+        return { x: it.x - w / 2, y: it.y - h, w: w, h: h };
+    }
+    /* how far two boxes overlap across and down (both above 1 px: they really overlap, not just touch), or null */
+    function overlap(a, b) {
+        var ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+        return ox > 1 && oy > 1 ? { x: ox, y: oy } : null;
+    }
+    /* Loose things and the symbols still in the margins are solid. Something moving into a loose one from the side gives
+       it most of its speed (so they push each other along instead of passing through), from above it sits on it; a
+       symbol still in place stops it, unless it comes fast enough to knock that one loose too. */
+    function solid(it) {
+        var a = box(it);
+        loose.slice().forEach(function (o) {
+            if (o === it || o.held) return;
+            var b = box(o), ov = overlap(a, b);
+            if (!ov) return;
+            if (ov.y < ov.x) {                                      /* touching above or below */
+                if (a.y < b.y) { it.y -= ov.y; if (it.vy > 0) it.vy = 0; }
+                else { it.y += ov.y; if (it.vy < 0) it.vy = 0; }
+            } else {                                                /* from the side */
+                var dir = it.x < o.x ? 1 : -1, v = it.vx;
+                it.x -= dir * ov.x;
+                if (v * dir > 0) { o.vx = v * 0.75; it.vx = v * 0.2; o.rest = false; }
+                else if (it.held) { o.vx = dir * 160; o.rest = false; }
+            }
+            a = box(it);
+        });
+        glyphs.slice().forEach(function (g) {
+            var ov = overlap(a, rel(g));
+            if (!ov) return;
+            if (it.held || Math.abs(it.vx) > 520) { launch(makeLoose(g, 0, 0), it.vx * 0.6, -260); return; }
+            var r = rel(g);
+            if (ov.y < ov.x) {
+                if (a.y < r.y) { it.y -= ov.y; if (it.vy > 0) it.vy = 0; } else { it.y += ov.y; if (it.vy < 0) it.vy = -it.vy * 0.3; }
+            } else { it.x += (it.x < r.x + r.w / 2 ? -1 : 1) * ov.x; it.vx = -it.vx * 0.35; }
+            a = box(it);
+        });
+    }
+    /* something being dragged shoves whatever loose things it touches out of its way */
+    function shove(it) {
+        var a = box(it);
+        loose.forEach(function (o) {
+            if (o === it || o.held) return;
+            var b = box(o), ov = overlap(a, b);
+            if (!ov) return;
+            var dir = o.x < it.x ? -1 : 1;
+            if (ov.y < ov.x) o.y += (o.y - o.h / 2 < it.y - it.h / 2 ? -1 : 1) * ov.y;
+            else o.x += dir * ov.x;
+            o.vx = dir * Math.max(120, Math.abs(it.vx) * 0.6); o.rest = false;
+            draw(o);
+        });
+        glyphs.slice().forEach(function (g) { if (overlap(a, rel(g))) launch(makeLoose(g, 0, 0), it.vx * 0.6, -260); });
+        physics();
     }
     function physics() {
         if (physOn) return;
@@ -150,10 +207,16 @@
         requestAnimationFrame(function frame(now) {
             var dt = Math.min(0.033, (now - last) / 1000), busy = false, W = layer.clientWidth;
             last = now;
-            loose.forEach(function (it) {
-                if (it.held || it.rest) return;
+            loose.slice().forEach(function (it) {
+                if (it.held) return;
+                if (it.rest) {                                      /* what it rested on was pushed away, or it lies in another: move */
+                    var mine = box(it), crowded = loose.some(function (o) { return o !== it && !o.held && overlap(mine, box(o)); });
+                    if (crowded) { it.vx = (Math.random() < 0.5 ? -1 : 1) * 90; it.rest = false; }
+                    else if (landing(it.x, it.y - 1, it.y + 1, it) === null) it.rest = false;
+                    else return;
+                }
                 busy = true;
-                var under = it.vy >= 0 ? landing(it.x, it.y - 1, it.y + 1) : null;
+                var under = it.vy >= 0 ? landing(it.x, it.y - 1, it.y + 1, it) : null;
                 if (under !== null && it.vy < 60) {                 /* on a surface: slide and slow down */
                     it.vy = 0; it.y = under;
                     it.vx *= Math.exp(-7 * dt);
@@ -163,7 +226,7 @@
                 } else {
                     it.vy += G * dt;
                     it.rot += it.vr * dt;
-                    var ny = it.y + it.vy * dt, hit = it.vy > 0 ? landing(it.x + it.vx * dt, it.y, ny) : null;
+                    var ny = it.y + it.vy * dt, hit = it.vy > 0 ? landing(it.x + it.vx * dt, it.y, ny, it) : null;
                     if (hit !== null) {
                         ny = hit;
                         if (it.vy > 420) { it.vy *= -0.32; it.vx *= 0.7; it.vr *= 0.5; } else it.vy = 0;
@@ -173,6 +236,7 @@
                 it.x += it.vx * dt;
                 if (it.x < it.w / 2) { it.x = it.w / 2; it.vx = Math.abs(it.vx) * 0.5; }
                 if (it.x > W - it.w / 2) { it.x = W - it.w / 2; it.vx = -Math.abs(it.vx) * 0.5; }
+                solid(it);
                 draw(it);
             });
             if (busy) requestAnimationFrame(frame); else physOn = false;
@@ -210,6 +274,7 @@
                 lastP = p; lastT = now;
                 it.x = p.x; it.y = p.y + it.h / 2;
                 draw(it);
+                shove(it);
             },
             end: function () {
                 it.held = false;
