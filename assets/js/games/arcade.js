@@ -34,10 +34,11 @@
    (for a game that a restart would break, like one linked to another player).
 
    Sound: short effects generated with the Web Audio API (nothing downloaded). Music: the note button (in the list
-   header, and in the top bar while a game runs) picks one of four looping background mixes, files in static/music
-   (CC0, credits in static/music/CREDITS.md), listed in the layout. One <audio>, quieter than the effects, which play on
-   top; a file loads only once its mix is picked. The choice and volume are kept in localStorage 'arcade-music'; after a
-   reload the music starts again at the first click or key (browsers only allow sound after one). */
+   header, and in the top bar while a game runs) picks one of four looping background mixes of 11 to 12 minutes, files
+   in static/music (CC0 tracks joined, credits in static/music/credits.txt), listed in the layout. One <audio>, quieter
+   than the effects, which play on top; a file loads only once its mix is picked. The choice and volume are kept in
+   localStorage 'arcade-music'; after a reload the music starts again at the first click or key (browsers only allow
+   sound after one). */
 (function () {
     'use strict';
     var root = document.getElementById('arcade');
@@ -186,11 +187,9 @@
             MIXES[mix].checked = true;
             musicBtn.classList.toggle('on', mix !== 'off');
             musicBtn.setAttribute('aria-label', mix === 'off' ? 'Music' : 'Music: ' + MIXES[mix].parentNode.querySelector('.mm-name').textContent);
-            credit.textContent = '';
-            if (mix === 'off') { credit.textContent = 'Free CC0 tracks from OpenGameArt.org'; return; }
-            var d = MIXES[mix].dataset, a = document.createElement('a');
-            credit.appendChild(document.createTextNode(d.title + ' by ' + d.author + ', CC0, '));
-            a.href = d.url; a.textContent = 'source'; a.target = '_blank'; a.rel = 'noopener';
+            var a = document.createElement('a');
+            credit.textContent = mix === 'off' ? 'Free CC0 tracks from OpenGameArt.org, ' : 'Mix of ' + MIXES[mix].dataset.tracks + ' CC0 tracks, ';
+            a.href = credit.dataset.credits; a.textContent = 'see credits'; a.target = '_blank'; a.rel = 'noopener';
             credit.appendChild(a);
         }
         function menu(open) {

@@ -1,0 +1,73 @@
+Music in the games: credits
+===========================
+
+The music button on the Games page (florias-papadopoulos.github.io/games/) plays
+four mixes. Each mix joins several tracks from OpenGameArt.org, all released
+under CC0 1.0, a public domain dedication:
+https://creativecommons.org/publicdomain/zero/1.0/
+CC0 allows any use, change and hosting, with no payment and no credit required.
+The authors are credited here anyway. Thank you to all of them!
+
+What was changed: leading and trailing silence cut, loudness evened out
+(ffmpeg loudnorm, -16 LUFS), mixed down to mono, joined with 3 second
+crossfades, 1.5 second fade in and out at the ends of each mix, encoded as
+MP3 at 72 kbps. Nothing else was edited. Times are where each track starts.
+
+EDM mix (mix-edm.mp3, 12:14)
+  0:00  Funky House, by Of Far Different Nature
+        https://opengameart.org/content/funky-house
+  1:05  Technomania101, by Fupi
+        https://opengameart.org/content/technomania101-2000s-europop-electronic-dance-music
+  3:10  Sky Trance, by MintoDog
+        https://opengameart.org/content/sky-trance
+  5:04  Slampe (Synthwave House), by Fupi
+        https://opengameart.org/content/slampe-synthwave-house
+  7:35  Espelhar (LOUD Melodic EDM), by Fupi
+        https://opengameart.org/content/espelhar-loud-melodic-edm
+ 10:37  Party Sector, by Joth
+        https://opengameart.org/content/party-sector
+
+Rock mix (mix-rock.mp3, 11:46)
+  0:00  Bravery Run, by MintoDog
+        https://opengameart.org/content/bravery-run
+  1:48  Fast Cheerful punk rock lo-fi, by annandistance
+        https://opengameart.org/content/fast-cheerful-punk-rock-lo-fi
+  2:58  Hot Roadway [Remake], by MintoDog
+        https://opengameart.org/content/hot-roadway-remake
+  4:55  Unchained Destiny [Rock], by nene
+        https://opengameart.org/content/unchained-destiny-rock
+  7:08  Bravery Cheer, by MintoDog
+        https://opengameart.org/content/bravery-cheer
+  9:00  Race of the Wasp, by OwlishMedia
+        https://opengameart.org/content/race-of-the-wasp
+ 10:15  Bravery Beats, by MintoDog
+        https://opengameart.org/content/bravery-beats
+
+Chiptune mix (mix-chiptune.mp3, 11:48)
+  0:00  Flowerbed Fields [Loop], by Zane Little Music
+        https://opengameart.org/content/flowerbed-fields-loop
+  1:42  Stumble Around, by Zane Little Music
+        https://opengameart.org/content/stumble-around
+  3:59  Puppy Playing in the Garden (version without woof), by Spring Spring
+        https://opengameart.org/content/puppy-playing-in-the-garden
+  5:26  Mom's Workout CD, by Zane Little Music
+        https://opengameart.org/content/moms-workout-cd
+  7:03  It Takes A Hero, by Zane Little Music
+        https://opengameart.org/content/it-takes-a-hero
+  9:33  Dizzy Racing, by Zane Little Music (album A Bag of Chips)
+        https://opengameart.org/content/10-free-chiptune-tracks-a-bag-of-chips
+
+Lo-fi mix (mix-lofi.mp3, 11:11)
+  0:00  Cat caffe, by TAD (lofi Compilation)
+        https://opengameart.org/content/lofi-compilation
+  2:06  Chill lofi inspired [loop edit], by omfgdude, loop edit by qubodup
+        https://opengameart.org/content/chill-lofi-inspired-loop-edit
+        original: https://opengameart.org/content/chill-lofi-inspired
+  3:40  happy lofi day, by Tarush Singhal
+        https://opengameart.org/content/happy-lofi-day
+  5:33  A cup of tea, by TAD (lofi Compilation)
+        https://opengameart.org/content/lofi-compilation
+  8:18  Blue Skies, by Holizna (Happy Lo-Fi collection)
+        https://opengameart.org/content/happy-lo-fi-lofi-collection
+
+Licences checked on 1 November 2026: every source page above shows CC0.

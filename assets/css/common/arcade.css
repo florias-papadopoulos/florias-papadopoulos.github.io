@@ -68,8 +68,9 @@ body.arcade-playing { overflow: hidden; }
     top: calc(100% + 8px);
     right: 0;
     z-index: 20;
-    width: 270px;
-    max-width: calc(100vw - 16px);
+    width: max-content;                    /* as wide as the longest row, within the window */
+    min-width: 240px;
+    max-width: min(360px, calc(100vw - 16px));
     padding: 10px 12px 12px;
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -77,6 +78,8 @@ body.arcade-playing { overflow: hidden; }
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
     text-align: left;
     font-size: 0.88rem;
+    word-break: normal;                    /* the body has break-word, which split "Rock" into "Roc" and "k" */
+    overflow-wrap: normal;
 }
 .music-menu[hidden] { display: none; }
 .music-mixes { margin: 0; padding: 0; border: 0; }
@@ -84,8 +87,8 @@ body.arcade-playing { overflow: hidden; }
 .music-mix { display: flex; align-items: baseline; gap: 8px; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
 .music-mix:hover { background: #f1f5f9; }
 .music-mix input { margin: 0; accent-color: var(--navy); align-self: center; }
-.mm-name { font-weight: 700; }
-.mm-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 0.8rem; }
+.mm-name { flex-shrink: 0; font-weight: 700; white-space: nowrap; }
+.mm-title { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.35; }   /* wraps between words only */
 .music-vol { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; padding: 6px 6px 0; border-top: 1px solid var(--line); }
 .music-vol[hidden] { display: none; }
 .music-vol input { flex: 1; min-width: 0; accent-color: var(--navy); }
