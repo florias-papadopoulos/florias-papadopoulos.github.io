@@ -250,6 +250,7 @@
         var b = bests[id];
         stage.querySelector('.stage-best').textContent = b == null ? '' : 'Best ' + b;
         catMood('idle');
+        if (bubble) { bubble.remove(); bubble = null; }   /* no leftover speech bubble from the previous round */
         var api = {
             el: area,
             touch: window.matchMedia('(pointer: coarse)').matches,
