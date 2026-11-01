@@ -2,6 +2,8 @@
    Before the race you pick one of four tracks (Catnip Meadow, Night City, Coral Reef, Moon Rim). Each has its own
    layout, scenery and handling, a shortcut with a catch, boost pads and moving hazards. Floating fish tins give an
    item (yarn ball, catnip, cardboard box, laser pointer, milk carton, nap bell); karts further back get better ones.
+   Difficulty comes from api.level(): Easy keeps the simple computer driver, Normal and Hard race on a real racing
+   line, time the shortcuts, use items with care and have personalities (aggressive, consistent, item-happy).
    A track is a closed path resampled into N evenly spaced points, plus a shortcut path whose points map onto the
    main ones; karts find their nearest point to know where they are, and a lap counts only after all checkpoints
    were passed in order. Shell API: arcade.js. */
@@ -554,11 +556,17 @@ Arcade.register('kitty-kart', function (api) {
         alt: { a: 228, b: 316, hw: 32, vf: 1 }, flow: 120,
         pads: [[70, 0.5], [440, -0.5]], picks: [30, 180], padCol: ['#0d9488', '#ccfbf1'],
         reset: function () { this.turtle.s = -250; this.turtle.dir = 1; this.clams.forEach(function (q) { q.open = 1; }); },
+        altGood: function (c) {  /* the smarter cats only go in when neither clam will snap as they pass */
+            if (!c.P) return true;
+            var s = (ALT.a - c.idx + N) % N, v = Math.max(c.vf, 200) + this.flow, ok = true;
+            this.clams.forEach(function (q) { var p = (clock + (s * SP + q.ci * ALT.step) / v + q.off) % 3.6; if (p > 1.95 && p < 2.75) ok = false; });
+            return ok;
+        },
         prep: function () {
             var i, tj = 372;
             this.clams = [0.33, 0.67].map(function (f, n) {  /* two giant clams in the tunnel, open and shut in turn */
                 var ci = Math.round(f * (ALT.n - 1)), q = altSide(ci, n ? 11 : -11);
-                return { x: q.x, y: q.y, a: ALT.ang[ci], off: n * 1.7, open: 1 };
+                return { x: q.x, y: q.y, a: ALT.ang[ci], ci: ci, off: n * 1.7, open: 1 };
             });
             this.turtle = { x0: X[tj], y0: Y[tj], ux: -Math.sin(A[tj]), uy: Math.cos(A[tj]), s: -250, dir: 1 };
             this.zones = [  /* side: push to the right (1) or left (-1) of the track; 0: a stream along the track */
@@ -1175,7 +1183,7 @@ Arcade.register('kitty-kart', function (api) {
             c.a = A[j]; c.vx = c.vy = c.vf = c.steer = c.thr = 0;
             c.k = 0; c.fin = 0; c.prog = 0; c.z = c.vz = c.slip = c.rampT = 0;
             c.item = null; c.itemT = 0; c.boost = c.shield = c.spin = c.nap = c.laser = c.fall = c.tangled = 0;
-            c.useAlt = false; c.decided = -1; c.altLap = -1;
+            c.useAlt = false; c.decided = -1; c.altLap = -1; c.P = persona(i);
             nearest(c);
         });
         parts.length = yarns.length = milks.length = rings.length = 0;
@@ -1256,11 +1264,91 @@ Arcade.register('kitty-kart', function (api) {
         var vt = VMAX * skill / (1 + km * 80 * CARE), rash = c === me && test && test.rash;
         if (rash && test.slowAlt && (c.useAlt || c.alt)) vt = 110;  /* test only: too slow for the moon crack */
         c.thr = c.vf < vt ? 1 : c.vf > vt + 30 ? -0.7 : 0;
-        if (c.laser > 0) { c.steer = clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1); c.thr = 0.6; }  /* chasing the red dot */
+        obey(c, rash);
+    }
+    function obey(c, rash) {  /* what every computer cat does: chase a red dot, wait for gates and trams */
+        if (c.laser > 0) { c.steer = clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1); c.thr = 0.6; }
         var dg = toGate(c);
         if (rash) return;  /* test only: drive into gates and trams */
-        if (dg > 0 && dg < 170 && gateOpen(clock + dg / Math.max(c.vf, 80)) < 0.6) c.thr = c.vf > 15 ? -1 : 0;  /* wait for the gate */
+        if (dg > 0 && dg < 170 && gateOpen(clock + dg / Math.max(c.vf, 80)) < 0.6) c.thr = c.vf > 15 ? -1 : 0;
         if (MAP.wait && MAP.wait(c)) c.thr = c.vf > 10 ? -1 : 0;
+    }
+
+    /* ---------- difficulty: Easy keeps the old simple driver; Normal and Hard race properly ---------- */
+    var LEVEL = (window.__errors && window.__kkLevel) || api.level();  /* the override exists only on the test page */
+    if (LEVEL !== 'easy' && LEVEL !== 'hard') LEVEL = 'normal';
+    var PACE = { normal: [0.8, 0.79, 0.77], hard: [0.995, 0.985, 0.975] };
+    var KIND = [null,  /* grey tabby: aggressive; black cat: consistent; white cat: item-happy */
+        { cm: 1.04, dec: 1.1, alt: 1, gamble: 0.3, tins: 0.3, hold: 0.6, aim: 1, wob: 1 },
+        { cm: 1, dec: 1, alt: 0.6, gamble: 0, tins: 0.3, hold: 1, aim: 1, wob: 0 },
+        { cm: 0.97, dec: 0.95, alt: 0.6, gamble: 0.1, tins: 1, hold: 0.25, aim: 1.4, wob: 0.6 }];
+    var CM = 0.9, DEC = 350;
+    var PERFECT = { top: 1, cm: 1, dec: 1, alt: 1, gamble: 0, tins: 0.5, hold: 0.5, aim: 1, wob: 0 };
+    function persona(i) {
+        if (!i || LEVEL === 'easy') return null;
+        var k = KIND[i], pace = PACE[LEVEL][i - 1], o = {};
+        for (var key in k) o[key] = k[key];
+        o.top = pace; o.cm = k.cm * pace * pace; o.dec = k.dec * pace;
+        if (LEVEL === 'hard') o.wob = 0;
+        return o;
+    }
+    function gripFactor() { return Math.min(1, (GRIP + 1.5) / 10.5); }
+    function smart(c, P, f) {  /* racing line: aim at the inside of bends, brake as late as the bend allows */
+        var look = Math.round((30 + Math.abs(c.vf) * 0.3) / SP), j = routeAt(c, look), i, ks = 0;
+        for (i = look - 3; i <= look + 8; i++) ks += rK(routeAt(c, Math.max(1, i)));
+        var hw = j < 0 ? ALT.hw : HW, lane = clamp(ks / 12 * 75, -0.6, 0.6) * hw;
+        if (P.wob) lane += Math.sin(clock * 0.5 + c.phase) * 8 * P.wob;
+        if (!c.on) lane = 0;
+        else if (!c.item && j >= 0 && (P.tins > 0.5 || Math.abs(lane) < hw * 0.2)) lane = tinLane(c, lane);
+        var ca = Math.cos(c.a), sa = Math.sin(c.a);
+        for (i = 0; i < 4; i++) {  /* a slower kart just ahead: go round it on the side with more room */
+            var o = karts[i], ox = o.x - c.x, oy = o.y - c.y, u = ox * ca + oy * sa, w = oy * ca - ox * sa;
+            if (o === c || u < 0 || u > 75 || Math.abs(w) > 28 || o.vf > c.vf + 25 || Math.abs(o.z - c.z) > 8) continue;
+            lane = clamp(lane + (w > 0 ? -1 : 1) * (34 - Math.abs(w)) * 1.4, -0.75 * hw, 0.75 * hw);
+        }
+        var tx = rX(j) - Math.sin(rA(j)) * lane, ty = rY(j) + Math.cos(rA(j)) * lane;
+        c.steer = clamp(wrap(Math.atan2(ty - c.y, tx - c.x) - c.a) * 3, -1, 1);
+        var cm = (test && test.cm ? test.cm : CM) * P.cm * f * gripFactor(), dec = (test && test.dec ? test.dec : DEC) * P.dec;
+        var vt = VMAX * P.top * f * (c.alt && c.on ? ALT.vf : 1) * (c.boost > 0 ? 1.3 : 1) * (c.nap > 0 ? 0.55 : 1);
+        for (i = 1; i <= 44; i++) {
+            var k = Math.abs(rK(routeAt(c, i))) + 1e-6, vc = TURN * cm / (k + 0.25 * TURN * cm / VMAX), v = Math.sqrt(vc * vc + 2 * dec * i * SP);
+            if (v < vt) vt = v;
+        }
+        c.thr = c.vf < vt ? 1 : c.vf > vt + 12 ? -1 : 0;
+        obey(c, c === me && test && test.rash);
+    }
+    function catchUp(c) {  /* only a little help when far behind; on Normal they ease off a touch when far ahead */
+        var gap = me.prog - c.prog;
+        return 1 + clamp((gap - SEG * 3) / (SEG * 25), 0, LEVEL === 'hard' ? 0.03 : 0.04) - (LEVEL === 'normal' ? clamp((-gap - SEG * 8) / (SEG * 30), 0, 0.03) : 0);
+    }
+    function aiItemSmart(c, dt) {  /* Normal and Hard: hold items for the right moment */
+        if (!c.item || phase !== 'race') return;
+        c.itemT -= dt;
+        if (c.itemT > 0) return;
+        var it = c.item, P = c.P, go = false, i, o, rank = rankOf(c), late = c.itemT < -15, ca = Math.cos(c.a), sa = Math.sin(c.a);
+        if (it === 'catnip') {  /* on a long straight or on the shortcut */
+            go = true;
+            for (i = 1; i < 30; i += 2) if (Math.abs(rK(routeAt(c, i))) > 0.003) { go = c.alt || late; break; }
+        } else if (it === 'yarn') {  /* only when the target is close and right in line */
+            for (i = 0; i < 4; i++) {
+                o = karts[i];
+                if (o === c || o.fin || o.shield > 0 || o.fall > 0 || Math.abs(o.z - c.z) > 8) continue;
+                var dx = o.x - c.x, dy = o.y - c.y, u = dx * ca + dy * sa, w = dy * ca - dx * sa;
+                if (u > 25 && u < 300 * P.aim && Math.abs(w) < 20 * P.aim) go = true;
+            }
+            go = go || late;
+        } else if (it === 'box') {  /* when a yarn ball or a meteor is coming */
+            for (i = 0; i < yarns.length; i++) {
+                var y = yarns[i];
+                if (y.owner !== c && Math.hypot(c.x - y.x, c.y - y.y) < 240 && (c.x - y.x) * y.vx + (c.y - y.y) * y.vy > 0) go = true;
+            }
+            if (MAP.met) MAP.met.forEach(function (m) { if (m.t > 0.5 && m.t < 1.5 && Math.hypot(c.x - m.x, c.y - m.y) < 110) go = true; });
+            go = go || c.itemT < -20;
+        } else if (it === 'milk') {  /* dropped on the racing line just ahead of a close follower */
+            for (i = 0; i < 4; i++) { o = karts[i]; if (o !== c && !o.fin && c.prog - o.prog > 0 && c.prog - o.prog < SEG * 0.4 && Math.hypot(o.x - c.x, o.y - c.y) < 220) go = true; }
+            go = go || late;
+        } else go = rank > 1 || late;  /* laser and bell: only when someone is ahead */
+        if (go) useItem(c);
     }
     function tinLane(c, lane) {  /* steer for a fish tin ahead when holding nothing */
         var best = lane, bd = 1e9;
@@ -1276,12 +1364,12 @@ Arcade.register('kitty-kart', function (api) {
         var s = (ALT.a - c.idx + N) % N, lap = laps(c);
         if (!c.alt && s > 8 && s < 36 && c.decided !== lap) {
             c.decided = lap;
-            var rash = c === me && test && test.rash, ok = rash || !MAP.altGood || MAP.altGood(c);
+            var rash = c === me && test && test.rash, ok = rash || !MAP.altGood || MAP.altGood(c), P = c.P;
             if (ok && ALT.gate) {  /* worth it when the gate will be open, sometimes they gamble and wait */
                 var T = (s * SP + ALT.gate.i * ALT.step) / Math.max(c.vf, 150);
-                ok = gateOpen(clock + T) > 0.6 && gateOpen(clock + T + 0.5) > 0.6 || Math.random() < 0.3 || (c === me && test && test.alt === 1);
+                ok = gateOpen(clock + T) > 0.6 && gateOpen(clock + T + 0.5) > 0.6 || Math.random() < (P ? P.gamble : 0.3) || (c === me && test && test.alt === 1 && !P);
             }
-            c.useAlt = ok && Math.random() < (c === me ? (test && test.alt != null ? test.alt : 0.5) : 0.45);
+            c.useAlt = ok && Math.random() < (c === me && test && test.alt != null ? test.alt : P ? P.alt : c === me ? 0.5 : 0.45);
         } else if (c.useAlt && !c.alt && (c.idx - ALT.b + N) % N < 40) c.useAlt = false;
     }
     function respawn(c) {  /* back on the road before the shortcut, after falling into space */
@@ -1384,7 +1472,7 @@ Arcade.register('kitty-kart', function (api) {
             for (var j = 0; j < 4; j++) {
                 var c = karts[j];
                 if (c.item || c.fall > 0 || c.z > 14 || Math.abs(c.x - t.x) > 26 || Math.abs(c.y - t.y) > 26 || Math.hypot(c.x - t.x, c.y - t.y) > R + 13) continue;
-                t.t = 4; c.item = roll(rankOf(c)); c.itemT = 0.5 + Math.random() * 2;
+                t.t = 4; c.item = roll(rankOf(c)); c.itemT = (0.5 + Math.random() * 2) * (c.P ? c.P.hold : 1);
                 for (var k = 0; k < 7; k++) puff('spark', t.x, t.y, (Math.random() - 0.5) * 170, (Math.random() - 0.5) * 170, 0.5, 2.6);
                 stat('pick');
                 if (c === me) { stat('pick-me'); api.sfx('pop'); api.cat('wow'); slot(); if (clock - lastSay > 1.5) say(NAMES[c.item] + '!'); }
@@ -1752,7 +1840,7 @@ Arcade.register('kitty-kart', function (api) {
     }
 
     /* ---------- the loop ---------- */
-    var test = window.__errors ? (window.__kk = { bot: false, steps: 1, alt: null, stats: {} }) : null;  /* only on the test page */
+    var test = window.__errors ? (window.__kk = { bot: false, steps: 1, alt: null, stats: {}, level: LEVEL }) : null;  /* only on the test page */
     if (test) test.state = function () { return { phase: phase, map: MAP.id, lap: laps(me), place: place, time: raceTime, item: me.item, idx: me.idx, alt: me.alt, ai: me.ai, altn: ALT ? ALT.n : 0, yarns: yarns.length, milks: milks.length, fx: yarns.concat(milks, karts.filter(function (c) { return c.shield > 0 || c.tangled > 0 || c.nap > 0 || c.laser > 0; })).filter(function (o) { return Math.hypot(o.x - me.x, o.y - me.y) < 300; }).length, met: MAP.met ? MAP.met.filter(function (m) { return m.t < 1.5 && Math.hypot(m.x - me.x, m.y - me.y) < 260; }).length : 0, fin: karts.map(function (c) { return c.fin; }) }; };
     function stat(k) { if (test) test.stats[k] = (test.stats[k] || 0) + 1; }
     function update(dt) {
@@ -1765,9 +1853,16 @@ Arcade.register('kitty-kart', function (api) {
             if (clock >= 0.6 && n >= 1 && shown.count !== String(n)) { count(String(n)); api.sfx('tap'); }
             if (n < 1) { phase = 'race'; count('Go!', 'kk-go'); api.sfx('point'); hintEl.style.display = 'none'; }
         } else {
+            if (phase === 'done' && test && finishers < 4) raceTime += dt;  /* test only: time the others too */
             if (phase === 'race') {
                 raceTime += dt;
-                if (test && test.bot) { decide(me); autopilot(me, 0.98); aiItem(me, dt); }
+                if (test && test.bot) {  /* test only: the player bot, basic (the old driver) or perfect (the smart one) */
+                    me.P = test.mode === 'perfect' ? PERFECT : null;
+                    decide(me);
+                    if (me.P) smart(me, PERFECT, 1); else autopilot(me, 0.98);
+                    if (test.items !== false) { if (me.P) aiItemSmart(me, dt); else aiItem(me, dt); }
+                    if (!me.on) test.stats.offT = (test.stats.offT || 0) + dt;
+                }
                 else {
                     me.thr = (keys.up || pads.up ? 1 : 0) - (keys.down || pads.down ? 1 : 0);
                     var want = (keys.right || pads.right ? 1 : 0) - (keys.left || pads.left ? 1 : 0);
@@ -1778,8 +1873,9 @@ Arcade.register('kitty-kart', function (api) {
             for (var i = 1; i < 4; i++) {
                 var c = karts[i];  /* a little rubber band: the others ease off when far ahead and push when behind */
                 decide(c);
-                autopilot(c, c.fin ? 0.6 : c.skill * (1 + clamp((me.prog - c.prog) / (SEG * 30), -0.07, 0.05)));
-                aiItem(c, dt);
+                if (c.fin) autopilot(c, 0.6);
+                else if (c.P) { smart(c, c.P, catchUp(c)); aiItemSmart(c, dt); }
+                else { autopilot(c, c.skill * (1 + clamp((me.prog - c.prog) / (SEG * 30), -0.07, 0.05))); aiItem(c, dt); }
             }
             for (i = 0; i < 4; i++) step(karts[i], dt);
             collide();
