@@ -19,7 +19,7 @@ short:
 
 ## Who runs this site
 
-This is the personal website of Florias Papadopoulos, doctoral researcher at the University of St. Gallen (HSG), Switzerland. I am responsible for it. You can reach me on [LinkedIn](https://www.linkedin.com/in/florias-papadopoulos-b035ab233).
+This is the personal website of Florias Papadopoulos, doctoral researcher at the University of St. Gallen (HSG), Switzerland. I am responsible for it. You can reach me by email at <a href="#email" data-u="soluopodapap.sairolf" data-d="hc.gsinu" data-show>my HSG address</a> or on [LinkedIn](https://www.linkedin.com/in/florias-papadopoulos-b035ab233).
 
 ## Hosting: GitHub Pages
 
