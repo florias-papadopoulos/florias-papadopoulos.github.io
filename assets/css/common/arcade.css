@@ -56,6 +56,48 @@ body.arcade-playing { overflow: hidden; }
 .stage-level[hidden] { display: none; }
 /* iPhones zoom into the page when a picker with text under 16px is tapped, and stay zoomed: keep it at 16px there */
 @media (pointer: coarse) { .stage-level { font-size: 16px; padding: 3px 4px; } }
+/* the music button and its menu: in the list header, and moved into the top bar while a game runs (arcade.js) */
+.music { position: relative; }
+.music[hidden] { display: none; }
+.arcade-head .music { position: absolute; right: 0; top: 50%; z-index: 10; transform: translateY(-50%); }
+.music-btn { display: block; padding: 6px 10px; color: var(--muted); }
+.music-btn svg { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -0.2em; }   /* a text line tall, like the restart button */
+.music-btn.on { color: var(--navy); border-color: var(--navy); }
+.music-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    width: 270px;
+    max-width: calc(100vw - 16px);
+    padding: 10px 12px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+    text-align: left;
+    font-size: 0.88rem;
+}
+.music-menu[hidden] { display: none; }
+.music-mixes { margin: 0; padding: 0; border: 0; }
+.music-mixes legend { padding: 0 0 4px; font-weight: 800; }
+.music-mix { display: flex; align-items: baseline; gap: 8px; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
+.music-mix:hover { background: #f1f5f9; }
+.music-mix input { margin: 0; accent-color: var(--navy); align-self: center; }
+.mm-name { font-weight: 700; }
+.mm-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 0.8rem; }
+.music-vol { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; padding: 6px 6px 0; border-top: 1px solid var(--line); }
+.music-vol[hidden] { display: none; }
+.music-vol input { flex: 1; min-width: 0; accent-color: var(--navy); }
+.music-credit { margin: 8px 6px 0; color: var(--muted); font-size: 0.75rem; line-height: 1.35; }
+.music-credit a { color: var(--navy); }
+/* phones: 16px controls (no zoom on iPhones), bigger rows and a taller slider to hit with a finger */
+@media (pointer: coarse) {
+    .music-menu input { font-size: 16px; }
+    .music-mix { padding: 8px 6px; }
+    .music-mix input { width: 18px; height: 18px; }
+    .music-vol input { height: 32px; }
+}
 .stage-area { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 
 .stage-msg { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(15, 23, 42, 0.35); }

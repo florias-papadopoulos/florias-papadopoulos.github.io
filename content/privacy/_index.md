@@ -57,7 +57,7 @@ The site sets no cookies. A few things are kept in your browser's local storage 
 
 ## No other third parties
 
-Fonts and formula files are served from this site itself. There are no ads, social media plugins, embedded videos or maps. Links to other sites (LinkedIn, GitHub, publishers) only take you there when you click them.
+Fonts, formula files and the music in the games are served from this site itself. There are no ads, social media plugins, embedded videos or maps. Links to other sites (LinkedIn, GitHub, publishers) only take you there when you click them.
 
 Google Search Console shows me totals of the Google searches that led to this site (search terms and clicks), which Google gets from its own search engine. It runs no code on this site and never tells me who searched.
 

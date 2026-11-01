@@ -13,6 +13,29 @@
 <div class="arcade" id="arcade" data-games="{{ $list | jsonify }}"{{ with site.Params.statsEndpoint }} data-server="{{ . }}"{{ end }}>
     <header class="arcade-head">
         <h1>Games</h1>
+        {{- /* The music button: a menu of four background mixes, files in static/music (all CC0, credits in
+               static/music/CREDITS.md). It sits here on the list and moves into the top bar of a running game. */}}
+        {{- $mixes := slice
+            (dict "id" "edm" "name" "EDM" "title" "Technomania101" "author" "Fupi" "file" "edm-technomania101.mp3" "url" "https://opengameart.org/content/technomania101-2000s-europop-electronic-dance-music")
+            (dict "id" "rock" "name" "Rock" "title" "Fast Cheerful punk rock lo-fi" "author" "annandistance" "file" "rock-fast-cheerful-punk.mp3" "url" "https://opengameart.org/content/fast-cheerful-punk-rock-lo-fi")
+            (dict "id" "chiptune" "name" "Chiptune" "title" "Flowerbed Fields" "author" "Zane Little Music" "file" "chiptune-flowerbed-fields.mp3" "url" "https://opengameart.org/content/flowerbed-fields-loop")
+            (dict "id" "lofi" "name" "Lo-fi" "title" "Chill lofi inspired" "author" "omfgdude, loop by qubodup" "file" "lofi-chill-lofi-inspired.mp3" "url" "https://opengameart.org/content/chill-lofi-inspired-loop-edit") }}
+        <div class="music" hidden>
+            <button class="arcade-btn music-btn" type="button" title="Music" aria-label="Music" aria-expanded="false" aria-controls="music-menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 17.5V5.5l11-2.5v12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.2" cy="17.5" r="2.9" fill="currentColor"/><circle cx="17.2" cy="15" r="2.9" fill="currentColor"/></svg>
+            </button>
+            <div class="music-menu" id="music-menu" role="group" aria-label="Music" hidden>
+                <fieldset class="music-mixes">
+                    <legend>Music</legend>
+                    <label class="music-mix"><input type="radio" name="music-mix" value="off" checked><span class="mm-name">Off</span></label>
+                    {{- range $mixes }}
+                    <label class="music-mix"><input type="radio" name="music-mix" value="{{ .id }}" data-src="{{ printf "music/%s" .file | relURL }}" data-title="{{ .title }}" data-author="{{ .author }}" data-url="{{ .url }}"><span class="mm-name">{{ .name }}</span><span class="mm-title">{{ .title }}</span></label>
+                    {{- end }}
+                </fieldset>
+                <label class="music-vol"><span>Volume</span><input type="range" min="0" max="100" step="1" value="45"></label>
+                <p class="music-credit"></p>
+            </div>
+        </div>
     </header>
     {{- range slice (slice "complex" "Best Games") (slice "simple" "Classic Games") }}
     {{- $games := where $list "group" (index . 0) }}

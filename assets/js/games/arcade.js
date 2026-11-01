@@ -33,7 +33,11 @@
    assets/js/games/<file>.js and runs the game registered under its own id. "restart: false" hides the restart button
    (for a game that a restart would break, like one linked to another player).
 
-   Sound: short effects only, generated with the Web Audio API (nothing downloaded). */
+   Sound: short effects generated with the Web Audio API (nothing downloaded). Music: the note button (in the list
+   header, and in the top bar while a game runs) picks one of four looping background mixes, files in static/music
+   (CC0, credits in static/music/CREDITS.md), listed in the layout. One <audio>, quieter than the effects, which play on
+   top; a file loads only once its mix is picked. The choice and volume are kept in localStorage 'arcade-music'; after a
+   reload the music starts again at the first click or key (browsers only allow sound after one). */
 (function () {
     'use strict';
     var root = document.getElementById('arcade');
@@ -139,6 +143,93 @@
         win:   function (t) { ['C5', 'E5', 'G5', 'C6'].forEach(function (n, i) { tone(freq(n), t + i * 0.1, 0.18, 'square', 0.3, sfxGain); }); },
         lose:  function (t) { ['G4', 'E4', 'C4'].forEach(function (n, i) { tone(freq(n), t + i * 0.14, 0.22, 'triangle', 0.45, sfxGain); }); }
     };
+
+    /* ---------- music: one looping <audio> for the mix picked in the menu of the note button ---------- */
+    var musicBox = root.querySelector('.music');
+    var mix = 'off', tune = null, musicWaiting = false, musicMenu = null, musicBtn = null;
+    if (musicBox) (function () {
+        musicBtn = musicBox.querySelector('.music-btn');
+        musicMenu = musicBox.querySelector('.music-menu');
+        var volRow = musicBox.querySelector('.music-vol'), volInput = volRow.querySelector('input');
+        var credit = musicBox.querySelector('.music-credit');
+        var inputs = musicBox.querySelectorAll('input[name="music-mix"]'), MIXES = {};
+        Array.prototype.forEach.call(inputs, function (i) { MIXES[i.value] = i; });
+        function known(v) { return typeof v === 'string' && Object.prototype.hasOwnProperty.call(MIXES, v); }
+        var saved = store('arcade-music') || {};
+        var vol = typeof saved.volume === 'number' && saved.volume >= 0 && saved.volume <= 100 ? Math.round(saved.volume) : 45;
+        mix = known(saved.mix) ? saved.mix : 'off';
+        musicWaiting = mix !== 'off';             /* a saved mix waits for the first click or key */
+
+        function save() { store('arcade-music', { mix: mix, volume: vol }); }
+        function setVolume() { if (tune) tune.volume = Math.pow(vol / 100, 2) * 0.6; }   /* squared feels even; at most 0.6, under the effects */
+        function play() {
+            musicWaiting = false;
+            if (mix === 'off') {
+                if (tune && tune.getAttribute('src')) { tune.pause(); tune.removeAttribute('src'); tune.load(); }
+                return;
+            }
+            if (!tune) {
+                tune = document.createElement('audio');
+                tune.preload = 'none';
+                tune.loop = true;
+                tune.volume = 0.5;
+                if (tune.volume !== 0.5) volRow.hidden = true;   /* iPhones fix the volume of <audio>: their buttons set it */
+            }
+            var src = MIXES[mix].dataset.src;
+            if (tune.getAttribute('src') !== src) tune.src = src;
+            setVolume();
+            if (document.hidden) return;
+            var p = tune.play();
+            if (p && p.catch) p.catch(function () { musicWaiting = mix !== 'off'; });   /* not allowed yet: try at the next click */
+        }
+        function show() {
+            MIXES[mix].checked = true;
+            musicBtn.classList.toggle('on', mix !== 'off');
+            musicBtn.setAttribute('aria-label', mix === 'off' ? 'Music' : 'Music: ' + MIXES[mix].parentNode.querySelector('.mm-name').textContent);
+            credit.textContent = '';
+            if (mix === 'off') { credit.textContent = 'Free CC0 tracks from OpenGameArt.org'; return; }
+            var d = MIXES[mix].dataset, a = document.createElement('a');
+            credit.appendChild(document.createTextNode(d.title + ' by ' + d.author + ', CC0, '));
+            a.href = d.url; a.textContent = 'source'; a.target = '_blank'; a.rel = 'noopener';
+            credit.appendChild(a);
+        }
+        function menu(open) {
+            if (musicMenu.hidden === !open) return;
+            musicMenu.hidden = !open;
+            musicBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) MIXES[mix].focus();
+        }
+        musicBox.close = function () { menu(false); };
+
+        Array.prototype.forEach.call(inputs, function (i) {
+            i.addEventListener('change', function () { if (!i.checked) return; mix = i.value; save(); show(); play(); });
+        });
+        volInput.value = vol;
+        volInput.addEventListener('input', function () { vol = +volInput.value; setVolume(); save(); });
+        musicBtn.addEventListener('click', function () { menu(musicMenu.hidden); });
+        musicBtn.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !musicMenu.hidden) { e.stopPropagation(); menu(false); }
+        });
+        /* keys used in the menu stay there: the games listen on document and window */
+        musicMenu.addEventListener('keydown', function (e) {
+            e.stopPropagation();
+            if (e.key === 'Escape') { menu(false); musicBtn.focus(); }
+        });
+        musicMenu.addEventListener('keyup', function (e) { e.stopPropagation(); });
+        musicBox.addEventListener('focusout', function (e) { if (e.relatedTarget && !musicBox.contains(e.relatedTarget)) menu(false); });
+        document.addEventListener('pointerdown', function (e) { if (!musicMenu.hidden && !musicBox.contains(e.target)) menu(false); }, true);
+        function wake() { if (musicWaiting && !document.hidden) play(); }
+        document.addEventListener('pointerup', wake, true);
+        document.addEventListener('keydown', wake, true);
+        document.addEventListener('visibilitychange', function () {
+            if (!tune || mix === 'off') return;
+            if (document.hidden) tune.pause(); else play();
+        });
+        window.addEventListener('pagehide', function () { if (tune) tune.pause(); });
+        window.addEventListener('pageshow', function (e) { if (e.persisted && tune && mix !== 'off') play(); });
+        show();
+        musicBox.hidden = false;
+    })();
 
     /* ---------- the cat in the corner ---------- */
     var moodTimer = null, bubble = null;
@@ -286,6 +377,7 @@
         audio();                                   /* opening a game is a user gesture: sound may start */
         document.body.classList.add('arcade-playing');
         stage.hidden = false;
+        if (musicBox && musicBox.parentNode !== stage.querySelector('.stage-bar')) { musicBox.close(); stage.querySelector('.stage-bar').appendChild(musicBox); }
         load(id, function () { start(id); });
     }
     function close() {
@@ -293,6 +385,7 @@
         stage.hidden = true;
         msg.hidden = true;
         document.body.classList.remove('arcade-playing');
+        if (musicBox && musicBox.parentNode === stage.querySelector('.stage-bar')) { musicBox.close(); root.querySelector('.arcade-head').appendChild(musicBox); }
     }
     function route() {
         var m = /^#play\/([\w-]+)$/.exec(location.hash);
