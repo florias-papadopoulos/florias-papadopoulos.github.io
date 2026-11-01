@@ -98,6 +98,7 @@
 .st-none { color: var(--tl-muted); font-size: 14px; }
 
 /* "don't count my visits" */
+.st-ignore[hidden] { display: none; }
 .st-ignore { margin: 8px 0 24px; color: var(--tl-text); font-size: 14px; line-height: 1.5; }
 .st-ignore label { display: inline-flex; align-items: center; gap: 8px; color: var(--tl-ink); cursor: pointer; }
 .st-ignore input { width: 16px; height: 16px; margin: 0; accent-color: var(--tl-navy); }

@@ -1,7 +1,7 @@
 /* "Site stats" (layouts/_default/stats.html): reads the totals of the visit counter (GET <endpoint>/stats?days=N, see
    tools/stats-worker/worker.js) and draws them: two numbers, a bar chart of views per day (inline SVG) and ranked lists
    of pages, referring sites, countries, devices and browsers. The 7/30/90 day buttons fetch that period. Also the
-   "Don't count my visits on this browser" box, which sets localStorage 'stats-ignore' (read by assets/js/stats-hit.js). */
+   "Don't count my visits on this browser" box (shown only on /stats/?me), which sets localStorage 'stats-ignore' (read by assets/js/stats-hit.js). */
 (function () {
     'use strict';
     var root = document.getElementById('stats');
@@ -12,6 +12,8 @@
 
     /* ---------- the "don't count me" box ---------- */
     var ign = $('st-ignore');
+    /* the owner's switch only shows on /stats/?me */
+    if (ign && /(^|&)me(=|&|$)/.test(location.search.slice(1))) ign.closest('.st-ignore').hidden = false;
     if (ign) {
         try { ign.checked = localStorage.getItem('stats-ignore') === '1'; } catch (e) { ign.disabled = true; }
         ign.addEventListener('change', function () {
