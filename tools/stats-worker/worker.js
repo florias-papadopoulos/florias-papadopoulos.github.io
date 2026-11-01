@@ -69,8 +69,6 @@ async function hit(req, env) {
     return new Response(null, { status: 204, headers: headers() });
 }
 
-/* What reached the server with this request, sent straight back to the visitor and not kept anywhere: no database
-   write, no log line. Only for pages of the site itself. */
 /* The posted JSON object, or null when it is missing, malformed or longer than max bytes (checked before reading it
    when the browser says its length). */
 async function body(req, max) {
