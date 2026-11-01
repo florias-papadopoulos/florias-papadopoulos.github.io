@@ -3,8 +3,8 @@
    naps on a square every few rounds (nobody can play there). Easy: the cat is often distracted; normal: sometimes;
    hard: perfect play, so the cat never loses and draws are what count. Best score = most points in one run.
    Reference game for the shell API (see assets/js/games/arcade.js).
-   The same file is Tic Tac Two (id tic-tac-paw-2p): two players take turns on one screen, Player 1 with
-   paws, Player 2 with fish, no cat playing and no kitten naps. A running tally (wins of each player and draws) lasts
+   The same file is Tic Tac Two (id tic-tac-paw-2p): two players take turns on one screen, the cats Milo (blue
+   paws) and Luna (pink fish; the shapes differ too, for colour blind players), no cat playing and no kitten naps. A running tally (wins of each player and draws) lasts
    until the page is left, "Play again" lets the other player start (the "Starts" toggle can change that until the
    first move), Reset clears the tally and starts a fresh board, and nothing is saved as a best. Single player is
    untouched by it: duo is false there. */
@@ -26,7 +26,9 @@ function ticTacPaw(api, duo) {
         '<text x="27" y="15">z</text><text x="32" y="9" class="small">z</text></svg>';
     var hoverPaw = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#f6a23a" opacity=".22">' +
         PAW_PATH + '</svg>') + '")';
-    var hoverFish = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#4c6ef5" opacity=".2">' +
+    var hoverMilo = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#2563eb" opacity=".2">' +
+        PAW_PATH + '</svg>') + '")';
+    var hoverLuna = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#e8577e" opacity=".22">' +
         '<path d="M5 20c5-8 15-10 22-5l8-6v22l-8-6c-7 5-17 3-22-5z"/></svg>') + '")';
     api.css(
         '.ttp { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }' +
@@ -41,7 +43,8 @@ function ticTacPaw(api, duo) {
         '.ttp-cell { position: relative; padding: 0; border: none; border-radius: 18px; background: #fffdf8 center / 58% no-repeat;' +
         '  box-shadow: 0 5px 0 #eadfcd; cursor: pointer; transition: transform .12s, box-shadow .12s, background-color .2s; -webkit-tap-highlight-color: transparent; }' +
         '@media (hover: hover) { .ttp-cell:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #eadfcd; background-image: ' + hoverPaw + '; }' +
-        '  .ttp-duo.p2 .ttp-cell:hover:not(:disabled) { background-image: ' + hoverFish + '; } }' +
+        '  .ttp-duo .ttp-cell:hover:not(:disabled) { background-image: ' + hoverMilo + '; }' +
+        '  .ttp-duo.p2 .ttp-cell:hover:not(:disabled) { background-image: ' + hoverLuna + '; } }' +
         '.ttp-cell:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #eadfcd; }' +
         '.ttp-cell:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
         '.ttp-cell:disabled { cursor: default; }' +
@@ -60,29 +63,34 @@ function ticTacPaw(api, duo) {
         '.ttp-strike.cat line { stroke: #5c7cfa; }' +
         '.ttp-bit { position: absolute; width: 8px; height: 12px; border-radius: 2px; pointer-events: none; animation: ttp-bit 1.1s ease-out forwards; }' +
         '.ttp-calm *, .ttp-calm .ttp-cell svg { animation: none !important; transition: none !important; }' +
-        /* for two: the tally on top, the turn (or the result and "Play again") under it */
+        /* for two: Milo is blue (paws), Luna pink (fish); the tally on top, the turn (or the result and "Play again") under it */
+        '.ttp-duo .ttp-paw { fill: #2563eb; filter: drop-shadow(0 3px 0 #a9c2f4); }' +
+        '.ttp-duo .ttp-fish path { fill: #e8577e; } .ttp-duo .ttp-fish .fin { fill: #f28aa6; } .ttp-duo .ttp-fish { filter: drop-shadow(0 3px 0 #f6bccc); }' +
+        '.ttp-duo .ttp-strike line { stroke: #2563eb; } .ttp-duo .ttp-strike.cat line { stroke: #e8577e; }' +
+        '.ttp-duo .ttp-cell.win.milo { background-color: #e4ecfd; box-shadow: 0 5px 0 #a9c2f4; }' +
+        '.ttp-duo .ttp-cell.win.luna { background-color: #fde6ed; box-shadow: 0 5px 0 #f6bccc; }' +
         '.ttp-score { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center; }' +
         '.ttp-side { display: inline-flex; align-items: center; gap: 5px; padding: 2px 11px 2px 4px; border: 2px solid transparent; border-radius: 999px;' +
         '  background: #fff; box-shadow: 0 2px 0 #e9dfcf; color: #475569; font-size: .88rem; font-weight: 700; font-variant-numeric: tabular-nums; }' +
         '.ttp-side svg { width: 24px; height: 24px; }' +
-        '.ttp-side.on { border-color: #f6a23a; } .ttp-side.p2.on { border-color: #5c7cfa; }' +
+        '.ttp-side.on { border-color: #2563eb; } .ttp-side.p2.on { border-color: #e8577e; }' +
         '.ttp-draws { padding: 4px 11px; color: #64748b; font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums; }' +
         '.ttp-duo .ttp-turn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; }' +
-        '.ttp-turn.p1 { color: #c2620a; } .ttp-turn.p2 { color: #3b5bdb; }' +
+        '.ttp-turn.p1 { color: #1d4ed8; } .ttp-turn.p2 { color: #c93a62; }' +
         '.ttp-btn { min-height: 36px; padding: 5px 14px; border: none; border-radius: 999px; background: #fff; color: #64748b; font: inherit;' +
         '  font-size: .88rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
-        '.ttp-btn.go { min-height: 40px; padding: 6px 18px; background: #f08c2e; color: #fff; font-size: 1rem; box-shadow: 0 3px 0 #c96a14; }' +
+        '.ttp-btn.go { min-height: 40px; padding: 6px 18px; background: #334155; color: #fff; font-size: 1rem; box-shadow: 0 3px 0 #1e293b; }' +
         '.ttp-btn:active { transform: translateY(2px); box-shadow: none; }' +
-        '.ttp-btn:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
+        '.ttp-btn:focus-visible, .ttp-duo .ttp-cell:focus-visible { outline: 3px solid #64748b; outline-offset: 2px; }' +
         '.ttp-btn:disabled { opacity: .45; cursor: default; }' +
         '.ttp-btn[hidden], .ttp-turn [hidden] { display: none; }' +
         '.ttp-start { display: inline-flex; align-items: center; gap: 6px; color: #64748b; font-size: .88rem; font-weight: 700; }' +
         '.ttp-start button { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 3px 12px 3px 6px; border: 2px solid transparent;' +
         '  border-radius: 999px; background: #fff; color: #64748b; font: inherit; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
         '.ttp-start svg { width: 22px; height: 22px; }' +
-        '.ttp-start [aria-pressed="true"] { border-color: #f6a23a; color: #c2620a; }' +
-        '.ttp-start [data-p="C"][aria-pressed="true"] { border-color: #5c7cfa; color: #3b5bdb; }' +
-        '.ttp-start button:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
+        '.ttp-start [aria-pressed="true"] { border-color: #2563eb; color: #1d4ed8; }' +
+        '.ttp-start [data-p="C"][aria-pressed="true"] { border-color: #e8577e; color: #c93a62; }' +
+        '.ttp-start button:focus-visible { outline: 3px solid #64748b; outline-offset: 2px; }' +
         '@media (max-width: 420px) { .ttp-score { gap: 4px; } .ttp-side { gap: 4px; padding-right: 8px; font-size: .8rem; }' +
         '  .ttp-draws { padding: 4px 3px; font-size: .8rem; } .ttp-reset { padding: 5px 10px; font-size: .8rem; } }' +
         '@keyframes ttp-in { from { transform: scale(0) rotate(-20deg); } to { transform: none; } }' +
@@ -98,11 +106,11 @@ function ticTacPaw(api, duo) {
     var NAP_EVERY = duo ? 0 : { easy: 0, normal: 3, hard: 2 }[level];   /* a napping kitten every n-th round */
     var wrap = document.createElement('div');
     wrap.className = 'ttp' + (duo ? ' ttp-duo' : '') + (api.reducedMotion ? ' ttp-calm' : '');
-    wrap.innerHTML = duo ? '<div class="ttp-score"><span class="ttp-side p1">' + PAW + 'Player 1 <b>0</b></span>' +
-        '<span class="ttp-draws">Draws <b>0</b></span><span class="ttp-side p2">' + FISH + 'Player 2 <b>0</b></span>' +
+    wrap.innerHTML = duo ? '<div class="ttp-score"><span class="ttp-side p1">' + PAW + 'Milo <b>0</b></span>' +
+        '<span class="ttp-draws">Draws <b>0</b></span><span class="ttp-side p2">' + FISH + 'Luna <b>0</b></span>' +
         '<button type="button" class="ttp-btn ttp-reset">Reset</button></div>' +
         '<div class="ttp-turn"><span aria-live="polite"></span><span class="ttp-start" role="group" aria-label="Who starts">Starts:' +
-        '<button type="button" data-p="Y">' + PAW + 'Player 1</button><button type="button" data-p="C">' + FISH + 'Player 2</button></span>' +
+        '<button type="button" data-p="Y">' + PAW + 'Milo</button><button type="button" data-p="C">' + FISH + 'Luna</button></span>' +
         '<button type="button" class="ttp-btn go" hidden>Play again</button></div><div class="ttp-board"></div>' :
         '<div class="ttp-turn" aria-live="polite"></div><div class="ttp-board"></div><div class="ttp-chips"></div>';
     api.el.appendChild(wrap);
@@ -206,9 +214,9 @@ function ticTacPaw(api, duo) {
         board.appendChild(svg);
     }
     /* paper bits flying out from the middle of the board */
-    function confetti() {
+    function confetti(colors) {                   /* colors: for two, the winner's */
         if (api.reducedMotion) return;
-        var colors = ['#f6a23a', '#fbbf24', '#5c7cfa', '#f783ac', '#69db7c'];
+        colors = colors || ['#f6a23a', '#fbbf24', '#5c7cfa', '#f783ac', '#69db7c'];
         var x = board.offsetLeft + board.offsetWidth / 2, y = board.offsetTop + board.offsetHeight / 2;
         for (var k = 0; k < 36; k++) {
             var p = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 140;
@@ -269,7 +277,7 @@ function ticTacPaw(api, duo) {
         }, 450 + Math.random() * 350);
     }
     /* ---------- for two ---------- */
-    function name(p) { return p === 'Y' ? 'Player 1' : 'Player 2'; }
+    function name(p) { return p === 'Y' ? 'Milo' : 'Luna'; }
     function duoStatus(text, p) {
         turnEl.textContent = text;
         turnEl.parentNode.className = 'ttp-turn' + (p ? ' ' + (p === 'Y' ? 'p1' : 'p2') : '');
@@ -301,7 +309,8 @@ function ticTacPaw(api, duo) {
             duoStatus(name(w.who) + ' wins!', w.who);
             api.sfx('point');
             api.cat('happy');
-            confetti();
+            w.line.forEach(function (k) { cells[k].classList.add(w.who === 'Y' ? 'milo' : 'luna'); });
+            confetti(w.who === 'Y' ? ['#2563eb', '#5b8def', '#a9c2f4', '#1d4ed8'] : ['#e8577e', '#f28aa6', '#f6bccc', '#c93a62']);
         }
         duoShow();
         againBtn.hidden = false;
@@ -349,7 +358,7 @@ function ticTacPaw(api, duo) {
     });
     if (duo) {
         api.on(againBtn, 'click', newRound);
-        /* Reset: a new match, the tally back to 0 and a fresh board; Player 1 starts unless a starter was just picked */
+        /* Reset: a new match, the tally back to 0 and a fresh board; Milo starts unless a starter was just picked */
         api.on(resetBtn, 'click', function () {
             var first = picked ? turn : 'Y';
             tally.p1 = tally.p2 = tally.draws = 0;
@@ -379,7 +388,7 @@ function ticTacPaw(api, duo) {
         if (k >= 0 && k < 9) cells[k].focus();
     });
     if (level === 'hard' && !duo) api.say('On hard I never lose. Hold me to draws!', 2600);
-    else if (duo && !(tally.p1 || tally.p2 || tally.draws)) api.say('Two players, one screen. I keep the score!', 2400);
+    else if (duo && !(tally.p1 || tally.p2 || tally.draws)) api.say('Milo against Luna. I keep the score!', 2400);
     newRound();
 }
 })();

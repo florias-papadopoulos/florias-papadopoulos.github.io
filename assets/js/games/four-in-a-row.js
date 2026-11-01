@@ -4,8 +4,8 @@
    Easy: the cat looks two moves ahead, is often distracted and you may take back two moves a round; normal: four
    moves ahead; hard: alpha-beta search with iterative deepening, a transposition table and forced-move extensions
    under a 300 ms budget (about ten moves ahead on a laptop in the four mode).
-   The same file is Four for Two (id four-in-a-row-2p): two players take turns on one screen, Player 1 with
-   paws, Player 2 with fish, no cat playing and no undo. Its mode toggle is remembered on its own ('arcade-fr2-mode'),
+   The same file is Four for Two (id four-in-a-row-2p): two players take turns on one screen, the cats Milo
+   (blue paw discs) and Luna (pink fish discs), no cat playing and no undo. Its mode toggle is remembered on its own ('arcade-fr2-mode'),
    a running tally (wins of each player and draws, both modes together) lasts until the page is left, "Play again" lets
    the other player start (the "Starts" toggle can change that until the first move), Reset clears the tally and
    starts a fresh board, and nothing is saved as a best. Single player is untouched by it: duo is false there. */
@@ -60,25 +60,28 @@ function fourInARow(api, duo) {
         '.fr-strike line { stroke: #fff; stroke-width: 6; stroke-linecap: round; opacity: .9; stroke-dasharray: 2000; animation: fr-draw .5s ease-out both; }' +
         '.fr-bit { position: absolute; width: 8px; height: 12px; border-radius: 2px; pointer-events: none; animation: fr-bit 1.2s ease-out forwards; }' +
         '.fr-calm *, .fr-calm .fr-tok { animation: none !important; transition: none !important; }' +
-        /* for two: the tally, the turn (or the result and "Play again") */
-        '.fr-side { border: 2px solid transparent; } .fr-side.on.p1 { border-color: #f6a23a; } .fr-side.on.p2 { border-color: #5c7cfa; }' +
+        /* for two: Milo is blue (paws), Luna pink (fish); the tally, the turn (or the result and "Play again") */
+        '.fr-duo .fr-you { background: radial-gradient(circle at 35% 28%, #7ea4ff, #2459d8 55%, #1c45b3); } .fr-duo .fr-you svg { fill: #eef3ff; }' +
+        '.fr-duo .fr-cat { background: radial-gradient(circle at 35% 28%, #f799b3, #e8577e 55%, #cf3b65); } .fr-duo .fr-cat .eye { fill: #cf3b65; }' +
+        '.fr-duo .fr-tok.win.fr-you { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #1d4ed8; } .fr-duo .fr-tok.win.fr-cat { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #e8577e; }' +
+        '.fr-side { border: 2px solid transparent; } .fr-side.on.p1 { border-color: #2563eb; } .fr-side.on.p2 { border-color: #e8577e; }' +
         '.fr-draws { padding: 0 4px; color: #64748b; font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums; }' +
         '.fr-duo .fr-turn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; }' +
-        '.fr-turn.p1 { color: #c2620a; } .fr-turn.p2 { color: #3b5bdb; }' +
+        '.fr-turn.p1 { color: #1d4ed8; } .fr-turn.p2 { color: #c93a62; }' +
         '.fr-btn { min-height: 34px; padding: 4px 13px; border: none; border-radius: 999px; background: #fff; color: #64748b; font: inherit;' +
         '  font-size: .85rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
-        '.fr-btn.go { min-height: 40px; padding: 6px 18px; background: #f08c2e; color: #fff; font-size: 1rem; box-shadow: 0 3px 0 #c96a14; }' +
+        '.fr-btn.go { min-height: 40px; padding: 6px 18px; background: #334155; color: #fff; font-size: 1rem; box-shadow: 0 3px 0 #1e293b; }' +
         '.fr-btn:active { transform: translateY(2px); box-shadow: none; }' +
-        '.fr-btn:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
+        '.fr-btn:focus-visible { outline: 3px solid #64748b; outline-offset: 2px; }' +
         '.fr-btn:disabled { opacity: .45; cursor: default; }' +
         '.fr-btn[hidden], .fr-turn [hidden] { display: none; }' +
         '.fr-start { display: inline-flex; align-items: center; gap: 6px; color: #64748b; font-size: .88rem; font-weight: 700; }' +
         '.fr-start button { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 3px 12px 3px 5px; border: 2px solid transparent;' +
         '  border-radius: 999px; background: #fff; color: #64748b; font: inherit; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
         '.fr-start .fr-tok { position: static; width: 24px; height: 24px; box-shadow: none; }' +
-        '.fr-start [aria-pressed="true"] { border-color: #f6a23a; color: #c2620a; }' +
-        '.fr-start [data-p="2"][aria-pressed="true"] { border-color: #5c7cfa; color: #3b5bdb; }' +
-        '.fr-start button:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
+        '.fr-start [aria-pressed="true"] { border-color: #2563eb; color: #1d4ed8; }' +
+        '.fr-start [data-p="2"][aria-pressed="true"] { border-color: #e8577e; color: #c93a62; }' +
+        '.fr-start button:focus-visible { outline: 3px solid #64748b; outline-offset: 2px; }' +
         '@media (max-width: 420px) { .fr-duo .fr-bar { gap: 4px; } .fr-duo .fr-chip { gap: 4px; padding-right: 8px; font-size: .8rem; }' +
         '  .fr-draws { padding: 0 3px; font-size: .8rem; } .fr-reset { padding: 4px 10px; font-size: .8rem; } }' +
         '@media (pointer: coarse) { .fr-duo .fr-mode button { padding: 8px 16px; } }' +
@@ -129,11 +132,11 @@ function fourInARow(api, duo) {
     wrap.className = 'fr' + (duo ? ' fr-duo' : '') + (api.reducedMotion ? ' fr-calm' : '');
     wrap.innerHTML = '<div class="fr-head"><div class="fr-mode" role="group" aria-label="Game mode">' +
         '<button type="button" data-m="four">Four in a row</button><button type="button" data-m="five">Five in a row</button></div><div class="fr-bar">' +
-        (duo ? '<span class="fr-chip fr-side p1"><span class="fr-tok fr-you">' + ART[YOU] + '</span>Player 1 <b>0</b></span>' +
-        '<span class="fr-draws">Draws <b>0</b></span><span class="fr-chip fr-side p2"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Player 2 <b>0</b></span>' +
+        (duo ? '<span class="fr-chip fr-side p1"><span class="fr-tok fr-you">' + ART[YOU] + '</span>Milo <b>0</b></span>' +
+        '<span class="fr-draws">Draws <b>0</b></span><span class="fr-chip fr-side p2"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Luna <b>0</b></span>' +
         '<button type="button" class="fr-btn fr-reset">Reset</button></div><div class="fr-turn"><span aria-live="polite"></span>' +
         '<span class="fr-start" role="group" aria-label="Who starts">Starts:<button type="button" data-p="1"><span class="fr-tok fr-you">' + ART[YOU] +
-        '</span>Player 1</button><button type="button" data-p="2"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Player 2</button></span>' +
+        '</span>Milo</button><button type="button" data-p="2"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Luna</button></span>' +
         '<button type="button" class="fr-btn go" hidden>Play again</button></div></div>' :
         '<span class="fr-chip" title="Your round wins"><span class="fr-tok fr-you">' + ART[YOU] + '</span>You <b class="fr-wins">0</b></span>' +
         '<span class="fr-round"></span>' +
@@ -363,9 +366,9 @@ function fourInARow(api, duo) {
         svg.innerHTML = '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"/>';
         boardEl.appendChild(svg);
     }
-    function confetti() {                         /* paper bits flying out from the top of the board */
+    function confetti(colors) {                   /* paper bits flying out from the top of the board (for two: the winner's colours) */
         if (api.reducedMotion) return;
-        var colors = ['#f6a23a', '#ffd43b', '#4c6ef5', '#f783ac', '#69db7c'];
+        colors = colors || ['#f6a23a', '#ffd43b', '#4c6ef5', '#f783ac', '#69db7c'];
         var x = play.offsetLeft + play.offsetWidth / 2, y = play.offsetTop + cs * 2;
         for (var n = 0; n < 44; n++) {
             var p = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 170;
@@ -465,7 +468,7 @@ function fourInARow(api, duo) {
     }
 
     /* ---------- for two ---------- */
-    function name(p) { return p === YOU ? 'Player 1' : 'Player 2'; }
+    function name(p) { return p === YOU ? 'Milo' : 'Luna'; }
     function setTurn(p) {                         /* the disc above the board and the ghost show whose turn it is */
         turn = p;
         [aimTok, ghost].forEach(function (t) {
@@ -495,7 +498,7 @@ function fourInARow(api, duo) {
             status(name(p) + ' wins!', p);
             api.sfx('point');
             api.cat('happy');
-            confetti();
+            confetti(p === YOU ? ['#2563eb', '#5b8def', '#a9c2f4', '#1d4ed8'] : ['#e8577e', '#f28aa6', '#f6bccc', '#c93a62']);
         } else {
             tally.draws++;
             status('A draw');
@@ -574,7 +577,7 @@ function fourInARow(api, duo) {
     if (undoBtn) api.on(undoBtn, 'click', function () { undoBtn.blur(); undo(); });
     if (duo) {
         api.on(againBtn, 'click', newRound);
-        /* Reset: a new match, the tally back to 0 and a fresh board; Player 1 starts unless a starter was just picked */
+        /* Reset: a new match, the tally back to 0 and a fresh board; Milo starts unless a starter was just picked */
         api.on(resetBtn, 'click', function () {
             var first = picked ? turn : YOU;
             tally.p1 = tally.p2 = tally.draws = 0;
@@ -625,7 +628,7 @@ function fourInARow(api, duo) {
     api.onResize(fit);
     if (level === 'hard') api.say('Hard: I think far ahead. Good luck!', 2400);
     else if (level === 'easy') api.say('Easy: I will go gently. Undo is allowed.', 2400);
-    else if (duo && !(tally.p1 || tally.p2 || tally.draws)) api.say('Two players, one screen. I keep the score!', 2400);
+    else if (duo && !(tally.p1 || tally.p2 || tally.draws)) api.say('Milo against Luna. I keep the score!', 2400);
     newRound();
 }
 })();
