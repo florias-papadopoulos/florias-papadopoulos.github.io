@@ -128,9 +128,6 @@
 .tl-files li { padding: 2px 0; color: var(--tl-muted); }
 .tl-files li a { color: var(--tl-navy); }
 .tl-keys, .tl-keys p { margin: 0; color: var(--tl-muted); font-size: 13.5px; }
-.tl-perma { display: inline-block; margin-top: 10px; color: var(--tl-muted); font-size: 13px; text-decoration: none; }
-.tl-perma::before { content: "#"; margin-right: 4px; color: var(--tl-rule); font-weight: 700; }
-.tl-perma:hover { color: var(--tl-navy); }
 
 /* a paper's BibTeX */
 .tl-actions { margin-top: 14px; }

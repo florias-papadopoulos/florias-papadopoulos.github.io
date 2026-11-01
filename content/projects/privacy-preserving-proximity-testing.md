@@ -8,7 +8,7 @@ weight: -1
 # venue, abstract, keywords and bibtex are taken from the camera-ready version (main.tex).
 anchor: "gfm-asiaccs26"
 preview: "img/papers/pppt-gfm.jpg"
-previewAlt: "A circular proximity region drawn over a city map, split into strips, with two points w and q inside it"
+previewAlt: "Two overlapping 3D balls, each split into coloured boxes"
 venue: "ACM Asia Conference on Computer and Communications Security (ASIA CCS '26), Bangalore, India"
 keywords: [Fuzzy Private Set Intersection, Fuzzy Matching, Proximity Tracking]
 links:

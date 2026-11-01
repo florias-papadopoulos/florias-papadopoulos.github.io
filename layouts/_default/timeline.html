@@ -103,10 +103,7 @@
                                 <div class="tl-block">
                                     <h4 class="tl-cap">Keywords</h4>
                                     <p class="tl-keys">{{ if reflect.IsSlice . }}{{ delimit . ", " }}{{ else }}{{ . }}{{ end }}</p>
-                                    <a class="tl-perma" href="#{{ $id }}">Link to this paper</a>
                                 </div>
-                                {{- else }}
-                                <div class="tl-block"><a class="tl-perma" href="#{{ $id }}">Link to this paper</a></div>
                                 {{- end }}
                             </aside>
                             {{- else }}
@@ -134,13 +131,12 @@
                                     <div class="tl-files">{{ . | safeHTML }}</div>
                                 </div>
                                 {{- end }}
+                                {{- with $keys }}
                                 <div class="tl-block">
-                                    {{- with $keys }}
                                     <h4 class="tl-cap">Keywords</h4>
                                     <div class="tl-keys">{{ . | safeHTML }}</div>
-                                    {{- end }}
-                                    <a class="tl-perma" href="#{{ $id }}">Link to this project</a>
                                 </div>
+                                {{- end }}
                             </aside>
                             {{- end }}
                         </div>
