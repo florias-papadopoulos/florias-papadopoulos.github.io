@@ -4,6 +4,7 @@
 .arcade-head { position: relative; margin: 8px 0 22px; text-align: center; }
 .arcade-head h1 { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
 .arcade-head p { margin: 4px 0 12px; color: var(--muted); }
+.arcade-group { margin: 0 0 12px; font-size: 1.15rem; font-weight: 700; color: var(--ink); }
 
 .arcade-btn {
     padding: 6px 12px;
@@ -50,6 +51,8 @@ body.arcade-playing { overflow: hidden; }
 .stage-title { font-weight: 800; }
 .stage-score { margin-left: auto; font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; color: var(--navy); }
 .stage-best { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; color: var(--muted); }
+.stage-level { padding: 5px 8px; font-size: 0.85rem; cursor: pointer; }
+.stage-level[hidden] { display: none; }
 .stage-area { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 
 .stage-msg { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(15, 23, 42, 0.35); }

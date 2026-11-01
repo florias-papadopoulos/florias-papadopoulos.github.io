@@ -14,30 +14,31 @@ html[data-cat="silver"], .cat-opt[data-look="silver"] {
     --fur-top: #dde2e8; --fur-bot: #a9b2bd; --head-top: #e4e8ed; --fur-dark: #97a1ac; --stripe: #7a8592;
     --tail: #b4bcc6; --cream: #f5f7f9; --iris: #e9b949; --tuft: #ffffff; --whisker: #8a9099;
 }
+html[data-cat="bat"], .cat-opt[data-look="bat"] {
+    --fur-top: #a2a9b3; --fur-bot: #6f7681; --head-top: #aab1bb; --fur-dark: #5f6671; --stripe: #6f7681;
+    --tail: #2b2e36; --cream: #dfe3e8; --iris: #fff4b8; --tuft: #c4c9d0; --whisker: #4b5058;
+}
 html[data-cat="tuxedo"], .cat-opt[data-look="tuxedo"] {
     --fur-top: #50545d; --fur-bot: #2c2f35; --head-top: #5b6069; --fur-dark: #26292e; --stripe: #3d4148;
     --tail: #373a40; --cream: #f6f6f4; --iris: #c8e06c; --tuft: #9ba1a9; --whisker: #c9cdd2;
 }
 
-/* ---------- Desktop world: keyboard floor and glyph platforms (built in home-lab.js) ---------- */
-.kb { position: absolute; left: 0; display: flex; gap: 4px; height: 44px; padding: 4px 8px 6px; overflow: hidden; background: #e9eef5; border-top: 1px solid #d6dee9; }
-.kb-key {
-    flex: none;
+/* ---------- Desktop world: a floor of bits and glyph platforms (built in home-lab.js) ---------- */
+.bits { position: absolute; left: 0; display: flex; gap: 14px; height: 44px; padding: 5px 10px 0; overflow: hidden; border-top: 1px solid #e2e8f0; }
+.byte { flex: none; display: flex; gap: 2px; }
+.bit {
     display: grid;
     place-items: center;
-    width: 36px;
-    height: 32px;
-    border: 1px solid #cdd6e2;
-    border-radius: 7px;
+    width: 22px;
+    height: 26px;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
     background: #fff;
-    box-shadow: 0 3px 0 #cdd6e2;
-    color: #64748b;
-    font: 600 12px ui-monospace, Menlo, Consolas, monospace;
-    transition: transform 0.08s, box-shadow 0.08s, background 0.08s;
+    color: #94a3b8;
+    font: 700 14px ui-monospace, Menlo, Consolas, monospace;
+    transition: background 1s, color 1s, box-shadow 1s;
 }
-.kb-key.wide { width: 58px; }
-.kb-key.space { width: 140px; }
-.kb-key.down { transform: translateY(3px); box-shadow: 0 0 0 #cdd6e2; background: #eef2ff; color: #1e3a8a; }
+.bit.lit { background: #fde68a; color: #92400e; box-shadow: 0 0 12px rgba(251, 191, 36, 0.8); transition: none; }
 .glyph {
     position: absolute;
     pointer-events: auto;
@@ -49,21 +50,17 @@ html[data-cat="tuxedo"], .cat-opt[data-look="tuxedo"] {
     white-space: nowrap;
 }
 .glyph.pink { color: rgba(214, 51, 108, 0.6); }
-.glyph.cap {
-    padding: 8px 12px;
-    line-height: 1;
-    border: 1px solid #cdd6e2;
-    border-radius: 9px;
-    background: #fff;
-    box-shadow: 0 4px 0 #cdd6e2;
-    color: #475569;
-    font-size: 15px;
-    font-weight: 700;
-}
 .glyph.keyicon { width: 70px; height: 33px; color: rgba(30, 58, 138, 0.6); }
 .glyph.keyicon svg { display: block; width: 100%; height: 100%; }
 .glyph.poked { animation: glyph-poke 0.6s cubic-bezier(.3, 1.6, .5, 1); }
 .glyph:hover { color: #1e3a8a; }
+.glyph sub, .glyph sup { font-size: 0.5em; line-height: 0; }
+/* knocked loose: letters of the name and glyphs fly, land and can be dragged around */
+.ltr.gone { visibility: hidden; }
+.loose { position: absolute; z-index: 1; pointer-events: auto; cursor: grab; user-select: none; touch-action: none; transform-origin: 50% 100%; }
+.loose-ltr { display: block; text-align: center; white-space: pre; }
+.loose.held { cursor: grabbing; }
+.glyph, .loose { touch-action: none; }
 @keyframes glyph-poke { 0% { transform: none; } 30% { transform: translateY(-8px) rotate(-8deg) scale(1.08); } 100% { transform: none; } }
 
 .cat.held { cursor: grabbing; }
@@ -107,6 +104,11 @@ html[data-cat="tuxedo"], .cat-opt[data-look="tuxedo"] {
 .cat .cat-head .stripe { stroke-width: 2.2; }
 .cat .cat-head .whisker { stroke: var(--whisker); stroke-width: 0.75; }
 .cat .cat-head .sclera { stroke-width: 1.1; }
+/* the Halloween bat costume: cowl, mask, cape and belt, only in that look */
+.cat .bat-only { display: none; }
+html[data-cat="bat"] .cat .bat-only { display: inline; }
+.cat .cowl, .cat .cape { fill: #1f222a; }
+.cat .belt { fill: #f2c94c; stroke: #3b2a1e; stroke-width: 0.9; }
 .cat .toe { fill: none; stroke: #3b2a1e; stroke-width: 1; stroke-linecap: round; }
 .cat .tail-ol { fill: none; stroke: #3b2a1e; stroke-width: 9.6; stroke-linecap: round; }
 .cat .tail-fur { fill: none; stroke: var(--tail); stroke-width: 5.8; stroke-linecap: round; }

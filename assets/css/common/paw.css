@@ -22,11 +22,15 @@
 .paw-link.wiggle { animation: paw-wiggle 0.5s ease-in-out 4; }
 .cat-pick { right: 52px; }
 .cat-pick svg { width: 22px; height: 20px; }
+.home-reset { right: 94px; }
+.home-reset svg { width: 17px; height: 17px; }
 
 /* the little cat face, in the colours of the current look (variables in cat.css) */
 .cf-fur { fill: var(--fur-bot); stroke: #3b2a1e; stroke-width: 1.6; stroke-linejoin: round; }
 .cf-cream { fill: var(--cream); }
 .cf-eye { fill: var(--iris); stroke: #3b2a1e; stroke-width: 1.2; }
+.cf-bat { display: none; fill: #1f222a; stroke: #3b2a1e; stroke-width: 1.4; stroke-linejoin: round; }
+html[data-cat="bat"] .cat-pick .cf-bat, .cat-opt[data-look="bat"] .cf-bat { display: inline; }
 
 .cat-menu {
     position: fixed;
@@ -63,10 +67,13 @@
 
 /* leave room for the two buttons at the right end of the menu */
 .nav { padding-inline-end: 92px; }
+body:has(.home-reset) .nav { padding-inline-end: 134px; }
 @keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
 @media (max-width: 600px) {
     .nav { padding-inline-end: 0; }
     .corner-btn { top: 5px; }
     .paw-link { right: 8px; }
     .cat-pick { right: 48px; }
+    .home-reset { right: 88px; }
+    body:has(.home-reset) .nav { padding-inline-end: 0; }
 }

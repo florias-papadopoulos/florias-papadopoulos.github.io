@@ -1,6 +1,9 @@
 {{- /* The cat on the home page: markup here (drawing in cat-svg.html), behaviour in assets/js/home-lab.js,
        styles in assets/css/common/cat.css */ -}}
 <div class="world-layer" id="world-layer" aria-hidden="true"></div>
+<button class="corner-btn home-reset" id="home-reset" type="button" title="Put everything back" aria-label="Reset the page: put the letters, symbols and the cat back">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M5 2.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
 <div class="cat-layer" id="cat-layer">
     <div class="cat" id="cat" role="button" tabindex="0" aria-label="A cat. Click to pet it.">
         <div class="cat-tilt"><div class="cat-flip">

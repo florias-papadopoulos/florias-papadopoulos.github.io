@@ -16,7 +16,10 @@
      api.timeout(fn, ms), api.interval(fn, ms)
      api.css(text)               add the game's styles once (scope them with a class of your own)
      api.score(value, label)     show the score in the top bar (label defaults to "Score")
-     api.best()                  best score so far (number) or null
+     api.best()                  best score so far (number) or null, at the current difficulty
+     api.level()                 'easy', 'normal' or 'hard': the difficulty picked in the top bar. The picker shows for
+                                 games with "levels: true" in content/games/_index.md; changing it restarts the game,
+                                 and each difficulty keeps its own best
      api.end({score, win, text, lowerIsBetter})   game over: saves the best, shows text and "Play again"
      api.cat(mood)               the cat in the corner: 'happy', 'sad', 'wow', 'think' or 'idle'
      api.say(text, ms)           a speech bubble from the cat
@@ -25,7 +28,7 @@
      api.reducedMotion           true if the visitor prefers less motion
      api.restart()               start the game again
 
-   Music: original chiptune loops, generated with the Web Audio API (nothing downloaded), on/off remembered. */
+   Sound: short effects only, generated with the Web Audio API (nothing downloaded). */
 (function () {
     'use strict';
     var root = document.getElementById('arcade');
@@ -46,6 +49,10 @@
         } catch (e) { return null; }
     }
     var bests = store('arcade-best') || {};
+    var levels = store('arcade-level') || {};
+    var levelPick = stage.querySelector('.stage-level');
+    function levelOf(id) { return byId[id] && byId[id].levels && levels[id] || 'normal'; }
+    function bestKey(id) { var l = levelOf(id); return l === 'normal' ? id : id + '/' + l; }   /* normal: the old key */
 
     window.Arcade = {
         register: function (id, factory) {
@@ -54,16 +61,14 @@
         }
     };
 
-    /* ---------- sound: one AudioContext for music and effects ---------- */
-    var ctx = null, master = null, musicGain = null, sfxGain = null;
-    var musicOn = store('arcade-music') !== 'off';
+    /* ---------- sound: one AudioContext for the effects ---------- */
+    var ctx = null, master = null, sfxGain = null;
     function audio() {
         if (!ctx) {
             var AC = window.AudioContext || window.webkitAudioContext;
             if (!AC) return null;
             ctx = new AC();
             master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
-            musicGain = ctx.createGain(); musicGain.gain.value = musicOn ? 0.16 : 0; musicGain.connect(master);
             sfxGain = ctx.createGain(); sfxGain.gain.value = 0.32; sfxGain.connect(master);
         }
         if (ctx.state === 'suspended') ctx.resume();
@@ -96,92 +101,6 @@
         g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
         s.connect(f); f.connect(g); g.connect(dest); s.start(t); s.stop(t + dur + 0.02);
     }
-    function kick(t, dest) {
-        var o = ctx.createOscillator(), g = ctx.createGain();
-        o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
-        g.gain.setValueAtTime(0.7, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
-        o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.2);
-    }
-
-    /* Tracks: one string per voice, one token per eighth note ('-' holds, '.' rests). Original tunes. */
-    var TRACKS = {
-        purr: { bpm: 100,
-            lead: 'E5 - G5 - A5 G5 E5 - D5 - E5 - C5 - - - E5 - G5 - A5 - C6 - B5 A5 G5 - E5 - - - ' +
-                  'F5 - A5 - G5 F5 E5 - D5 - F5 - E5 - C5 - D5 - E5 - G5 - D5 - C5 - - - . . . . ',
-            bass: 'C3 . G3 . C3 . G3 . A2 . E3 . A2 . E3 . F2 . C3 . F2 . C3 . G2 . D3 . G2 . B2 . ' +
-                  'F2 . C3 . F2 . C3 . C3 . G3 . C3 . G3 . F2 . C3 . G2 . D3 . C3 . G3 . C3 . . . ',
-            drums: 'k.h.s.h.k.h.s.hh' },
-        chase: { bpm: 138,
-            lead: 'A4 C5 E5 C5 A4 C5 E5 G5 F5 - E5 - D5 - C5 - B4 D5 G5 D5 B4 D5 G5 B5 A5 - G5 - E5 - . . ' +
-                  'A4 C5 E5 A5 G5 E5 C5 E5 F5 E5 D5 C5 D5 - E5 - C5 - B4 - A4 - G4 - A4 - - - . . . . ',
-            bass: 'A2 A2 A3 A2 A2 A2 A3 A2 F2 F2 F3 F2 F2 F2 F3 F2 G2 G2 G3 G2 G2 G2 G3 G2 E2 E2 E3 E2 E2 E2 E3 E2 ' +
-                  'A2 A2 A3 A2 A2 A2 A3 A2 D2 D2 D3 D2 D2 D2 D3 D2 E2 E2 E3 E2 E2 E2 E3 E2 A2 A2 A3 A2 A2 . . . ',
-            drums: 'k.hsk.hsk.hsk.ss' },
-        race: { bpm: 150,
-            lead: 'D5 - D5 F5 A5 - G5 F5 E5 - C5 - D5 - - - D5 - D5 F5 A5 - C6 - A5 - G5 - F5 - - - ' +
-                  'Bb4 - D5 F5 Bb5 - A5 G5 F5 - E5 - D5 - C5 - D5 - F5 - E5 - C#5 - D5 - - - . . . . ',
-            bass: 'D2 D3 D2 D3 D2 D3 D2 D3 C2 C3 C2 C3 C2 C3 C2 C3 Bb1 Bb2 Bb1 Bb2 Bb1 Bb2 Bb1 Bb2 A1 A2 A1 A2 A1 A2 A1 A2 ' +
-                  'Bb1 Bb2 Bb1 Bb2 Bb1 Bb2 Bb1 Bb2 F2 F3 F2 F3 C2 C3 C2 C3 G2 G3 G2 G3 A1 A2 A1 A2 D2 D3 D2 . ',
-            drums: 'khskkhskkhskkhss' }
-    };
-    Object.keys(TRACKS).forEach(function (k) {
-        var t = TRACKS[k];
-        t.lead = t.lead.trim().split(/\s+/);
-        t.bass = t.bass.trim().split(/\s+/);
-        t.len = Math.max(t.lead.length, t.bass.length);
-    });
-    var music = { track: null, step: 0, next: 0, timer: null };
-    function holdLength(voice, i) {
-        var n = 1;
-        while (voice[(i + n) % voice.length] === '-' && n < 8) n++;
-        return n;
-    }
-    function schedule() {
-        var t = TRACKS[music.track];
-        if (!t || !ctx) return;
-        var eighth = 30 / t.bpm;
-        while (music.next < ctx.currentTime + 0.15) {
-            var i = music.step % t.len, at = music.next;
-            var ln = t.lead[i % t.lead.length], bn = t.bass[i % t.bass.length];
-            if (ln && ln !== '-' && ln !== '.') tone(freq(ln), at, eighth * holdLength(t.lead, i % t.lead.length) * 0.95, 'square', 0.22, musicGain);
-            if (bn && bn !== '-' && bn !== '.') tone(freq(bn), at, eighth * holdLength(t.bass, i % t.bass.length) * 0.9, 'triangle', 0.5, musicGain);
-            var d = t.drums[i % t.drums.length];
-            if (d === 'k') kick(at, musicGain);
-            if (d === 's') noise(at, 0.12, 0.35, 1200, musicGain);
-            if (d === 'h' || d === 's') noise(at, 0.04, 0.18, 6000, musicGain);
-            music.step++;
-            music.next += eighth;
-        }
-    }
-    function playMusic(track) {
-        if (!musicOn || !TRACKS[track]) return stopMusic();
-        if (!audio()) return;
-        if (music.track === track && music.timer) return;
-        stopMusic();
-        music.track = track; music.step = 0; music.next = ctx.currentTime + 0.08;
-        music.timer = setInterval(schedule, 40);
-        schedule();
-    }
-    function stopMusic() {
-        clearInterval(music.timer);
-        music.timer = null;
-        music.track = null;
-    }
-    function setMusic(on) {
-        musicOn = on;
-        store('arcade-music', on ? 'on' : 'off');
-        Array.prototype.forEach.call(root.querySelectorAll('.music-toggle'), function (b) {
-            b.setAttribute('aria-pressed', on);
-            b.innerHTML = b.closest('.stage-bar') ? (on ? '&#9835;' : '<s>&#9835;</s>') : (on ? '&#9835; Music on' : '&#9835; Music off');
-        });
-        if (on && current) playMusic(byId[current.id].music); else stopMusic();
-        if (musicGain) musicGain.gain.value = on ? 0.16 : 0;
-    }
-    Array.prototype.forEach.call(root.querySelectorAll('.music-toggle'), function (b) {
-        b.addEventListener('click', function () { audio(); setMusic(!musicOn); });
-    });
-    setMusic(musicOn);
-
     var SFX = {
         tap:   function (t) { tone(660, t, 0.06, 'square', 0.3, sfxGain); },
         move:  function (t) { tone(330, t, 0.05, 'triangle', 0.4, sfxGain); },
@@ -217,13 +136,21 @@
         var b = bubble;
         setTimeout(function () { if (b === bubble) { b.remove(); bubble = null; } }, ms || 2200);
     }
+    if (levelPick) levelPick.addEventListener('change', function () {
+        if (!current) return;
+        levels[current.id] = levelPick.value;
+        store('arcade-level', levels);
+        showBests();
+        levelPick.blur();                          /* arrow keys go to the game again */
+        start(current.id);
+    });
     mascot.addEventListener('click', function () { catMood('happy'); say('purr'); });
 
     /* ---------- running a game ---------- */
     function showBests() {
         Array.prototype.forEach.call(root.querySelectorAll('[data-best]'), function (el) {
-            var b = bests[el.dataset.best];
-            el.textContent = b == null ? '' : 'Best: ' + b;
+            var id = el.dataset.best, b = bests[bestKey(id)], l = levelOf(id);
+            el.textContent = b == null ? '' : 'Best' + (l === 'normal' ? '' : ' (' + l + ')') + ': ' + b;
         });
     }
     showBests();
@@ -247,8 +174,9 @@
         area.className = 'stage-area game-' + id;
         stage.querySelector('.stage-title').textContent = g.title;
         stage.querySelector('.stage-score').textContent = '';
-        var b = bests[id];
+        var key = bestKey(id), b = bests[key];
         stage.querySelector('.stage-best').textContent = b == null ? '' : 'Best ' + b;
+        if (levelPick) { levelPick.hidden = !g.levels; levelPick.value = levelOf(id); }
         catMood('idle');
         if (bubble) { bubble.remove(); bubble = null; }   /* no leftover speech bubble from the previous round */
         var api = {
@@ -285,16 +213,17 @@
                 document.head.appendChild(st);
             },
             score: function (v, label) { stage.querySelector('.stage-score').textContent = (label || 'Score') + ' ' + v; },
-            best: function () { return bests[id] == null ? null : bests[id]; },
+            best: function () { return bests[key] == null ? null : bests[key]; },
+            level: function () { return levelOf(id); },
             end: function (o) {
                 if (ended) return false;
                 ended = true;
                 o = o || {};
                 var isBest = false;
                 if (typeof o.score === 'number' && (o.lowerIsBetter || o.score > 0)) {   /* a score of 0 is never a best */
-                    var old = bests[id];
+                    var old = bests[key];
                     if (old == null || (o.lowerIsBetter ? o.score < old : o.score > old)) {
-                        bests[id] = o.score; store('arcade-best', bests); isBest = true;
+                        bests[key] = o.score; store('arcade-best', bests); isBest = true;
                         stage.querySelector('.stage-best').textContent = 'Best ' + o.score;
                         showBests();
                     }
@@ -319,7 +248,6 @@
             cleanups.forEach(function (fn) { try { fn(); } catch (e) { /* keep cleaning */ } });
             if (inst && inst.destroy) { try { inst.destroy(); } catch (e) { /* ignore */ } }
         } };
-        playMusic(g.music);
     }
     function stop() {
         if (current) current.cleanup();
@@ -336,7 +264,6 @@
     }
     function close() {
         stop();
-        stopMusic();
         stage.hidden = true;
         msg.hidden = true;
         document.body.classList.remove('arcade-playing');
