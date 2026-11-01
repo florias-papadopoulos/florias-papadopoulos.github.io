@@ -49,9 +49,7 @@
 .st-chart { position: relative; margin-top: 10px; }
 .st-chart svg { display: block; overflow: visible; }
 .st-bar { fill: var(--tl-navy); }
-.st-bar.is-today { fill: #8ea0cf; }
 .st-bar.is-on { fill: #2f4fb0; }
-.st-bar.is-today.is-on { fill: #6f86c4; }
 .st-hit { fill: transparent; cursor: default; }
 .st-grid-line { stroke: #eef2f7; stroke-width: 1; }
 .st-base-line { stroke: var(--tl-rule); stroke-width: 1; }

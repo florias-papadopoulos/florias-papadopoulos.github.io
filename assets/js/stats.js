@@ -1,5 +1,5 @@
 /* "Site stats" (layouts/_default/stats.html): reads the totals of the visit counter (GET <endpoint>/stats?days=N, see
-   tools/stats-worker/worker.js) and draws them: two numbers, a bar chart of views per day (inline SVG) and ranked lists
+   tools/stats-worker/worker.js; it covers the days up to yesterday and groups small numbers as "(other)") and draws them: two numbers, a bar chart of views per day (inline SVG) and ranked lists
    of pages, referring sites, countries, devices and browsers. The 7/30/90 day buttons fetch that period. Also the
    "Don't count my visits on this browser" box (shown only on /stats/?me), which sets localStorage 'stats-ignore' (read by assets/js/stats-hit.js). */
 (function () {
@@ -108,8 +108,9 @@
         say('');
         body.hidden = false;
         $('st-total').textContent = fmt(total);
-        $('st-total-cap').textContent = (total === 1 ? 'view' : 'views') + ' in the last ' + n + ' days';
-        $('st-today').textContent = fmt(list[list.length - 1].v);
+        $('st-total-cap').textContent = (total === 1 ? 'view' : 'views') + ' in the ' + n + ' days to ' + short(list[list.length - 1].day);
+        var avg = total / n;
+        $('st-today').textContent = avg < 10 ? avg.toFixed(1) : fmt(Math.round(avg));
         data.list = list;
         chart(list);
         Array.prototype.forEach.call(root.querySelectorAll('.st-list'), function (ol) { ranked(ol, ol.getAttribute('data-kind'), d.totals[ol.getAttribute('data-kind')] || {}); });
@@ -128,12 +129,14 @@
         rows.sort(function (a, b) { return b[1] - a[1] || (a[0] < b[0] ? -1 : 1); });
         var sum = rows.reduce(function (s, r) { return s + r[1]; }, 0);
         if (!sum) { ol.appendChild(el('li', 'st-none', 'Nothing yet.')); return; }
-        var lim = LIMIT[kind] || 8, rest = 0, restN = 0;
-        if (rows.length > lim) {
+        /* "(other)" (small numbers grouped by the counter) always goes last, together with what does not fit */
+        var lim = LIMIT[kind] || 8, rest = 0, restN = 0, other = false;
+        rows = rows.filter(function (r) { if (r[0] !== '(other)') return true; rest += r[1]; other = true; return false; });
+        if (rows.length > (other ? lim - 1 : lim)) {
             rows.slice(lim - 1).forEach(function (r) { rest += r[1]; restN++; });
             rows = rows.slice(0, lim - 1);
         }
-        var max = Math.max(rows[0][1], rest);
+        var max = Math.max(rows.length ? rows[0][1] : 0, rest);
         function row(lab, v) {
             var li = el('li', 'st-row' + (lab.muted ? ' is-muted' : '')), name = el('span', 'st-name');
             if (lab.icon) name.appendChild(el('span', 'st-flag', lab.icon));
@@ -151,10 +154,11 @@
             ol.appendChild(li);
         }
         rows.forEach(function (r) { row(LABEL[kind] ? LABEL[kind](r[0]) : { text: r[0] }, r[1]); });
-        if (restN) row({ text: restN + ' more', muted: true }, rest);
+        if (other) row({ text: 'Others', sub: 'Under 3 views each, grouped so no single visit shows', muted: true }, rest);
+        else if (restN) row({ text: restN + ' more', muted: true }, rest);
     }
 
-    /* ---------- the daily chart: one navy bar per day, today lighter (the day is not over), a tooltip on hover ---------- */
+    /* ---------- the daily chart: one navy bar per day up to yesterday, a tooltip on hover ---------- */
     var chartBox = $('st-chart'), tip = null;
     function svg(tag, attrs, parent) {
         var e = document.createElementNS(NS, tag);
@@ -184,13 +188,13 @@
         });
         var step = iw / list.length, gap = step > 6 ? 2 : step > 3 ? 1 : 0, bw = Math.max(1, step - gap), r = Math.min(3, bw / 3);
         list.forEach(function (x, i) {
-            var h = x.v / max * ih, X = padL + i * step + gap / 2, Y = padT + ih - h, today = i === list.length - 1;
+            var h = x.v / max * ih, X = padL + i * step + gap / 2, Y = padT + ih - h;
             if (h > 0) {
                 h = Math.max(h, 1.5);
                 Y = padT + ih - h;
                 var rr = Math.min(r, h);
                 svg('path', { d: 'M' + X + ',' + (padT + ih) + 'V' + (Y + rr) + 'Q' + X + ',' + Y + ' ' + (X + rr) + ',' + Y + 'H' + (X + bw - rr) + 'Q' + (X + bw) + ',' + Y + ' ' + (X + bw) + ',' + (Y + rr) + 'V' + (padT + ih) + 'Z',
-                    class: 'st-bar' + (today ? ' is-today' : ''), 'data-i': i }, s);
+                    class: 'st-bar', 'data-i': i }, s);
             }
             svg('rect', { x: padL + i * step, y: padT, width: step, height: ih, class: 'st-hit', 'data-i': i }, s);
         });
@@ -199,7 +203,7 @@
         marks.forEach(function (i, j) {
             var x = padL + (i + 0.5) * step, anchor = j === 0 ? 'start' : j === marks.length - 1 ? 'end' : 'middle';
             if (j === 0) x = padL; else if (j === marks.length - 1) x = W - padR;
-            svg('text', { x: x, y: H - 6, class: 'st-axis', 'text-anchor': anchor }, s).textContent = i === list.length - 1 ? 'Today' : short(list[i].day);
+            svg('text', { x: x, y: H - 6, class: 'st-axis', 'text-anchor': anchor }, s).textContent = short(list[i].day);
         });
         tip = el('div', 'st-tip');
         tip.hidden = true;
@@ -213,7 +217,7 @@
             if (bar) bar.classList.add('is-on');
             tip.textContent = '';
             tip.appendChild(el('strong', null, fmt(x.v) + (x.v === 1 ? ' view' : ' views')));
-            tip.appendChild(el('span', null, (i === list.length - 1 ? 'Today, so far' : long(x.day))));
+            tip.appendChild(el('span', null, long(x.day)));
             tip.hidden = false;
             var cx = padL + (i + 0.5) * step, tw = tip.offsetWidth;
             tip.style.left = Math.max(0, Math.min(W - tw, cx - tw / 2)) + 'px';

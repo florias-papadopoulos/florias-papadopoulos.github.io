@@ -1,7 +1,7 @@
 {{- /* "What this site knows about you" (content/you/_index.md), reached from the eye button in the top right corner
        (baseof.html): exactly what the visit counter (assets/js/stats-hit.js, tools/stats-worker/worker.js) records
        about this visit, filled in for the visitor by assets/js/you.js with the same detection code
-       (assets/js/stats-detect.js), and what I, the owner, never see. The country comes from GET <endpoint>/whoami,
+       (assets/js/stats-detect.js), and what I, the owner, never keep. The country comes from GET <endpoint>/whoami,
        asked only when the visit is counted. While params.statsEndpoint is empty the counter is off and the page says
        that nothing is recorded. Styles: assets/css/common/you.css. The wrapper also has the class tl-page so the cat
        of the tabs (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
@@ -12,7 +12,7 @@
     (slice "ref" "Site that sent you" "Only the name of another site whose link you followed, never the page on it or what you did there.")
     (slice "device" "Device" "Only phone, tablet or computer, not the model.")
     (slice "browser" "Browser" "Only the family name, not the version or your settings.")
-    (slice "country" "Country" "Worked out by Cloudflare, which runs the counter, from the network you connect through. Your IP address is not read or kept.") }}
+    (slice "country" "Country" "Worked out by Cloudflare, which runs the counter, from the network you connect through. Your IP address is not stored.") }}
 
 <div class="tl-page you-page" id="you" data-endpoint="{{ $end }}" data-page="{{ .RelPermalink }}" data-title="{{ .Title }}">
     <header class="you-head">
@@ -59,10 +59,10 @@
     {{- end }}
 
     <section class="you-sec" aria-labelledby="you-h-never">
-        <h2 class="you-h2" id="you-h-never">What I never see</h2>
+        <h2 class="you-h2" id="you-h-never">What I never keep</h2>
         <ul class="you-never">
             <li>Your IP address</li>
-            <li>Where exactly you are: nothing finer than the country</li>
+            <li>Where exactly you are: only the country goes into the totals</li>
             <li>Your name, or anything else about who you are</li>
             <li>Which other sites you visit</li>
             <li>Anything that links today's visit to another day, or one page you open to the next</li>

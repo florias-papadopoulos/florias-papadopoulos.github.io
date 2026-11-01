@@ -16,7 +16,7 @@
         <p class="st-lede">How many people visit this site, counted in totals and shown to everyone.</p>
         <div class="st-note">
             <p><strong>What is counted</strong>, once per page view: the page, the site that sent you there (only when it is another site), whether you use a phone, tablet or computer, your browser's name (Firefox, Chrome, Safari and so on), and your country, which Cloudflare works out from the connection.</p>
-            <p><strong>What is not</strong>: no cookies, no IP addresses, nothing about any one visitor. Only running totals per day are kept. If your browser asks sites not to track you (Do Not Track or Global Privacy Control), your visit is not counted at all.</p>
+            <p><strong>What is not</strong>: no cookies, no IP addresses, nothing about any one visitor. Only running totals per day are kept, and they are shown from the next day on, with anything under 3 views grouped as "Others", so no single visit can be picked out. If your browser asks sites not to track you (Do Not Track or Global Privacy Control), your visit is not counted at all.</p>
             <p>More in the <a href="{{ "privacy/" | relURL }}">privacy notice</a>.</p>
         </div>
     </header>
@@ -35,7 +35,7 @@
     <div class="st-body" id="st-body" hidden>
         <div class="st-sum">
             <div class="st-tile"><span class="st-num" id="st-total">0</span><span class="st-cap" id="st-total-cap">views in the last 30 days</span></div>
-            <div class="st-tile"><span class="st-num" id="st-today">0</span><span class="st-cap">views today (so far, UTC)</span></div>
+            <div class="st-tile"><span class="st-num" id="st-today">0</span><span class="st-cap">views a day on average</span></div>
         </div>
         <section class="st-sec" aria-labelledby="st-h-daily">
             <h2 class="st-h2" id="st-h-daily">Views per day</h2>
