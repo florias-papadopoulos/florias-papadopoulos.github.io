@@ -1,0 +1,15 @@
+{{- /* A page that only forwards to another address (front matter "redirect"), e.g. /cv/ to the CV PDF, which an
+       alias cannot do because it can only point at a page. */ -}}
+{{- $to := .Params.redirect | relURL -}}
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang }}">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="{{ partial "csp.html" . }}">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>{{ .Title }}</title>
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url={{ $to }}">
+</head>
+<body><p><a href="{{ $to }}">{{ .Title }}</a></p></body>
+</html>

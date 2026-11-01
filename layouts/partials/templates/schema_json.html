@@ -1,0 +1,35 @@
+{{- /* Structured data for search engines (schema.org JSON-LD: a data block that browsers do not run, so the CSP does not
+       apply). The home page says who I am, the Papers tab describes each paper; the theme's breadcrumb trail (replaced
+       here) told nothing on a site this flat. Everything comes from config.yml and the papers' front matter. */ -}}
+{{- $p := site.Params.profileMode }}
+{{- if .IsHome }}
+{{- $same := slice }}
+{{- range site.Params.socialIcons }}{{ if hasPrefix .url "http" }}{{ $same = $same | append .url }}{{ end }}{{ end }}
+{{- $person := dict "@context" "https://schema.org" "@type" "Person" "name" site.Title "url" site.Home.Permalink
+    "description" site.Params.description "jobTitle" "Doctoral researcher" "sameAs" $same
+    "knowsAbout" ($p.interests | append "Cryptography") }}
+{{- with $p.nativeName }}{{ $person = merge $person (dict "alternateName" .) }}{{ end }}
+{{- with resources.Get $p.imageUrl }}{{ $person = merge $person (dict "image" (.Fill "480x480 Center q85").Permalink) }}{{ end }}
+{{- range $p.journey }}
+{{- $school := dict "@type" "CollegeOrUniversity" "name" .school }}
+{{- if eq .when "now" }}{{ $person = merge $person (dict "affiliation" $school) }}{{ else }}{{ $person = merge $person (dict "alumniOf" $school) }}{{ end }}
+{{- end }}
+<script type="application/ld+json">{{ $person | jsonify | safeJS }}</script>
+{{- else if eq .Params.listLevel "Paper" }}
+{{- range where (where site.Pages "Section" "projects") "Params.context" "like" "^Paper" }}
+{{- $authors := slice }}
+{{- range split (replace .Params.authors "*" "") ", " }}{{ $authors = $authors | append (dict "@type" "Person" "name" (trim . " ")) }}{{ end }}
+{{- $paper := dict "@context" "https://schema.org" "@type" "ScholarlyArticle" "headline" .Title "name" .Title
+    "author" $authors "inLanguage" "en" }}
+{{- with findRE `\d{4}` .Params.context 1 }}{{ $paper = merge $paper (dict "datePublished" (index . 0)) }}{{ end }}
+{{- with .Params.venue }}{{ $paper = merge $paper (dict "isPartOf" (dict "@type" "CreativeWork" "name" .)) }}{{ end }}
+{{- with .Params.abstract }}{{ $paper = merge $paper (dict "abstract" (. | $.Page.RenderString | plainify | htmlUnescape | replaceRE `\s+` " " | strings.TrimSpace)) }}{{ end }}
+{{- with .Params.keywords }}{{ $paper = merge $paper (dict "keywords" (delimit . ", ")) }}{{ end }}
+{{- with .Params.preview }}{{ $paper = merge $paper (dict "image" (. | absURL)) }}{{ end }}
+{{- with .Params.externalUrl }}
+{{- $paper = merge $paper (dict "url" .) }}
+{{- with findRESubmatch `/doi/(10\.\d+/\S+)$` . 1 }}{{ $paper = merge $paper (dict "identifier" (dict "@type" "PropertyValue" "propertyID" "DOI" "value" (index (index . 0) 1)) "sameAs" (printf "https://doi.org/%s" (index (index . 0) 1))) }}{{ end }}
+{{- end }}
+<script type="application/ld+json">{{ $paper | jsonify | safeJS }}</script>
+{{- end }}
+{{- end }}
