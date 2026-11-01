@@ -74,6 +74,7 @@ params:
     kicker: Doctoral researcher · Applied cryptography
     location: St. Gallen, Switzerland
     badge: CYD Fellow
+    badgeUrl: https://www.epfl.ch/research/funding/epfl-programmes/cyd/cyd-phd/
     tagline: My research covers provable security, post-quantum cryptography and privacy-preserving protocols, with a focus on secure, efficient **proximity tracking** and **collision avoidance**.
     interests: [Provable security, Post-quantum cryptography, Privacy-preserving protocols]
     # The route from the first stop to the current one ("now"), an arrow between them.
