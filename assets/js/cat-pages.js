@@ -5,7 +5,7 @@
    title, the semester (or year) labels of the rail and the entries that are in view, above their pictures so it does
    not hide titles. When the page scrolls, it rides along on whatever it sits on and drops down when that leaves the
    window. It never sits on opened entries and moves away soon when one opens under it. On phones it is small and stays
-   in a corner at the bottom, mostly napping. No floor of bits, symbols or reset button here (home page only). */
+   in a corner at the bottom, mostly napping. No symbols or reset button here (home page only). */
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');

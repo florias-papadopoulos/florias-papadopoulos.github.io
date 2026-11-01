@@ -25,22 +25,7 @@ html[data-cat="tuxedo"], .cat-opt[data-look="tuxedo"] {
     --tail: #373a40; --cream: #f6f6f4; --iris: #c8e06c; --tuft: #9ba1a9; --whisker: #c9cdd2;
 }
 
-/* ---------- Desktop world: a floor of bits and glyph platforms (built in home-lab.js) ---------- */
-.bits { position: absolute; left: 0; display: flex; gap: 14px; height: 44px; padding: 5px 10px 0; overflow: hidden; border-top: 1px solid #e2e8f0; }
-.byte { flex: none; display: flex; gap: 2px; }
-.bit {
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 26px;
-    border: 1px solid #e2e8f0;
-    border-radius: 5px;
-    background: #fff;
-    color: #94a3b8;
-    font: 700 14px ui-monospace, Menlo, Consolas, monospace;
-    transition: background 1s, color 1s, box-shadow 1s;
-}
-.bit.lit { background: #fde68a; color: #92400e; box-shadow: 0 0 12px rgba(251, 191, 36, 0.8); transition: none; }
+/* ---------- Desktop world: glyph platforms (built in home-lab.js) ---------- */
 .glyph {
     position: absolute;
     pointer-events: auto;

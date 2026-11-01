@@ -167,7 +167,7 @@ a.badge:hover, a.badge:focus-visible { border-color: var(--navy); color: var(--n
 .home .button { margin: 0 8px 0 0; background: var(--ink); color: #fff; }
 .home .button:hover { background: var(--navy); }
 
-/* The footer: small, bottom right (on desktop just above the keyboard floor) */
+/* The footer: small, bottom right, under the cat's floor */
 body:has(.profile.home) { position: relative; }
 body:has(.profile.home) .footer {
     position: absolute;
@@ -184,9 +184,6 @@ body:has(.profile.home) .footer {
     opacity: 0.75;
 }
 
-@media (min-width: 700px) {
-    body:has(.profile.home) .footer { bottom: 58px; }
-}
 
 /* ---------- Narrow screens ---------- */
 @media (max-width: 760px) {

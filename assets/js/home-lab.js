@@ -1,8 +1,7 @@
 /* Home page world of the cat (the cat itself: assets/js/cat-core.js, bundled before this file by
    layouts/partials/cat.html; markup there, styles in assets/css/common/cat.css).
 
-   On desktop, a floor of bits that light up under the cat's paws and numbers, letters and field symbols floating in
-   the margins (nothing on phones). The cat knocks letters of the name and symbols loose: they fly, fall, land, and
+   On desktop, numbers, letters and field symbols float in the margins as platforms (nothing on phones). The cat knocks letters of the name and symbols loose: they fly, fall, land, and
    the cat (or the visitor, by dragging) moves them around. The reset button puts everything back. */
 (function () {
     'use strict';
@@ -44,18 +43,16 @@
         return ridge[ridge.length - 1].y;
     }
 
-    /* Desktop world: a floor of bits along the bottom of the page (it spells the name in ASCII; a bit flips and lights
-       up when the cat steps on it), and numbers, letters and field symbols float in the side margins as platforms.
-       Phones: nothing, just a flat floor at the bottom of the page. */
+    /* Desktop world: numbers, letters and field symbols float in the side margins as platforms, above a flat floor
+       just over the footer line. Phones: nothing, just a flat floor at the bottom of the page. */
     var GLYPHS = ['𝔽<sub>q</sub>', '7', 'λ', 'ℤ<sub>p</sub>', 'A', '∑', 'GF(2<sup>8</sup>)', '0x2A', 'ℝ', '⊕', 'π', 'k',
                   'ℤ<sub>q</sub><sup>n</sup>', '∀', '3', 'ℚ', 'mod p', '∃', 'ℂ', '≡', '𝔽<sub>2</sub>', 'x²', '∞', '1'];
-    var FLOOR_TEXT = 'FLORIAS';
     var KEY_ICON = '<svg viewBox="0 0 64 30" aria-hidden="true"><circle cx="13" cy="15" r="9" fill="none" stroke="currentColor" stroke-width="5"/>' +
         '<path d="M22 15h36M50 15v9M44 15v6" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/></svg>';
-    var glyphs = [], bits = [];
+    var glyphs = [];
     function buildTerrain() {
-        Array.prototype.forEach.call(world.querySelectorAll('.bits, .glyph'), function (e) { e.remove(); });
-        glyphs = []; bits = [];
+        Array.prototype.forEach.call(world.querySelectorAll('.glyph'), function (e) { e.remove(); });
+        glyphs = [];
         var W = layer.clientWidth, F = parseFloat(layer.style.height);
         var p = rel(panel);
         side = Math.max(0, Math.min(p.x, W - p.x - p.w));
@@ -65,28 +62,7 @@
             ridge = [{ x: 0, y: F - 2 }, { x: W, y: F - 2 }];
             return;
         }
-        /* the floor of bits, one group of eight per letter */
-        var FH = 34, strip = document.createElement('div');
-        strip.className = 'bits';
-        strip.style.top = (F - FH - 10) + 'px';
-        strip.style.width = W + 'px';
-        for (var used = 10, c = 0; used < W - 10; c++) {
-            var byte = document.createElement('span');
-            byte.className = 'byte';
-            var code = FLOOR_TEXT.charCodeAt(c % FLOOR_TEXT.length).toString(2);
-            code = ('00000000' + code).slice(-8);
-            for (var i = 0; i < 8; i++) {
-                var b = document.createElement('span');
-                b.className = 'bit';
-                b.textContent = code[i];
-                byte.appendChild(b);
-                bits.push(b);
-            }
-            strip.appendChild(byte);
-            used += 8 * 24 + 14;
-        }
-        world.appendChild(strip);
-        var floor = F - FH - 10;
+        var floor = F - 30;
         ridge = [{ x: 0, y: floor }, { x: W, y: floor }];
         /* platforms in the margins: five levels a side, a comfortable jump apart */
         if (side < 150) return;
@@ -115,22 +91,6 @@
         else if (/^[A-Z]$/.test(t)) g.textContent = t === 'Z' ? 'A' : String.fromCharCode(t.charCodeAt(0) + 1);
         bonk(g, 'poked', 600);
     }
-    /* a bit flips and lights up under the cat's paws (and where something lands on it) */
-    var lastBit = null;
-    function stepAt(x, again) {
-        for (var i = 0; i < bits.length; i++) {
-            var r = rel(bits[i]);
-            if (x >= r.x - 2 && x <= r.x + r.w + 2) {
-                if (bits[i] !== lastBit || again) {
-                    lastBit = bits[i];
-                    bits[i].textContent = bits[i].textContent === '1' ? '0' : '1';
-                    bonk(bits[i], 'lit', 1200);
-                }
-                return;
-            }
-        }
-    }
-
     /* ---------- loose things: letters of the name and symbols the cat knocked off ---------- */
     var loose = [], physOn = false, G = 2400;
     /* el is a glyph (it moves into the cat layer) or a letter of the name (a copy flies, the letter leaves a gap) */
@@ -207,7 +167,6 @@
                     if (hit !== null) {
                         ny = hit;
                         if (it.vy > 420) { it.vy *= -0.32; it.vx *= 0.7; it.vr *= 0.5; } else it.vy = 0;
-                        if (Math.abs(hit - groundY(it.x)) < 2) stepAt(it.x, true);
                     }
                     it.y = Math.min(ny, groundY(it.x));
                 }
@@ -368,7 +327,7 @@
         perches: perches,
         spot: spot,
         options: options,
-        step: function (x, dir, run) { stepAt(x); nudge(dir, run); },
+        step: function (x, dir, run) { nudge(dir, run); },
         arrive: arrive,
         start: start
     });
