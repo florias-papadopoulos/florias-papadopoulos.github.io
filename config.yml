@@ -115,8 +115,7 @@ params:
     #   alt:      optional, describes the picture
     # One thing, one entry: when a news item and a LinkedIn post are about the same event, give it both links.
     # tools/linkedin_post.py URL [URL ...] fetches a public post's text and picture and prints such an entry
-    # (--write adds it at the top here). linkedinUrl is the "LinkedIn" link next to the heading (default: the
-    # LinkedIn entry of socialIcons).
+    # (--write adds it at the top here).
     latest:
       - date: "Sep 2026"
         text: "Talk at **Swiss Crypto Day 2026**, ETH Zürich"
@@ -148,7 +147,6 @@ params:
         linkedin: https://www.linkedin.com/posts/florias-papadopoulos-b035ab233_great-to-host-high-school-students-and-see-ugcPost-7406977583768035328-zYWJ/
         image: img/linkedin/enigma-students.jpg
         alt: "High school students at an Enigma machine session at HSG"
-    linkedinUrl: https://www.linkedin.com/in/florias-papadopoulos-b035ab233
     imageUrl: my_profile_square.jpg
     imageTitle: Florias Papadopoulos
     imageWidth: 168

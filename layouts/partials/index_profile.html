@@ -2,10 +2,6 @@
        the "Latest" feed (news and LinkedIn posts in one list), links. The cat and its research lab around the
        page: layouts/partials/cat.html */ -}}
 {{- $projects := where site.RegularPages "Section" "projects" }}
-{{- $liProfile := site.Params.profileMode.linkedinUrl }}
-{{- if not $liProfile }}
-{{- range site.Params.socialIcons }}{{ if eq (lower .name) "linkedin" }}{{ $liProfile = .url }}{{ end }}{{ end }}
-{{- end }}
 {{- $liMark := `<svg class="in-mark" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="currentColor"/><path d="M6.2 9.6h2.6V18H6.2zM7.5 5.4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.4 9.6h2.5v1.15c.4-.7 1.3-1.35 2.7-1.35 2.8 0 3.3 1.8 3.3 4.2V18h-2.6v-3.9c0-.95 0-2.15-1.3-2.15s-1.5 1-1.5 2.1V18h-2.6z" fill="#fff"/></svg>` }}
 {{- with site.Params.profileMode }}
 <div class="profile home" id="home">
@@ -82,10 +78,7 @@
         {{- with .latest }}
         <section class="latest" aria-labelledby="latest-head">
             <div class="latest-top">
-                <h2 class="latest-head" id="latest-head">Latest</h2>
-                {{- with $liProfile }}
-                <a class="latest-all" href="{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile (opens in a new tab)">LinkedIn <span aria-hidden="true">&#8599;</span></a>
-                {{- end }}
+                <h2 class="latest-head" id="latest-head">Selected news</h2>
             </div>
             <ul class="latest-list">
                 {{- range $e := . }}

@@ -131,8 +131,6 @@ a.badge:hover, a.badge:focus-visible { border-color: var(--navy); color: var(--n
 @media (min-height: 700px) { .latest { --rows: 3; } }
 .latest-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 2px; line-height: 1.1; }
 .latest-head { margin: 0; color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-.latest-all { color: var(--muted); font-size: 0.75rem; font-weight: 600; white-space: nowrap; transition: color 0.15s; }
-.latest-all:hover, .latest-all:focus-visible { color: var(--navy); }
 .latest-list {
     max-height: calc(var(--rows) * var(--row) + 1px);
     overflow-y: auto;
