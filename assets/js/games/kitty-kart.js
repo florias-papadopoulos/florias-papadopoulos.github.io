@@ -2745,11 +2745,27 @@ function kart(api, duo) {
         try { localStorage.setItem('kitty-kart-duo', JSON.stringify({ level: duoLevel })); } catch (e) { /* private mode: fine */ }
         if (linked) startRace(); else hostRoom();
     }
+    /* the ways to reach a device that its description offers, e.g. "2 local (hidden), 1 public": for the details line */
+    function ways(d) {
+        var n = { ip: 0, mdns: 0, srflx: 0, relay: 0 }, out = [];
+        ((d && d.sdp) || '').split('\n').forEach(function (l) {
+            var m = /^a=candidate:\S+ \d+ \S+ \d+ (\S+) \d+ typ (\w+)/.exec(l);
+            if (!m) return;
+            if (m[2] === 'host') n[/\.local$/.test(m[1]) ? 'mdns' : 'ip']++; else if (m[2] === 'srflx' || m[2] === 'prflx') n.srflx++; else n.relay++;
+        });
+        if (n.ip) out.push(n.ip + ' local');
+        if (n.mdns) out.push(n.mdns + ' local (hidden)');
+        if (n.srflx) out.push(n.srflx + ' public');
+        if (n.relay) out.push(n.relay + ' relay');
+        return out.length ? out.join(', ') : 'none';
+    }
     function fail(kind) {
-        var was = role;
+        var was = role, text = FAIL[kind][1];
+        if (kind === 'direct' && pc) text += ' Details: this device offered ' + ways(pc.localDescription) + '; your friend\'s ' +
+            ways(pc.remoteDescription) + '; state ' + pc.iceConnectionState + '.';
         teardown(true);
         var again = kind === 'none' || kind === 'old' ? [] : [[kind === 'nocode' || kind === 'taken' ? 'Try another code' : 'Try again', was === 'guest' ? joinScreen : was === 'host' ? hostRoom : menu, 1]];
-        msg(FAIL[kind][0], FAIL[kind][1], again.concat([['Back to the lobby', menu]]));
+        msg(FAIL[kind][0], text, again.concat([['Back to the lobby', menu]]));
     }
     function lost() {  /* the friend left, closed the game or lost the connection */
         teardown(true);
