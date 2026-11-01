@@ -13,7 +13,7 @@ short:
   - "No cookies, no ads, no analytics service, no tracking across sites."
   - "A visit counter keeps **daily totals** of five things (page, referring site, device type, browser family, country). No IP addresses, nothing about any one visitor."
   - "If your browser sends Do Not Track or Global Privacy Control, your visits are not counted at all."
-  - "Your settings, game scores and the optional \"remember me\" on [What this site knows about you](/you/) stay in your browser."
+  - "Your settings and game scores stay in your browser."
 ---
 
 ## Who runs this site
@@ -38,13 +38,9 @@ Only these daily totals are kept. There are no cookies, no IP addresses are stor
 
 **How to opt out:** turn on Do Not Track or Global Privacy Control in your browser, and the counter receives nothing from your visits. On [Site stats](/stats/) you can also switch counting off for one browser.
 
-## The lesson on "What this site knows about you"
+## The page "What this site knows about you"
 
 The page [What this site knows about you](/you/) shows you what the counter records about your visit. If your visit is counted, it also asks the counter which country it would record; nothing is stored.
-
-Its last part runs only when you press its button. Your browser then works out a fingerprint and sends it to my counter, which sends back everything that reached it with that request (your IP address, the location and network data Cloudflare attaches, your browser and language headers, the fingerprint and the optional id) and keeps none of it: no database entry, no log line.
-
-The optional **Remember me on this browser** button stores a random id, a visit count and the date of your last visit in your browser's local storage (under `you-visitor`). It is created only when you press that button, sent only when you press the main button, and only to be shown back to you. **Forget me**, or clearing this site's data in your browser, deletes it.
 
 ## Storage in your browser
 
@@ -52,7 +48,7 @@ The site sets no cookies. A few things are kept in your browser's local storage 
 
 ## No other third parties
 
-Fonts and formula files are served from this site itself. There are no ads, social media plugins, embedded videos or maps. Links to other sites (LinkedIn, GitHub, publishers, OpenStreetMap) only take you there when you click them.
+Fonts and formula files are served from this site itself. There are no ads, social media plugins, embedded videos or maps. Links to other sites (LinkedIn, GitHub, publishers) only take you there when you click them.
 
 Google Search Console shows me totals of the Google searches that led to this site (search terms and clicks), which Google gets from its own search engine. It runs no code on this site and never tells me who searched.
 

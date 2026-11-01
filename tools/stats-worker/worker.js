@@ -4,8 +4,6 @@
 //   GET  /stats  the totals of the ?days=7, 30 or 90 days up to yesterday (UTC), read by the site's /stats/ page. Today is
 //                left out and anything under MIN views is grouped as "(other)", so no single visit can be read off it.
 //   GET  /whoami the country this request would be counted under (for the /you/ page; nothing is stored)
-//   POST /seen   for the lesson on /you/: sends back what reached the server with this request (IP address, Cloudflare's
-//                location and network data, two headers, and the posted {"fp", "vid", "n"}); stores and logs nothing
 // Table (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country.
 const SITE = 'https://florias-papadopoulos.github.io';
 const BROWSERS = ['Firefox', 'Chrome', 'Safari', 'Edge', 'Opera', 'Other'];
@@ -32,7 +30,6 @@ export default {
         try {
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
             if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
-            if (url.pathname === '/seen' && req.method === 'POST') return await seen(req);
             if (url.pathname === '/whoami' && req.method === 'GET') {
                 return new Response(JSON.stringify({ country: (req.cf && req.cf.country) || 'XX' }),
                     { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) });
@@ -83,26 +80,6 @@ async function body(req, max) {
         const d = text.length <= max ? JSON.parse(text) : null;
         return d && typeof d === 'object' && !Array.isArray(d) ? d : null;
     } catch (e) { return null; }
-}
-
-async function seen(req) {
-    if (req.headers.get('Origin') !== SITE) return new Response('Forbidden', { status: 403, headers: headers() });
-    const d = (await body(req, 2000)) || {};
-    const cf = req.cf || {};
-    const pick = function (k) { return cf[k] != null && cf[k] !== '' ? cf[k] : null; };
-    const head = function (k) { return (req.headers.get(k) || '').slice(0, 400) || null; };
-    const out = {
-        ip: head('CF-Connecting-IP'),
-        city: pick('city'), region: pick('region'), regionCode: pick('regionCode'), postalCode: pick('postalCode'),
-        country: pick('country'), continent: pick('continent'), latitude: pick('latitude'), longitude: pick('longitude'),
-        timezone: pick('timezone'), asOrganization: pick('asOrganization'), asn: pick('asn'), colo: pick('colo'),
-        userAgent: head('User-Agent'), acceptLanguage: head('Accept-Language'),
-        /* echoed only when well formed: a hex hash, a short id, a visit number */
-        fp: typeof d.fp === 'string' && /^[0-9a-f]{1,64}$/i.test(d.fp) ? d.fp.toLowerCase() : null,
-        vid: typeof d.vid === 'string' && /^[a-z0-9-]{1,40}$/.test(d.vid) ? d.vid : null,
-        n: Number.isInteger(d.n) && d.n > 0 && d.n < 1000000 ? d.n : null
-    };
-    return new Response(JSON.stringify(out), { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) });
 }
 
 /* The answer only changes at midnight (UTC), so each running copy of the worker keeps it for 10 minutes. */
