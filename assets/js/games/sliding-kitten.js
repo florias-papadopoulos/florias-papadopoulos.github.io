@@ -186,16 +186,30 @@
             c.strokeStyle = '#0d9488'; c.lineWidth = 5; c.beginPath(); c.moveTo(-6, -26); c.lineTo(6, 26); c.moveTo(16, -24); c.lineTo(28, 24); c.stroke();
             c.restore();
             /* yarn ball with a loose thread, bottom right */
-            c.strokeStyle = '#3b82f6'; c.lineWidth = 7;
-            c.beginPath(); c.moveTo(800, 930); c.bezierCurveTo(740, 990, 640, 940, 600, 990); c.stroke();
-            blob(c, 860, 900, 82, 82, '#93c5fd');
-            c.save(); c.beginPath(); c.arc(860, 900, 82, 0, 7); c.clip();
-            c.strokeStyle = '#60a5fa'; c.lineWidth = 7;
-            for (k = -3; k <= 3; k++) { c.beginPath(); c.ellipse(860 + k * 26, 900, 30, 100, 0.5, 0, 7); c.stroke(); }
-            c.strokeStyle = '#bfdbfe'; c.lineWidth = 5;
-            for (k = -2; k <= 2; k++) { c.beginPath(); c.ellipse(860, 900 + k * 30, 100, 24, -0.3, 0, 7); c.stroke(); }
+            var YX = 860, YY = 900, YR = 82;
+            c.strokeStyle = '#d6336c'; c.lineWidth = 6;           /* the loose thread curls off across the rug */
+            c.beginPath(); c.moveTo(804, 950); c.bezierCurveTo(764, 992, 690, 988, 680, 952);
+            c.bezierCurveTo(672, 918, 724, 914, 714, 948); c.bezierCurveTo(704, 988, 620, 992, 556, 974); c.stroke();
+            g = c.createRadialGradient(YX - 30, YY - 32, 8, YX, YY, YR);
+            g.addColorStop(0, '#ffdeeb'); g.addColorStop(0.45, '#f783ac'); g.addColorStop(0.85, '#e64980'); g.addColorStop(1, '#c2255c');
+            blob(c, YX, YY, YR, YR, g);
+            c.save(); c.beginPath(); c.arc(YX, YY, YR, 0, 7); c.clip();
+            /* bands of wound strands: thin parallel arcs on tilted ellipses, the front half of each wrap */
+            [[0.35, 0.18, 0], [1.3, 0.3, Math.PI], [2.25, 0.12, 0], [-0.75, 0.4, Math.PI]].forEach(function (band) {
+                for (var j = 0; j < 5; j++) {
+                    var ry = YR * (band[1] + j * 0.075), a0 = band[2];
+                    c.beginPath(); c.ellipse(YX, YY, YR * 1.02, ry, band[0], a0, a0 + Math.PI);
+                    c.strokeStyle = 'rgba(166, 30, 77, .55)'; c.lineWidth = 3; c.stroke();
+                    c.beginPath(); c.ellipse(YX, YY, YR * 1.02, ry - 2.5, band[0], a0 + 0.15, a0 + Math.PI - 0.15);
+                    c.strokeStyle = 'rgba(255, 222, 235, .45)'; c.lineWidth = 1.5; c.stroke();
+                }
+            });
+            g = c.createRadialGradient(YX - 24, YY - 26, YR * 0.4, YX, YY, YR);   /* a little shade at the edge for roundness */
+            g.addColorStop(0, 'rgba(194, 37, 92, 0)'); g.addColorStop(1, 'rgba(134, 20, 62, .32)');
+            c.fillStyle = g; c.fillRect(YX - YR, YY - YR, YR * 2, YR * 2);
             c.restore();
-            blob(c, 836, 868, 18, 10, 'rgba(255, 255, 255, .5)');
+            c.beginPath(); c.arc(YX, YY, YR, 0, 7); c.strokeStyle = '#a61e4d'; c.lineWidth = 4; c.stroke();
+            c.save(); c.translate(YX - 34, YY - 40); c.rotate(-0.6); blob(c, 0, 0, 20, 9, 'rgba(255, 255, 255, .6)'); c.restore();
             /* a few sparkles in the air */
             c.fillStyle = '#fff';
             [[430, 430], [610, 470], [960, 560], [40, 600], [700, 610]].forEach(function (s) {

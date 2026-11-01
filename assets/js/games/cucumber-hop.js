@@ -47,8 +47,8 @@ Arcade.register('cucumber-hop', function (api) {
     api.el.appendChild(wrap);
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d'), hint = wrap.querySelector('.ch-hint');
     hint.textContent = api.touch ?
-        'Tap: jump, tap again in the air: double jump\nHold for higher, Duck button or swipe down: duck' :
-        'Space, click or ↑: jump, again in the air: double jump\nHold for higher, ↓ or S: duck';
+        'Tap: jump\nTap again in the air: double jump\nHold: higher, swipe down or Duck: duck' :
+        'Space, click or ↑: jump\nAgain in the air: double jump\nHold: higher jump, ↓ or S: duck';
     var small = document.createElement('small');
     small.textContent = 'Catch fish for a multiplier, a missed fish lowers it' + (L.lives > 1 ? '. Lives: ' + L.lives : '');
     hint.appendChild(small);
@@ -368,6 +368,20 @@ Arcade.register('cucumber-hop', function (api) {
         }
         return { top: SKY[0][1], bot: SKY[0][2], n: 0 };
     }
+    var moonCv = null;
+    function moon() {                                      /* a crescent, cut out once on its own little canvas */
+        if (moonCv) return moonCv;
+        moonCv = document.createElement('canvas');
+        moonCv.width = moonCv.height = 96;
+        var m = moonCv.getContext('2d');
+        m.fillStyle = 'rgba(253, 230, 138, .22)';
+        m.beginPath(); m.arc(48, 48, 46, 0, TAU); m.fill();
+        m.fillStyle = '#f1f5ff';
+        m.beginPath(); m.arc(48, 48, 34, 0, TAU); m.fill();
+        m.globalCompositeOperation = 'destination-out';
+        m.beginPath(); m.arc(66, 36, 30, 0, TAU); m.fill();
+        return moonCv;
+    }
     function hash(n) { var s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
 
     /* ---------- drawing ---------- */
@@ -407,10 +421,9 @@ Arcade.register('cucumber-hop', function (api) {
         }
         var mp = (phase - 0.5) / 0.46;
         if (mp > 0 && mp < 1) {
-            g.fillStyle = 'rgba(241, 245, 255, ' + Math.min(1, n * 1.2).toFixed(2) + ')';
-            g.beginPath(); g.arc(arcX(mp), arcY(mp), 18, 0, TAU); g.fill();
-            g.fillStyle = mix(sky.top, sky.bot, 0.2);    /* a crescent */
-            g.beginPath(); g.arc(arcX(mp) + 8, arcY(mp) - 5, 15, 0, TAU); g.fill();
+            g.globalAlpha = Math.min(1, n * 1.2);
+            g.drawImage(moon(), arcX(mp) - 24, arcY(mp) - 24, 48, 48);
+            g.globalAlpha = 1;
         }
         /* far clouds and two layers of hills, slower than the ground */
         g.fillStyle = col('cloud', n);
@@ -522,22 +535,29 @@ Arcade.register('cucumber-hop', function (api) {
     }
     function drawBird(o) {
         var x = o.x + o.k.w / 2, yy = ground - o.alt - o.k.h / 2 + (api.reducedMotion ? 0 : Math.sin(time * 6 + o.ph) * 3);
-        var flap = api.reducedMotion ? 0 : Math.sin(time * 22 + o.ph);
-        g.lineWidth = 2; g.strokeStyle = '#1e3a8a';
-        g.fillStyle = '#7fb2ea';                           /* tail */
-        g.beginPath(); g.moveTo(x + 14, yy); g.lineTo(x + 26, yy - 8); g.lineTo(x + 25, yy + 6); g.closePath(); g.fill(); g.stroke();
-        g.fillStyle = '#a7cdf3';
-        g.beginPath(); g.ellipse(x, yy, 17, 12, 0, 0, TAU); g.fill(); g.stroke();
-        g.fillStyle = '#e8f2fc';
-        g.beginPath(); g.ellipse(x - 3, yy + 4, 9, 6, 0, 0, TAU); g.fill();
-        g.fillStyle = '#7fb2ea';                           /* the flapping wing */
-        g.beginPath(); g.ellipse(x + 3, yy - 3 - flap * 5, 10, 5 + Math.abs(flap) * 3, -0.3 - flap * 0.5, 0, TAU); g.fill(); g.stroke();
+        var flap = api.reducedMotion ? 0.3 : Math.sin(time * 20 + o.ph);
+        g.strokeStyle = 'rgba(30, 58, 138, .45)'; g.lineWidth = 1;   /* the toy's string */
+        g.beginPath(); g.moveTo(x + 2, yy - 10); g.lineTo(x + 8, yy - 30); g.stroke();
+        g.lineWidth = 2; g.strokeStyle = '#1e3a8a'; g.lineJoin = 'round';
+        g.fillStyle = '#6fa6e3';                           /* tail feathers */
+        g.beginPath(); g.moveTo(x + 12, yy + 1); g.lineTo(x + 24, yy - 7); g.lineTo(x + 22, yy + 1); g.lineTo(x + 25, yy + 7); g.closePath(); g.fill(); g.stroke();
+        g.fillStyle = '#a7cdf3';                           /* round body and head */
+        g.beginPath(); g.ellipse(x + 2, yy + 2, 15, 11, 0, 0, TAU); g.fill(); g.stroke();
+        g.beginPath(); g.arc(x - 11, yy - 5, 9, 0, TAU); g.fill(); g.stroke();
+        g.fillStyle = '#eef6fd';
+        g.beginPath(); g.ellipse(x - 2, yy + 6, 9, 5, 0, 0, TAU); g.fill();
         g.fillStyle = '#f6a23a';                           /* beak */
-        g.beginPath(); g.moveTo(x - 16, yy - 3); g.lineTo(x - 25, yy); g.lineTo(x - 16, yy + 3); g.closePath(); g.fill();
+        g.beginPath(); g.moveTo(x - 19, yy - 8); g.lineTo(x - 27, yy - 4); g.lineTo(x - 19, yy - 1); g.closePath(); g.fill();
+        g.strokeStyle = '#c2410c'; g.lineWidth = 1; g.stroke();
         g.fillStyle = '#1e3a8a';
-        g.beginPath(); g.arc(x - 8, yy - 4, 2, 0, TAU); g.fill();
-        g.strokeStyle = 'rgba(30, 58, 138, .5)'; g.lineWidth = 1;   /* the toy's string */
-        g.beginPath(); g.moveTo(x, yy - 12); g.lineTo(x + 4, yy - 26); g.stroke();
+        g.beginPath(); g.arc(x - 13, yy - 7, 2, 0, TAU); g.fill();
+        g.fillStyle = 'rgba(244, 114, 160, .55)';
+        g.beginPath(); g.arc(x - 9, yy - 1, 2.4, 0, TAU); g.fill();
+        g.save();                                          /* the flapping wing */
+        g.translate(x + 2, yy - 2); g.rotate(-0.2 - flap * 0.7);
+        g.fillStyle = '#7fb2ea'; g.strokeStyle = '#1e3a8a'; g.lineWidth = 2;
+        g.beginPath(); g.ellipse(6, -4, 11, 6, -0.4, 0, TAU); g.fill(); g.stroke();
+        g.restore();
     }
     function drawFish(f) {
         var x = f.x, yy = ground - f.alt - 8 + (api.reducedMotion ? 0 : Math.sin(time * 5 + x * 0.05) * 2), s = 12;

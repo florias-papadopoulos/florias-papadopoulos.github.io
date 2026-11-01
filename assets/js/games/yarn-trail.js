@@ -57,7 +57,7 @@ Arcade.register('yarn-trail', function (api) {
         });
     }
 
-    var W = 0, H = 0, cols = 0, rows = 0, cell = 0, ox = 0, oy = 0, bg = null, dash = [4, 4];
+    var W = 0, H = 0, cols = 0, rows = 0, cell = 0, ox = 0, oy = 0, bg = null;
     var body, occ, plant, plants, dir, lastDir, queue, prevTail, grow, fish, gold, mouse, nip, nipT;
     var eaten = 0, score = 0, steps = 0, stepMs, acc = 0, frac = 1, state = 'ready', overT = 0, shake = 0;
     var parts = [], texts = [];
@@ -78,7 +78,6 @@ Arcade.register('yarn-trail', function (api) {
         cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
         cv.style.width = W + 'px'; cv.style.height = H + 'px';
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        dash = [cell * 0.16, cell * 0.2];
         hint.style.top = (oy + rows * cell * 0.27) + 'px';      /* above the cat, which starts in the middle */
         drawBoard(dpr);
         draw(performance.now());
@@ -467,7 +466,7 @@ Arcade.register('yarn-trail', function (api) {
         g.beginPath(); g.arc(x + d * s * 0.5, y - s * 0.05, Math.max(1, s * 0.1), 0, TAU); g.fill();
         g.globalAlpha = 1;
     }
-    /* the yarn: a soft pink strand with a twisted thread on top; the head and the tail glide between cells */
+    /* the yarn: a strand of plied wool (grooves of the twist, a soft sheen); the head and the tail glide between cells */
     function drawYarn(now) {
         var f = state === 'run' ? frac : 1, n = body.length, ghost = nipT > 0;
         var hx = cx(body[0]) - DX[lastDir] * (1 - f) * cell, hy = cy(body[0]) - DY[lastDir] * (1 - f) * cell;
@@ -476,32 +475,36 @@ Arcade.register('yarn-trail', function (api) {
             var tv = vec(body[n - 1], prevTail);
             tx += tv[0] * cell * (1 - f); ty += tv[1] * cell * (1 - f);
         }
-        g.lineCap = 'round'; g.lineJoin = 'round';
-        g.beginPath();
-        g.moveTo(hx, hy);
-        for (var i = 1; i < n; i++) {
-            var a = body[i - 1], b = body[i];
-            if (jump(a, b)) {                              /* across the wrap: out of one side, in at the other */
-                var v = vec(a, b);
-                g.lineTo(cx(a) + v[0] * cell, cy(a) + v[1] * cell);
-                g.moveTo(cx(b) - v[0] * cell, cy(b) - v[1] * cell);
+        function strand(ox2, oy2) {
+            g.beginPath();
+            g.moveTo(hx + ox2, hy + oy2);
+            for (var i = 1; i < n; i++) {
+                var a = body[i - 1], b = body[i];
+                if (jump(a, b)) {                          /* across the wrap: out of one side, in at the other */
+                    var v = vec(a, b);
+                    g.lineTo(cx(a) + v[0] * cell + ox2, cy(a) + v[1] * cell + oy2);
+                    g.moveTo(cx(b) - v[0] * cell + ox2, cy(b) - v[1] * cell + oy2);
+                }
+                g.lineTo(cx(b) + ox2, cy(b) + oy2);
             }
-            g.lineTo(cx(b), cy(b));
+            g.lineTo(tx + ox2, ty + oy2);
         }
-        g.lineTo(tx, ty);
+        g.lineCap = 'round'; g.lineJoin = 'round';
         g.save();
         if (ghost) g.globalAlpha = 0.55;
-        g.translate(0, cell * 0.08);
-        g.strokeStyle = 'rgba(120, 40, 70, .14)'; g.lineWidth = cell * 0.46; g.stroke();
-        g.restore();
-        g.save();
-        if (ghost) g.globalAlpha = 0.55;
-        g.strokeStyle = '#e8739f'; g.lineWidth = cell * 0.42; g.stroke();
-        g.strokeStyle = '#f9b4cd'; g.lineWidth = cell * 0.26; g.stroke();
-        g.setLineDash(dash);
-        g.lineDashOffset = -(steps + f) * cell * 0.36;
-        g.strokeStyle = '#d6336c'; g.lineWidth = Math.max(1, cell * 0.06); g.stroke();
+        strand(0, cell * 0.08);                            /* shadow */
+        g.strokeStyle = 'rgba(120, 40, 70, .16)'; g.lineWidth = cell * 0.46; g.stroke();
+        strand(0, 0);
+        g.strokeStyle = '#c2255c'; g.lineWidth = cell * 0.42; g.stroke();
+        g.strokeStyle = '#f783ac'; g.lineWidth = cell * 0.34; g.stroke();
+        g.setLineDash([cell * 0.05, cell * 0.0928]);        /* the twist: seven grooves per cell, fixed on the board */
+        g.lineDashOffset = -(steps + f) * cell;
+        g.lineCap = 'butt';
+        g.strokeStyle = 'rgba(166, 30, 77, .42)'; g.lineWidth = cell * 0.34; g.stroke();
         g.setLineDash([]);
+        g.lineCap = 'round';
+        strand(-cell * 0.035, -cell * 0.06);               /* soft sheen on the top left */
+        g.strokeStyle = 'rgba(255, 214, 230, .75)'; g.lineWidth = Math.max(1, cell * 0.08); g.stroke();
         drawBall(tx, ty, (steps + f) * 0.9);
         g.restore();
         if (ghost) {                                       /* catnip glow around the head */
@@ -514,20 +517,74 @@ Arcade.register('yarn-trail', function (api) {
         shadowAt(hx, hy + cell * 0.42, cell * 0.36);
         drawHead(hx, hy);
     }
-    function drawBall(x, y, a) {
-        var r = cell * 0.36;
-        g.save();
-        g.translate(x, y); g.rotate(api.reducedMotion ? 0 : a);
-        g.fillStyle = '#f48fb5';
-        g.strokeStyle = '#d6336c';
-        g.lineWidth = Math.max(1, cell * 0.05);
-        g.beginPath(); g.arc(0, 0, r, 0, TAU); g.fill(); g.stroke();
-        g.beginPath();
-        g.arc(-r * 0.9, -r * 0.2, r * 1.1, -0.9, 0.9);
-        g.moveTo(r * 0.2, -r); g.arc(r * 1.3, r * 0.1, r * 1.6, 3.6, 2.6, true);
-        g.stroke();
-        g.restore();
+    /* a ball of wool: a shaded sphere, bands of wound strands clipped to it, a highlight and a loose thread.
+       Drawn once per size and colour into a little canvas, then only rotated for the spin. */
+    var WOOL = {
+        pink:   { base: '#f783ac', light: '#ffd0e0', dark: '#c2255c', lo: 'rgba(255, 228, 238, .7)', hi: 'rgba(166, 30, 77, .38)' },
+        orange: { base: '#fb9a4b', light: '#ffe0bf', dark: '#c2410c', lo: 'rgba(255, 237, 213, .7)', hi: 'rgba(154, 52, 18, .38)' }
+    };
+    var woolCache = {};
+    function woolImg(r, tone) {
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        r = Math.max(3, Math.round(r * 2) / 2);
+        var key = r + tone + dpr;
+        if (woolCache[key]) return woolCache[key];
+        var C = WOOL[tone], S = Math.ceil(r * 3.8), o = S / 2, cvs = document.createElement('canvas');
+        cvs.width = cvs.height = Math.ceil(S * dpr);
+        var c = cvs.getContext('2d'), lw = r < 10 ? Math.max(0.9, r * 0.1) : Math.max(0.7, r * 0.04);
+        c.scale(dpr, dpr);
+        c.lineCap = 'round';
+        c.strokeStyle = C.dark; c.lineWidth = Math.max(1, r * 0.09);   /* the loose thread, curling off */
+        c.beginPath(); c.moveTo(o + r * 0.5, o + r * 0.8);
+        c.bezierCurveTo(o + r * 0.9, o + r * 1.55, o + r * 1.75, o + r * 1.2, o + r * 1.45, o + r * 0.7);
+        c.bezierCurveTo(o + r * 1.3, o + r * 0.45, o + r * 1.05, o + r * 0.6, o + r * 1.2, o + r * 0.85);
+        c.stroke();
+        var gr = c.createRadialGradient(o - r * 0.4, o - r * 0.45, r * 0.1, o, o, r * 1.05);
+        gr.addColorStop(0, C.light); gr.addColorStop(0.45, C.base); gr.addColorStop(1, C.dark);
+        c.fillStyle = gr;
+        c.beginPath(); c.arc(o, o, r, 0, TAU); c.fill();
+        c.save();
+        c.beginPath(); c.arc(o, o, r, 0, TAU); c.clip();
+        /* bands: tilt, how round the strands curve, where the band sits; each strand is the front half of an ellipse */
+        var small = r < 10, bands = small ? [[0.5, 0.55, -0.25], [-1.0, 0.7, 0.2]] :
+            [[0.45, 0.5, -0.35], [-1.05, 0.65, 0.15], [2.0, 0.45, -0.05], [3.6, 0.7, 0.4]];
+        for (var b = 0; b < bands.length; b++) {
+            var a = bands[b][0], k = bands[b][1], n = small ? 3 : 7, gapS = r * (small ? 0.2 : 0.075);
+            var nx = -Math.sin(a), ny = Math.cos(a);       /* across the band */
+            c.fillStyle = C.hi;                            /* a faint shade under the band */
+            c.globalAlpha = 0.35;
+            c.beginPath(); c.ellipse(o + nx * bands[b][2] * r, o + ny * bands[b][2] * r, r * 1.05, r * k + gapS * n / 2, a, 0, Math.PI);
+            c.ellipse(o + nx * bands[b][2] * r, o + ny * bands[b][2] * r, r * 1.05, Math.max(0, r * k - gapS * n / 2), a, Math.PI, 0, true);
+            c.fill();
+            c.globalAlpha = 1;
+            for (var i = 0; i < n; i++) {
+                var d = (i - (n - 1) / 2) * gapS + bands[b][2] * r;
+                c.strokeStyle = i % 2 ? C.hi : C.lo; c.lineWidth = lw;
+                c.beginPath(); c.ellipse(o + nx * d, o + ny * d, r * 1.05, r * k, a, 0, Math.PI); c.stroke();
+            }
+        }
+        var sh = c.createRadialGradient(o - r * 0.3, o - r * 0.35, r * 0.3, o, o, r);   /* round it off again */
+        sh.addColorStop(0, 'rgba(255, 255, 255, 0)'); sh.addColorStop(0.7, 'rgba(0, 0, 0, 0)'); sh.addColorStop(1, 'rgba(90, 20, 50, .28)');
+        c.fillStyle = sh;
+        c.fillRect(o - r, o - r, r * 2, r * 2);
+        c.restore();
+        var hl = c.createRadialGradient(o - r * 0.42, o - r * 0.45, 0, o - r * 0.42, o - r * 0.45, r * 0.42);
+        hl.addColorStop(0, 'rgba(255, 255, 255, .65)'); hl.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        c.fillStyle = hl;
+        c.beginPath(); c.arc(o - r * 0.42, o - r * 0.45, r * 0.42, 0, TAU); c.fill();
+        c.strokeStyle = C.dark; c.lineWidth = Math.max(0.8, r * 0.07);
+        c.beginPath(); c.arc(o, o, r - c.lineWidth / 2, 0, TAU); c.stroke();
+        woolCache[key] = { cv: cvs, s: S };
+        return woolCache[key];
     }
+    function wool(ctx, x, y, r, a, tone) {
+        var w = woolImg(r, tone || 'pink');
+        ctx.save();
+        ctx.translate(x, y); if (a) ctx.rotate(a);
+        ctx.drawImage(w.cv, -w.s / 2, -w.s / 2, w.s, w.s);
+        ctx.restore();
+    }
+    function drawBall(x, y, a) { wool(g, x, y, cell * 0.38, api.reducedMotion ? 0 : a, 'pink'); }
     /* the cat's face, looking a little towards where it walks */
     function drawHead(x, y) {
         var s = cell * 0.5, lx = DX[dir] * s * 0.12, ly = DY[dir] * s * 0.12;

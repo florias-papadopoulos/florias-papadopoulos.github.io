@@ -15,26 +15,27 @@ Arcade.register('paw-pairs', function (api) {
         '.pp-board { position: relative; display: grid; grid-template-columns: repeat(var(--cols), var(--c)); grid-auto-rows: var(--c);' +
         '  gap: var(--g); perspective: 1000px; }' +
         '.pp-card { position: relative; padding: 0; border: none; border-radius: calc(var(--c) * .16); background: none; cursor: pointer;' +
+        '  box-shadow: 0 5px 0 rgba(30, 58, 138, .16), 0 9px 16px rgba(30, 58, 138, .08); transition: box-shadow .3s;' +
         '  -webkit-tap-highlight-color: transparent; animation: pp-deal .45s cubic-bezier(.3, 1.4, .5, 1) both; }' +
         '.pp-card:focus-visible { outline: 3px solid #f6a23a; outline-offset: 3px; }' +
-        '.pp-in { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .42s cubic-bezier(.3, 1.35, .5, 1); }' +
+        '.pp-in { position: absolute; inset: 0; border-radius: inherit; transform-style: preserve-3d; transition: transform .42s cubic-bezier(.3, 1.35, .5, 1); }' +
         '.pp-card.open .pp-in, .pp-peek .pp-card .pp-in { transform: rotateY(180deg); }' +
         '.pp-side { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit;' +
         '  backface-visibility: hidden; -webkit-backface-visibility: hidden; }' +
         '.pp-side svg { width: 78%; height: 78%; overflow: visible; }' +
-        '.pp-back { background: radial-gradient(circle at 30% 22%, #c5d8fa, #8fb1ee 75%); box-shadow: 0 4px 0 #6f93d8, 0 8px 14px rgba(30, 58, 138, .12); }' +
+        '.pp-back { background: radial-gradient(circle at 30% 22%, #c5d8fa, #8fb1ee 75%); }' +
         '.pp-back::before { content: ""; position: absolute; inset: 7%; border: 2px dashed rgba(255, 255, 255, .55); border-radius: calc(var(--c) * .11); }' +
-        '.pp-back svg { width: 46%; height: 46%; fill: #fff8ec; opacity: .9; filter: drop-shadow(0 2px 0 rgba(30, 58, 138, .2)); }' +
+        '.pp-back svg { width: 52%; height: 52%; fill: #fff8ec; opacity: .9; filter: drop-shadow(0 2px 0 rgba(30, 58, 138, .2)); }' +
         '@media (hover: hover) { .pp-board:not(.pp-peek) .pp-card:hover:not(.open) .pp-in { transform: translateY(-3px) rotateY(10deg); } }' +
-        '.pp-face { background: var(--bg, #fff); box-shadow: 0 4px 0 rgba(15, 23, 42, .1), 0 8px 14px rgba(15, 23, 42, .06); transform: rotateY(180deg); }' +
-        '.pp-face.special { background: radial-gradient(circle at 50% 40%, #fffbe6, #ffe8a3); box-shadow: 0 4px 0 #f5c451, 0 0 0 2px #fcd34d inset; }' +
+        '.pp-face { background: var(--bg, #fff); transform: rotateY(180deg); }' +
+        '.pp-face.special { background: radial-gradient(circle at 50% 40%, #fffbe6, #ffe8a3); box-shadow: 0 0 0 2px #fcd34d inset; }' +
         '.pp-face small { position: absolute; bottom: 5%; left: 0; right: 0; text-align: center; font-size: calc(var(--c) * .12); font-weight: 800;' +
         '  letter-spacing: .06em; color: #92400e; }' +
-        '.pp-card.ok .pp-face { box-shadow: 0 4px 0 #fcd34d, 0 0 0 3px #fde68a inset, 0 0 18px rgba(250, 176, 5, .45); }' +
+        '.pp-card.ok { box-shadow: 0 5px 0 #fcd34d, 0 0 18px rgba(250, 176, 5, .45); } .pp-card.ok .pp-face { box-shadow: 0 0 0 3px #fde68a inset; }' +
         '.pp-card.ok .pp-face svg { animation: pp-pop .5s ease-out .2s; }' +
         '.pp-card.bad .pp-in { animation: pp-shake .3s ease-in-out .3s; }' +
-        '.pp-card.bad .pp-face { box-shadow: 0 4px 0 #ffc9c9, 0 0 0 3px #ffc9c9 inset; }' +
-        '.pp-card.used .pp-face { filter: grayscale(.7); opacity: .6; }' +
+        '.pp-card.bad { box-shadow: 0 5px 0 #ffa8a8; } .pp-card.bad .pp-face { box-shadow: 0 0 0 3px #ffc9c9 inset; }' +
+        '.pp-card.used .pp-face { background: #f1f3f5; box-shadow: none; } .pp-card.used .pp-face svg { opacity: .35; }' +
         '.pp-card.ok, .pp-card.used { cursor: default; }' +
         '.pp-zoom .pp-card:not(.open) .pp-in { animation: pp-zoom .6s ease-in-out; }' +
         '.pp-float { position: absolute; z-index: 2; transform: translate(-50%, -50%); font-weight: 800; font-size: 1.15rem; color: #c2620a;' +
@@ -49,6 +50,27 @@ Arcade.register('paw-pairs', function (api) {
         '@keyframes pp-bit { 55% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 1; }' +
         '  100% { transform: translate(var(--x), calc(var(--y) + 70px)) rotate(var(--r)); opacity: 0; } }');
 
+    /* a ball of wool: shaded sphere, four bands of wound strands clipped to it, a highlight and a loose thread.
+       {id} becomes a number unique to each card, so the gradient and clip ids of several balls do not clash */
+    function yarnBall() {
+        var bands = [[-25, -9, '#ffdeeb'], [40, -4, '#c2255c'], [100, -10, '#fcc2d7'], [160, -2, '#d6336c']];   /* tilt, offset, strand colour */
+        var svg = '<g transform="translate(-2.5 -2.5) scale(1.1)"><defs><radialGradient id="ppyg{id}" cx=".34" cy=".3" r=".78"><stop offset="0" stop-color="#ffd8e8"/>' +
+            '<stop offset=".45" stop-color="#f783ac"/><stop offset="1" stop-color="#c2255c"/></radialGradient>' +
+            '<clipPath id="ppyc{id}"><circle cx="28" cy="29" r="17"/></clipPath></defs>' +
+            '<path d="M39 41c5 3 11 1 13 5s-3 7-6 5 1-6 5-4 4 6 6 7" stroke-width="1.8" ' + S + '"#e64980"/>' +
+            '<circle cx="28" cy="29" r="17" fill="url(#ppyg{id})"/><g clip-path="url(#ppyc{id})" fill="none" stroke-width="1" stroke-linecap="round">';
+        bands.forEach(function (b) {
+            svg += '<g transform="rotate(' + b[0] + ' 28 29)" stroke="' + b[2] + '" opacity=".8">';
+            for (var k = 0; k < 5; k++) {           /* the front half of a tilted loop around the ball */
+                var y = 29 + b[1] + k * 2.3;
+                svg += '<path d="M6 ' + y + 'A22 ' + (8 + k * 1.2) + ' 0 0 0 50 ' + y + '"/>';
+            }
+            svg += '</g>';
+        });
+        return svg + '</g><circle cx="28" cy="29" r="17" fill="none" stroke="#a61e4d" stroke-width="1.1"/>' +
+            '<ellipse cx="21.5" cy="20.5" rx="4.5" ry="2.4" transform="rotate(-38 21.5 20.5)" fill="#fff" opacity=".55"/></g>';
+    }
+
     /* card faces drawn in a 60 x 60 box: [name, card colour, svg] */
     var S = 'stroke-linecap="round" fill="none" stroke=';
     var FACES = [
@@ -58,9 +80,7 @@ Arcade.register('paw-pairs', function (api) {
             '<path d="M28 37h4l-2 2.5z" fill="#e8590c"/><path d="M30 39.5q-2 3-5 1.5M30 39.5q2 3 5 1.5M8 34l9 1M8 39l9-1M52 34l-9 1M52 39l-9-1" stroke-width="1.4" ' + S + '"#7a3e10"/>'],
         ['fish', '#e7f0ff', '<path d="M7 30c7-11 22-14 33-6l10-8v28l-10-8c-11 8-26 5-33-6z" fill="#5c7cfa"/>' +
             '<path d="M27 21q5 9 0 18M33 23q4 7 0 14" stroke-width="2.4" ' + S + '"#91a7ff"/><circle cx="16" cy="28" r="2.8" fill="#fff"/><circle cx="16.5" cy="28" r="1.4" fill="#1e3a8a"/>'],
-        ['yarn', '#fff0f6', '<circle cx="28" cy="29" r="17" fill="#f783ac"/>' +
-            '<path d="M14 22q14 2 26 18M12 31q16-2 26 12M19 14q12 8 13 30M32 13q-10 12-10 32" stroke-width="2" ' + S + '"#fcc2d7"/>' +
-            '<path d="M43 39q8 4 4 9t7 6" stroke-width="2.5" ' + S + '"#f06595"/>'],
+        ['yarn', '#fff0f6', yarnBall()],
         ['mouse', '#f1f3f5', '<path d="M8 42c0-12 10-20 22-20 9 0 16 7 16 15 0 3-2 5-5 5z" fill="#adb5bd"/>' +
             '<circle cx="21" cy="23" r="7" fill="#adb5bd"/><circle cx="21" cy="23" r="4" fill="#fcc2d7"/><circle cx="16" cy="33" r="1.9" fill="#212529"/>' +
             '<circle cx="8.5" cy="40" r="2.2" fill="#f06595"/><path d="M46 38q9 0 7 8t-11 8" stroke-width="2.5" ' + S + '"#adb5bd"/>'],
@@ -118,8 +138,11 @@ Arcade.register('paw-pairs', function (api) {
     var deck = faces.concat(faces);
     for (var z = 0; z < CFG.zoom; z++) deck.push(ZOOM);
     shuffle(deck);
+    var uid = 0;
     function faceHtml(f) {
-        return '<div class="pp-side pp-face' + (f[3] ? ' special' : '') + '" style="--bg:' + f[1] + '"><svg viewBox="0 0 60 60">' + f[2] + '</svg>' +
+        uid++;
+        return '<div class="pp-side pp-face' + (f[3] ? ' special' : '') + '" style="--bg:' + f[1] + '"><svg viewBox="0 0 60 60">' +
+            f[2].replace(/\{id\}/g, uid) + '</svg>' +
             (f[3] ? '<small>' + f[3] + '</small>' : '') + '</div>';
     }
     var cards = deck.map(function (f, k) {
@@ -140,7 +163,7 @@ Arcade.register('paw-pairs', function (api) {
     function fit(s) {
         var best = null;
         CFG.layouts.forEach(function (l) {
-            var c = Math.min((s.w - 24) / (l[0] + (l[0] - 1) * 0.1), (s.h - 70) / (l[1] + (l[1] - 1) * 0.1), 130);
+            var c = Math.min((s.w - 24) / (l[0] + (l[0] - 1) * 0.1), (s.h - 70) / (l[1] + (l[1] - 1) * 0.1), 150);
             var w = c * (l[0] + (l[0] - 1) * 0.1);
             if ((s.w - w) / 2 < 100) c = Math.min(c, (s.h - 210) / (l[1] + (l[1] - 1) * 0.1));
             if (!best || c > best.c) best = { c: c, cols: l[0] };
