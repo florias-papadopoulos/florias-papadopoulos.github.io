@@ -1,8 +1,10 @@
 /* Night Prowl: a top-down stealth puzzle in a house at night. Sneak the cat from its basket to the treat jar through
-   eight rooms: hide under furniture, walk softly past the sleeping dog, jump onto counters, knock a vase off to lure
+   room after room: hide under furniture, walk softly past the sleeping dog, jump onto counters, knock a vase off to lure
    people away, dodge the robot vacuum. Everything moves tile by tile on a 15 x 10 grid; on a tall screen the map is
    shown transposed (rows become columns), so the same levels fill a phone. Score: 10 per level, 3 per fish, 5 per life
-   left at the end. Shell API: arcade.js. */
+   left at the end. Difficulty (api.level()): Easy is the gentle eight rooms; Normal has ten tougher rooms with more
+   watchers, patrolling dogs, lamps on timers and a noise meter that wakes the dog; Hard is the same ten rooms with
+   sharper eyes, faster feet, a clock per room and two lives. Shell API: arcade.js. */
 Arcade.register('night-prowl', function (api) {
     'use strict';
     api.css(
@@ -24,6 +26,14 @@ Arcade.register('night-prowl', function (api) {
         '.np-bar i { display: block; height: 100%; width: 0; background: #f5b83d; border-radius: 4px; }' +
         '.np-meter.np-hot { color: #e8577e; }' +
         '.np-meter.np-hot .np-bar i { background: #e8577e; }' +
+        '.np-din .np-bar i { background: #9b8be0; }' +
+        '.np-din.np-hot { color: #e8577e; }' +
+        '.np-din.np-hot .np-bar i { background: #e8577e; }' +
+        '.np-clock { color: #5b5690; font-variant-numeric: tabular-nums; }' +
+        '.np-clock.np-hot { color: #d6336c; }' +
+        '.np-off { display: none; }' +
+        '.np-narrow .np-bar { width: 30px; }' +
+        '.np-narrow .np-hud { gap: 4px; }' +
         '.np-hint { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 6px 12px;' +
         '  border-radius: 12px; background: rgba(255,255,255,.93); color: #4a4578; font-size: .82rem; font-weight: 600; line-height: 1.3;' +
         '  text-align: center; pointer-events: none; }' +
@@ -45,9 +55,12 @@ Arcade.register('night-prowl', function (api) {
        #  wall      H  bookshelf  P  plant        V  vase on a stand (knock it off)
        T  table     S  sofa       B  bed          (the cat hides under these)
        C  counter   X  box        (the cat jumps up onto these)
+       L  lamp on a timer (its light gives the cat away; `lamps` holds [seconds on, seconds off, start] per lamp)
        @  basket (start)   J  treat jar   j  treat jar on a counter   f  fish   g  fish on a counter
        humans walk their route in a loop (a guard with one waypoint stands there and looks around);
-       dogs sleep where they are put; vacuums drive their loop */
+       dogs sleep where they are put ([x, y, facing]) or patrol a route ({ route }); vacuums drive their loop.
+       LEVELS are the Easy rooms; ROOMS (below) are the Normal and Hard ones: on Hard `time` is the clock (seconds)
+       and `hard` adds watchers or changes the lamps and the hint. Every room is checked by a solver (no sound, never in view) */
     var LEVELS = [
         { title: 'Midnight Snack',
           hint: ['Walk to the treat jar: arrows or WASD (or click a spot).', 'Tap a spot and the cat walks there. Find the treat jar.'],
@@ -157,15 +170,149 @@ Arcade.register('night-prowl', function (api) {
           dogs: [[7, 7, 0]],
           vacs: [[[5, 6], [10, 6], [10, 8], [5, 8]]] }
     ];
+    var ROOMS = [
+        { title: 'Midnight Snack', time: 35,
+          hint: ['Walk to the treat jar: arrows or WASD (or click a spot). Keep out of the flashlight.', 'Tap a spot and the cat walks there. Keep out of the flashlight.'],
+          map: LEVELS[0].map,
+          humans: [[[8, 8], [8, 2]]],
+          hard: { humans: [[[1, 7], [13, 7]]],
+                  hint: ['Reach the jar before the clock runs out: arrows or WASD (or click a spot). Keep out of the flashlights.',
+                         'Reach the jar before the clock runs out: tap a spot to walk. Keep out of the flashlights.'] } },
+        { title: 'Duck and Cover', time: 35,
+          hint: ['Two flashlights now. Hide under tables, sofas and beds.'],
+          map: ['B@~~#.........m',
+                'B.~~#..........',
+                'P...#...TT.....',
+                '.......STT.....',
+                'P...#..S.......',
+                '#####.....f....',
+                'H..P#..........',
+                '....#..TT..####',
+                '.f....fTT.....J',
+                'PH..#......#CCC'],
+          humans: [[[5, 1], [13, 1], [13, 6], [5, 6]], [[13, 6], [5, 6], [5, 1], [13, 1]],
+                   { route: [[11, 3]], looks: [Math.PI, Math.PI / 2, 0, -Math.PI / 2] }] },
+        { title: 'Let Sleeping Dogs Lie', time: 45,
+          hint: ['Shift runs, but running and squeaky boards fill the noise meter. When it is full, the dog wakes.',
+                 'Double tap runs, but running and squeaky boards fill the noise meter. When it is full, the dog wakes.'],
+          map: ['@.....f.....#CC',
+                'm~~~~~~~~~.q#.J',
+                '##########.q#..',
+                'P..TT.......#..',
+                '...TT..........',
+                'P.......S...#..',
+                '####.###S...#.f',
+                'Hf..........#..',
+                '....T..BB...#C.',
+                'P...T..BB...#CC'],
+          dogs: [[10, 4, Math.PI / 2]],
+          humans: [[[13, 2], [13, 7]]],
+          hard: { vacs: [[[14, 2], [14, 7]]] } },
+        { title: 'Up and Over', time: 40,
+          hint: ['This dog is awake, but dogs never look up: cross on the boxes and counters.'],
+          map: LEVELS[3].map,
+          dogs: [{ route: [[5, 1], [8, 1], [8, 5], [5, 5]] }, { route: [[13, 5], [13, 8]] }],
+          humans: [{ route: [[11, 5]], looks: [-Math.PI / 2, Math.PI, Math.PI / 2, 0] }] },
+        { title: 'Oops, the Vase', time: 40,
+          hint: ['Stand next to a vase and press E or Space to knock it off. The crash lures people away.', 'Tap a vase to knock it off. The crash lures people away.'],
+          map: LEVELS[4].map,
+          humans: [{ route: [[9, 2]], looks: [Math.PI, Math.PI / 2, Math.PI, -Math.PI / 2] },
+                   { route: [[12, 6]], looks: [Math.PI, -Math.PI / 2, 0, Math.PI / 2] }] },
+        { title: 'Robo Sweep', time: 30,
+          hint: ['Two robot vacuums. Bumping into one makes you yowl, and that wakes the dog.'],
+          map: LEVELS[5].map,
+          dogs: [[12, 1, Math.PI]],
+          humans: [[[5, 3], [14, 3]]],
+          vacs: [[[6, 0], [9, 0], [9, 5], [6, 5]], [[11, 2], [14, 2], [14, 4], [11, 4]]] },
+        { title: 'Lamplight', time: 45,
+          hint: ['Lamps on timers flicker, then switch on. Stay out of the light.'],
+          map: ['B@..#.L.....#Cj',
+                'B...#.......#C.',
+                'P...#..SS...#..',
+                '...............',
+                'P...#......L#..',
+                '##.###..TT..###',
+                'm.....L.TT.....',
+                '......~~~~.....',
+                '.f....~~~~...f.',
+                'PH....P.....PHH'],
+          lamps: [[3.5, 2.5, 0], [3.5, 2.5, 1.5], [4, 3, 0]],
+          humans: [[[1, 7], [13, 7]], [[5, 1], [10, 1]]],
+          hard: { lamps: [[4, 2, 0], [4, 2, 1.5], [4, 2.5, 0]] } },
+        { title: 'Creaky Floor', time: 60,
+          hint: ['Cracked boards squeak even when you walk. Step around them.'],
+          map: ['B@.m#..TT.f#..j',
+                'B...#......#..C',
+                'P...#......#...',
+                '......q.qqq.q..',
+                'P...#qq.q..qq..',
+                '#####q..q.q#.CC',
+                'H....q.....#...',
+                '..TT.....S.#.f.',
+                '..TT.....S....P',
+                'PP...f....P#HH.'],
+          humans: [[[5, 1], [10, 1]]],
+          dogs: [[7, 7, 0], [12, 7, Math.PI / 2]] },
+        { title: 'Night Shift', time: 50,
+          hint: ['Two ways round: the kitchen or the hall. Pick your moment.'],
+          map: ['BB.#CCCCCCC#CCj',
+                '@..#.......#...',
+                '...#.TT.TT.#...',
+                '.......L.......',
+                'P..#.TT.TT.#.S.',
+                '##.#.......#.S.',
+                'm...q..CC..q...',
+                '.f.....CC.....P',
+                '...#..........f',
+                'PH.#..P..P..HHP'],
+          lamps: [[3, 3, 0]],
+          humans: [[[4, 1], [10, 1], [10, 5], [4, 5]], [[1, 7], [13, 7]]],
+          dogs: [{ route: [[12, 1], [12, 8]] }],
+          hard: { vacs: [[[4, 8], [13, 8]]] } },
+        { title: 'The Big Prowl', time: 45,
+          hint: ['Everything at once: hide, sneak, jump and distract.'],
+          map: ['B@~~#...V..#CCj',
+                'B.~~#.TT.L.#...',
+                'P...#.TT...#...',
+                '...........XX..',
+                'P...#..q....#..',
+                '#####.SS..q##CC',
+                'H....q.....#...',
+                '..TT....q..#.f.',
+                '..TT..V........',
+                'PP..f...SS.#HHP'],
+          lamps: [[3, 4, 0]],
+          humans: [[[5, 3], [10, 3]], [[12, 6], [14, 6], [14, 8], [12, 8]]],
+          dogs: [[7, 7, 0]],
+          vacs: [[[5, 6], [10, 6], [10, 8], [5, 8]]],
+          hard: { dogs: [{ route: [[13, 1], [13, 4]] }] } }
+    ];
 
-    var MW = 15, MH = 10, LIVES = 3, TAU = Math.PI * 2;
-    var WALK = 3.4, RUN = 6.2, JUMP_T = 0.3, H_SLOW = 1.4, H_FAST = 2.1;
-    var H_RANGE = 4.6, H_HALF = 0.5, D_RANGE = 3, D_HALF = 0.95;
+    /* the difficulties: Easy is the original game. spot = how fast being seen fills the meter, cool = how fast it drains;
+       din = the noise meter that wakes sleeping dogs (Normal, Hard); clock = a time limit per room (Hard) */
+    var DIFFS = {
+        easy:   { rooms: LEVELS, lives: 3, hRange: 4.6, hHalf: 0.5, dRange: 3, hSlow: 1.4, hFast: 2.1, dRun: 3.2, dWalk: 1.4,
+                  spot: 1, cool: 0.45, vac: 1.5, squeak: 3.4, din: false, clock: false },
+        normal: { rooms: ROOMS, lives: 3, hRange: 5.2, hHalf: 0.55, dRange: 3.4, hSlow: 1.6, hFast: 2.4, dRun: 3.4, dWalk: 1.5,
+                  spot: 1.25, cool: 0.35, vac: 1.8, squeak: 4, din: true, clock: false },
+        hard:   { rooms: ROOMS, lives: 2, hRange: 5.6, hHalf: 0.6, dRange: 3.6, hSlow: 1.75, hFast: 2.6, dRun: 3.7, dWalk: 1.7,
+                  spot: 1.5, cool: 0.3, vac: 2.1, squeak: 4.6, din: true, clock: true }
+    };
+    var diff = api.level ? api.level() : 'normal';
+    if (!DIFFS[diff]) diff = 'normal';
+    var D = DIFFS[diff], ROOMSET = D.rooms;
+    var MW = 15, MH = 10, LIVES = D.lives, TAU = Math.PI * 2;
+    var WALK = 3.4, RUN = 6.2, JUMP_T = 0.3, H_SLOW = D.hSlow, H_FAST = D.hFast;
+    var H_RANGE = D.hRange, H_HALF = D.hHalf, D_RANGE = D.dRange, D_HALF = 0.95, L_RANGE = 2.7;
     var DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+    /* the noise meter: what each sound adds (it drains by DIN_DRAIN a second; full wakes every sleeping dog) */
+    var DIN = { run: 0.16, squeak: 0.34, yowl: 0.45, crash: 0.3 }, DIN_DRAIN = diff === 'hard' ? 0.08 : 0.1;
 
     function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
     function wrap(a) { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; }
     function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+    var luck = 1;   /* the dogs' wandering uses its own seeded dice (set per room), so a room can be replayed exactly */
+    function roll(list) { luck = (luck * 16807) % 2147483647; return list[Math.floor(luck / 2147483647 * list.length)]; }
 
     /* ---------- page: canvas, HUD, hint and the level card ---------- */
     var wrapEl = document.createElement('div');
@@ -175,6 +322,10 @@ Arcade.register('night-prowl', function (api) {
         '<span class="np-gap"></span>' +
         '<span class="np-pill np-meter" title="Spotted"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>' +
         '<circle cx="12" cy="12" r="3"/></svg><span class="np-bar"><i></i></span></span>' +
+        '<span class="np-pill np-meter np-din np-off" title="Noise"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/>' +
+        '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="np-bar"><i></i></span></span>' +
+        '<span class="np-pill np-clock np-off" title="Time left"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/>' +
+        '<path d="M12 9v4l3 2M9 2h6"/></svg><b class="np-time"></b></span>' +
         '<span class="np-pill np-fishp"><svg viewBox="0 0 26 16"><path d="M2 8c3-6 10-7 15-3l6-4v14l-6-4C12 15 5 14 2 8z"/></svg><b class="np-fish"></b></span>' +
         '<span class="np-pill np-lives"></span></div>' +
         '<div class="np-hint"></div><div class="np-card np-hide"><b></b><strong></strong><span></span></div>';
@@ -184,19 +335,22 @@ Arcade.register('night-prowl', function (api) {
     var lvEl = wrapEl.querySelector('.np-lvn'), titleEl = wrapEl.querySelector('.np-title');
     var fishEl = wrapEl.querySelector('.np-fish'), livesEl = wrapEl.querySelector('.np-lives');
     var meterEl = wrapEl.querySelector('.np-meter'), barEl = wrapEl.querySelector('.np-bar i');
+    var dinEl = wrapEl.querySelector('.np-din'), dinBar = dinEl.querySelector('.np-bar i');
+    var clockEl = wrapEl.querySelector('.np-clock'), timeEl = wrapEl.querySelector('.np-time');
     var stat = document.createElement('canvas');
     var touchy = api.touch;
 
     /* ---------- game state ---------- */
     var level = 0, lives = LIVES, score = 0, levelFish = 0, phase = 'intro', phaseT = 0, clock = 0;
-    var grid = [], fish = [], goal = null, start = null, humans = [], dogs = [], vacs = [];
+    var grid = [], fish = [], goal = null, start = null, humans = [], dogs = [], vacs = [], lamps = [];
     var cat = null, noises = [], texts = [], falls = [], spotted = 0, flash = 0, seenOnce = false;
-    var keyStack = [], shift = false, anyInput = false, dbg = { speed: 1, god: false };
+    var din = 0, timeLeft = 0, timed = false, roomT = 0;
+    var keyStack = [], shift = false, anyInput = false, dbg = { speed: 1, god: false, pause: false, seed: 0 };
 
     function at(x, y) { return x < 0 || y < 0 || x >= MW || y >= MH ? '#' : grid[y][x]; }
     function isHigh(c) { return c === 'C' || c === 'X' || c === 'j'; }
     function isHide(c) { return c === 'T' || c === 'S' || c === 'B'; }
-    function isBlock(c) { return c === '#' || c === 'H' || c === 'P' || c === 'V' || c === 'v'; }
+    function isBlock(c) { return c === '#' || c === 'H' || c === 'P' || c === 'V' || c === 'v' || c === 'L'; }
     function isOpaque(c) { return c === '#' || c === 'H' || c === 'P'; }
     function sleeperAt(x, y) {
         for (var i = 0; i < dogs.length; i++) if (dogs[i].state === 'sleep' && dogs[i].m.x === x && dogs[i].m.y === y) return true;
@@ -260,8 +414,10 @@ Arcade.register('night-prowl', function (api) {
                 m.tx = n[0]; m.ty = n[1]; m.t = 0; m.moving = true;
             }
             var need = (1 - m.t) / speed;
-            if (left >= need) { left -= need; m.x = m.tx; m.y = m.ty; m.t = 0; m.moving = false; }
-            else { m.t += left * speed; left = 0; }
+            if (left >= need) {
+                left -= need; m.x = m.tx; m.y = m.ty; m.t = 0; m.moving = false;
+                if (m.feet) noises.push({ x: m.x + 0.5, y: m.y + 0.5, r: 0.42, t: 0, soft: true });   /* a footstep ring */
+            } else { m.t += left * speed; left = 0; }
         }
         if (m.moving) turn(m, Math.atan2(m.ty - m.y, m.tx - m.x), (turnRate || 8) * dt);
         place(m);
@@ -286,6 +442,12 @@ Arcade.register('night-prowl', function (api) {
         return Math.max(0.05, 1 - d / range);
     }
     function sees(m, range, half) { return catHidden() || dbg.god ? 0 : view(m, cat.fx, cat.fy, range, half); }
+    function dogSees(m) { return catUp() ? 0 : sees(m, D_RANGE, D_HALF); }   /* dogs never look up at counters and boxes */
+    /* lamps: lit for `on` seconds, dark for `off`, flickering for the last second before they switch on */
+    function lampPhase(l) { var p = (roomT + l.t0) % (l.on + l.off); return { lit: p < l.on, warn: p > l.on + l.off - 1, left: l.on + l.off - p }; }
+    function inLight(l, px, py) {
+        return Math.hypot(px - l.x - 0.5, py - l.y - 0.5) <= L_RANGE && clear(l.x + 0.5, l.y + 0.5, px, py);
+    }
     function ray(x, y, a, max) {
         var c = Math.cos(a), s = Math.sin(a);
         for (var d = 0.1; d < max; d += 0.1) if (isOpaque(at(Math.floor(x + c * d), Math.floor(y + s * d)))) return d;
@@ -293,10 +455,18 @@ Arcade.register('night-prowl', function (api) {
     }
 
     /* ---------- levels: load and reset ---------- */
+    function room(n) {   /* a room of the current difficulty, with the Hard extras added on Hard */
+        var L = ROOMSET[n], X = diff === 'hard' && L.hard, out = {};
+        Object.keys(L).forEach(function (key) { out[key] = L[key]; });
+        if (X) ['humans', 'dogs', 'vacs'].forEach(function (key) { if (X[key]) out[key] = (L[key] || []).concat(X[key]); });
+        if (X && X.lamps) out.lamps = X.lamps;
+        if (X && X.hint) out.hint = X.hint;
+        return out;
+    }
     function startLevel(n) {
         level = n;
-        var L = LEVELS[n], x, y;
-        grid = []; fish = []; levelFish = 0;
+        var L = room(n), x, y;
+        grid = []; fish = []; lamps = []; levelFish = 0;
         for (y = 0; y < MH; y++) {
             var row = [];
             for (x = 0; x < MW; x++) {
@@ -304,6 +474,7 @@ Arcade.register('night-prowl', function (api) {
                 if (c === '@') start = { x: x, y: y };
                 if (c === 'J' || c === 'j') goal = { x: x, y: y };
                 if (c === 'f' || c === 'g') { fish.push({ x: x, y: y, got: false }); c = c === 'f' ? '.' : 'C'; }
+                if (c === 'L') { var lt = (L.lamps || [])[lamps.length] || [3, 3, 0]; lamps.push({ x: x, y: y, on: lt[0], off: lt[1], t0: lt[2] }); }
                 row.push(c);
             }
             grid.push(row);
@@ -312,6 +483,7 @@ Arcade.register('night-prowl', function (api) {
         cat.jump = false; cat.run = false; cat.stun = 0; cat.knock = null; cat.steps = 0; cat.pathRun = false; cat.mark = null; cat.da = 0;
         humans = (L.humans || []).map(function (o) {
             var r = o.route || o, h = { m: mover(r[0][0], r[0][1]), route: r, looks: o.looks, li: 0, ri: 0, state: 'pause', timer: 1, see: 0 };
+            h.m.feet = true;
             var w = r[1 % r.length], p = pathTo(r[0][0], r[0][1], w[0], w[1], folkOk);
             if (p.length) h.m.a = Math.atan2(p[0][1] - r[0][1], p[0][0] - r[0][0]);
             if (h.looks) h.m.a = h.looks[0];
@@ -319,17 +491,26 @@ Arcade.register('night-prowl', function (api) {
             return h;
         });
         dogs = (L.dogs || []).map(function (d) {
-            return { m: mover(d[0], d[1], d[2]), home: d, state: 'sleep', timer: 0, see: 0 };
+            if (!d.route) return { m: mover(d[0], d[1], d[2]), home: d, state: 'sleep', timer: 0, see: 0 };
+            var r = d.route, g = { m: mover(r[0][0], r[0][1]), home: [r[0][0], r[0][1], 0], route: r, ri: 0, state: 'pause', timer: 1, see: 0 };
+            var p = pathTo(r[0][0], r[0][1], r[1][0], r[1][1], folkOk);   /* a dog on patrol: walks its route like a person */
+            g.m.a = g.look = p.length ? Math.atan2(p[0][1] - r[0][1], p[0][0] - r[0][0]) : 0;
+            g.m.feet = true;
+            return g;
         });
         vacs = (L.vacs || []).map(function (r) { return { m: mover(r[0][0], r[0][1]), route: r, ri: 0, dir: 1, cool: 0 }; });
         noises = []; texts = []; falls = []; spotted = 0; flash = 0; seenOnce = false; keyStack = [];
+        din = 0; roomT = 0; timeLeft = D.clock && L.time || 0; timed = timeLeft > 0;
+        luck = dbg.seed || 1 + Math.floor(Math.random() * 2147483645);
+        dinEl.classList.toggle('np-off', !D.din || !dogs.length);
+        clockEl.classList.toggle('np-off', !timed);
         phase = 'intro'; phaseT = 0; anyInput = false;
-        card('Level ' + (n + 1) + ' of ' + LEVELS.length, L.title, hintText(), '');
+        card('Level ' + (n + 1) + ' of ' + ROOMSET.length, L.title, hintText(), '');
         hintEl.textContent = hintText();
         renderStatic();
         hud();
     }
-    function hintText() { var h = LEVELS[level].hint; return touchy && h[1] ? h[1] : h[0]; }
+    function hintText() { var h = room(level).hint; return touchy && h[1] ? h[1] : h[0]; }
     function card(kicker, title, sub, cls) {
         cardEl.className = 'np-card' + (cls ? ' ' + cls : '');
         cardEl.querySelector('b').textContent = kicker;
@@ -340,8 +521,8 @@ Arcade.register('night-prowl', function (api) {
     var shown = {};
     function setText(el, key, v) { if (shown[key] !== v) { shown[key] = v; el.textContent = v; } }
     function hud() {
-        setText(lvEl, 'lv', (level + 1) + '/' + LEVELS.length);
-        setText(titleEl, 'title', LEVELS[level].title);
+        setText(lvEl, 'lv', (level + 1) + '/' + ROOMSET.length);
+        setText(titleEl, 'title', ROOMSET[level].title);
         var got = 0;
         fish.forEach(function (f) { if (f.got) got++; });
         setText(fishEl, 'fish', got + '/' + fish.length);
@@ -353,15 +534,29 @@ Arcade.register('night-prowl', function (api) {
     function meter() {
         var w = Math.round(spotted * 100) + '%';
         if (shown.meter !== w) { shown.meter = w; barEl.style.width = w; meterEl.classList.toggle('np-hot', spotted > 0.6); }
+        w = Math.round(din * 100) + '%';
+        if (shown.din !== w) { shown.din = w; dinBar.style.width = w; dinEl.classList.toggle('np-hot', din > 0.65); }
+        if (timed) {
+            var t = Math.max(0, Math.ceil(timeLeft));
+            if (shown.time !== t) { shown.time = t; timeEl.textContent = t; clockEl.classList.toggle('np-hot', t <= 10); }
+        }
     }
 
     /* ---------- noise, words and the house folk ---------- */
     function say(x, y, text, color) { texts.push({ x: x, y: y, text: text, color: color || '#ffe08a', t: 0 }); }
-    function noise(x, y, r, label) {
+    function noise(x, y, r, label, loud) {
         noises.push({ x: x, y: y, r: r, t: 0 });
         if (label) say(x, y, label);
         dogs.forEach(function (d) { if (Math.hypot(d.m.fx - x, d.m.fy - y) <= r) dogHear(d, x, y); });
         humans.forEach(function (h) { if (Math.hypot(h.m.fx - x, h.m.fy - y) <= r) humanHear(h, x, y); });
+        if (D.din && loud && dogs.length) {   /* the noise meter: full, and every dog in the house comes to look */
+            din = Math.min(1, din + loud);
+            if (din >= 1) {
+                din = 0.55;
+                dogs.forEach(function (d) { dogHear(d, x, y); });
+                say(x, y - 0.5, 'Woof?', '#ff9fb5');
+            }
+        }
     }
     function investigate(o, x, y, speed) {
         var f = from(o.m);
@@ -378,10 +573,29 @@ Arcade.register('night-prowl', function (api) {
         if (d.state === 'sleep') { d.state = 'wake'; d.timer = 0.8; d.nx = x; d.ny = y; say(d.m.fx, d.m.fy - 0.2, '!', '#ff9fb5'); return; }
         if (d.state !== 'wake') investigate(d, x, y, 2.6);
     }
-    function nextLeg(h) {   /* the human's path to the next waypoint of its route */
+    function nextLeg(h) {   /* the path to the next waypoint of a route */
         h.ri = (h.ri + 1) % h.route.length;
         var f = from(h.m), w = h.route[h.ri];
         h.m.path = pathTo(f[0], f[1], w[0], w[1], folkOk);
+    }
+    function patrol(h, dt, speed, wait) {   /* walk the route; at a waypoint stop, then turn toward the next leg (a guard: the next look) */
+        var m = h.m;
+        if (h.state === 'pause') {
+            turn(m, h.look, 2.4 * dt);
+            if ((h.timer -= dt) <= 0) { h.state = 'patrol'; nextLeg(h); }
+        } else if (walk(m, dt, speed)) {
+            h.state = 'pause'; h.timer = h.looks ? 1.8 : wait;
+            var w = h.route[(h.ri + 1) % h.route.length], p = pathTo(m.x, m.y, w[0], w[1], folkOk);
+            h.look = h.looks ? h.looks[++h.li % h.looks.length] : p.length ? Math.atan2(p[0][1] - m.y, p[0][0] - m.x) : m.a;
+        }
+    }
+    function backOnRoute(h) {   /* after a search: on to the waypoint after the closest one */
+        var best = 1e9, m = h.m;
+        h.route.forEach(function (w, i) {
+            var p = pathTo(m.x, m.y, w[0], w[1], folkOk);
+            if (p.length < best) { best = p.length; h.ri = (i + h.route.length - 1) % h.route.length; }
+        });
+        h.state = 'patrol'; nextLeg(h);
     }
     function updateHuman(h, dt) {
         var m = h.m;
@@ -395,27 +609,13 @@ Arcade.register('night-prowl', function (api) {
             walk(m, dt, H_SLOW);
             if (h.see) turn(m, Math.atan2(cat.fy - m.fy, cat.fx - m.fx), 3.2 * dt);
             else if ((h.timer -= dt) <= 0) investigate(h, h.lx + 0.5, h.ly + 0.5, H_FAST);
-        } else if (h.state === 'pause') {
-            turn(m, h.look, 2.4 * dt);
-            if ((h.timer -= dt) <= 0) { h.state = 'patrol'; nextLeg(h); }
-        } else if (h.state === 'patrol') {
-            if (walk(m, dt, H_SLOW)) {   /* at a waypoint: stop, then turn toward the next leg (a guard: the next look) */
-                h.state = 'pause'; h.timer = h.looks ? 1.8 : 1.3;
-                var w = h.route[(h.ri + 1) % h.route.length], p = pathTo(m.x, m.y, w[0], w[1], folkOk);
-                h.look = h.looks ? h.looks[++h.li % h.looks.length] : p.length ? Math.atan2(p[0][1] - m.y, p[0][0] - m.x) : m.a;
-            }
+        } else if (h.state === 'pause' || h.state === 'patrol') {
+            patrol(h, dt, H_SLOW, 1.3);
         } else if (h.state === 'investigate') {
             if (walk(m, dt, h.speed)) { h.state = 'search'; h.timer = 2.6; h.base = m.a; }
         } else if (h.state === 'search') {
             m.a = h.base + Math.sin((2.6 - h.timer) * 2.4) * 1.1;
-            if ((h.timer -= dt) <= 0) {   /* back to the closest waypoint, then on with the route */
-                var best = 1e9;
-                h.route.forEach(function (w, i) {
-                    var p = pathTo(m.x, m.y, w[0], w[1], folkOk);
-                    if (p.length < best) { best = p.length; h.ri = (i + h.route.length - 1) % h.route.length; }
-                });
-                h.state = 'patrol'; nextLeg(h);
-            }
+            if ((h.timer -= dt) <= 0) backOnRoute(h);
         }
     }
     function updateDog(d, dt) {
@@ -423,7 +623,7 @@ Arcade.register('night-prowl', function (api) {
         d.see = 0;
         if (d.state === 'sleep') return;
         if (d.state === 'wake') { if ((d.timer -= dt) <= 0) investigate(d, d.nx, d.ny, 2.6); return; }
-        d.see = sees(m, D_RANGE, D_HALF);
+        d.see = dogSees(m);
         if (d.see) {
             d.lx = cat.x; d.ly = cat.y;
             if (d.state !== 'chase') { d.state = 'chase'; m.path = []; say(m.fx, m.fy - 0.2, '!', '#ff9fb5'); }
@@ -431,8 +631,10 @@ Arcade.register('night-prowl', function (api) {
         }
         if (d.state === 'chase') {
             if (!m.moving) m.path = pathTo(m.x, m.y, cat.x, cat.y, folkOk).slice(0, 1);
-            walk(m, dt, 3.2);
+            walk(m, dt, D.dRun);
             if (!d.see && (d.timer -= dt) <= 0) investigate(d, d.lx + 0.5, d.ly + 0.5, 2.6);
+        } else if (d.state === 'pause' || d.state === 'patrol') {
+            patrol(d, dt, D.dWalk, 1);
         } else if (d.state === 'investigate') {
             if (walk(m, dt, d.speed)) { d.state = 'sniff'; d.timer = 1.5; d.base = m.a; }
         } else if (d.state === 'sniff') {
@@ -442,10 +644,13 @@ Arcade.register('night-prowl', function (api) {
             if (!m.moving && !m.path.length) {
                 var opts = [];
                 DIRS.forEach(function (v) { if (folkOk(m.x, m.y, m.x + v[0], m.y + v[1])) opts.push([m.x + v[0], m.y + v[1]]); });
-                if (opts.length) m.path = [pick(opts)];
+                if (opts.length) m.path = [roll(opts)];
             }
             walk(m, dt, 1.6);
-            if ((d.timer -= dt) <= 0 && !m.moving) { d.state = 'return'; m.path = pathTo(m.x, m.y, d.home[0], d.home[1], folkOk); }
+            if ((d.timer -= dt) <= 0 && !m.moving) {
+                if (d.route) backOnRoute(d);   /* a patrolling dog goes back on its round, a sleepy one back to bed */
+                else { d.state = 'return'; m.path = pathTo(m.x, m.y, d.home[0], d.home[1], folkOk); }
+            }
         } else if (d.state === 'return') {
             if (walk(m, dt, 2)) {
                 if (m.x === d.home[0] && m.y === d.home[1]) { d.state = 'sleep'; m.a = d.home[2]; }
@@ -460,14 +665,14 @@ Arcade.register('night-prowl', function (api) {
             v.ri = (v.ri + v.dir + len) % len;
             m.path = pathTo(m.x, m.y, v.route[v.ri][0], v.route[v.ri][1], vacOk);
         }
-        walk(m, dt, 1.5, 5);
-        if (v.cool <= 0 && !catUp() && Math.hypot(m.fx - cat.fx, m.fy - cat.fy) < 0.72) {
+        walk(m, dt, D.vac, 5);
+        if (v.cool <= 0 && !dbg.god && !catUp() && Math.hypot(m.fx - cat.fx, m.fy - cat.fy) < 0.72) {
             v.cool = 1.6;   /* bump: the cat yowls and freezes, the vacuum backs off the way it came */
             if (m.moving) { var tx = m.tx, ty = m.ty; m.tx = m.x; m.ty = m.y; m.x = tx; m.y = ty; m.t = 1 - m.t; }
             v.ri = (v.ri - v.dir + len) % len; v.dir = -v.dir;
             m.path = pathTo(m.tx, m.ty, v.route[v.ri][0], v.route[v.ri][1], vacOk);
             cat.path = []; cat.knock = null; cat.stun = 0.7;
-            noise(cat.fx, cat.fy, 5, 'Yowl!');
+            noise(cat.fx, cat.fy, 5, 'Yowl!', DIN.yowl);
             api.sfx('hit');
             api.cat('wow');
         }
@@ -498,8 +703,8 @@ Arcade.register('night-prowl', function (api) {
                 say(cat.fx, cat.fy - 0.3, '+3', '#9fe3ff'); api.sfx('pop'); hud();
             }
         });
-        if (at(cat.x, cat.y) === 'q') { noise(cat.fx, cat.fy, 3.4, 'Squeak!'); api.sfx('tap'); }
-        else if (cat.run && !jumped && ++cat.steps % 2 === 0) noise(cat.fx, cat.fy, 2.8, '');
+        if (at(cat.x, cat.y) === 'q') { noise(cat.fx, cat.fy, D.squeak, 'Squeak!', DIN.squeak); api.sfx('tap'); }
+        else if (cat.run && !jumped && ++cat.steps % 2 === 0) noise(cat.fx, cat.fy, 2.8, '', DIN.run);
         if (cat.x === goal.x && cat.y === goal.y) cleared();
     }
     function updateCat(dt) {
@@ -529,7 +734,7 @@ Arcade.register('night-prowl', function (api) {
         var a = Math.atan2(vy - cat.y, vx - cat.x);
         cat.a = a;
         falls.push({ x: vx + 0.5, y: vy + 0.5, a: a, t: 0 });
-        noise(vx + 0.5, vy + 0.5, 7, 'Crash!');
+        noise(vx + 0.5, vy + 0.5, 7, 'Crash!', DIN.crash);
         api.sfx('hit');
         renderStatic();
     }
@@ -566,9 +771,10 @@ Arcade.register('night-prowl', function (api) {
         phase = 'caught'; phaseT = 0; lives--; flash = 1;
         score -= levelFish * 3; levelFish = 0;
         api.sfx('hit'); api.cat('sad');
-        api.say(who === 'dog' ? pick(['Eek, the dog!', 'Woof! Run!']) : pick(['Busted!', 'Oops, seen!', 'Caught in the light!']), 1700);
+        api.say(who === 'dog' ? pick(['Eek, the dog!', 'Woof! Run!']) : who === 'light' ? 'Caught in the lamplight!' :
+            who === 'dawn' ? 'Yawn, morning already!' : pick(['Busted!', 'Oops, seen!', 'Caught in the light!']), 1700);
         card(lives > 0 ? (lives === 1 ? '1 life left' : lives + ' lives left') : 'No lives left',
-            who === 'dog' ? 'Woof! Caught!' : 'Caught!', lives > 0 ? 'Back to the basket.' : '', 'np-bad');
+            who === 'dog' ? 'Woof! Caught!' : who === 'dawn' ? 'The sun is up!' : 'Caught!', lives > 0 ? 'Back to the basket.' : '', 'np-bad');
         hud();
     }
     function cleared() {
@@ -698,8 +904,8 @@ Arcade.register('night-prowl', function (api) {
         }
         for (r = 0; r < SR; r++) for (c = 0; c < SC; c++) {   /* furniture shadows */
             ch = sAt(c, r); x = ox + c * s; y = oy + r * s;
-            if ('TSBCjXHPVv'.indexOf(ch) < 0) continue;
-            var round = ch === 'P' || ch === 'V' || ch === 'v';
+            if ('TSBCjXHPVvL'.indexOf(ch) < 0) continue;
+            var round = ch === 'P' || ch === 'V' || ch === 'v' || ch === 'L';
             g.fillStyle = 'rgba(8,6,28,.38)';
             if (round) { g.beginPath(); g.arc(x + s * 0.56, y + s * 0.6, s * 0.34, 0, TAU); g.fill(); }
             else piece(g, x + s * 0.06, y + s * 0.1, s, ch === 'X' ? [0, 0, 0, 0] : sameAs(c, r, ch === 'C' || ch === 'j' ? 'Cj' : ch), s * 0.06, s * 0.14, 'rgba(8,6,28,.38)');
@@ -773,6 +979,16 @@ Arcade.register('night-prowl', function (api) {
                 var a = i / 6 * TAU + 0.3;
                 g.fillStyle = i % 2 ? '#5cb88c' : '#7fd1a8';
                 g.beginPath(); g.ellipse(x + s / 2 + Math.cos(a) * s * 0.2, y + s / 2 + Math.sin(a) * s * 0.2, s * 0.2, s * 0.09, a, 0, TAU); g.fill();
+            }
+        } else if (ch === 'L') {   /* a floor lamp seen from above: the shade (its bulb is drawn live) */
+            circle(g, x + s / 2, y + s / 2, s * 0.34, '#5a4f86');
+            circle(g, x + s / 2, y + s / 2, s * 0.3, '#e9d3a3');
+            circle(g, x + s / 2, y + s / 2, s * 0.22, '#c9ae7a');
+            g.strokeStyle = 'rgba(90,70,40,.35)'; g.lineWidth = Math.max(1, s * 0.03);
+            for (i = 0; i < 6; i++) {
+                var la = i / 6 * TAU;
+                g.beginPath(); g.moveTo(x + s / 2 + Math.cos(la) * s * 0.12, y + s / 2 + Math.sin(la) * s * 0.12);
+                g.lineTo(x + s / 2 + Math.cos(la) * s * 0.3, y + s / 2 + Math.sin(la) * s * 0.3); g.stroke();
             }
         } else if (ch === 'V' || ch === 'v') {
             circle(g, x + s / 2, y + s / 2, s * 0.3, '#8f79ad');
@@ -905,6 +1121,27 @@ Arcade.register('night-prowl', function (api) {
         }
         ctx.fillStyle = gr; ctx.fill();
     }
+    function drawLight(l) {   /* a lamp's pool of light (walls stop it); a dashed edge while it flickers before switching on */
+        var ph = lampPhase(l), cx = l.x + 0.5, cy = l.y + 0.5, X = sx(cx, cy), Y = sy(cx, cy), still = api.reducedMotion, i;
+        var blink = ph.warn && (still || Math.sin(clock * 30) > -0.2);
+        if (ph.lit || ph.warn) {
+            ctx.beginPath();
+            for (i = 0; i <= 40; i++) {
+                var a = i / 40 * TAU, d = ray(cx, cy, a, L_RANGE), px = cx + Math.cos(a) * d, py = cy + Math.sin(a) * d;
+                if (i) ctx.lineTo(sx(px, py), sy(px, py)); else ctx.moveTo(sx(px, py), sy(px, py));
+            }
+            ctx.closePath();
+            if (ph.lit) {
+                var gr = ctx.createRadialGradient(X, Y, k * 0.2, X, Y, L_RANGE * k);
+                gr.addColorStop(0, 'rgba(255,226,150,.55)'); gr.addColorStop(0.7, 'rgba(255,214,130,.25)'); gr.addColorStop(1, 'rgba(255,200,110,.08)');
+                ctx.fillStyle = gr; ctx.fill();
+            } else {
+                if (blink) { ctx.fillStyle = 'rgba(255,226,150,.12)'; ctx.fill(); }
+                ctx.setLineDash([k * 0.18, k * 0.14]); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,220,140,.7)'; ctx.stroke(); ctx.setLineDash([]);
+            }
+        }
+        circle(ctx, X, Y, k * 0.13, ph.lit ? '#fff6d6' : blink ? '#f3cf7d' : '#6f6496');
+    }
     function bubble(x, y, text, col) {
         var r = k * 0.22;
         ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
@@ -958,6 +1195,7 @@ Arcade.register('night-prowl', function (api) {
             var t = Math.min(1, f.t / 0.35), px = f.x + Math.cos(f.a) * 0.45 * t, py = f.y + Math.sin(f.a) * 0.45 * t;
             ctx.save(); ctx.globalAlpha = 1 - Math.max(0, (f.t - 0.35) / 0.3); drawVase(sx(px, py), sy(px, py)); ctx.restore();
         });
+        lamps.forEach(drawLight);
         if (cat.mark && (cat.path.length || cat.knock)) {   /* where a tap sends the cat */
             var mk = cat.mark;
             x = sx(mk[0] + 0.5, mk[1] + 0.5); y = sy(mk[0] + 0.5, mk[1] + 0.5);
@@ -984,7 +1222,7 @@ Arcade.register('night-prowl', function (api) {
 
         noises.forEach(function (n) {
             var t = n.t / 0.7, rr = (api.reducedMotion ? 1 : Math.min(1, n.t / 0.45)) * n.r * k;
-            ctx.strokeStyle = 'rgba(255,236,190,' + (0.6 * (1 - t)).toFixed(2) + ')'; ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255,236,190,' + ((n.soft ? 0.3 : 0.6) * (1 - t)).toFixed(2) + ')'; ctx.lineWidth = n.soft ? 1.2 : 2;
             ctx.beginPath(); ctx.arc(sx(n.x, n.y), sy(n.x, n.y), rr, 0, TAU); ctx.stroke();
         });
         humans.forEach(function (h) {
@@ -995,7 +1233,8 @@ Arcade.register('night-prowl', function (api) {
         dogs.forEach(function (d) {
             var dx = sx(d.m.fx, d.m.fy), dy = sy(d.m.fx, d.m.fy) - k * 0.55;
             if (d.state === 'sleep') {
-                ctx.fillStyle = 'rgba(220,225,255,.85)'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = din > 0.65 ? 'rgba(255,190,120,.95)' : 'rgba(220,225,255,.85)';   /* orange: about to wake */
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 for (i = 0; i < 2; i++) {
                     var zt = api.reducedMotion ? i * 0.5 : (clock * 0.5 + i * 0.5) % 1;
                     ctx.font = '800 ' + Math.round(k * (0.22 + zt * 0.14)) + 'px system-ui, sans-serif';
@@ -1036,6 +1275,8 @@ Arcade.register('night-prowl', function (api) {
             updateCat(dt);
             if (phaseT > 2.6 || anyInput || cat.moving) { phase = 'play'; hideCard(); if (level === 0 && !anyInput) api.say('Psst, the treats are this way!', 1800); }
         } else if (phase === 'play') {
+            roomT += dt;
+            din = Math.max(0, din - DIN_DRAIN * dt);
             updateCat(dt);
             if (phase !== 'play') return;
             humans.forEach(function (h) { updateHuman(h, dt); });
@@ -1044,9 +1285,12 @@ Arcade.register('night-prowl', function (api) {
             var rate = 0, who = 'human';
             humans.forEach(function (h) { if (h.see) rate += 0.6 + 1.3 * h.see; });
             dogs.forEach(function (d) { if (d.see) { rate += 0.9 + 1.2 * d.see; who = 'dog'; } });
+            if (!catHidden()) lamps.forEach(function (l) { if (lampPhase(l).lit && inLight(l, cat.fx, cat.fy)) { rate += 1.4; who = 'light'; } });
+            rate *= D.spot;
             if (dbg.god) rate = 0;
             if (rate > 0 && !seenOnce) { seenOnce = true; api.cat('wow'); api.sfx('move'); }
-            spotted = rate > 0 ? Math.min(1, spotted + rate * dt) : Math.max(0, spotted - 0.45 * dt);
+            spotted = rate > 0 ? Math.min(1, spotted + rate * dt) : Math.max(0, spotted - D.cool * dt);
+            if (timed && !dbg.god && (timeLeft -= dt) <= 0) { timeLeft = 0; caught('dawn'); return; }
             if (!dbg.god) {
                 humans.forEach(function (h) { if (Math.hypot(h.m.fx - cat.fx, h.m.fy - cat.fy) < 0.75 && !catHidden()) { spotted = 1; who = 'human'; } });
                 dogs.forEach(function (d) { if (d.state !== 'sleep' && d.state !== 'wake' && !catUp() && Math.hypot(d.m.fx - cat.fx, d.m.fy - cat.fy) < 0.75) { spotted = 1; who = 'dog'; } });
@@ -1055,12 +1299,12 @@ Arcade.register('night-prowl', function (api) {
         } else if (phase === 'caught' && phaseT > 1.7) {
             if (lives > 0) startLevel(level); else finish(false);
         } else if (phase === 'clear' && phaseT > 1.7) {
-            if (level + 1 < LEVELS.length) startLevel(level + 1); else finish(true);
+            if (level + 1 < ROOMSET.length) startLevel(level + 1); else finish(true);
         }
     }
     api.loop(function (dt) {
-        dt *= dbg.speed;
-        var n = Math.max(1, Math.ceil(dt / 0.02));
+        dt = dbg.pause ? 0 : dt * dbg.speed;
+        var n = dt ? Math.max(1, Math.ceil(dt / 0.02)) : 0;
         for (var i = 0; i < n; i++) update(dt / n);
         draw();
         meter();
@@ -1115,7 +1359,8 @@ Arcade.register('night-prowl', function (api) {
     if (window.__errors) {
         window.__np = {
             dbg: dbg,
-            count: LEVELS.length,
+            diff: diff,
+            count: ROOMSET.length,
             go: function (n) { lives = LIVES; startLevel(n); },
             walk: function (x, y, run) { setTarget(x, y, !!run); },
             knock: knockKey,
@@ -1139,8 +1384,61 @@ Arcade.register('night-prowl', function (api) {
                     humans: humans.map(function (h) { return [h.m.x, h.m.y, h.state, h.m.a]; }),
                     dogs: dogs.map(function (d) { return [d.m.x, d.m.y, d.state]; }),
                     vacs: vacs.map(function (v) { return [v.m.x, v.m.y]; }),
+                    lamps: lamps.map(function (l) { return lampPhase(l).lit; }), din: din, time: timed ? timeLeft : null,
                     vases: grid.map(function (row) { return row.join(''); }).join('').split('V').length - 1 };
-            }
+            },
+            /* for the solver: step the game by hand (with dbg.pause on), save and restore a moment, and ask what a cat
+               at a point would run into right now (with margins on range, angle and touch) */
+            step: function (t) { for (var i = Math.round(t / 0.02); i > 0; i--) update(0.02); },
+            play: function () { anyInput = true; phase = 'play'; phaseT = 0; hideCard(); },
+            save: function () {
+                return JSON.stringify({ level: level, lives: lives, score: score, levelFish: levelFish, phase: phase, phaseT: phaseT,
+                    clock: clock, roomT: roomT, grid: grid, fish: fish, humans: humans, dogs: dogs, vacs: vacs, lamps: lamps,
+                    cat: cat, noises: noises, texts: texts, falls: falls, spotted: spotted, din: din, timeLeft: timeLeft, luck: luck });
+            },
+            load: function (str) {
+                var o = JSON.parse(str);
+                level = o.level; lives = o.lives; score = o.score; levelFish = o.levelFish; phase = o.phase; phaseT = o.phaseT;
+                clock = o.clock; roomT = o.roomT; grid = o.grid; fish = o.fish; humans = o.humans; dogs = o.dogs; vacs = o.vacs;
+                lamps = o.lamps; cat = o.cat; noises = o.noises; texts = o.texts; falls = o.falls; spotted = o.spotted; din = o.din;
+                timeLeft = o.timeLeft; luck = o.luck;
+            },
+            redraw: function () { renderStatic(); hud(); },
+            danger: function (px, py, hid, up, mr, ma, mc) {
+                var hit = false;
+                humans.forEach(function (h) {
+                    if (!hid && (view(h.m, px, py, H_RANGE + mr, H_HALF + ma) || Math.hypot(h.m.fx - px, h.m.fy - py) < 0.75 + mc)) hit = true;
+                });
+                dogs.forEach(function (d) {
+                    if (d.state === 'sleep' || d.state === 'wake' || up) return;
+                    if ((!hid && view(d.m, px, py, D_RANGE + mr, D_HALF + ma)) || Math.hypot(d.m.fx - px, d.m.fy - py) < 0.75 + mc) hit = true;
+                });
+                vacs.forEach(function (v) { if (!up && Math.hypot(v.m.fx - px, v.m.fy - py) < 0.72 + mc) hit = true; });
+                lamps.forEach(function (l) { var ph = lampPhase(l); if (!hid && (ph.lit || ph.left < 0.3) && inLight(l, px, py)) hit = true; });
+                return hit;
+            },
+            info: function () {
+                return { map: grid.map(function (row) { return row.join(''); }), start: [start.x, start.y], goal: [goal.x, goal.y],
+                    time: room(level).time || 0, timed: timed, lives: LIVES, title: ROOMSET[level].title,
+                    sleepers: dogs.filter(function (d) { return d.state === 'sleep'; }).map(function (d) { return [d.m.x, d.m.y]; }) };
+            },
+            routes: function () {   /* every leg of every route must be walkable */
+                var bad = [];
+                function leg(r, ok, who) {
+                    r.forEach(function (w, i) {
+                        var nx = r[(i + 1) % r.length], p = pathTo(w[0], w[1], nx[0], nx[1], ok);
+                        if (!ok(w[0], w[1], w[0], w[1])) bad.push(who + ' waypoint ' + w + ' blocked');
+                        else if (r.length > 1 && (!p.length || p[p.length - 1][0] !== nx[0] || p[p.length - 1][1] !== nx[1])) bad.push(who + ' ' + w + ' -> ' + nx);
+                    });
+                }
+                humans.forEach(function (h, i) { leg(h.route, folkOk, 'human ' + i); });
+                dogs.forEach(function (d, i) { if (d.route) leg(d.route, folkOk, 'dog ' + i); });
+                vacs.forEach(function (v, i) { leg(v.route, vacOk, 'vac ' + i); });
+                return bad;
+            },
+            knockAt: function (x, y) { knock(x, y); },
+            place: function (x, y) { cat.x = cat.tx = x; cat.y = cat.ty = y; cat.t = 0; cat.moving = false; cat.path = []; cat.jump = false; place(cat); },
+            stepTo: function (x, y) { cat.path = [[x, y]]; cat.pathRun = false; cat.knock = null; cat.mark = null; }
         };
     }
 
