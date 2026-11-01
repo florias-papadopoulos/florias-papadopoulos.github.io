@@ -3,8 +3,18 @@
    the cat has won three of them; score = your round wins (one best per difficulty, shared by both modes).
    Easy: the cat looks two moves ahead, is often distracted and you may take back two moves a round; normal: four
    moves ahead; hard: alpha-beta search with iterative deepening, a transposition table and forced-move extensions
-   under a 300 ms budget (about ten moves ahead on a laptop in the four mode). */
-Arcade.register('four-in-a-row', function fr(api) {
+   under a 300 ms budget (about ten moves ahead on a laptop in the four mode).
+   The same file is Four for Two (id four-in-a-row-2p): two players take turns on one screen, Player 1 with
+   paws, Player 2 with fish, no cat playing and no undo. Its mode toggle is remembered on its own ('arcade-fr2-mode'),
+   a running tally (wins of each player and draws, both modes together) lasts until the page is left, "Play again" lets
+   the other player start, and nothing is saved as a best. Single player is untouched by it: duo is false there. */
+(function () {
+var kept = {};                                    /* the modes, in case localStorage is not available */
+var tally = { p1: 0, p2: 0, draws: 0, next: 1 };  /* Four for Two: the match so far and who starts next */
+Arcade.register('four-in-a-row', function (api) { return fourInARow(api, false); });
+Arcade.register('four-in-a-row-2p', function (api) { return fourInARow(api, true); });
+
+function fourInARow(api, duo) {
     'use strict';
     api.css(
         '.fr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }' +
@@ -49,6 +59,21 @@ Arcade.register('four-in-a-row', function fr(api) {
         '.fr-strike line { stroke: #fff; stroke-width: 6; stroke-linecap: round; opacity: .9; stroke-dasharray: 2000; animation: fr-draw .5s ease-out both; }' +
         '.fr-bit { position: absolute; width: 8px; height: 12px; border-radius: 2px; pointer-events: none; animation: fr-bit 1.2s ease-out forwards; }' +
         '.fr-calm *, .fr-calm .fr-tok { animation: none !important; transition: none !important; }' +
+        /* for two: the tally, the turn (or the result and "Play again") */
+        '.fr-side { border: 2px solid transparent; } .fr-side.on.p1 { border-color: #f6a23a; } .fr-side.on.p2 { border-color: #5c7cfa; }' +
+        '.fr-draws { padding: 0 4px; color: #64748b; font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums; }' +
+        '.fr-duo .fr-turn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; }' +
+        '.fr-turn.p1 { color: #c2620a; } .fr-turn.p2 { color: #3b5bdb; }' +
+        '.fr-btn { min-height: 34px; padding: 4px 13px; border: none; border-radius: 999px; background: #fff; color: #64748b; font: inherit;' +
+        '  font-size: .85rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
+        '.fr-btn.go { min-height: 40px; padding: 6px 18px; background: #f08c2e; color: #fff; font-size: 1rem; box-shadow: 0 3px 0 #c96a14; }' +
+        '.fr-btn:active { transform: translateY(2px); box-shadow: none; }' +
+        '.fr-btn:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
+        '.fr-btn:disabled { opacity: .45; cursor: default; }' +
+        '.fr-btn[hidden] { display: none; }' +
+        '@media (max-width: 420px) { .fr-duo .fr-bar { gap: 4px; } .fr-duo .fr-chip { gap: 4px; padding-right: 8px; font-size: .8rem; }' +
+        '  .fr-draws { padding: 0 3px; font-size: .8rem; } .fr-reset { padding: 4px 10px; font-size: .8rem; } }' +
+        '@media (pointer: coarse) { .fr-duo .fr-mode button { padding: 8px 16px; } }' +
         '@keyframes fr-pulse { from { transform: scale(1); } to { transform: scale(1.08); } }' +
         '@keyframes fr-draw { from { stroke-dashoffset: 2000; } to { stroke-dashoffset: 0; } }' +
         '@keyframes fr-bit { 55% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 1; }' +
@@ -58,8 +83,9 @@ Arcade.register('four-in-a-row', function fr(api) {
         four: { cols: 7, rows: 6, n: 4, name: 'Four', w: [0, 1, 8, 50, 1000] },
         five: { cols: 9, rows: 7, n: 5, name: 'Five', w: [0, 1, 4, 20, 90, 1000] }
     };
-    var mode = fr.mode || 'four';                 /* kept on the factory too, in case localStorage is not available */
-    try { mode = localStorage.getItem('arcade-fr-mode') || mode; } catch (e) { /* private mode: keep the factory's */ }
+    var KEY = duo ? 'arcade-fr2-mode' : 'arcade-fr-mode';
+    var mode = kept[KEY] || 'four';               /* kept in the file too, in case localStorage is not available */
+    try { mode = localStorage.getItem(KEY) || mode; } catch (e) { /* private mode: keep the file's */ }
     if (!Object.prototype.hasOwnProperty.call(MODES, mode)) mode = 'four';
     var M = MODES[mode], COLS = M.cols, ROWS = M.rows, N = M.n;
     var YOU = 1, CAT = 2, WIN = 1000000, LIVES = 3;
@@ -92,20 +118,25 @@ Arcade.register('four-in-a-row', function fr(api) {
     });
 
     var wrap = document.createElement('div');
-    wrap.className = 'fr' + (api.reducedMotion ? ' fr-calm' : '');
+    wrap.className = 'fr' + (duo ? ' fr-duo' : '') + (api.reducedMotion ? ' fr-calm' : '');
     wrap.innerHTML = '<div class="fr-head"><div class="fr-mode" role="group" aria-label="Game mode">' +
         '<button type="button" data-m="four">Four in a row</button><button type="button" data-m="five">Five in a row</button></div><div class="fr-bar">' +
+        (duo ? '<span class="fr-chip fr-side p1"><span class="fr-tok fr-you">' + ART[YOU] + '</span>Player 1 <b>0</b></span>' +
+        '<span class="fr-draws">Draws <b>0</b></span><span class="fr-chip fr-side p2"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Player 2 <b>0</b></span>' +
+        '<button type="button" class="fr-btn fr-reset">Reset</button></div><div class="fr-turn"><span aria-live="polite"></span>' +
+        '<button type="button" class="fr-btn go" hidden>Play again</button></div></div>' :
         '<span class="fr-chip" title="Your round wins"><span class="fr-tok fr-you">' + ART[YOU] + '</span>You <b class="fr-wins">0</b></span>' +
         '<span class="fr-round"></span>' +
         '<span class="fr-chip" title="Rounds the cat has won (three end the game)"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Cat ' +
         '<span class="fr-pip"></span><span class="fr-pip"></span><span class="fr-pip"></span></span>' +
         (CFG.undo ? '<button type="button" class="fr-undo"></button>' : '') +
-        '</div><div class="fr-turn" aria-live="polite"></div></div>' +
+        '</div><div class="fr-turn" aria-live="polite"></div></div>') +
         '<div class="fr-play"><div class="fr-aim"><div class="fr-tok fr-you">' + ART[YOU] + '</div></div>' +
         '<div class="fr-board"><div class="fr-col"></div><div class="fr-tok fr-you ghost off">' + ART[YOU] + '</div></div></div>';
     api.el.appendChild(wrap);
     var play = wrap.querySelector('.fr-play'), aim = wrap.querySelector('.fr-aim'), aimTok = aim.firstChild;
-    var boardEl = wrap.querySelector('.fr-board'), turnEl = wrap.querySelector('.fr-turn'), undoBtn = wrap.querySelector('.fr-undo');
+    var boardEl = wrap.querySelector('.fr-board'), turnEl = wrap.querySelector(duo ? '.fr-turn span' : '.fr-turn'), undoBtn = wrap.querySelector('.fr-undo');
+    var againBtn = wrap.querySelector('.go'), resetBtn = wrap.querySelector('.fr-reset'), turn = YOU;   /* for two: whose turn */
     var colEl = wrap.querySelector('.fr-col'), ghost = wrap.querySelector('.ghost'), pips = wrap.querySelectorAll('.fr-pip');
     var modeBtns = wrap.querySelectorAll('.fr-mode button');
     modeBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.m === mode); });
@@ -114,7 +145,7 @@ Arcade.register('four-in-a-row', function fr(api) {
 
     var cs = 60, pad = 7, off = 5;
     function fit(s) {
-        cs = Math.max(30, Math.floor(Math.min((s.w - 24) / (COLS + 0.3), (s.h - 170) / (ROWS + 1.7), 72)));
+        cs = Math.max(30, Math.floor(Math.min((s.w - 24) / (COLS + 0.3), (s.h - (duo ? 195 : 170)) / (ROWS + 1.7), 72)));
         pad = Math.round(cs * 0.12);
         off = Math.round(cs * 0.08);
         var v = { cs: cs, pad: pad, off: off, ts: cs - 2 * off };
@@ -164,7 +195,7 @@ Arcade.register('four-in-a-row', function fr(api) {
     }
 
     /* ---------- the cat's search: negamax with alpha-beta and a transposition table ---------- */
-    var TT = 1 << 19, ttKey = new Int32Array(TT), ttVal = new Int32Array(TT), ttDepth = new Int8Array(TT);
+    var TT = 1 << (duo ? 4 : 19), ttKey = new Int32Array(TT), ttVal = new Int32Array(TT), ttDepth = new Int8Array(TT);
     var ttFlag = new Int8Array(TT), ttMove = new Int8Array(TT);   /* flag 0 exact, 1 lower bound, 2 upper bound; move + 1 */
     var MATE = WIN - 100;                         /* values beyond this are wins, stored relative to the node */
     function toTT(v, ply) { return v > MATE ? v + ply : v < -MATE ? v - ply : v; }
@@ -270,7 +301,10 @@ Arcade.register('four-in-a-row', function fr(api) {
             undoBtn.disabled = idle || !undos || !history.some(function (h) { return h.p === YOU; });
         }
     }
-    function status(t) { turnEl.textContent = t; }
+    function status(t, p) {
+        turnEl.textContent = t;
+        if (duo) turnEl.parentNode.className = 'fr-turn' + (p ? ' p' + p : '');
+    }
     function chat(text, mood, force) {            /* not more than one comment every few moves */
         if (mood) api.cat(mood);
         if (!force && moves - lastSay < 6) return;
@@ -278,6 +312,7 @@ Arcade.register('four-in-a-row', function fr(api) {
         api.say(text, 1800);
     }
     function showScore() {
+        if (duo) return duoShow();
         api.score(wins0, 'Wins');
         wrap.querySelector('.fr-wins').textContent = wins0;
         pips.forEach(function (pip, n) { pip.classList.toggle('on', n < losses); });
@@ -344,6 +379,7 @@ Arcade.register('four-in-a-row', function fr(api) {
     function finish(p) {
         busy = true;
         showAim();
+        if (duo) return duoFinish(p);
         if (p === YOU) {
             wins0++;
             showScore();
@@ -406,9 +442,53 @@ Arcade.register('four-in-a-row', function fr(api) {
         placeAim();
         busy = true;
         showAim();
-        drop(c, YOU, function (line) {
-            if (!check(line, YOU)) catTurn();
+        var p = duo ? turn : YOU;
+        drop(c, p, function (line) {
+            if (check(line, p)) return;
+            if (!duo) return catTurn();
+            setTurn(3 - p);
+            busy = false;
+            showAim();
+            duoShow();
         });
+    }
+
+    /* ---------- for two ---------- */
+    function name(p) { return p === YOU ? 'Player 1' : 'Player 2'; }
+    function setTurn(p) {                         /* the disc above the board and the ghost show whose turn it is */
+        turn = p;
+        [aimTok, ghost].forEach(function (t) {
+            t.classList.toggle('fr-you', p === YOU);
+            t.classList.toggle('fr-cat', p === CAT);
+            t.innerHTML = ART[p];
+        });
+    }
+    function duoShow() {                          /* the tally, and whose turn it is */
+        var sides = wrap.querySelectorAll('.fr-side');
+        sides[0].querySelector('b').textContent = tally.p1;
+        sides[1].querySelector('b').textContent = tally.p2;
+        wrap.querySelector('.fr-draws b').textContent = tally.draws;
+        resetBtn.disabled = !(tally.p1 || tally.p2 || tally.draws);
+        sides[0].classList.toggle('on', !busy && turn === YOU);
+        sides[1].classList.toggle('on', !busy && turn === CAT);
+        if (!busy) status(name(turn) + (moves ? '\u2019s turn' : ' starts'), turn);
+    }
+    function duoFinish(p) {
+        if (p) {
+            tally[p === YOU ? 'p1' : 'p2']++;
+            status(name(p) + ' wins!', p);
+            api.sfx('point');
+            api.cat('happy');
+            confetti();
+        } else {
+            tally.draws++;
+            status('A draw');
+            api.sfx('move');
+            api.cat('think');
+        }
+        duoShow();
+        againBtn.hidden = false;
+        againBtn.focus();
     }
     function undo() {                             /* take back the cat's reply and your last move */
         if (busy || over || !undos) return;
@@ -443,6 +523,14 @@ Arcade.register('four-in-a-row', function fr(api) {
         showScore();
         placeAim();
         api.cat('idle');
+        if (duo) {                                /* the starter changes every round */
+            setTurn(tally.next);
+            tally.next = 3 - turn;
+            againBtn.hidden = true;
+            busy = false;
+            showAim();
+            return duoShow();
+        }
         if (round % 2 === 0) {                    /* the cat starts every other round */
             catTurn('The cat starts');
         } else {
@@ -467,12 +555,20 @@ Arcade.register('four-in-a-row', function fr(api) {
     });
     api.on(play, 'pointerleave', function () { hovering = false; showAim(); });
     if (undoBtn) api.on(undoBtn, 'click', function () { undoBtn.blur(); undo(); });
+    if (duo) {
+        api.on(againBtn, 'click', newRound);
+        api.on(resetBtn, 'click', function () {
+            tally.p1 = tally.p2 = tally.draws = 0;
+            api.sfx('pop');
+            duoShow();
+        });
+    }
     /* the mode toggle: remember the choice and start a fresh run */
     api.on(wrap.querySelector('.fr-mode'), 'click', function (e) {
         var b = e.target.closest('button');
         if (!b || b.dataset.m === mode) return;
-        fr.mode = b.dataset.m;
-        try { localStorage.setItem('arcade-fr-mode', fr.mode); } catch (err) { /* remembered on the factory only */ }
+        kept[KEY] = b.dataset.m;
+        try { localStorage.setItem(KEY, kept[KEY]); } catch (err) { /* remembered in the file only */ }
         api.restart();
     });
     api.on(document, 'keydown', function (e) {
@@ -497,5 +593,7 @@ Arcade.register('four-in-a-row', function fr(api) {
     api.onResize(fit);
     if (level === 'hard') api.say('Hard: I think far ahead. Good luck!', 2400);
     else if (level === 'easy') api.say('Easy: I will go gently. Undo is allowed.', 2400);
+    else if (duo && !(tally.p1 || tally.p2 || tally.draws)) api.say('Two players, one screen. I keep the score!', 2400);
     newRound();
-});
+}
+})();

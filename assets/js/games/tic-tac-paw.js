@@ -2,8 +2,17 @@
    a win scores 2 points plus 1 for every win before it in the streak, a draw scores 1. On normal and hard a kitten
    naps on a square every few rounds (nobody can play there). Easy: the cat is often distracted; normal: sometimes;
    hard: perfect play, so the cat never loses and draws are what count. Best score = most points in one run.
-   Reference game for the shell API (see assets/js/games/arcade.js). */
-Arcade.register('tic-tac-paw', function (api) {
+   Reference game for the shell API (see assets/js/games/arcade.js).
+   The same file is Tic Tac Two (id tic-tac-paw-2p): two players take turns on one screen, Player 1 with
+   paws, Player 2 with fish, no cat playing and no kitten naps. A running tally (wins of each player and draws) lasts
+   until the page is left, "Play again" lets the other player start, and nothing is saved as a best. Single player is
+   untouched by it: duo is false there. */
+(function () {
+var tally = { p1: 0, p2: 0, draws: 0, next: 'Y' };   /* Tic Tac Two: the match so far and who starts next */
+Arcade.register('tic-tac-paw', function (api) { return ticTacPaw(api, false); });
+Arcade.register('tic-tac-paw-2p', function (api) { return ticTacPaw(api, true); });
+
+function ticTacPaw(api, duo) {
     'use strict';
     var PAW_PATH = '<ellipse cx="20" cy="26" rx="8" ry="6.8"/><circle cx="10.5" cy="17.5" r="3.4"/><circle cx="16.3" cy="11" r="3.4"/>' +
         '<circle cx="23.7" cy="11" r="3.4"/><circle cx="29.5" cy="17.5" r="3.4"/>';
@@ -16,6 +25,8 @@ Arcade.register('tic-tac-paw', function (api) {
         '<text x="27" y="15">z</text><text x="32" y="9" class="small">z</text></svg>';
     var hoverPaw = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#f6a23a" opacity=".22">' +
         PAW_PATH + '</svg>') + '")';
+    var hoverFish = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#4c6ef5" opacity=".2">' +
+        '<path d="M5 20c5-8 15-10 22-5l8-6v22l-8-6c-7 5-17 3-22-5z"/></svg>') + '")';
     api.css(
         '.ttp { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }' +
         '.ttp-turn { min-height: 1.3em; font-weight: 700; color: #475569; }' +
@@ -28,7 +39,8 @@ Arcade.register('tic-tac-paw', function (api) {
         '  background: linear-gradient(160deg, #dfe9fb, #c9daf6); box-shadow: 0 7px 0 #aac2ec, 0 16px 30px rgba(30, 58, 138, .12); }' +
         '.ttp-cell { position: relative; padding: 0; border: none; border-radius: 18px; background: #fffdf8 center / 58% no-repeat;' +
         '  box-shadow: 0 5px 0 #eadfcd; cursor: pointer; transition: transform .12s, box-shadow .12s, background-color .2s; -webkit-tap-highlight-color: transparent; }' +
-        '@media (hover: hover) { .ttp-cell:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #eadfcd; background-image: ' + hoverPaw + '; } }' +
+        '@media (hover: hover) { .ttp-cell:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #eadfcd; background-image: ' + hoverPaw + '; }' +
+        '  .ttp-duo.p2 .ttp-cell:hover:not(:disabled) { background-image: ' + hoverFish + '; } }' +
         '.ttp-cell:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #eadfcd; }' +
         '.ttp-cell:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
         '.ttp-cell:disabled { cursor: default; }' +
@@ -47,6 +59,24 @@ Arcade.register('tic-tac-paw', function (api) {
         '.ttp-strike.cat line { stroke: #5c7cfa; }' +
         '.ttp-bit { position: absolute; width: 8px; height: 12px; border-radius: 2px; pointer-events: none; animation: ttp-bit 1.1s ease-out forwards; }' +
         '.ttp-calm *, .ttp-calm .ttp-cell svg { animation: none !important; transition: none !important; }' +
+        /* for two: the tally on top, the turn (or the result and "Play again") under it */
+        '.ttp-score { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center; }' +
+        '.ttp-side { display: inline-flex; align-items: center; gap: 5px; padding: 2px 11px 2px 4px; border: 2px solid transparent; border-radius: 999px;' +
+        '  background: #fff; box-shadow: 0 2px 0 #e9dfcf; color: #475569; font-size: .88rem; font-weight: 700; font-variant-numeric: tabular-nums; }' +
+        '.ttp-side svg { width: 24px; height: 24px; }' +
+        '.ttp-side.on { border-color: #f6a23a; } .ttp-side.p2.on { border-color: #5c7cfa; }' +
+        '.ttp-draws { padding: 4px 11px; color: #64748b; font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums; }' +
+        '.ttp-duo .ttp-turn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; }' +
+        '.ttp-turn.p1 { color: #c2620a; } .ttp-turn.p2 { color: #3b5bdb; }' +
+        '.ttp-btn { min-height: 36px; padding: 5px 14px; border: none; border-radius: 999px; background: #fff; color: #64748b; font: inherit;' +
+        '  font-size: .88rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 0 #e9dfcf; -webkit-tap-highlight-color: transparent; }' +
+        '.ttp-btn.go { min-height: 40px; padding: 6px 18px; background: #f08c2e; color: #fff; font-size: 1rem; box-shadow: 0 3px 0 #c96a14; }' +
+        '.ttp-btn:active { transform: translateY(2px); box-shadow: none; }' +
+        '.ttp-btn:focus-visible { outline: 3px solid #f6a23a; outline-offset: 2px; }' +
+        '.ttp-btn:disabled { opacity: .45; cursor: default; }' +
+        '.ttp-btn[hidden] { display: none; }' +
+        '@media (max-width: 420px) { .ttp-score { gap: 4px; } .ttp-side { gap: 4px; padding-right: 8px; font-size: .8rem; }' +
+        '  .ttp-draws { padding: 4px 3px; font-size: .8rem; } .ttp-reset { padding: 5px 10px; font-size: .8rem; } }' +
         '@keyframes ttp-in { from { transform: scale(0) rotate(-20deg); } to { transform: none; } }' +
         '@keyframes ttp-hop { to { transform: translateY(-8%) scale(1.08); } }' +
         '@keyframes ttp-draw { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }' +
@@ -57,13 +87,18 @@ Arcade.register('tic-tac-paw', function (api) {
     var LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
     var level = api.level();
     var MISTAKE = { easy: 0.5, normal: 0.18, hard: 0 }[level];     /* chance the cat plays a random square */
-    var NAP_EVERY = { easy: 0, normal: 3, hard: 2 }[level];        /* a napping kitten every n-th round */
+    var NAP_EVERY = duo ? 0 : { easy: 0, normal: 3, hard: 2 }[level];   /* a napping kitten every n-th round */
     var wrap = document.createElement('div');
-    wrap.className = 'ttp' + (api.reducedMotion ? ' ttp-calm' : '');
-    wrap.innerHTML = '<div class="ttp-turn" aria-live="polite"></div><div class="ttp-board"></div><div class="ttp-chips"></div>';
+    wrap.className = 'ttp' + (duo ? ' ttp-duo' : '') + (api.reducedMotion ? ' ttp-calm' : '');
+    wrap.innerHTML = duo ? '<div class="ttp-score"><span class="ttp-side p1">' + PAW + 'Player 1 <b>0</b></span>' +
+        '<span class="ttp-draws">Draws <b>0</b></span><span class="ttp-side p2">' + FISH + 'Player 2 <b>0</b></span>' +
+        '<button type="button" class="ttp-btn ttp-reset">Reset</button></div>' +
+        '<div class="ttp-turn"><span aria-live="polite"></span><button type="button" class="ttp-btn go" hidden>Play again</button></div><div class="ttp-board"></div>' :
+        '<div class="ttp-turn" aria-live="polite"></div><div class="ttp-board"></div><div class="ttp-chips"></div>';
     api.el.appendChild(wrap);
-    var board = wrap.querySelector('.ttp-board'), turnEl = wrap.querySelector('.ttp-turn'), chips = wrap.querySelector('.ttp-chips');
+    var board = wrap.querySelector('.ttp-board'), turnEl = wrap.querySelector(duo ? '.ttp-turn span' : '.ttp-turn'), chips = wrap.querySelector('.ttp-chips');
     var cells = [], grid, busy, points = 0, streak = 0, draws = 0, round = 0, memo = {};
+    var turn = 'Y', againBtn = wrap.querySelector('.go'), resetBtn = wrap.querySelector('.ttp-reset');   /* for two: whose turn */
 
     for (var i = 0; i < 9; i++) {
         var b = document.createElement('button');
@@ -75,8 +110,8 @@ Arcade.register('tic-tac-paw', function (api) {
     }
     /* the board is square; when it spans the width, keep the mascot corner below it free */
     function fit(s) {
-        var size = Math.min(420, s.w - 32, s.h - 120);
-        if ((s.w - size) / 2 < 100) size = Math.min(size, s.h - 200);
+        var size = Math.min(420, s.w - 32, s.h - (duo ? 140 : 120));
+        if ((s.w - size) / 2 < 100) size = Math.min(size, s.h - (duo ? 250 : 200));
         wrap.style.setProperty('--s', Math.max(180, size) + 'px');
     }
     fit(api.size());
@@ -180,6 +215,7 @@ Arcade.register('tic-tac-paw', function (api) {
             w.line.forEach(function (k) { cells[k].classList.add('win'); });
             strike(w.line, w.who);
         }
+        if (duo) return duoFinish(w);
         if (w.who === 'Y') {
             streak++;
             points += 1 + streak;                 /* 2, 3, 4, ... for each win in a row */
@@ -221,6 +257,41 @@ Arcade.register('tic-tac-paw', function (api) {
             turnEl.textContent = 'Your turn';
         }, 450 + Math.random() * 350);
     }
+    /* ---------- for two ---------- */
+    function name(p) { return p === 'Y' ? 'Player 1' : 'Player 2'; }
+    function duoStatus(text, p) {
+        turnEl.textContent = text;
+        turnEl.parentNode.className = 'ttp-turn' + (p ? ' ' + (p === 'Y' ? 'p1' : 'p2') : '');
+    }
+    function duoShow() {                          /* the tally, and whose turn it is */
+        var sides = wrap.querySelectorAll('.ttp-side');
+        sides[0].querySelector('b').textContent = tally.p1;
+        sides[1].querySelector('b').textContent = tally.p2;
+        wrap.querySelector('.ttp-draws b').textContent = tally.draws;
+        resetBtn.disabled = !(tally.p1 || tally.p2 || tally.draws);
+        sides[0].classList.toggle('on', !busy && turn === 'Y');
+        sides[1].classList.toggle('on', !busy && turn === 'C');
+        wrap.classList.toggle('p2', turn === 'C');
+        if (!busy) duoStatus(name(turn) + (grid.indexOf('Y') < 0 && grid.indexOf('C') < 0 ? ' starts' : '\u2019s turn'), turn);
+    }
+    function duoFinish(w) {
+        if (w.who === 'draw') {
+            tally.draws++;
+            duoStatus('A draw');
+            api.sfx('move');
+            api.cat('think');
+        } else {
+            tally[w.who === 'Y' ? 'p1' : 'p2']++;
+            duoStatus(name(w.who) + ' wins!', w.who);
+            api.sfx('point');
+            api.cat('happy');
+            confetti();
+        }
+        duoShow();
+        againBtn.hidden = false;
+        againBtn.focus();
+    }
+
     function newRound() {
         round++;
         grid = [null, null, null, null, null, null, null, null, null];
@@ -232,6 +303,12 @@ Arcade.register('tic-tac-paw', function (api) {
         if (nap) {
             put(Math.floor(Math.random() * 9), 'N');
             if (round === NAP_EVERY) api.say('A kitten naps on one square. Play around it!', 2400);
+        }
+        if (duo) {                                /* the starter changes every round */
+            turn = tally.next;
+            tally.next = turn === 'Y' ? 'C' : 'Y';
+            againBtn.hidden = true;
+            return duoShow();
         }
         show(nap);
         if (round % 2 === 0) {                    /* the cat starts every other round */
@@ -245,12 +322,22 @@ Arcade.register('tic-tac-paw', function (api) {
     api.on(board, 'click', function (e) {
         var c = e.target.closest('.ttp-cell');
         if (!c || busy || grid[+c.dataset.i]) return;
-        put(+c.dataset.i, 'Y');
-        api.sfx('tap');
+        put(+c.dataset.i, duo ? turn : 'Y');
+        api.sfx(turn === 'C' ? 'move' : 'tap');
         var w = winner(grid);
         if (w) return finish(w);
-        catTurn();
+        if (!duo) return catTurn();
+        turn = turn === 'Y' ? 'C' : 'Y';
+        duoShow();
     });
+    if (duo) {
+        api.on(againBtn, 'click', newRound);
+        api.on(resetBtn, 'click', function () {
+            tally.p1 = tally.p2 = tally.draws = 0;
+            api.sfx('pop');
+            duoShow();
+        });
+    }
     /* arrow keys move the focus between squares, Enter or Space plays (native button) */
     api.on(board, 'keydown', function (e) {
         var c = e.target.closest('.ttp-cell');
@@ -261,6 +348,8 @@ Arcade.register('tic-tac-paw', function (api) {
         while (k >= 0 && k < 9 && cells[k].disabled) k += d;      /* skip squares already taken */
         if (k >= 0 && k < 9) cells[k].focus();
     });
-    if (level === 'hard') api.say('On hard I never lose. Hold me to draws!', 2600);
+    if (level === 'hard' && !duo) api.say('On hard I never lose. Hold me to draws!', 2600);
+    else if (duo && !(tally.p1 || tally.p2 || tally.draws)) api.say('Two players, one screen. I keep the score!', 2400);
     newRound();
-});
+}
+})();
