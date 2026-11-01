@@ -2,7 +2,7 @@
    The first tap always opens a patch. Tapping a number with as many paws around it opens the rest (chording).
    The cat's sniff shows a safe cell (a few times on easy, once otherwise); on easy the cat also catches the first
    mouse you uncover (+10 s). Board size and mice per difficulty; the long side of the board follows the screen.
-   One tap puts a paw (flag) on a cell, a second tap on the same cell right after opens it.
+   One tap puts a paw (flag) on a cell, a tap on a paw opens the cell; a long press or right click takes a paw off.
    Score = seconds, best = fastest win. Shell API: assets/js/games/arcade.js. */
 Arcade.register('mouse-sweeper', function (api) {
     'use strict';
@@ -284,22 +284,39 @@ Arcade.register('mouse-sweeper', function (api) {
             text: 'All mice found!\n' + COLS + 'x' + ROWS + ', ' + MICE + ' mice in ' + s + ' s' + (penalty ? ' (with +' + penalty + ' s)' : '') });
     }
 
-    /* input: a tap or click puts a paw on a hidden cell, a second one on the same cell right after opens it
-       (a later tap on a paw takes it off again); tapping an open number chords; right click also toggles a paw */
-    var lastType = 'mouse', lastK = -1, lastT = 0, DOUBLE = 450;
+    /* input: a tap or click puts a paw on a hidden cell, a tap on a paw opens the cell, a tap on an open number
+       chords; a long press (touch) or a right click (mouse) puts a paw on or takes it off without opening */
+    var lastType = 'mouse', hold = null, held = false, hx = 0, hy = 0;
     function cellOf(e) { var c = e.target.closest && e.target.closest('.ms-cell'); return c ? +c.dataset.i : -1; }
     function press(k) {
         if (over || caught[k]) return;
-        var now = Date.now(), again = k === lastK && now - lastT < DOUBLE;
-        lastK = again ? -1 : k;
-        lastT = now;
         if (shown[k]) return chord(k);
-        if (again && flag[k]) { toggleFlag(k); reveal(k); }
+        if (flag[k]) { toggleFlag(k); reveal(k); }
         else toggleFlag(k);
     }
-    api.on(grid, 'pointerdown', function (e) { lastType = e.pointerType; });
+    function endHold() { if (hold) clearTimeout(hold); hold = null; }
+    api.on(grid, 'pointerdown', function (e) {
+        lastType = e.pointerType;
+        held = false;
+        var k = cellOf(e);
+        endHold();
+        if (e.pointerType === 'mouse' || k < 0 || over) return;
+        hx = e.clientX; hy = e.clientY;
+        hold = api.timeout(function () {
+            hold = null;
+            held = true;                                   /* the click that ends this press must not act */
+            toggleFlag(k);
+            if (navigator.vibrate) navigator.vibrate(15);
+        }, 450);
+    });
+    api.on(grid, 'pointermove', function (e) {
+        if (hold && Math.abs(e.clientX - hx) + Math.abs(e.clientY - hy) > 12) endHold();
+    });
+    api.on(grid, 'pointerup', endHold);
+    api.on(grid, 'pointercancel', endHold);
     api.on(grid, 'click', function (e) {
         var k = cellOf(e);
+        if (held) { held = false; return; }
         if (k >= 0) press(k);
     });
     api.on(grid, 'contextmenu', function (e) {
@@ -333,5 +350,5 @@ Arcade.register('mouse-sweeper', function (api) {
     showSniff();
     showLives();
     api.score(0, 'Time');
-    api.say((api.touch ? 'Tap' : 'Click') + ' once for a paw, twice to open', 3000);
+    api.say(api.touch ? 'Tap for a paw, tap the paw to open. Long press takes it off' : 'Click for a paw, click the paw to open. Right click takes it off', 3500);
 });
