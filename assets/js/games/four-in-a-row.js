@@ -60,7 +60,7 @@ Arcade.register('four-in-a-row', function fr(api) {
     };
     var mode = fr.mode || 'four';                 /* kept on the factory too, in case localStorage is not available */
     try { mode = localStorage.getItem('arcade-fr-mode') || mode; } catch (e) { /* private mode: keep the factory's */ }
-    if (!MODES[mode]) mode = 'four';
+    if (!Object.prototype.hasOwnProperty.call(MODES, mode)) mode = 'four';
     var M = MODES[mode], COLS = M.cols, ROWS = M.rows, N = M.n;
     var YOU = 1, CAT = 2, WIN = 1000000, LIVES = 3;
     var level = api.level();

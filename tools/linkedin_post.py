@@ -153,7 +153,13 @@ def excerpt(meta):
     if len(text) > MAX_TEXT:
         cut = text[:MAX_TEXT + 1]
         text = (cut[:cut.rfind(" ")] if " " in cut[MAX_TEXT // 2:] else cut[:MAX_TEXT]).rstrip(" ,;:.") + "…"
-    return text
+    return md_plain(text)
+
+
+def md_plain(text):
+    """Someone else's text, made safe for the feed, which renders it as Markdown with raw HTML allowed: every character
+    that could start HTML, an entity, a link or emphasis is backslash-escaped, so it shows as typed."""
+    return re.sub(r"([\\`*_\[\]<>&!#|~])", r"\\\1", text)
 
 
 def slugify(text, d, url):
@@ -183,8 +189,27 @@ def save_image(img_url, page_url, slug, site, timeout):
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(body)
     note = "" if ext == ".jpg" else " (the picture is %s, so it keeps its own extension)" % ctype
-    print("  picture saved: %s (%d kB)%s" % (dest, (len(body) + 1023) // 1024, note), file=sys.stderr)
+    if shrink(dest):
+        note += ", shrunk to %dx%d" % THUMB
+    print("  picture saved: %s (%d kB)%s" % (dest, (dest.stat().st_size + 1023) // 1024, note), file=sys.stderr)
     return rel
+
+
+THUMB = (160, 108)   # the feed shows pictures at 52x36 at most; three times that stays sharp on any screen
+
+
+def shrink(path):
+    """Crops and scales the picture in place to THUMB (centred, like the feed's object-fit: cover). Needs Pillow;
+    without it the picture stays as downloaded and False is returned."""
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        warn("  Pillow is not installed, so the picture keeps its full size (pip install Pillow to shrink it)")
+        return False
+    with Image.open(path) as im:
+        im = ImageOps.fit(ImageOps.exif_transpose(im).convert("RGB"), THUMB, Image.LANCZOS)
+        im.save(path, quality=82, optimize=True, progressive=True)
+    return True
 
 
 def ystr(s):
@@ -242,7 +267,7 @@ def process(url, site, timeout, want_image):
     if img and want_image:
         e["image"] = save_image(urllib.parse.urljoin(final, html.unescape(img)), final, slugify(text, d, url), site, timeout)
         if e["image"] and meta.get("og:image:alt"):
-            e["alt"] = re.sub(r"\s+", " ", meta["og:image:alt"]).strip()
+            e["alt"] = re.sub(r"\s+", " ", html.unescape(meta["og:image:alt"])).strip()
     if not e["date"]:
         warn("  no date found: fill it in")
         e["date"] = "FILL IN"

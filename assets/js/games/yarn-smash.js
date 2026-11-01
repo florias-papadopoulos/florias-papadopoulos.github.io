@@ -1883,7 +1883,12 @@ Arcade.register('yarn-smash', function (api) {
         }
     }
     var MEDAL = ['', 'bronze', 'silver', 'gold'], MEDC = ['', '#f0b080', '#e2e8f0', '#ffd25c'];
-    var medalStore = (function () { try { return JSON.parse(localStorage.getItem('yarn-smash-medals')) || {}; } catch (e) { return {}; } })();
+    var medalStore = (function () {             /* world key -> best medal 1, 2 or 3; anything else that was stored is dropped */
+        var o = null, out = {};
+        try { o = JSON.parse(localStorage.getItem('yarn-smash-medals')); } catch (e) { /* none kept */ }
+        ZONES.forEach(function (W) { var m = o && typeof o === 'object' ? o[W.key] : 0; if (m === 1 || m === 2 || m === 3) out[W.key] = m; });
+        return out;
+    })();
     function award(zi) {  /* a world finished: gold with no crash and at most 3 misses, silver with at most 1 crash, else bronze */
         var Z = ZONES[zi % NZ], m = worldCrash === 0 && worldMiss <= 3 ? 3 : worldCrash <= 1 ? 2 : 1, isNew = m > (medalStore[Z.key] || 0);
         medalsRun.push({ name: Z.name, m: m, isNew: isNew });

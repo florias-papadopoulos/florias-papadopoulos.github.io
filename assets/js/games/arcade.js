@@ -48,8 +48,16 @@
             localStorage.setItem(key, JSON.stringify(value));
         } catch (e) { return null; }
     }
-    var bests = store('arcade-best') || {};
-    var levels = store('arcade-level') || {};
+    /* what comes back from storage is checked: a plain object, keeping only entries that pass ok() */
+    function clean(o, ok) {
+        var out = {};
+        if (o && typeof o === 'object' && !Array.isArray(o)) {
+            Object.keys(o).forEach(function (k) { if (k !== '__proto__' && ok(o[k])) out[k] = o[k]; });
+        }
+        return out;
+    }
+    var bests = clean(store('arcade-best'), function (v) { return typeof v === 'number' && isFinite(v); });
+    var levels = clean(store('arcade-level'), function (v) { return v === 'easy' || v === 'normal' || v === 'hard'; });
     /* games that were renamed: old links still open them, and their saved bests and levels move along */
     var RENAMED = { 'yarn-trail': 'long-cat' };
     Object.keys(RENAMED).forEach(function (old) {
