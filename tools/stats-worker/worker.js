@@ -5,11 +5,11 @@
 // Table (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country.
 const SITE = 'https://florias-papadopoulos.github.io';
 const BROWSERS = ['Firefox', 'Chrome', 'Safari', 'Edge', 'Opera', 'Other'];
+const TOP = 40;   // /stats lists at most this many pages, referrers, countries... (keeps the answer small whatever is sent)
 
 function headers(extra) {
     return Object.assign({ 'Access-Control-Allow-Origin': SITE, 'Vary': 'Origin' }, extra || {});
 }
-function clean(s, max) { return String(s || '').replace(/[^\w\-./:%]/g, '').slice(0, max); }
 
 export default {
     async fetch(req, env) {
@@ -17,8 +17,12 @@ export default {
         if (req.method === 'OPTIONS') {
             return new Response(null, { headers: headers({ 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type' }) });
         }
-        if (url.pathname === '/hit' && req.method === 'POST') return hit(req, env);
-        if (url.pathname === '/stats' && req.method === 'GET') return stats(url, env);
+        try {
+            if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
+            if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
+        } catch (e) {
+            return new Response('Error', { status: 500, headers: headers() });
+        }
         return new Response('Not found', { status: 404, headers: headers() });
     }
 };
@@ -30,10 +34,12 @@ async function hit(req, env) {
         return new Response(null, { status: 204, headers: headers() });
     }
     let d;
-    try { d = JSON.parse(await req.text()); } catch (e) { return new Response(null, { status: 400, headers: headers() }); }
-    const page = clean(d.p, 120);
-    if (page.charAt(0) !== '/') return new Response(null, { status: 400, headers: headers() });
-    const ref = clean(d.r, 80) || '(direct)';
+    try { d = JSON.parse(await req.text()); } catch (e) { d = null; }
+    if (!d || typeof d !== 'object') return new Response(null, { status: 400, headers: headers() });
+    /* a page is a short path of the site's own kind (/master/, /games/, /404/), a referrer a plain host name */
+    const page = String(d.p || '');
+    if (!/^\/[a-z0-9\-_\/]{0,80}$/i.test(page)) return new Response(null, { status: 400, headers: headers() });
+    const ref = /^[a-z0-9.\-]{1,80}$/i.test(d.r || '') ? d.r.toLowerCase() : '(direct)';
     const device = d.d === 'phone' || d.d === 'tablet' ? d.d : 'desktop';
     const browser = BROWSERS.indexOf(d.b) >= 0 ? d.b : 'Other';
     const country = (req.cf && req.cf.country) || 'XX';   // worked out by Cloudflare; the IP address is never read here
@@ -45,7 +51,8 @@ async function hit(req, env) {
 }
 
 async function stats(url, env) {
-    const days = Math.min(365, Math.max(1, parseInt(url.searchParams.get('days') || '30', 10) || 30));
+    const asked = parseInt(url.searchParams.get('days') || '30', 10);
+    const days = Math.min(365, Math.max(1, isNaN(asked) ? 30 : asked));
     const since = new Date(Date.now() - (days - 1) * 864e5).toISOString().slice(0, 10);
     const rows = (await env.DB.prepare('SELECT day, kind, key, n FROM counts WHERE day >= ?1 ORDER BY day').bind(since).all()).results;
     const out = { since: since, days: days, daily: {}, totals: {} };
@@ -55,6 +62,12 @@ async function stats(url, env) {
             const t = out.totals[r.kind] || (out.totals[r.kind] = {});
             t[r.key] = (t[r.key] || 0) + r.n;
         }
+    }
+    for (const k in out.totals) {
+        const top = Object.keys(out.totals[k]).sort(function (a, b) { return out.totals[k][b] - out.totals[k][a]; }).slice(0, TOP);
+        const keep = {};
+        top.forEach(function (key) { keep[key] = out.totals[k][key]; });
+        out.totals[k] = keep;
     }
     return new Response(JSON.stringify(out), { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' }) });
 }

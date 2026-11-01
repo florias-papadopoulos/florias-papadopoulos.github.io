@@ -187,7 +187,7 @@ params:
     safari_pinned_tab: safari-pinned-tab.svg?v=key
   # The visit counter (tools/stats-worker, shown on /stats/). Empty means the counter is off and nothing is sent;
   # set it to the Worker URL (e.g. https://site-stats.NAME.workers.dev, no trailing slash) to switch it on.
-  statsEndpoint: ""
+  statsEndpoint: "https://florias-stats.floriaspapadopoulos.workers.dev"
   cover:
     hiddenInList: false
     hiddenInSingle: true

@@ -28,7 +28,12 @@
     <header class="you-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
         <p class="you-lede">Everything below is worked out by your own browser, on this page: <strong>none of it is stored or sent anywhere</strong>, apart from the IP lookup you can start with the button.</p>
+        {{- /* the visit counter (params.statsEndpoint) keeps totals only: say so while it is switched on */}}
+        {{- if site.Params.statsEndpoint }}
+        <p class="you-sub">This site only counts visits in totals (no cookies, no IP addresses, see <a href="{{ "stats/" | relURL }}">Site stats</a>). Everything below is what I, as its owner, <em>could</em> see about your visit, shown to you only.</p>
+        {{- else }}
         <p class="you-sub">This site runs no analytics. This is what I, as its owner, <em>could</em> see about your visit, shown to you only.</p>
+        {{- end }}
         <noscript><p class="you-sub you-noscript">JavaScript is off, so this page cannot show you anything. My server would still see your IP address, browser, languages and the page that sent you.</p></noscript>
     </header>
 

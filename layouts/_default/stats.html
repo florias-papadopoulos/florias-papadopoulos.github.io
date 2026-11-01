@@ -1,0 +1,67 @@
+{{- /* "Site stats" (content/stats/_index.md), reached from the footer link: the totals kept by the visit counter
+       (tools/stats-worker, fed by assets/js/stats-hit.js on every page), read and drawn by assets/js/stats.js.
+       While params.statsEndpoint is empty the counter is off and the page says so, without any script.
+       Styles: assets/css/common/stats.css. The wrapper also has the class tl-page so the cat of the tabs
+       (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
+{{- define "main" }}
+{{- $end := site.Params.statsEndpoint }}
+{{- /* readable names for the pages that turn up in the counts: every page's title, the menu names for the tabs */}}
+{{- $names := slice (dict "p" "/" "t" "Home") (dict "p" "/404/" "t" "Page not found") (dict "p" "/you/" "t" "What this site knows about you") (dict "p" "/stats/" "t" "Site stats") }}
+{{- range site.Pages }}{{ if and .RelPermalink .Title (ne .RelPermalink "/") }}{{ $names = $names | append (dict "p" .RelPermalink "t" .Title) }}{{ end }}{{ end }}
+{{- range site.Menus.main }}{{ $names = $names | append (dict "p" .URL "t" .Name) }}{{ end }}
+
+<div class="tl-page st-page" id="stats"{{ with $end }} data-endpoint="{{ . }}" data-names="{{ $names | jsonify }}"{{ end }}>
+    <header class="st-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        <p class="st-lede">How many people visit this site, counted in totals and shown to everyone.</p>
+        <div class="st-note">
+            <p><strong>What is counted</strong>, once per page view: the page, the site that sent you there (only when it is another site), whether you use a phone, tablet or computer, your browser's name (Firefox, Chrome, Safari and so on), and your country, which Cloudflare works out from the connection.</p>
+            <p><strong>What is not</strong>: no cookies, no IP addresses, nothing about any one visitor. Only running totals per day are kept. If your browser asks sites not to track you (Do Not Track or Global Privacy Control), your visit is not counted at all.</p>
+        </div>
+    </header>
+
+    {{- if $end }}
+    <div class="st-controls">
+        <div class="st-range" role="group" aria-label="Period">
+            {{- range slice 7 30 90 }}
+            <button type="button" class="st-range-btn" data-days="{{ . }}" aria-pressed="{{ if eq . 30 }}true{{ else }}false{{ end }}">{{ . }} days</button>
+            {{- end }}
+        </div>
+        <p class="st-status" id="st-status" role="status">Loading the numbers…</p>
+    </div>
+    <noscript><p class="st-msg">The numbers are drawn by JavaScript, which is off in your browser.</p></noscript>
+
+    <div class="st-body" id="st-body" hidden>
+        <div class="st-sum">
+            <div class="st-tile"><span class="st-num" id="st-total">0</span><span class="st-cap" id="st-total-cap">views in the last 30 days</span></div>
+            <div class="st-tile"><span class="st-num" id="st-today">0</span><span class="st-cap">views today (so far, UTC)</span></div>
+        </div>
+        <section class="st-sec" aria-labelledby="st-h-daily">
+            <h2 class="st-h2" id="st-h-daily">Views per day</h2>
+            <div class="st-chart" id="st-chart"></div>
+        </section>
+        <div class="st-grid">
+            {{- range slice (slice "page" "Pages" "Most viewed first.") (slice "ref" "Where visitors came from" "The site of the link they followed.") (slice "country" "Countries" "Worked out by Cloudflare.") (slice "device" "Devices" "") (slice "browser" "Browsers" "") }}
+            <section class="st-sec st-list-sec" aria-labelledby="st-h-{{ index . 0 }}">
+                <h2 class="st-h2" id="st-h-{{ index . 0 }}">{{ index . 1 }}</h2>
+                {{- with index . 2 }}<p class="st-intro">{{ . }}</p>{{ end }}
+                <ol class="st-list" data-kind="{{ index . 0 }}"></ol>
+            </section>
+            {{- end }}
+        </div>
+    </div>
+
+    <p class="st-ignore">
+        <label><input type="checkbox" id="st-ignore"> Don't count my visits on this browser</label>
+        <span class="st-ignore-why">For me, the owner, so my own visits do not inflate the numbers. Remembered in this browser only.</span>
+    </p>
+    {{- else }}
+    <p class="st-msg st-off">The counter is not switched on yet.</p>
+    {{- end }}
+</div>
+{{- if $end }}
+{{- $js := resources.Get "js/stats.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{- end }}
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}

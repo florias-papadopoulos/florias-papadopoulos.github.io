@@ -20,7 +20,7 @@
 }
 .you-h2 { margin: 0 0 4px; color: var(--tl-ink); font-size: 19px; font-weight: 700; line-height: 1.3; }
 .you-intro { margin: 0 0 10px; color: var(--tl-muted); font-size: 14.5px; line-height: 1.55; }
-.you-intro a, .you-note a { color: var(--tl-navy); text-decoration: underline; text-underline-offset: 2px; }
+.you-intro a, .you-note a, .you-sub a { color: var(--tl-navy); text-decoration: underline; text-underline-offset: 2px; }
 
 /* one row per value: label on the left, the value and why it matters on the right */
 .you-list { margin: 0; }

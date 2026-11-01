@@ -1,0 +1,124 @@
+/* "Site stats" (layouts/_default/stats.html, assets/js/stats.js): the visit counter's totals. Plain cards and type in
+   the navy and grays of the tabs, like /you/. (.tl-page.st-page: this file comes before timeline.css in the bundle.) */
+
+.main:has(.tl-page.st-page) { max-width: calc(860px + var(--gap) * 2); }
+
+.st-head { margin: 10px 0 20px; }
+.st-page p { text-wrap: pretty; }
+.st-lede { margin: 0 0 12px; color: var(--tl-ink); font-size: 17px; line-height: 1.55; }
+.st-note { padding: 12px 16px; border: 1px solid var(--tl-line); border-left: 3px solid var(--tl-navy); border-radius: 8px; background: #fff; }
+.st-note p { margin: 0; color: var(--tl-text); font-size: 14.5px; line-height: 1.55; }
+.st-note p + p { margin-top: 6px; }
+.st-note strong { color: var(--tl-ink); }
+
+/* period buttons and the loading / empty / error line */
+.st-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 14px; }
+.st-range { display: inline-flex; border: 1px solid #c7d2e8; border-radius: 8px; overflow: hidden; background: #fff; }
+.st-range-btn {
+    padding: 6px 14px;
+    border: 0;
+    background: transparent;
+    color: var(--tl-text);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+.st-range-btn + .st-range-btn { border-left: 1px solid #c7d2e8; }
+.st-range-btn:hover { color: var(--tl-navy); background: #f1f5fb; }
+.st-range-btn[aria-pressed="true"] { background: var(--tl-navy); color: #fff; font-weight: 600; }
+.st-range-btn:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: -2px; }
+.st-status { margin: 0; color: var(--tl-muted); font-size: 14.5px; line-height: 1.45; }
+.st-status:empty { display: none; }
+.st-status.is-bad { color: #9f1239; }
+.st-page.is-loading .st-body { opacity: 0.5; transition: opacity 0.2s; }
+.st-msg { margin: 0 0 22px; padding: 16px 20px; border: 1px solid var(--tl-line); border-radius: 12px; background: #fff; color: var(--tl-ink); font-size: 16px; }
+
+/* the two numbers */
+.st-sum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0 0 14px; }
+.st-tile { padding: 14px 18px 12px; border: 1px solid var(--tl-line); border-radius: 12px; background: #fff; }
+.st-num { display: block; color: var(--tl-ink); font-size: 30px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.st-cap { display: block; margin-top: 2px; color: var(--tl-muted); font-size: 14px; line-height: 1.4; }
+
+/* cards */
+.st-sec { min-width: 0; margin: 0 0 14px; padding: 16px 20px 14px; border: 1px solid var(--tl-line); border-radius: 12px; background: #fff; }
+.st-h2 { margin: 0 0 2px; color: var(--tl-ink); font-size: 17px; font-weight: 700; line-height: 1.3; }
+.st-intro { margin: 0; color: var(--tl-muted); font-size: 13.5px; line-height: 1.45; }
+.st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; align-items: start; }
+
+/* the daily chart */
+.st-chart { position: relative; margin-top: 10px; }
+.st-chart svg { display: block; overflow: visible; }
+.st-bar { fill: var(--tl-navy); }
+.st-bar.is-today { fill: #8ea0cf; }
+.st-bar.is-on { fill: #2f4fb0; }
+.st-bar.is-today.is-on { fill: #6f86c4; }
+.st-hit { fill: transparent; cursor: default; }
+.st-grid-line { stroke: #eef2f7; stroke-width: 1; }
+.st-base-line { stroke: var(--tl-rule); stroke-width: 1; }
+.st-axis { fill: var(--tl-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.st-tip {
+    position: absolute;
+    z-index: 2;
+    padding: 5px 9px;
+    border: 1px solid var(--tl-line);
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    color: var(--tl-text);
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.st-tip strong { display: block; color: var(--tl-ink); }
+
+/* ranked lists: name, count and share, a thin bar underneath */
+.st-list { margin: 10px 0 0; padding: 0; list-style: none; }
+.st-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 3.2em;
+    column-gap: 10px;
+    align-items: baseline;
+    padding: 6px 0 7px;
+    border-top: 1px solid #f0f3f7;
+    font-size: 14.5px;
+    line-height: 1.4;
+}
+.st-row:first-child { border-top: 0; }
+.st-name { display: flex; align-items: baseline; gap: 7px; min-width: 0; color: var(--tl-ink); }
+.st-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-flag { flex: none; font-size: 15px; line-height: 1; }
+.st-val { color: var(--tl-ink); font-variant-numeric: tabular-nums; text-align: right; }
+.st-pct { color: var(--tl-muted); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
+.st-track { grid-column: 1 / -1; display: block; height: 4px; margin-top: 5px; border-radius: 2px; background: #f1f4f9; }
+.st-fill { display: block; height: 100%; border-radius: 2px; background: var(--tl-navy); }
+.st-path { grid-column: 1 / -1; overflow: hidden; margin-top: -1px; color: var(--tl-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.st-row.is-muted .st-name { color: var(--tl-muted); }
+.st-row.is-muted .st-fill { background: #94a3b8; }
+.st-none { color: var(--tl-muted); font-size: 14px; }
+
+/* "don't count my visits" */
+.st-ignore { margin: 8px 0 24px; color: var(--tl-text); font-size: 14px; line-height: 1.5; }
+.st-ignore label { display: inline-flex; align-items: center; gap: 8px; color: var(--tl-ink); cursor: pointer; }
+.st-ignore input { width: 16px; height: 16px; margin: 0; accent-color: var(--tl-navy); }
+.st-ignore-why { display: block; margin-top: 2px; color: var(--tl-muted); font-size: 13px; }
+
+@media (max-width: 700px) {
+    .st-grid { display: block; }
+}
+@media (max-width: 600px) {
+    .st-lede { font-size: 16px; }
+    .st-note { padding: 10px 12px; }
+    .st-sum { gap: 10px; }
+    .st-tile { padding: 12px 14px 10px; border-radius: 10px; }
+    .st-num { font-size: 25px; }
+    .st-cap { font-size: 13px; }
+    .st-sec { padding: 14px 14px 10px; border-radius: 10px; }
+    .st-range-btn { padding: 6px 11px; }
+}
+@media (pointer: coarse) {
+    .st-range-btn { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .st-page.is-loading .st-body { transition: none; }
+}

@@ -12,7 +12,10 @@
     {{- with site.Params.footer.text }}
     {{ . | markdownify }}
     {{- print " · "}}
-    {{- end }}    
+    {{- end }}
+    {{- /* the public visit totals (layouts/_default/stats.html) */}}
+    <a class="footer-stats" href="{{ "stats/" | relURL }}">Site stats</a>
+    {{- print " · "}}
     <span>
     Made with 
         <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">hugo</a>, <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">papermod</a>, &amp;
