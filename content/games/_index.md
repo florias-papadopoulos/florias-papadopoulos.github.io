@@ -14,7 +14,7 @@ games:
   - { id: mouse-sweeper,  title: "Mouse Sweeper",       emoji: "🔎",  desc: "Find every hidden mouse.", group: simple, levels: true }
   - { id: brick-paw,      title: "Brick Paw",           emoji: "🧱", desc: "Bounce the yarn ball, clear the bricks.", group: simple, levels: true }
   - { id: cucumber-hop,   title: "Cucumber Hop",        emoji: "🥒", desc: "Jump the cucumbers, run as far as you can.", group: simple, levels: true }
-  - { id: kitty-kart,     title: "Kitty Kart",          emoji: "🏎️",  desc: "Race the cat around the track.", group: complex }
-  - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Rush down the hall, shatter the glass with yarn.", group: complex }
+  - { id: kitty-kart,     title: "Kitty Kart",          emoji: "🏎️",  desc: "Race the cats on four tracks, from the city to the moon.", group: complex }
+  - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Rooftops, a greenhouse, an aquarium: smash the glass with yarn.", group: complex }
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: complex }
 ---

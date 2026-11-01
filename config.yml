@@ -76,10 +76,9 @@ params:
     badge: CYD Fellow
     tagline: My current research interests lie in provable security, post-quantum cryptography, and privacy-preserving protocols, with a particular focus on designing secure and efficient systems for **proximity tracking** and **collision avoidance**.
     interests: [Provable security, Post-quantum cryptography, Privacy-preserving protocols]
-    # The route from the first stop to the current one ("now"), with the distance between them.
+    # The route from the first stop to the current one ("now"), an arrow between them.
     # "projects" lists the entries whose context starts with that word in a hover tab ("noun" names them),
     # "url" is the page with all of them.
-    routeDistance: ≈ 1,320 km
     journey:
       - stop: gr
         flag: 🇬🇷
