@@ -240,7 +240,8 @@
                 }
                 catMood(o.win === false ? 'sad' : 'happy');
                 api.sfx(o.win === false ? 'lose' : 'win');
-                msg.querySelector('.stage-msg-text').textContent = (o.text || (o.win === false ? 'Game over' : 'You win!')) + (isBest && typeof o.score === 'number' ? '  New best!' : '');
+                var mt = o.text || (o.win === false ? 'Game over' : 'You win!');
+                msg.querySelector('.stage-msg-text').textContent = mt + (isBest && typeof o.score === 'number' ? (mt.indexOf('\n') >= 0 ? '\n' : '  ') + 'New best!' : '');
                 setTimeout(function () { if (current && current.id === id) { msg.hidden = false; msg.querySelector('.stage-again').focus(); } }, 650);
                 return isBest;
             },

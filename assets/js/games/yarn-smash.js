@@ -1,4 +1,4 @@
-/* Yarn Smash: an endless cat run through six fantastical worlds, throwing yarn to shatter the glass on the way.
+/* Yarn Smash: an endless cat run through seven fantastical worlds, throwing yarn to shatter the glass on the way.
    Pseudo-3D: x across, y up, z forward. The path bends (centre line cx(z), the camera looks along its tangent camS) and
    rolls up and down (hy(z), applied as a projection warp, so the physics stays flat): a world point projects to
    sx = CX + (x - camX - camS dz) F / dz, sy = HOR - (y - EYE + hy(z) - camHY) F / dz, with HOR the horizon line.
@@ -28,8 +28,8 @@ Arcade.register('yarn-smash', function (api) {
     function smooth(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
     function lerpc(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
     function rgba(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a === undefined ? 1 : a) + ')'; }
-    function fogf(dz) { var x = clamp((dz - 2) / (FAR - 2), 0, 1); return x * (1.4 - 0.4 * x); }
-    function fade(dz) { return smooth((FAR - dz) / 12); }     /* things appear out of the fog over the last 12 m */
+    function fogf(dz) { var x = clamp((dz - 2) / (Math.min(FAR, VISF + 12) - 2), 0, 1); return x * (1.4 - 0.4 * x); }
+    function fade(dz) { return smooth((VISF - dz) / (5 + 7 * (VISF - 18) / (FAR - 18))); }  /* things appear out of the fog over the last 12 m (5 m behind the waterfall) */
     function mixc(c, fog, f, k) {
         k = k || 1;
         var r = Math.min(255, c[0] * k), g = Math.min(255, c[1] * k), b = Math.min(255, c[2] * k);
@@ -52,6 +52,8 @@ Arcade.register('yarn-smash', function (api) {
     var camZ = 0, camX = 0, camS = 0, camHY = 0, camT = 0, HOR = 0, speed = 0, clock = 0, playT = 0, phase = 'play', balls = 14, bonus = 0;
     var smashed = 0, shownScore = -1, streak = 0, multi = 1, lastThrow = -9, stumble = 1, zoomT = 0, slowT = 0, bigT = 0, shake = 0, flash = 0;
     var runPh = 0, curZi = -1, thrown = false, firstPane = true, lowWarned = false, lastSay = -99, tips = {};
+    var VISF = 46, magT = 0, ricoT = 0, throwsN = 0, hitsN = 0, bestStreak = 0, worldCrash = 0, worldMiss = 0, medalsRun = [], guard = null, lockT = -1;
+    var charge = { id: null, x: 0, y: 0, t0: 0, v: 0, key: false };
     var ents = [], groups = [], props = [], flying = [], parts = [], rings = [], pops = [], motes = [], paws = [0, 0];
     var nextZ = 18, propZ = -4, nextGate = 1, lastDoorZ = -99, lastDotZ = -99, lastPowZ = 40, powKind = 0, prepZi = -1;
     var envA = 0, envB = 0, envW = 0, FOG = [0, 0, 0];
@@ -81,6 +83,10 @@ Arcade.register('yarn-smash', function (api) {
           fog: [126, 80, 46], amb: 0.86, bend: 0.8, hill: 0, hw: 1.55, paneH: 2.3, top: 4.3, lampY: 4.6, lampL: 1.5, dot: 0.1, stand: 'crate', standX: 1.18, mote: 'ember',
           glass: { frame: '#dba04a', tint: [255, 216, 160], edge: [255, 196, 110], shards: shardCols([[255, 216, 160], [255, 240, 210], [255, 255, 255]]) },
           gate: [242, 167, 60], gate2: [255, 232, 176], post: [196, 140, 64] },
+        { key: 'wool', name: 'Woolly Dreamland', sub: 'Soap bubbles float up: pop them or let them rise', accent: '#ff8fd0', chat: 'So soft! So fluffy!',
+          fog: [255, 222, 238], amb: 0.97, bend: 0.7, hill: 1.3, hw: 1.6, paneH: 2.2, top: 4.6, lampY: 0, dot: 0.12, stand: 'spool', standX: 1.3, mote: 'fluff',
+          glass: { frame: '#ffffff', tint: [255, 232, 248], edge: [196, 170, 255], shards: shardCols([[255, 200, 232], [200, 236, 255], [255, 255, 255]]) },
+          gate: [255, 150, 212], gate2: [170, 240, 255], post: [244, 238, 252] },
         { key: 'stars', name: 'Starlight Road', sub: 'Airlocks, and every trick at once', accent: '#ff7fd8', chat: 'Space! Mrrow!',
           fog: [42, 28, 80], amb: 0.68, bend: 1.0, hill: 1.35, hw: 1.5, paneH: 2.3, top: 4.6, lampY: 0, dot: 0.12, stand: 'rock', standX: 1.24, mote: 'star',
           glass: { frame: '#aaf4ff', tint: [190, 210, 255], edge: [140, 220, 255], glow: [120, 220, 255], shards: shardCols([[190, 210, 255], [255, 170, 230], [255, 255, 255]]) },
@@ -88,6 +94,18 @@ Arcade.register('yarn-smash', function (api) {
     ];
     var NZ = ZONES.length, K = {};
     ZONES.forEach(function (Z, i) { K[Z.key] = Z; Z.i = i; });
+
+    /* the cat's colours follow the look picked with the corner mascot (CSS variables of cat.css), ginger if missing */
+    var SK = { fur: FUR, light: '#ffc06e', stripe: STRIPE, toe: FUR, line: OL }, skinT = -9;
+    function readSkin() {
+        var cs = null;
+        try { cs = getComputedStyle(document.documentElement); } catch (e) { /* ginger */ }
+        function v(name, dflt) { var s = cs && cs.getPropertyValue(name).trim(); return s || dflt; }
+        var look = document.documentElement.getAttribute('data-cat') || 'ginger';
+        SK.fur = v('--fur-bot', FUR); SK.light = v('--fur-top', '#ffc06e'); SK.stripe = v('--stripe', STRIPE);
+        SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;
+        SK.line = look === 'tuxedo' || look === 'bat' ? '#17181c' : OL;
+    }
 
     /* ---------- path ---------- */
     function zoneIdx(z) { return Math.max(0, Math.floor(z / ZL)); }
@@ -136,7 +154,9 @@ Arcade.register('yarn-smash', function (api) {
     var WOOL = {
         pink:   { base: '#f783ac', light: '#ffd0e0', dark: '#c2255c', lo: 'rgba(255, 228, 238, .7)', hi: 'rgba(166, 30, 77, .38)' },
         orange: { base: '#fb9a4b', light: '#ffe0bf', dark: '#c2410c', lo: 'rgba(255, 237, 213, .7)', hi: 'rgba(154, 52, 18, .38)' },
-        violet: { base: '#b08cff', light: '#efe4ff', dark: '#6a3fd0', lo: 'rgba(240, 232, 255, .7)', hi: 'rgba(80, 40, 160, .38)' }
+        violet: { base: '#b08cff', light: '#efe4ff', dark: '#6a3fd0', lo: 'rgba(240, 232, 255, .7)', hi: 'rgba(80, 40, 160, .38)' },
+        mint:   { base: '#7fd8b4', light: '#e2fff2', dark: '#2f9a74', lo: 'rgba(230, 255, 244, .7)', hi: 'rgba(30, 110, 80, .38)' },
+        gold:   { base: '#ffc24a', light: '#fff1c4', dark: '#c27a0c', lo: 'rgba(255, 246, 214, .7)', hi: 'rgba(150, 90, 10, .4)' }
     };
     var woolCache = {};
     function woolImg(r, tone) {
@@ -355,6 +375,33 @@ Arcade.register('yarn-smash', function (api) {
             for (i = 0; i < 9; i++) { var cxx = r() * w; g.beginPath(); g.moveTo(cxx, 0); g.lineTo(cxx + (r() - 0.5) * 20, h); g.stroke(); }
             for (i = 0; i < 40; i++) glowAt(g, r() * w, r() * h, 3 + r() * 6, [255, 200, 120], 0.6);
         },
+        wool: function (g, w, h, hor, r) {  /* a pastel dream: button suns, cotton clouds, knitted hills */
+            var Z = K.wool, u = F;
+            g.fillStyle = vgrad(g, 0, h, [[0, [146, 166, 238]], [hor * 0.5 / h, [204, 182, 242]], [hor * 0.86 / h, [255, 200, 228]], [hor / h, Z.fog],
+                                          [(hor + 0.03 * u) / h, [196, 236, 214]], [1, [150, 210, 186]]]);
+            g.fillRect(0, 0, w, h);
+            buttonPaint(g, w * 0.7, hor - 0.17 * u, 0.075 * u, [255, 212, 110], true);
+            buttonPaint(g, w * 0.2, hor - 0.28 * u, 0.034 * u, [255, 150, 196], true);
+            for (var i = 0; i < 12; i++) {  /* cotton clouds */
+                var cx0 = r() * w, cy0 = hor * (0.15 + r() * 0.6), s = (0.03 + r() * 0.05) * u;
+                for (var k = 0; k < 5; k++) {
+                    var x = cx0 + (k - 2) * s * 0.7, y = cy0 - Math.sin(k / 4 * Math.PI) * s * 0.4, rr = s * (0.5 + Math.sin(k / 4 * Math.PI) * 0.35);
+                    var cg = g.createRadialGradient(x - rr * 0.3, y - rr * 0.3, 0, x, y, rr);
+                    cg.addColorStop(0, 'rgba(255,255,255,.95)'); cg.addColorStop(0.7, 'rgba(255,240,250,.75)'); cg.addColorStop(1, 'rgba(255,230,245,0)');
+                    g.fillStyle = cg; g.fillRect(x - rr, y - rr, 2 * rr, 2 * rr);
+                }
+            }
+            var cols = [[206, 190, 250], [255, 196, 222], [176, 228, 200]];
+            for (var layer = 0; layer < 3; layer++) {  /* rolling knitted hills, back to front */
+                var base = hor + (layer * 0.012 + 0.004) * u, amp = (0.03 + layer * 0.02) * u, col = lerpc(cols[layer], Z.fog, 0.55 - layer * 0.22), ph = r() * 6;
+                g.save(); g.beginPath(); g.moveTo(-10, h);
+                for (var x2 = -10; x2 <= w + 10; x2 += 8) g.lineTo(x2, base - amp * (0.6 + 0.4 * Math.sin(x2 / (0.12 * u) + ph)) * (0.7 + 0.3 * Math.sin(x2 / (0.05 * u) + ph * 2)));
+                g.lineTo(w + 10, h); g.closePath();
+                g.fillStyle = rgba(col); g.fill(); g.clip();
+                knitRows(g, -10, base - amp * 1.2, w + 20, h - base + amp * 1.2, 4 + layer * 2, rgba(lerpc(col, [120, 80, 140], 0.14)));
+                g.restore();
+            }
+        },
         stars: function (g, w, h, hor, r) {  /* deep space: nebulae, a ringed planet, a moon, stars above and below */
             var Z = K.stars, u = F;
             g.fillStyle = vgrad(g, 0, h, [[0, [5, 3, 18]], [hor / h, Z.fog], [1, [6, 4, 20]]]);
@@ -389,6 +436,25 @@ Arcade.register('yarn-smash', function (api) {
             g.fillStyle = mg; g.beginPath(); g.arc(mx, my, mr, 0, TAU); g.fill();
         }
     };
+    function buttonPaint(g, x, y, rad, c, sun) {  /* a big sewing button: rim, dish, four holes, a cross of thread */
+        if (sun) glowAt(g, x, y, rad * 3.2, c, 0.5);
+        var bg = g.createRadialGradient(x - rad * 0.35, y - rad * 0.35, rad * 0.1, x, y, rad);
+        bg.addColorStop(0, rgba(lerpc(c, [255, 255, 255], 0.6))); bg.addColorStop(0.7, rgba(c)); bg.addColorStop(1, rgba(lerpc(c, [120, 60, 40], 0.35)));
+        g.fillStyle = bg; g.beginPath(); g.arc(x, y, rad, 0, TAU); g.fill();
+        g.strokeStyle = rgba(lerpc(c, [120, 60, 60], 0.3), 0.8); g.lineWidth = rad * 0.08; g.beginPath(); g.arc(x, y, rad * 0.78, 0, TAU); g.stroke();
+        var hp = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+        g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = rad * 0.07; g.lineCap = 'round'; g.beginPath();
+        g.moveTo(x - rad * 0.24, y - rad * 0.24); g.lineTo(x + rad * 0.24, y + rad * 0.24); g.moveTo(x + rad * 0.24, y - rad * 0.24); g.lineTo(x - rad * 0.24, y + rad * 0.24); g.stroke();
+        g.fillStyle = rgba(lerpc(c, [90, 40, 40], 0.55));
+        hp.forEach(function (p) { g.beginPath(); g.arc(x + p[0] * rad * 0.24, y + p[1] * rad * 0.24, rad * 0.1, 0, TAU); g.fill(); });
+    }
+    function knitRows(g, x0, y0, w, h, s, col) {  /* rows of little V stitches, the look of knitted wool */
+        g.strokeStyle = col; g.lineWidth = Math.max(0.8, s * 0.22); g.lineCap = 'round'; g.beginPath();
+        for (var y = y0; y < y0 + h; y += s * 0.9) for (var x = x0 + ((y / s) & 1) * s * 0.5; x < x0 + w; x += s) {
+            g.moveTo(x - s * 0.38, y - s * 0.3); g.lineTo(x, y + s * 0.3); g.lineTo(x + s * 0.38, y - s * 0.3);
+        }
+        g.stroke();
+    }
     function skyCanvas(k) {
         if (!skyCache[k]) {
             var c = document.createElement('canvas'), w = W + 2 * SKYM, h = H + 2 * SKYV;
@@ -631,6 +697,43 @@ Arcade.register('yarn-smash', function (api) {
                 g.strokeStyle = 'rgba(140,220,255,.35)'; g.lineWidth = 3; g.beginPath(); g.arc(cxr, cyr, 70, 3.6, 5.2); g.stroke();
             });
         },
+        knit: function (v) {  /* a knitted hill: striped rows of stitches */
+            return spr('knit' + v, 300, 150, 'wool', function (g, w, h) {
+                var c = [[180, 230, 204], [255, 200, 224], [206, 192, 252]][v], c2 = [[255, 240, 200], [255, 255, 255], [190, 236, 255]][v];
+                g.save(); g.beginPath(); g.moveTo(0, h); g.bezierCurveTo(w * 0.1, h * 0.05, w * 0.9, h * 0.05, w, h); g.closePath();
+                g.fillStyle = rgba(c); g.fill(); g.clip();
+                for (var b = 0; b < 6; b++) if (b % 2) { g.fillStyle = rgba(lerpc(c, c2, 0.6)); g.fillRect(0, h * (0.1 + b * 0.15), w, h * 0.075); }
+                knitRows(g, 0, 0, w, h, 9, rgba(lerpc(c, [110, 70, 120], 0.18)));
+                var sh = g.createLinearGradient(0, 0, w, 0);
+                sh.addColorStop(0, 'rgba(255,255,255,.35)'); sh.addColorStop(0.5, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(90,60,120,.22)');
+                g.fillStyle = sh; g.fillRect(0, 0, w, h);
+                g.restore();
+            });
+        },
+        ytree: function (v) {  /* a knitting needle with a ball of wool on top */
+            return spr('ytree' + v, 120, 220, 'wool', function (g, w, h) {
+                var ng = g.createLinearGradient(w / 2 - 4, 0, w / 2 + 4, 0);
+                ng.addColorStop(0, '#c99a6a'); ng.addColorStop(0.5, '#f4d8b0'); ng.addColorStop(1, '#a8784a');
+                g.fillStyle = ng; g.fillRect(w / 2 - 4, 70, 8, h - 70);
+                var wl = woolImg(46, v ? 'mint' : 'violet');
+                g.drawImage(wl.cv, w / 2 - wl.s / 2, 64 - wl.s / 2, wl.s, wl.s);
+            });
+        },
+        button: function (v) {
+            return spr('button' + v, 160, 160, 'wool', function (g, w, h) { buttonPaint(g, w / 2, h / 2, 74, v ? [140, 200, 255] : [255, 160, 200], false); });
+        },
+        pompom: function () {
+            return spr('pompom', 120, 100, 'wool', function (g, w, h) {
+                var cols = [[255, 160, 210], [255, 230, 140], [160, 220, 255], [200, 170, 255]];
+                for (var i = 0; i < 4; i++) {
+                    var x = 18 + i * 28, hh = 40 + (i % 2) * 22;
+                    g.strokeStyle = '#7cc89c'; g.lineWidth = 3; g.beginPath(); g.moveTo(x, h); g.quadraticCurveTo(x - 6, h - hh / 2, x, h - hh); g.stroke();
+                    var pg = g.createRadialGradient(x - 4, h - hh - 4, 1, x, h - hh, 14);
+                    pg.addColorStop(0, '#ffffff'); pg.addColorStop(0.4, rgba(cols[i])); pg.addColorStop(1, rgba(cols[i], 0.2));
+                    g.fillStyle = pg; g.beginPath(); g.arc(x, h - hh, 14, 0, TAU); g.fill();
+                }
+            });
+        },
         planet: function (v) {
             return spr('planet' + v, 200, 200, 'stars', function (g, w, h) {
                 var c = w / 2, col = v ? ['#bfffe8', '#3cb8a0', '#0c3a48'] : ['#ffe0f4', '#c066c8', '#3a1450'];
@@ -666,6 +769,7 @@ Arcade.register('yarn-smash', function (api) {
         geode: [['crystals', 0], ['crystals', 1], ['crystals', 2], ['stalactite', 0], ['stalactite', 1]],
         aurora: [['crystals', 3], ['pine'], ['post', 4]],
         clock: [['gear', 0], ['gear', 1], ['post', 1]],
+        wool: [['knit', 0], ['knit', 1], ['knit', 2], ['ytree', 0], ['ytree', 1], ['button', 0], ['button', 1], ['pompom']],
         stars: [['rock', 0], ['rock', 1], ['planet', 0], ['planet', 1], ['post', 2], ['post', 3]]
     };
     function prepWorld(k, q) {  /* paint a world's sky and sprites ahead of time (one job per frame) so the gate never stutters */
@@ -745,7 +849,20 @@ Arcade.register('yarn-smash', function (api) {
 
     /* Skyfall Isles: grassy floating islands joined by rope bridges, the cloud sea far below */
     function bridgeAt(z) { var u = z - zoneIdx(z) * ZL, m = ((z % 28) + 28) % 28; return u > 16 && u < ZL - 16 && m >= 16 && hash(Math.floor(z / 28) + 3.7) > 0.25; }
+    function fallsAt(z) {  /* the waterfall run: a narrow bridge behind curtains of falling water, from 52 to 108 m into the isles */
+        var zi = zoneIdx(z), u = z - zi * ZL;
+        return ZONES[zi % NZ].key === 'isles' && u >= 52 && u < 108;
+    }
     K.isles.strip = function () {
+        if (fallsAt(SZN + 0.01)) {
+            Q(-0.9, -0.1, -0.8, -0.1, C([70, 50, 52])); Q(0.8, -0.1, 0.9, -0.1, C([70, 50, 52]));
+            if (SZF - SZN < 1.5) QF(0, 0.72, -0.95, 0.95, 0, C([146, 104, 84], SPAR ? 0.93 : 1)); else Q(-0.95, 0, 0.95, 0, C([136, 98, 80]));
+            var wc = CA([238, 248, 255], 0.5), wf = CA([255, 255, 255], 0.3);
+            Q(-1.45, -10, -1.45, 3.0, wc); Q(1.45, -10, 1.45, 3.0, wc);
+            Q(-1.45, 3.0, 0, 3.6, wf); Q(0, 3.6, 1.45, 3.0, wf);
+            if (SDZ < 30) { var rc2 = C([226, 190, 140]); edgeLine(-1.0, 0.9, rc2, 0.03); edgeLine(1.0, 0.9, rc2, 0.03); }
+            return;
+        }
         if (bridgeAt(SZN + 0.01)) {
             Q(-0.96, -0.12, -0.84, -0.12, C([92, 62, 54])); Q(0.84, -0.12, 0.96, -0.12, C([92, 62, 54]));
             if (SZF - SZN < 1.5) { QF(0, 0.64, -1, 1, 0, C([196, 140, 96], SPAR ? 0.95 : 1)); QF(0.64, 0.7, -1, 1, 0, C([120, 82, 62])); }
@@ -764,6 +881,14 @@ Arcade.register('yarn-smash', function (api) {
         Q(-0.48, 0, 0.48, 0, CP(p));
     };
     K.isles.front = function (zn) {
+        if (fallsAt(zn + 0.01)) {
+            if (SDZ < 0.8) return;
+            var a = (0.35 + 0.3 * (RM ? 0.3 : Math.sin(clock * 9 + zn * 1.7))) * (1 - SF);
+            nearLine([-1.44, 3.0, -1.44, -6], 'rgba(255,255,255,' + a.toFixed(2) + ')', 0.05);
+            nearLine([1.44, 3.0, 1.44, -6], 'rgba(255,255,255,' + (a * 0.8).toFixed(2) + ')', 0.05);
+            if (at(zn, 2)) { var pc2 = C([110, 78, 60]); nearLine([-1.0, 0, -1.0, 0.98], pc2, 0.06); nearLine([1.0, 0, 1.0, 0.98], pc2, 0.06); }
+            return;
+        }
         if (bridgeAt(zn + 0.01)) {
             if (at(zn, 2) && SDZ > 0.8) {
                 var pc = C([120, 84, 62]);
@@ -774,8 +899,12 @@ Arcade.register('yarn-smash', function (api) {
             nearLine([-1.84, 0, 1.84, 0, 1.6, -0.25, -1.6, -0.25], C([86, 150, 90]), 0, true);
         }
     };
-    K.isles.inside = function (lx, y) { var a = Math.abs(lx); return a < 16 && y < 12 && y > (a < 1.8 ? 0 : -6); };
-    K.isles.floor = function (lx) { return Math.abs(lx) < 1.8 ? 0 : -60; };
+    K.isles.inside = function (lx, y, z) {
+        var a = Math.abs(lx);
+        if (fallsAt(z)) return a < 1.45 && y < 3.2 && y > (a < 1.0 ? 0 : -6);
+        return a < 16 && y < 12 && y > (a < 1.8 ? 0 : -6);
+    };
+    K.isles.floor = function (lx, z) { return Math.abs(lx) < (fallsAt(z) ? 1.0 : 1.8) ? 0 : -60; };
 
     /* Glowcap Hollow: a mossy trail under giant glowing mushrooms */
     K.glow.light = function (z) { var u = ((z % 9) + 9) % 9 - 4.5; return 0.8 + 0.4 * Math.exp(-u * u / 5); };
@@ -896,7 +1025,30 @@ Arcade.register('yarn-smash', function (api) {
     K.stars.inside = function (lx, y) { var a = Math.abs(lx); return a < 16 && y < 12 && y > (a < 1.6 ? 0 : -8); };
     K.stars.floor = function (lx) { return Math.abs(lx) < 1.6 ? 0 : -60; };
 
-    function floorAt(lx, z) { var Z = zoneOf(z); return Z.floor ? Z.floor(lx) : 0; }
+    /* Woolly Dreamland: a striped knitted scarf for a road across rolling knitted meadows */
+    var SCARF = [[255, 184, 216], [255, 236, 194], [186, 226, 255], [208, 192, 255], [192, 240, 212]];
+    K.wool.light = function (z) { return 0.94 + 0.08 * Math.sin(z * 0.21); };
+    K.wool.strip = function () {
+        Q(-16, 0, -1.72, 0, CP([180, 230, 204])); Q(1.72, 0, 16, 0, CP([188, 234, 208]));
+        var band = SCARF[((Math.floor(SZN / 2 + 1e-6) % 5) + 5) % 5];
+        Q(-1.62, 0, 1.62, 0, C(band));
+        if (SDZ < 30) { var rc = C(band, 0.85); for (var x = -1.2; x <= 1.21; x += 0.4) edgeLine(x, 0.002, rc, 0.03); }
+        Q(-1.74, 0.03, -1.62, 0.03, C([255, 255, 255])); Q(1.62, 0.03, 1.74, 0.03, C([255, 255, 255]));
+    };
+    K.wool.front = function (zn) {  /* tassels on the scarf's edges */
+        if (!at(zn, 2) || SDZ < 1 || SDZ > 26) return;
+        var tc = C(SCARF[((Math.floor(zn / 2 + 1e-6) % 5) + 5) % 5], 0.9);
+        nearLine([-1.74, 0.03, -1.95, 0.0], tc, 0.06); nearLine([1.74, 0.03, 1.95, 0.0], tc, 0.06);
+    };
+    K.wool.inside = function (lx, y) { return Math.abs(lx) < 14 && y > 0 && y < 12; };
+    K.wool.props = function (z) {
+        var g = growAt(z);
+        if (Math.random() < 0.55) prop('knit', z + rnd(0, 4), { lx: side() * rnd(5, 18), s: rnd(5, 11) * (0.4 + 0.6 * g), v: (Math.random() * 3) | 0 });
+        if (Math.random() < 0.45 * g) prop('ytree', z + rnd(0, 4), { lx: side() * rnd(2.3, 6), s: rnd(1.0, 1.6), v: Math.random() < 0.5 ? 0 : 1 });
+        if (Math.random() < 0.18 * g) prop('button', z + rnd(0, 4), { lx: side() * rnd(3.2, 9), s: rnd(1.2, 2.4), v: Math.random() < 0.5 ? 0 : 1 });
+        if (Math.random() < 0.5) prop('pompom', z + rnd(0, 4), { lx: side() * rnd(1.85, 2.8), s: rnd(0.6, 0.9) });
+    };
+    function floorAt(lx, z) { var Z = zoneOf(z); return Z.floor ? Z.floor(lx, z) : 0; }
 
     /* ---------- scenery props (every 4 m), drawn as sprites or live ---------- */
     function prop(kind, z, o) { var p = { kind: kind, z: z, ph: rnd(0, 6) }; for (var k in o) p[k] = o[k]; props.push(p); }
@@ -905,7 +1057,7 @@ Arcade.register('yarn-smash', function (api) {
         var g = growAt(z), s = rnd(1.6, 3.6);
         if (Math.random() < 0.6) prop('islet', z + rnd(0, 4), { lx: side() * (3.2 + s + rnd(0, 9)), y: rnd(-4.5, 3.5), s: s, v: (Math.random() * 3) | 0, fall: Math.random() < 0.75 });
         if (Math.random() < 0.85) prop('cloud', z + rnd(0, 4), { lx: side() * rnd(3, 24), y: rnd(-15, -8), s: rnd(6, 13), v: Math.random() < 0.5 ? 0 : 1 });
-        if (!bridgeAt(z + 2)) {
+        if (!bridgeAt(z + 2) && !fallsAt(z + 2)) {
             if (Math.random() < 0.3 * g) prop('tree', z + rnd(0, 4), { lx: side() * rnd(1.45, 1.65), s: rnd(0.9, 1.3) });
             if (Math.random() < 0.55) prop('flowers', z + rnd(0, 4), { lx: side() * rnd(0.75, 1.6) });
             if (at(z, 12) && g > 0.5) prop('post', z + 1, { lx: (at(z, 24) ? -1 : 1) * 1.62, v: 0, h: 1.9 });
@@ -996,7 +1148,11 @@ Arcade.register('yarn-smash', function (api) {
             ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(px, py, 0.5 * pk, 0, TAU); ctx.fill();
         },
         rock: function (p, a) { drawSpr(SPR.rock(p.v), cx(p.z) + p.lx, p.y, p.z, p.s, a, 0.5, RM ? 0 : clock * p.w + p.ph); },
-        planet: function (p, a) { drawSpr(SPR.planet(p.v), cx(p.z) + p.lx, p.y, p.z, p.s, a, 0.5); }
+        planet: function (p, a) { drawSpr(SPR.planet(p.v), cx(p.z) + p.lx, p.y, p.z, p.s, a, 0.5); },
+        knit: function (p, a) { drawSpr(SPR.knit(p.v), cx(p.z) + p.lx, -0.3, p.z, p.s, a); },
+        ytree: function (p, a) { drawSpr(SPR.ytree(p.v), cx(p.z) + p.lx, 0, p.z, p.s, a); },
+        button: function (p, a) { drawSpr(SPR.button(p.v), cx(p.z) + p.lx, p.s * 0.4, p.z, p.s, a, 0.5, RM ? 0 : Math.sin(clock * 0.5 + p.ph) * 0.3); },
+        pompom: function (p, a) { drawSpr(SPR.pompom(), cx(p.z) + p.lx, 0, p.z, p.s, a); }
     };
 
     /* ---------- spawning: a blocker every gap, extras in between, scenery every 4 m, a rift gate at each world border ---------- */
@@ -1004,26 +1160,38 @@ Arcade.register('yarn-smash', function (api) {
         bob: 'Floating glass: smash it or run under it', pulse: 'Ghost glass fades in and out', tough: 'Geode glass takes 2 hits',
         slide: 'Sliding ice: time it or smash it', spin: 'Spinning glass: hit it face on', door: 'Hit the glowing lever to open the hatch',
         lock: 'Airlocks open and close: time it or smash it', crystal: 'Green crystals give 3 yarn', dot: 'Catch the laser dot for zoomies',
-        big: 'Giant yarn orb: smashes whole rows', slow: 'Slow paws orb: time slows down', lamp: 'Bonus lights give 2 yarn'
+        big: 'Giant yarn orb: smashes whole rows', slow: 'Slow paws orb: time slows down', lamp: 'Bonus lights give 2 yarn',
+        magnet: 'Magnet orb: crystals fly to you', rico: 'Ricochet orb: balls break one more pane', bubble: 'Soap bubbles float up: pop them or let them rise',
+        heart: 'A crystal heart in the glass: break it free', mirror: 'Ice mirrors bounce a missed ball back', lock: 'Hit all three small panes within 2 s',
+        falls: 'Behind the waterfall the glass shows up late', guard: 'Break the glowing panel, then the next one',
+        charge: 'Hold to charge a heavy ball (2 yarn, cracks tough glass)'
     };
     function group(z, kind) { var g = { z: z, panels: [], kind: kind, passed: false }; groups.push(g); return g; }
     function glass(g, Z, lx, w, y0, y1, opt) {
         var e = { type: 'glass', z: g.z, lx: lx, w: w, y0: y0, y1: y1, hp: 1, g: g, st: Z.glass, mv: null, broken: false, seed: Math.random() * 99 };
         for (var k in opt) e[k] = opt[k];
+        if (g.kind === 'gate' && !g.heart && (!e.mv || e.mv.k === 'bob' || e.mv.k === 'pulse') && Math.random() < 0.1) { e.heart = true; g.heart = true; e.tip = 'heart'; }
         ents.push(e); g.panels.push(e);
         return e;
     }
     function frame(z, Z, kind, half, y1) { ents.push({ type: 'frame', z: z + 0.04, kind: kind, half: half, y1: y1, Z: Z }); }
     function blocker(z, u, lvl, Z, zi) {
         var g = group(z, 'gate'), k = Z.key, lap = Math.floor(zi / NZ), hw = Z.hw, ph = Z.paneH, i;
+        if (fallsAt(z)) { glass(g, Z, 0, 0.95, 0, ph, { tip: 'falls' }); frame(z, Z, 'posts', 1.0, ph); return; }
+        if (k === 'aurora' && u > 20 && Math.random() < 0.4) ents.push({ type: 'mirror', z: z + 2.2, hw: Math.max(hw, 1.9), g: g, tip: 'mirror' });
         var twist = u > (zi ? 14 : 36) && Math.random() < clamp(0.3 + lvl * 0.55 + lap * 0.2, 0, 0.88);
         var nP = Math.random() < clamp(0.06 + 0.55 * lvl + 0.2 * lap, 0, 0.8) ? (Math.random() < 0.3 + 0.35 * lvl ? 3 : 2) : 1, wp = hw / nP;
-        if (k === 'stars' && twist && Math.random() < 0.55) k = pick(['isles', 'glow', 'aurora', 'clock']);  /* the last world mixes every trick */
+        if (k === 'stars' && twist && Math.random() < 0.55) k = pick(['isles', 'glow', 'aurora', 'clock', 'wool']);  /* the last world mixes every trick */
         function row(opt, h) { for (i = 0; i < nP; i++) glass(g, Z, -hw + wp * (2 * i + 1), wp, 0, h || ph, opt ? opt(i) : null); }
         if (!twist) { row(null); frame(z, Z, 'posts', hw + 0.04, ph); return; }
         if (k === 'isles') {
             var bw = rnd(1.0, 1.4) + lvl * 0.7, bp = rnd(0, 6);
             row(function (i) { return { mv: { k: 'bob', amp: 1.8, w: bw, ph: bp + i * (lvl > 0.35 ? 1.7 : 0) }, tip: 'bob' }; }, 1.95);
+        } else if (k === 'wool') {  /* soap bubbles that float upwards once you come near */
+            groups.pop();
+            var rb = nP === 1 ? 0.95 : nP === 2 ? 0.8 : 0.62;
+            for (i = 0; i < nP; i++) ents.push({ type: 'bubble', z: z + rnd(-0.5, 0.5), lx: nP === 1 ? 0 : -hw + (hw / nP) * (2 * i + 1), r: rb,
+                                                 trig: rnd(9, 24) - lvl * 7, v: rnd(0.55, 0.9), t0: -1, ph: rnd(0, 6), tip: 'bubble' });
         } else if (k === 'glow') {
             var pw = rnd(1.3, 1.9) + lvl, pp = rnd(0, 6);
             row(function (i) { return { mv: { k: 'pulse', w: pw, ph: pp + i * 1.1 }, tip: 'pulse' }; });
@@ -1064,29 +1232,39 @@ Arcade.register('yarn-smash', function (api) {
         var st = { frame: rgba(Zn.gate2), tint: lerpc(Zn.gate2, [255, 255, 255], 0.45), edge: Zn.gate, glow: Zn.gate, portal: true, shards: Zn.glass.shards };
         glass(g, Zn, -OW / 2, OW / 2, 0, OH + OW, { st: st, arch: true });
         glass(g, Zn, OW / 2, OW / 2, 0, OH + OW, { st: st, arch: true });
-        ents.push({ type: 'portal', z: z - 0.03, zi: zi });
+        ents.push({ type: 'portal', z: z - 0.03, zi: zi, gz: z });
+        if (zi >= 2 && Math.random() < 0.55) {  /* a gate challenge: three small panes in front, all within 2 s opens the gate */
+            var lg = { z: z - 2.2, panels: [], kind: 'lock', passed: true, gate: g, t: -1, done: false };
+            var ls = { frame: rgba(Zn.gate2), tint: lerpc(Zn.gate, [255, 255, 255], 0.3), edge: Zn.gate2, glow: Zn.gate, shards: Zn.glass.shards };
+            [[-0.95, 1.1], [0, 2.75], [0.95, 1.1]].forEach(function (p) { glass(lg, Zn, p[0], 0.3, p[1], p[1] + 0.6, { st: ls, lockSet: lg, tip: 'lock' }); });
+            lg.gz = z; locks.push(lg);
+        }
     }
     function lvlAt(z) { return clamp((z - 40) / 950, 0, 1); }
     var VASES = ['rgba(246,160,196,', 'rgba(140,214,190,', 'rgba(190,170,240,', 'rgba(150,200,240,'];
     function spawn() {
         while (nextZ < camZ + FAR + 6) {
             var z = nextZ, zi = zoneIdx(z), zs = zi * ZL, ze = zs + ZL, Z = ZONES[zi % NZ], u = z - zs, lvl = lvlAt(z), lap = Math.floor(zi / NZ);
-            if (z > ze - 14) { nextZ = ze + 16; continue; }  /* keep the gate area clear */
+            if (z > ze - 86) {  /* the guardian's stretch and the gate area: no glass, a few crystals for the fight */
+                (zi ? [ze - 72, ze - 48] : [ze - 76, ze - 58, ze - 40]).forEach(function (cz) { if (cz >= z) ents.push({ type: 'crystal', z: cz, lx: rnd(-1, 1), y: rnd(1.2, 1.7), ph: rnd(0, 6) }); });
+                nextZ = ze + 16; continue;
+            }
+            var falls = fallsAt(z);
             blocker(z, u, lvl, Z, zi);
             var gap = Math.max(6.5, 17 - 8 * lvl - 1.6 * lap + rnd(0, 3.5));
             if (z + gap > ze - 12) gap = Math.max(4, ze - 12 - z);
             var slots = [0.15, 0.4, 0.65, 0.9].sort(function () { return Math.random() - 0.5; });
             var spot = function () { return z + 2 + (slots.length ? slots.pop() : Math.random()) * Math.max(0.5, gap - 4); };
-            var walk = Math.min(1.2, Z.hw - 0.3), pc = balls <= 3 ? 0.9 : clamp(0.88 - 0.46 * lvl - 0.08 * lap, 0.3, 1);
+            var walk = falls ? 0.55 : Math.min(1.2, Z.hw - 0.3), pc = balls <= 3 ? 0.9 : clamp(0.86 - 0.48 * lvl - 0.08 * lap, 0.3, 1);
             if (z < 30 || Math.random() < pc) ents.push({ type: 'crystal', z: spot(), lx: rnd(-walk, walk), y: rnd(1.1, 1.75), ph: rnd(0, 6), tip: 'crystal' });
-            if (Math.random() < 0.5) {
+            if (!falls && Math.random() < 0.5) {
                 var vz = spot(), sd = side();
                 ents.push({ type: 'vase', z: vz, side: sd, lx: sd * Z.standX, stand: Z.stand, kind: (Math.random() * 3) | 0, col: pick(VASES), h: rnd(0.32, 0.46) });
             }
             if (u > 8 && Math.random() < 0.28) ents.push({ type: 'lamp', z: spot(), ph: rnd(0, 6), Z: Z, tip: 'lamp' });
             if (z > 70 && z - lastDotZ > 60 && Math.random() < Z.dot * 2.5) { ents.push({ type: 'dot', z: spot(), ph: rnd(0, 6), tip: 'dot' }); lastDotZ = z; }
             if (z > 110 && z - lastPowZ > 150 && Math.random() < 0.5) {
-                var kd = powKind++ % 2 ? 'slow' : 'big';
+                var kd = ['big', 'magnet', 'slow', 'rico'][powKind++ % 4];
                 ents.push({ type: 'power', z: spot(), lx: rnd(-walk, walk) * 0.6, ph: rnd(0, 6), kind: kd, tip: kd });
                 lastPowZ = z;
             }
@@ -1097,12 +1275,13 @@ Arcade.register('yarn-smash', function (api) {
     }
 
     /* centre and radius of a round target at time t, into SX, SY, SZ, SR (world coordinates) */
-    var STANDTOP = { plinth: 0.62, stump: 0.5, geo: 0.56, ice: 0.6, crate: 0.5, rock: 0.46 };
+    var STANDTOP = { plinth: 0.62, stump: 0.5, geo: 0.56, ice: 0.6, crate: 0.5, spool: 0.55, rock: 0.46 };
     function pos(e, t) {
         var a;
         SZ = e.z;
         if (e.type === 'vase') { SX = cx(e.z) + e.lx; SY = STANDTOP[e.stand] + e.h * 0.5; SR = 0.2; }
         else if (e.type === 'crystal') { SX = cx(e.z) + e.lx; SY = e.y + Math.sin(t * 2 + e.ph) * 0.08; SR = 0.3; }
+        else if (e.type === 'bubble') { SX = cx(e.z) + e.lx + Math.sin(t * 1.1 + e.ph) * 0.12; SY = e.r + 0.08 + (e.t0 >= 0 ? Math.max(0, t - e.t0) * e.v : 0); SR = e.r; }
         else if (e.type === 'power') { SX = cx(e.z) + e.lx + Math.sin(t * 1.3 + e.ph) * 0.4; SY = 1.75 + Math.sin(t * 2.4 + e.ph) * 0.12; SR = 0.36; }
         else if (e.type === 'lamp') {
             if (e.Z.lampY) { a = 0.75 * Math.sin(t * 2.1 + e.ph); SX = cx(e.z) + Math.sin(a) * e.Z.lampL; SY = e.Z.lampY - Math.cos(a) * e.Z.lampL; }
@@ -1112,7 +1291,7 @@ Arcade.register('yarn-smash', function (api) {
         else if (e.type === 'dot') { SX = cx(e.z) + 1.2 * Math.sin(t * 2.4 + e.ph) + 0.25 * Math.sin(t * 5.3 + e.ph); SY = 0.12; SR = 0.36; }
         else { SX = cx(e.z) + DW / 2 - 0.18; SY = 1.0; SZ = e.z - 0.06; SR = 0.17; }  /* the hatch lever */
     }
-    function round(e) { return !e.broken && (e.type === 'vase' || e.type === 'crystal' || e.type === 'lamp' || e.type === 'dot' || e.type === 'power'); }
+    function round(e) { return !e.broken && (e.type === 'vase' || e.type === 'crystal' || e.type === 'lamp' || e.type === 'dot' || e.type === 'power' || e.type === 'bubble'); }
     function pstate(e, t) {  /* a glass panel's world centre QX, turn QA and lift QY right now */
         var lx = e.lx, a = 0, m = e.mv;
         QY = 0;
@@ -1194,7 +1373,7 @@ Arcade.register('yarn-smash', function (api) {
                 var now = near(Math.max(SR * 1.3 * pk, rr));
                 pos(e, clock + flightT(SX - camX, SY - EYE + 0.45, d));  /* lead moving targets */
                 var lead = P(SX, SY, SZ) && near(Math.max(SR * 1.3 * pk, rr));
-                if (now || lead) consider(d, [SX, SY, SZ, e], e.type === 'vase' || e.type === 'crystal' ? e : null);
+                if (now || lead) consider(d, [SX, SY, SZ, e], e.type === 'vase' || e.type === 'crystal' || e.type === 'bubble' ? e : null);
                 return;
             }
             if (e.type === 'glass' && !e.broken) {
@@ -1222,6 +1401,15 @@ Arcade.register('yarn-smash', function (api) {
                 if ((!e.open || Math.abs(lx) > DW / 2 || RY > DH) && Math.abs(lx) < 4.3 && RY < 7.5) consider(d, [RX, RY, RZ], null);
             }
         });
+        if (guard && guard.state === 'fight') {  /* the guardian drifts ahead: aim where it will be */
+            var gh = guardPick(sx, sy, clock);  /* the panel point under the tap now, sent to where it will be when the ball arrives */
+            if (gh && GZ - camZ < bestD) {
+                var gd = GZ - camZ, gT = flightT(GX + gh[0] - camX, GY + gh[1] - EYE + 0.45, gd + speed * 0.6);
+                gT = flightT(GX + gh[0] - camX, GY + gh[1] - EYE + 0.45, gd + speed * gT);
+                guardPos(clock + gT);
+                consider(gd, [GX + gh[0], GY + gh[1], GZ], null);
+            }
+        }
         if (!best && skipped) return null;  /* only something a ball is already flying to: no need to throw again */
         if (!best) {  /* nothing under the tap: snap to a round target or lever close to it */
             var bd = Math.pow(api.touch ? 48 : 40, 2);
@@ -1241,14 +1429,20 @@ Arcade.register('yarn-smash', function (api) {
         rayAt(dx, dyp, t);
         return [RX, RY, RZ];
     }
-    function throwAt(sx, sy) {
-        if (phase !== 'play' || balls <= 0 || rt - lastThrow < 0.1) return;
+    function throwAt(sx, sy, heavy) {
+        if (phase !== 'play' || balls < (heavy ? 2 : 1) || rt - lastThrow < 0.1) return;
         var tg = aim(sx, sy);
         rings.push({ x: sx, y: sy, t: 0 });
         if (!tg) return;
         lastThrow = rt;
-        balls--;
-        thrown = true;
+        balls -= heavy ? 2 : 1;
+        thrown = true; throwsN++;
+        if (heavy) {
+            var hb = launch(0.3 * (sx < CX ? -1 : 1), tg[0], tg[1], tg[2], { left: 1, hits: 0 });
+            hb.heavy = true; if (tg[3]) hb.ce = tg[3];
+            paws[0] = paws[1] = 1; api.sfx('jump');
+            return;
+        }
         var sd = sx < CX ? -1 : 1, th = { left: multi, hits: 0 }, lx = tg[0] - cx(tg[2]);
         for (var i = 0; i < multi; i++) {  /* the first ball goes where you aimed, playful extras to the sides */
             var off = i === 0 ? 0 : (i === 1 ? -1 : 1) * (lx > 0 ? 1 : -1) * 0.45, from = i === 1 ? -sd : sd;
@@ -1269,7 +1463,7 @@ Arcade.register('yarn-smash', function (api) {
         return T;
     }
     function launch(lx0, tx, ty, tz, th) {
-        var b = { type: 'ball', x: camX + lx0, y: EYE - 0.45, z: camZ + 0.25, th: th, age: 0, spin: rnd(0, 6), trail: [], big: bigT > 0 };
+        var b = { type: 'ball', x: camX + lx0, y: EYE - 0.45, z: camZ + 0.25, th: th, age: 0, spin: rnd(0, 6), trail: [], big: bigT > 0, rico: ricoT > 0 ? 1 : 0 };
         var dx = tx - b.x, dy = ty - b.y, dz = tz - b.z, T = flightT(dx, dy, dz);
         b.vx = dx / T; b.vy = dy / T + 0.5 * G * T; b.vz = dz / T;
         flying.push(b);
@@ -1321,7 +1515,14 @@ Arcade.register('yarn-smash', function (api) {
             var s = hitTest(ents[i], ax, ay, az, b.x, b.y, b.z, b.big);
             if (s >= 0 && s < best) { best = s; be = ents[i]; what = HIT; }
         }
-        if (be) return done(b, smash(be, what, ax + (b.x - ax) * best, ay + (b.y - ay) * best, az + (b.z - az) * best, b));
+        var gs = guardTest(ax, ay, az, b.x, b.y, b.z);
+        if (gs >= 0 && gs < best) return done(b, guardSmash(GI, ax + (b.x - ax) * gs, ay + (b.y - ay) * gs, az + (b.z - az) * gs, b));
+        if (be) {
+            var res = smash(be, what, ax + (b.x - ax) * best, ay + (b.y - ay) * best, az + (b.z - az) * best, b);
+            if (b.again) { b.again = false; b.th.hits++; return true; }  /* ricochet: on to the next pane */
+            return done(b, res);
+        }
+        if (mirrorTest(b, az)) return true;
         if (!inside(b.x, b.y, b.z) || b.z > camZ + FAR + 4 || (b.age > 0.1 && b.z < camZ + 0.2)) {
             if (b.y > -1) puff(b.x, Math.max(0, b.y), b.z, 5);
             return done(b, false);
@@ -1333,8 +1534,9 @@ Arcade.register('yarn-smash', function (api) {
         th.left--;
         if (hit) th.hits++;
         if (th.left === 0) {
-            if (th.hits) streak++;
+            if (th.hits) { streak++; hitsN++; bestStreak = Math.max(bestStreak, streak); }
             else {
+                worldMiss++;
                 if (multi > 1) say('Combo lost', '#cbd5e1');
                 streak = 0;
             }
@@ -1359,7 +1561,7 @@ Arcade.register('yarn-smash', function (api) {
             return true;
         }
         if (e.type === 'glass') {
-            if (ball && ball.big) {  /* giant yarn: the whole row goes */
+            if (ball && ball.big && !e.lockSet) {  /* giant yarn: the whole row goes */
                 var n = 0;
                 e.g.panels.forEach(function (p) { if (!p.broken) { breakGlass(p, 1); n++; } });
                 points(12 * n); popAt(hx, hy, hz, [210, 170, 255], 1.6);
@@ -1367,6 +1569,7 @@ Arcade.register('yarn-smash', function (api) {
                 shake = Math.max(shake, RM ? 0 : 5);
                 return true;
             }
+            if (e.hp > 1 && ball && ball.heavy) { e.hp = 1; popAt(hx, hy, hz, [255, 200, 90], 1.5); shake = Math.max(shake, RM ? 0 : 4); }  /* a heavy ball goes straight through */
             if (e.hp > 1) {  /* tough glass: crack it first */
                 e.hp--; e.crack = (e.crack || []).concat(crackAt(what[0] / e.w, (what[1] - e.y0) / (e.y1 - e.y0)));
                 points(5);
@@ -1376,15 +1579,20 @@ Arcade.register('yarn-smash', function (api) {
                 return true;
             }
             breakGlass(e, 1);
-            points(e.g.kind === 'portal' ? 25 : 10);
+            points(e.g.kind === 'portal' ? 25 : e.lockSet ? 15 : 10);
             popAt(hx, hy, hz, e.st.edge || [255, 255, 255]);
             api.sfx('pop');
+            if (e.lockSet) lockHit(e.lockSet);
+            if (ball && ball.rico > 0) ricochet(ball, e, hx, hy, hz);
             if (firstPane) { firstPane = false; chat('Purrfect aim!', 'happy', true); }
             return true;
         }
         e.broken = true; smashed++;
         pos(e, clock);
-        if (e.type === 'vase') {
+        if (e.type === 'bubble') {
+            burst(SX, SY, SZ, SR * 0.8, 14, ['rgba(255,200,240,', 'rgba(200,240,255,', 'rgba(255,250,200,', 'rgba(255,255,255,'], 0.6);
+            popAt(SX, SY, SZ, [255, 210, 245], 1.6); points(10); api.sfx('pop');
+        } else if (e.type === 'vase') {
             burst(SX, SY, SZ, 0.18, 12, [e.col], 1);
             points(15); addYarn(1);
             api.sfx('pop');
@@ -1412,7 +1620,9 @@ Arcade.register('yarn-smash', function (api) {
             burst(SX, SY, SZ, 0.25, 16, e.kind === 'big' ? ['rgba(200,160,255,', 'rgba(255,255,255,'] : ['rgba(150,200,255,', 'rgba(255,255,255,'], 0.8);
             popAt(SX, SY, SZ, e.kind === 'big' ? [200, 160, 255] : [150, 200, 255], 1.4);
             points(30);
-            if (e.kind === 'big') { bigT = 7; say('Giant yarn: whole rows shatter', '#d9b8ff'); chat('Giant yarn!', 'wow', true); }
+            if (e.kind === 'magnet') { magT = 6; say('Magnet: crystals fly to you', '#9ff5c4'); chat('Come here, crystals!', 'happy', true); }
+            else if (e.kind === 'rico') { ricoT = 8; say('Ricochet: each ball breaks one more pane', '#ffe08a'); chat('Bank shot!', 'wow', true); }
+            else if (e.kind === 'big') { bigT = 7; say('Giant yarn: whole rows shatter', '#d9b8ff'); chat('Giant yarn!', 'wow', true); }
             else { slowT = 5; say('Slow paws: time slows down', '#a8d8ff'); chat('Slooow paaaws...', 'think', true); }
             api.sfx('jump');
         }
@@ -1440,6 +1650,7 @@ Arcade.register('yarn-smash', function (api) {
     }
     function breakGlass(e, dir) {
         e.broken = true; smashed++;
+        if (e.heart && dir > 0) releaseHeart(e);
         shards(e, Math.round((e.g.kind === 'portal' ? 22 : 16) * Math.min(1.4, e.w)), dir);
     }
     function burst(x, y, z, spread, n, cols, up) {
@@ -1460,7 +1671,7 @@ Arcade.register('yarn-smash', function (api) {
         if (yarnTick.t > 0.9 || yarnTick.n < 0) yarnTick.n = 0;
         yarnTick.n += n; yarnTick.t = 0;
     }
-    function say(text, col) { toast.text = text; toast.c = col || '#ffffff'; toast.t = 0; }
+    function say(text, col, delay) { toast.text = text; toast.c = col || '#ffffff'; toast.t = -(delay || 0); }
     function chat(text, mood, force) {
         if (!force && clock - lastSay < 5) return;
         lastSay = clock;
@@ -1470,7 +1681,7 @@ Arcade.register('yarn-smash', function (api) {
     function crash(kind) {
         if (zoomT > 0) { bonus += 10; api.sfx('pop'); return; }
         var lost = Math.min(balls, 3 + Math.min(2, Math.floor(curZi / NZ)));
-        balls -= lost;
+        balls -= lost; worldCrash++;
         stumble = 0.35; flash = RM ? 0 : 1; shake = RM ? 0 : 14;
         if (multi > 1) say('Combo lost', '#cbd5e1');
         streak = 0; multi = 1;
@@ -1480,8 +1691,217 @@ Arcade.register('yarn-smash', function (api) {
         chat(kind === 'door' ? 'Bonk! My nose!' : (Math.random() < 0.5 ? 'Ouch, my whiskers!' : 'Mrrp! Glass!'), 'sad');
     }
 
+
+    /* ---------- glass guardians: a creature of glass panels drifts ahead before each gate; break the glowing panel, then the next ---------- */
+    var GDES = {
+        isles: { c: [255, 160, 110], c2: [255, 236, 196], eyes: [[-0.12, 0.75], [0.12, 0.75]],
+                 panels: [[-0.25, 0.5, -2.4, 0.1, -0.35, -0.45], [0.25, 0.5, 2.4, 0.1, 0.35, -0.45], [-0.3, -0.45, 0.3, -0.45, 0, -1.6], [0, 1.15, 0.36, 0.45, 0, -0.4, -0.36, 0.45]],
+                 lines: [[0, -1.6, 0.25, -2.0, -0.2, -2.4, 0.15, -2.8]] },
+        glow: { c: [70, 240, 200], c2: [220, 150, 255], eyes: [[-0.1, 0.45], [0.1, 0.45]],
+                panels: [[-0.2, 0.25, -2.1, 1.45, -2.5, 0.45, -0.3, -0.05], [0.2, 0.25, 2.1, 1.45, 2.5, 0.45, 0.3, -0.05], [0.25, -0.15, 1.7, -0.45, 1.35, -1.4, 0.2, -0.6], [-0.25, -0.15, -1.7, -0.45, -1.35, -1.4, -0.2, -0.6]],
+                lines: [[-0.08, 0.5, -0.4, 1.1, -0.8, 1.5], [0.08, 0.5, 0.4, 1.1, 0.8, 1.5], [0, 0.55, 0, -1.0]] },
+        geode: { c: [190, 140, 255], c2: [130, 230, 255], eyes: [[-0.15, 1.45], [0.15, 1.45]], body: [-1.0, 1.0, 1.0, 1.0, 1.1, -0.8, 0.7, -2.0, -0.7, -2.0, -1.1, -0.8],
+                 panels: [[-1.9, 0.95, -1.1, 0.8, -1.15, -1.15, -2.0, -0.9], [1.9, 0.95, 1.1, 0.8, 1.15, -1.15, 2.0, -0.9], [-0.9, 0.9, 0.9, 0.9, 0.7, -0.7, -0.7, -0.7], [-0.42, 1.05, 0.42, 1.05, 0.36, 1.75, -0.36, 1.75]],
+                 lines: [[-1.0, 1.0, -1.3, 1.5], [1.0, 1.0, 1.3, 1.5]] },
+        aurora: { c: [140, 220, 255], c2: [190, 255, 220], eyes: [[-0.2, 1.1], [0.2, 1.1]],
+                  panels: [[-0.7, 0.6, -1.9, 0.2, -1.6, -1.2, -0.7, -0.9], [0.7, 0.6, 1.9, 0.2, 1.6, -1.2, 0.7, -0.9], [-0.65, 0.5, 0.65, 0.5, 0.5, -1.1, -0.5, -1.1], octo(0, 1.05, 0.55)],
+                  lines: [[-0.35, 1.5, -0.55, 1.95], [0.35, 1.5, 0.55, 1.95]] },
+        clock: { c: [240, 170, 70], c2: [255, 236, 180], eyes: [[-0.12, 1.7], [0.12, 1.7]],
+                 panels: [half(-1), half(1), [-0.45, 1.45, 0.45, 1.45, 0.3, 2.0, -0.3, 2.0], octo(0, 0, 0.45)],
+                 lines: [[-1.2, -0.6, -1.9, -1.2], [1.2, -0.6, 1.9, -1.2], [-1.4, 0.1, -2.1, 0.1], [1.4, 0.1, 2.1, 0.1], [-0.2, 2.0, -0.5, 2.5], [0.2, 2.0, 0.5, 2.5]] },
+        wool: { c: [255, 150, 210], c2: [200, 240, 255], eyes: [[1.65, 0.7], [1.88, 0.7]],
+                panels: [octo(-0.9, 0.25, 0.55), octo(0, 0.65, 0.6), octo(0.9, 0.25, 0.55), octo(0, -0.3, 0.55), octo(1.75, 0.6, 0.4)],
+                lines: [[-0.7, -0.7, -0.7, -1.4], [0.6, -0.7, 0.6, -1.4], [1.55, 0.95, 1.4, 1.25], [1.95, 0.95, 2.1, 1.25]] },
+        stars: { c: [255, 130, 220], c2: [140, 232, 255], eyes: [[-0.14, 0.55], [0.14, 0.55]],
+                 panels: [[-0.4, 0.6, -2.6, -0.2, -0.5, -0.7], [0.4, 0.6, 2.6, -0.2, 0.5, -0.7], [0, 1.1, 0.45, 0.2, 0, -0.8, -0.45, 0.2], [-0.1, -0.8, 0.1, -0.8, 0, -2.2]],
+                 lines: [[-0.25, 1.0, -0.5, 1.4], [0.25, 1.0, 0.5, 1.4]] }
+    };
+    function octo(x, y, r) { var p = []; for (var i = 0; i < 8; i++) { var a = (i + 0.5) / 8 * TAU; p.push(x + Math.cos(a) * r, y + Math.sin(a) * r); } return p; }
+    function half(s) { var p = [0.04 * s, 1.4]; for (var i = 1; i < 8; i++) { var a = Math.PI / 2 + i / 8 * Math.PI; p.push(s * Math.abs(Math.cos(a)) * 1.5, Math.sin(a) * 1.4); } p.push(0.04 * s, -1.4); return p; }
+    var GX = 0, GY = 0, GZ = 0, GI = -1, guardDone = -1;
+    function gscale() { return guard.key === 'geode' ? 1.15 : 1.45; }
+    function guardPos(t) { GZ = camZ + speed * (t - clock) + guard.D; GX = cx(GZ) + Math.sin(t * 0.7) * 0.8; GY = (guard.key === 'geode' ? 1.95 : 2.6) + Math.sin(t * 1.3) * 0.22; }
+    function inPoly(p, x, y) {
+        var c = false;
+        for (var i = 0, j = p.length - 2; i < p.length; j = i, i += 2) {
+            if ((p[i + 1] > y) !== (p[j + 1] > y) && x < (p[j] - p[i]) * (y - p[i + 1]) / (p[j + 1] - p[i + 1]) + p[i]) c = !c;
+        }
+        return c;
+    }
+    function startGuard(zi) {
+        var key = ZONES[zi % NZ].key, d = GDES[key], lap = Math.floor(zi / NZ), n = Math.min(d.panels.length, 3 + (zi > 0 ? 1 : 0) + lap);
+        guard = { zi: zi, key: key, D: FAR + 6, state: 'in', idx: 0, n: n, dead: 0, panels: d.panels.slice(0, n).map(function (p) { return { pts: p, broken: false, flash: 0 }; }) };
+        if (!tips.guard) { tips.guard = true; say(TIPS.guard, '#ffffff'); }
+        chat('A glass guardian!', 'wow', true);
+    }
+    function stepGuard(dt) {
+        var zi = zoneIdx(camZ), u = camZ - zi * ZL;
+        if (!guard && phase === 'play' && u > ZL - 84 && u < ZL - 40 && guardDone !== zi) { guardDone = zi; startGuard(zi); }
+        if (!guard) return;
+        for (var i = 0; i < guard.panels.length; i++) guard.panels[i].flash = Math.max(0, guard.panels[i].flash - dt);
+        if (guard.state === 'in') { guard.D += (12.5 - guard.D) * Math.min(1, dt * 1.1); if (guard.D < 17) guard.state = 'fight'; }
+        else if (guard.state === 'fight') { guard.D += (12.5 - guard.D) * Math.min(1, dt); if (u > ZL - 22 || zi !== guard.zi) guard.state = 'swoop'; }
+        else if (guard.state === 'swoop') {
+            guard.D -= dt * 24;
+            if (guard.D < 1.2) {
+                if (zoomT <= 0 && phase === 'play' && guard.zi > 0) {  /* the first guardian only flies off */
+                    var lost = Math.min(balls, 3);
+                    balls -= lost; yarnTick.n = -lost; yarnTick.t = 0; worldCrash++; flash = RM ? 0 : 0.7; shake = RM ? 0 : 8;
+                    api.sfx('hit'); api.cat('sad'); say('The guardian swooped and got away', '#cbd5e1');
+                }
+                guard = null;
+            }
+        } else { guard.D += dt * 3; guard.dead += dt; if (guard.dead > 1.1) guard = null; }
+    }
+    function guardTest(ax, ay, az, bx, by, bz2) {  /* where a ball segment meets an unbroken guardian panel, or -1 (GI: which) */
+        if (!guard || (guard.state !== 'fight' && guard.state !== 'swoop')) return -1;
+        guardPos(clock);
+        if ((az < GZ) === (bz2 < GZ)) return -1;
+        var s = (GZ - az) / (bz2 - az), gs = gscale(), x = (ax + (bx - ax) * s - GX) / gs, y = (ay + (by - ay) * s - GY) / gs;
+        for (var i = 0; i < guard.panels.length; i++) if (!guard.panels[i].broken && inPoly(guard.panels[i].pts, x, y)) { GI = i; return s; }
+        return -1;
+    }
+    function guardPick(sx, sy, t) {  /* the world point on a guardian panel under the screen point, at time t */
+        guardPos(t);
+        var dz = GZ - camZ;
+        if (dz < 1) return null;
+        var k = F / dz, lx = (sx - CX) / k + camX + camS * dz - GX, ly = EYE - hy(GZ) + camHY + (HOR - sy) / k - GY;
+        var gs = gscale();
+        for (var i = 0; i < guard.panels.length; i++) if (!guard.panels[i].broken && inPoly(guard.panels[i].pts, lx / gs, ly / gs)) return [lx, ly];
+        return null;
+    }
+    function guardSmash(i, hx, hy, hz, ball) {
+        var p = guard.panels[i], d = GDES[guard.key];
+        if (i !== guard.idx && !(ball && ball.big)) { p.flash = 0.45; puff(hx, hy, hz - 0.05, 6); api.sfx('move'); return false; }
+        p.broken = true; guard.idx++;
+        while (guard.idx < guard.n && guard.panels[guard.idx].broken) guard.idx++;
+        burst(hx, hy, hz, 0.4, 16, [rgba(d.c, 1).replace(/,1\)$/, ','), rgba(d.c2, 1).replace(/,1\)$/, ','), 'rgba(255,255,255,'], 1);
+        popAt(hx, hy, hz, d.c2, 1.4); points(30); api.sfx('pop');
+        if (guard.idx >= guard.n) {
+            guard.state = 'dead'; guardPos(clock);
+            burst(GX, GY, GZ, 1.4, 40, [rgba(d.c, 1).replace(/,1\)$/, ','), rgba(d.c2, 1).replace(/,1\)$/, ','), 'rgba(255,255,255,'], 1.5);
+            addYarn(3); points(150); popAt(GX, GY, GZ, d.c2, 3);
+            say('Guardian shattered! +3 yarn', '#ffe08a'); chat('We beat the guardian!', 'wow', true); api.sfx('win');
+            shake = Math.max(shake, RM ? 0 : 6);
+        }
+        return true;
+    }
+
+    /* ---------- gate challenges, mirrors, ricochets, crystal hearts, magnets, bubbles and medals ---------- */
+    var locks = [];
+    function lockHit(ls) {
+        if (ls.done) return;
+        if (ls.t < 0) ls.t = clock;
+        if (!ls.panels.every(function (p) { return p.broken; })) return;
+        ls.done = true;
+        ls.gate.panels.forEach(function (p) { if (!p.broken) breakGlass(p, 1); });
+        addYarn(3); points(80);
+        say('Gate unlocked! +3 yarn', '#ffe08a'); chat('Open sesame!', 'wow', true); api.sfx('win');
+    }
+    function stepLocks() {
+        for (var i = locks.length - 1; i >= 0; i--) {
+            var ls = locks[i];
+            if (ls.z < camZ) { locks.splice(i, 1); continue; }
+            if (ls.t >= 0 && !ls.done && clock - ls.t > 2) {  /* too slow: the small panes grow back */
+                ls.t = -1;
+                ls.panels.forEach(function (p) { if (p.broken) { p.broken = false; p.crack = null; } });
+                if (!tips.lockslow) { tips.lockslow = true; say('Too slow: all three within 2 s', '#cbd5e1'); }
+                api.sfx('move');
+            }
+        }
+    }
+    function mirrorTest(b, az) {  /* a missed ball hitting an ice mirror bounces back once, onto the glass in front */
+        if (b.bounced) return false;
+        for (var i = 0; i < ents.length; i++) {
+            var e = ents[i];
+            if (e.type !== 'mirror' || !(az < e.z && b.z >= e.z)) continue;
+            var a = Math.abs(b.x - cx(e.z)), y = b.y;
+            if (!((a > e.hw + 0.05 && a < e.hw + 1.7 && y > 0 && y < 3.2) || (a < e.hw + 1.7 && y > 2.55 && y < 3.6))) continue;
+            b.bounced = true; b.z = e.z - 0.02;
+            var tg = b.ce && b.ce.type === 'glass' && !b.ce.broken && b.ce.g === e.g ? b.ce : null;
+            if (!tg) e.g.panels.forEach(function (p) { if (!tg && !p.broken) tg = p; });
+            if (tg) {
+                pstate(tg, clock + 0.3);
+                var T = 0.3, tx = QX, ty = (tg.y0 + tg.y1) / 2 + QY;
+                b.vx = (tx - b.x) / T; b.vz = (tg.z - b.z) / T; b.vy = (ty - b.y) / T + 0.5 * G * T; b.ce = tg;
+            } else { b.vz = -Math.abs(b.vz) * 0.5; b.vx *= -0.5; }
+            popAt(b.x, b.y, e.z, [210, 245, 255], 0.9); e.flash = 0.35; api.sfx('move');
+            if (!tips.mirrorhit) { tips.mirrorhit = true; say('Mirror bounce!', '#bff0ff'); }
+            return true;
+        }
+        return false;
+    }
+    function ricochet(b, e, hx, hy, hz) {  /* the ball flies on to the next pane behind */
+        var best = null, bd = 1e9;
+        ents.forEach(function (o) {
+            if (o.type !== 'glass' || o.broken || o === e || o.z < hz + 0.5 || o.z > hz + 18 || o.lockSet) return;
+            pstate(o, clock);
+            var d = o.z - hz + Math.abs(QX - hx) * 2;
+            if (d < bd) { bd = d; best = o; }
+        });
+        if (!best) return;
+        var T = Math.max(0.2, (best.z - hz) / 20);
+        pstate(best, clock + T);
+        b.x = hx; b.y = hy; b.z = hz + 0.05;
+        b.vx = (QX - hx) / T; b.vz = (best.z - b.z) / T; b.vy = ((best.y0 + best.y1) / 2 + QY - hy) / T + 0.5 * G * T;
+        b.rico--; b.again = true; b.ce = best;
+        popAt(hx, hy, hz, [255, 214, 110], 1.1);
+    }
+    function releaseHeart(e) {  /* the crystal inside flies to the cat */
+        pstate(e, clock);
+        ents.push({ type: 'crystal', z: e.z + 0.2, lx: QX - cx(e.z), y: (e.y0 + e.y1) / 2 + QY - 0.2, ph: 0, gift: true });
+        popAt(QX, (e.y0 + e.y1) / 2 + QY, e.z, [140, 255, 190], 1.3);
+    }
+    function stepHoming(dt) {  /* crystal hearts and, with the magnet, nearby crystals fly into the cat's paws */
+        for (var i = 0; i < ents.length; i++) {
+            var e = ents[i], dz = e.z - camZ;
+            if (e.type !== 'crystal' || e.broken || !(e.gift || (magT > 0 && dz < 24))) continue;
+            var k = Math.min(1, dt * 4);
+            e.lx += (0 - e.lx) * k; e.y += (EYE - 0.3 - e.y) * k; e.z -= dt * 10;
+            if (e.z - camZ < 1.3) {
+                e.broken = true; addYarn(e.gift ? 2 : 3); points(10); api.sfx('point');
+                popAt(cx(e.z) + e.lx, e.y, camZ + 1.4, [140, 255, 190], 0.6);
+            }
+        }
+    }
+    function stepBubbles() {
+        for (var i = 0; i < ents.length; i++) {
+            var e = ents[i];
+            if (e.type !== 'bubble') continue;
+            var dz = e.z - camZ;
+            if (e.t0 < 0 && dz < e.trig) e.t0 = clock;
+            if (e.broken) continue;
+            pos(e, clock);
+            if (SY > 14) { e.broken = true; continue; }
+            if (!e.passed && dz < 0.45) {
+                e.passed = true;
+                if (SY - SR < 1.45 && Math.abs(camX - SX) < SR + 0.15 && phase === 'play') {
+                    e.broken = true; burst(SX, SY, SZ + 0.6, 0.4, 12, ['rgba(255,200,240,', 'rgba(200,240,255,', 'rgba(255,255,255,'], 1);
+                    crash('bubble');
+                }
+            }
+        }
+    }
+    var MEDAL = ['', 'bronze', 'silver', 'gold'], MEDC = ['', '#f0b080', '#e2e8f0', '#ffd25c'];
+    var medalStore = (function () { try { return JSON.parse(localStorage.getItem('yarn-smash-medals')) || {}; } catch (e) { return {}; } })();
+    function award(zi) {  /* a world finished: gold with no crash and at most 3 misses, silver with at most 1 crash, else bronze */
+        var Z = ZONES[zi % NZ], m = worldCrash === 0 && worldMiss <= 3 ? 3 : worldCrash <= 1 ? 2 : 1, isNew = m > (medalStore[Z.key] || 0);
+        medalsRun.push({ name: Z.name, m: m, isNew: isNew });
+        if (isNew) { medalStore[Z.key] = m; try { localStorage.setItem('yarn-smash-medals', JSON.stringify(medalStore)); } catch (e) { /* not kept */ } }
+        say(MEDAL[m].charAt(0).toUpperCase() + MEDAL[m].slice(1) + ' medal: ' + Z.name + (isNew ? ' (new)' : ''), MEDC[m], banner.dur);
+        worldCrash = 0; worldMiss = 0;
+    }
+    function endText(score) {
+        var Z = ZONES[curZi % NZ], acc = throwsN ? Math.round(100 * hitsN / throwsN) : 0, n = [0, 0, 0, 0];
+        ZONES.forEach(function (W) { n[medalStore[W.key] || 0]++; });
+        var mt = medalsRun.length ? 'Medals: ' + medalsRun.map(function (m) { return m.name + ' ' + MEDAL[m.m] + (m.isNew ? ' (new)' : ''); }).join(', ')
+                                  : 'No medal this run: finish a world to earn one';
+        return 'Out of yarn!\n' + Math.floor(camZ) + ' m run, world ' + (curZi % NZ + 1) + ': ' + Z.name + (curZi >= NZ ? ', lap ' + (Math.floor(curZi / NZ) + 1) : '') +
+               '\n' + acc + '% hits, best combo ' + bestStreak + '\n' + mt + '\nCollection: ' + n[3] + ' gold, ' + n[2] + ' silver, ' + n[1] + ' bronze of ' + NZ + ' worlds';
+    }
+
     /* ---------- motes: drifting petals, spores, sparks, snow, embers or stars, depending on the world ---------- */
-    var MOTE = { petal: [255, 206, 222], spore: [110, 255, 222], spore2: [222, 140, 255], spark: [226, 200, 255], snow: [255, 255, 255], ember: [255, 186, 90], star: [255, 255, 255] };
+    var MOTE = { petal: [255, 206, 222], spore: [110, 255, 222], spore2: [222, 140, 255], spark: [226, 200, 255], snow: [255, 255, 255], ember: [255, 186, 90], star: [255, 255, 255], fluff: [255, 214, 240], fluff2: [200, 236, 255] };
     function moteInit(m, far) {
         m.z = camZ + (far ? rnd(FAR - 12, FAR) : rnd(3, FAR));
         var Z = zoneOf(m.z);
@@ -1489,13 +1909,13 @@ Arcade.register('yarn-smash', function (api) {
         m.lx = rnd(-1, 1) * (m.k === 'star' ? 9 : m.k === 'spark' ? 2.3 : 5.5);
         m.y = m.k === 'star' ? rnd(-5, 7) : rnd(0.2, m.k === 'spark' ? 3.1 : 5.5);
         m.ph = rnd(0, 6); m.s = rnd(0.03, 0.07);
-        m.c = m.k === 'spore' && Math.random() < 0.4 ? MOTE.spore2 : MOTE[m.k];
+        m.c = m.k === 'spore' && Math.random() < 0.4 ? MOTE.spore2 : m.k === 'fluff' && Math.random() < 0.5 ? MOTE.fluff2 : MOTE[m.k];
     }
     function stepMotes(dt) {
         for (var i = 0; i < motes.length; i++) {
             var m = motes[i], sw = Math.sin(clock * 0.8 + m.ph);
             if (m.k === 'petal') { m.y -= 0.35 * dt; m.lx += sw * 0.5 * dt; }
-            else if (m.k === 'spore' || m.k === 'ember') { m.y += (m.k === 'ember' ? 0.55 : 0.3) * dt; m.lx += sw * 0.25 * dt; }
+            else if (m.k === 'spore' || m.k === 'ember' || m.k === 'fluff') { m.y += (m.k === 'ember' ? 0.55 : 0.3) * dt; m.lx += sw * 0.25 * dt; }
             else if (m.k === 'snow') { m.y -= 0.75 * dt; m.lx += sw * 0.35 * dt; }
             if (m.z < camZ + 0.8 || m.y < -8 || m.y > 9) moteInit(m, true);
         }
@@ -1507,6 +1927,10 @@ Arcade.register('yarn-smash', function (api) {
         rt += rdt;
         if (slowT > 0) slowT -= rdt;
         if (bigT > 0) bigT -= rdt;
+        if (magT > 0) magT -= rdt;
+        if (ricoT > 0) ricoT -= rdt;
+        if (rt - skinT > 1) { skinT = rt; readSkin(); }
+        if (charge.id !== null) charge.v = clamp((rt - charge.t0 - 0.22) / 0.6, 0, 1);
         var dt = rdt * (slowT > 0 ? 0.5 : 1);
         clock += dt;
         if (phase === 'play') playT += dt;
@@ -1522,7 +1946,11 @@ Arcade.register('yarn-smash', function (api) {
         runPh += speed * dt * 1.6;
         env(camZ);
         var zi = zoneIdx(camZ), u = camZ - zi * ZL;
+        var fu = u, vis = FAR;  /* behind the waterfall the view closes in */
+        if (ZONES[zi % NZ].key === 'isles') vis = FAR - (FAR - 18) * Math.min(smooth((fu - 34) / 14), smooth((112 - fu) / 8));
+        VISF = vis;
         if (zi !== curZi) {
+            if (curZi >= 0 && zi === curZi + 1 && phase === 'play') award(curZi);
             curZi = zi;
             banner.zi = zi; banner.t = 0; banner.dur = zi ? 2.6 : 4.4;
             if (zi > 0) { chat(ZONES[zi % NZ].chat, 'wow', true); api.sfx('win'); }
@@ -1538,7 +1966,7 @@ Arcade.register('yarn-smash', function (api) {
                 e.passed = true;
                 if (!e.open && phase === 'play') { e.open = true; e.a = 1.45; crash('door'); }
             }
-            if (e.tip && !tips[e.tip] && e.z - camZ < 30 && e.z - camZ > 5 && toast.t > 2.2 && banner.t > banner.dur) { tips[e.tip] = true; say(TIPS[e.tip], '#ffffff'); }
+            if (e.tip && !tips[e.tip] && e.z - camZ < Math.min(30, VISF - 1) && e.z - camZ > 5 && toast.t > 2.2 && banner.t > banner.dur) { tips[e.tip] = true; say(TIPS[e.tip], '#ffffff'); }
         }
         for (i = 0; i < groups.length; i++) {
             var g = groups[i];
@@ -1560,6 +1988,9 @@ Arcade.register('yarn-smash', function (api) {
             if (q.life <= 0 || q.z < camZ + NEAR) parts.splice(i, 1);
         }
         stepMotes(dt);
+        if (!tips.charge && throwsN > 12 && toast.t > 2.2 && banner.t > banner.dur) { tips.charge = true; say(TIPS.charge, '#ffe08a'); }
+        stepGuard(dt); stepLocks(); stepHoming(dt); stepBubbles();
+        for (i = 0; i < ents.length; i++) if (ents[i].flash) ents[i].flash = Math.max(0, ents[i].flash - rdt);
         for (i = rings.length - 1; i >= 0; i--) { rings[i].t += rdt; if (rings[i].t > 0.35) rings.splice(i, 1); }
         for (i = pops.length - 1; i >= 0; i--) { pops[i].t += rdt; if (pops[i].t > 0.32) pops.splice(i, 1); }
         paws[0] = Math.max(0, paws[0] - rdt * 4); paws[1] = Math.max(0, paws[1] - rdt * 4);
@@ -1574,8 +2005,7 @@ Arcade.register('yarn-smash', function (api) {
             phase = 'over';
             api.say('Out of yarn. Nap time.', 2400);
             var Z = ZONES[curZi % NZ];
-            api.end({ score: score, win: false,
-                text: 'Out of yarn!\n' + Math.floor(camZ) + ' m run, world ' + (curZi % NZ + 1) + ': ' + Z.name + (curZi >= NZ ? ', lap ' + (Math.floor(curZi / NZ) + 1) : '') });
+            api.end({ score: score, win: false, text: endText(score) });
         }
     }
 
@@ -1662,6 +2092,12 @@ Arcade.register('yarn-smash', function (api) {
                 e.crack.forEach(function (c) { for (var n = 0; n < c.length; n += 2) { var q = qp(clamp(c[n], -1, 1), clamp(c[n + 1], 0, 1)); if (n) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); } });
                 ctx.stroke();
             }
+            if (e.heart) {  /* a crystal heart set in the glass */
+                var hc = qp(0, 0.55), hs = Math.max(3, 0.2 * k);
+                halo(hc[0], hc[1], hs * 2.4, [120, 255, 180], A * 0.6 * ga); ctx.globalAlpha = A * ga;
+                ctx.fillStyle = '#7ce8b0'; ctx.beginPath(); ctx.moveTo(hc[0], hc[1] - hs); ctx.lineTo(hc[0] + hs * 0.6, hc[1]); ctx.lineTo(hc[0], hc[1] + hs); ctx.lineTo(hc[0] - hs * 0.6, hc[1]); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#d8ffe9'; ctx.beginPath(); ctx.moveTo(hc[0], hc[1] - hs); ctx.lineTo(hc[0] + hs * 0.6, hc[1]); ctx.lineTo(hc[0], hc[1]); ctx.closePath(); ctx.fill();
+            }
             ctx.globalAlpha = A * (0.3 + 0.7 * ga);
             ctx.strokeStyle = st.frame; ctx.lineWidth = Math.max(1.5, 0.045 * k);
             cell(-1, 1, 0, 1); ctx.stroke();
@@ -1731,6 +2167,12 @@ Arcade.register('yarn-smash', function (api) {
             ctx.strokeStyle = wc[1]; ctx.lineWidth = Math.max(1, wc[0] * k);
             ctx.beginPath(); ctx.moveTo(sx - OW * k, sy); ctx.lineTo(sx - OW * k, sy - OH * k); ctx.arc(sx, sy - OH * k, OW * k, Math.PI, TAU); ctx.lineTo(sx + OW * k, sy); ctx.stroke();
         });
+        locks.forEach(function (ls) {  /* the 2 s window of a gate challenge, as a shrinking arc of light */
+            if (ls.gz !== e.gz || ls.t < 0 || ls.done) return;
+            var left = clamp(1 - (clock - ls.t) / 2, 0, 1);
+            ctx.globalAlpha = A; ctx.strokeStyle = '#ffe08a'; ctx.lineWidth = Math.max(2, 0.12 * k);
+            ctx.beginPath(); ctx.arc(sx, sy - OH * k, (OW + 0.6) * k, Math.PI, Math.PI + Math.PI * left); ctx.stroke();
+        });
         for (var i = 0; i < 9; i++) {  /* sparks running round the arch */
             var an = Math.PI + (((RM ? 0 : clock * 0.22) + i / 9) % 1) * Math.PI, rr2 = (OW + 0.28) * k;
             halo(sx + Math.cos(an) * rr2, sy - OH * k + Math.sin(an) * rr2, 0.16 * k, c2, A * 0.9);
@@ -1793,6 +2235,7 @@ Arcade.register('yarn-smash', function (api) {
         else if (st === 'geo') { box(lx, z, 0.5, 0.5, 0, T, m([104, 70, 170]), m([74, 48, 128]), m([226, 190, 255])); }
         else if (st === 'ice') { box(lx, z, 0.56, 0.56, 0, T, mixa([206, 238, 255], FOG, f, 0.8), mixa([170, 214, 245], FOG, f, 0.8), m([246, 252, 255])); }
         else if (st === 'crate') { box(lx, z, 0.5, 0.5, 0, T, m([192, 134, 66]), m([150, 100, 50]), m([220, 166, 88])); box(lx, z, 0.52, 0.52, T * 0.45, T * 0.55, m([110, 70, 36]), m([90, 58, 30]), m([110, 70, 36])); }
+        else if (st === 'spool') { box(lx, z, 0.56, 0.56, 0, 0.08, m([236, 214, 186]), m([206, 184, 156]), m([246, 228, 204])); box(lx, z, 0.42, 0.42, 0.08, T - 0.08, m([255, 160, 206]), m([226, 130, 180]), m([255, 190, 222])); box(lx, z, 0.56, 0.56, T - 0.08, T, m([236, 214, 186]), m([206, 184, 156]), m([250, 234, 212])); }
         else { box(lx, z, 0.5, 0.5, 0.14, T, m([100, 88, 150]), m([72, 62, 114]), m([156, 136, 210])); if (P(cx(z) + lx, 0.05, z)) halo(px, py, 0.4 * pk, [130, 220, 255], 0.4 * fade(z - camZ)); }
     }
     function drawVase(e) {
@@ -1842,7 +2285,7 @@ Arcade.register('yarn-smash', function (api) {
         ctx.restore();
         ctx.globalAlpha = 1;
     }
-    var LAMPC = { isles: [255, 190, 110], glow: [120, 255, 220], geode: [210, 160, 255], aurora: [190, 240, 255], clock: [255, 210, 120], stars: [255, 240, 160] };
+    var LAMPC = { isles: [255, 190, 110], glow: [120, 255, 220], geode: [210, 160, 255], aurora: [190, 240, 255], clock: [255, 210, 120], wool: [255, 190, 230], stars: [255, 240, 160] };
     function drawLamp(e) {
         var Z = e.Z, A = fade(e.z - camZ), key = Z.key, lc = LAMPC[key];
         pos(e, clock);
@@ -1878,6 +2321,8 @@ Arcade.register('yarn-smash', function (api) {
             var g3 = ctx.createLinearGradient(-0.18, 0, 0.18, 0); g3.addColorStop(0, '#9a6a24'); g3.addColorStop(0.4, '#ffe08a'); g3.addColorStop(1, '#a8742a');
             ctx.fillStyle = g3; ctx.beginPath(); ctx.moveTo(-0.07, -0.2); ctx.quadraticCurveTo(-0.13, -0.15, -0.13, 0); ctx.lineTo(-0.2, 0.12); ctx.lineTo(0.2, 0.12); ctx.lineTo(0.13, 0); ctx.quadraticCurveTo(0.13, -0.15, 0.07, -0.2); ctx.closePath(); ctx.fill();
             ctx.fillStyle = '#7a5020'; ctx.beginPath(); ctx.arc(0, 0.15, 0.04, 0, TAU); ctx.fill();
+        } else if (key === 'wool') {
+            ctx.rotate(RM ? 0 : Math.sin(t) * 0.4); buttonPaint(ctx, 0, 0, 0.21, [255, 176, 220], false);
         } else {
             ctx.rotate(RM ? 0 : t * 0.8); ctx.fillStyle = '#fff6c2'; ctx.beginPath();
             for (i = 0; i < 10; i++) { var r = i % 2 ? 0.09 : 0.23, b = i / 10 * TAU - Math.PI / 2; ctx.lineTo(Math.cos(b) * r, Math.sin(b) * r); }
@@ -1899,14 +2344,23 @@ Arcade.register('yarn-smash', function (api) {
     function drawPower(e) {  /* a bubble with a giant yarn ball or a stopwatch inside */
         pos(e, clock);
         if (!P(SX, SY, SZ)) return;
-        var A = fade(SZ - camZ), r = SR * pk * (1 + (RM ? 0 : 0.05 * Math.sin(clock * 5))), c = e.kind === 'big' ? [200, 150, 255] : [130, 200, 255];
+        var A = fade(SZ - camZ), r = SR * pk * (1 + (RM ? 0 : 0.05 * Math.sin(clock * 5))), c = { big: [200, 150, 255], slow: [130, 200, 255], magnet: [110, 240, 170], rico: [255, 206, 90] }[e.kind];
         halo(px, py, r * 2.6, c, A * 0.6);
         ctx.globalAlpha = A;
         var g = ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, r * 0.1, px, py, r);
         g.addColorStop(0, 'rgba(255,255,255,.25)'); g.addColorStop(0.75, rgba(c, 0.25)); g.addColorStop(1, rgba(c, 0.85));
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, r, 0, TAU); ctx.fill();
         if (e.kind === 'big') wool(px, py, r * 0.55, RM ? 0 : clock * 2, 'violet');
-        else {
+        else if (e.kind === 'magnet') {  /* a horseshoe magnet */
+            ctx.lineCap = 'butt'; ctx.lineWidth = r * 0.24;
+            ctx.strokeStyle = '#ff5a6e'; ctx.beginPath(); ctx.arc(px, py - r * 0.05, r * 0.32, Math.PI, TAU); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(px - r * 0.32, py - r * 0.06); ctx.lineTo(px - r * 0.32, py + r * 0.2); ctx.moveTo(px + r * 0.32, py - r * 0.06); ctx.lineTo(px + r * 0.32, py + r * 0.2); ctx.stroke();
+            ctx.strokeStyle = '#eef4fb'; ctx.beginPath(); ctx.moveTo(px - r * 0.32, py + r * 0.2); ctx.lineTo(px - r * 0.32, py + r * 0.4); ctx.moveTo(px + r * 0.32, py + r * 0.2); ctx.lineTo(px + r * 0.32, py + r * 0.4); ctx.stroke();
+        } else if (e.kind === 'rico') {  /* a zigzag arrow */
+            ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = r * 0.14; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            ctx.beginPath(); ctx.moveTo(px - r * 0.45, py + r * 0.3); ctx.lineTo(px - r * 0.12, py - r * 0.2); ctx.lineTo(px + r * 0.1, py + r * 0.15); ctx.lineTo(px + r * 0.42, py - r * 0.32);
+            ctx.moveTo(px + r * 0.18, py - r * 0.34); ctx.lineTo(px + r * 0.42, py - r * 0.32); ctx.lineTo(px + r * 0.4, py - r * 0.08); ctx.stroke();
+        } else {
             ctx.fillStyle = '#f4f9ff'; ctx.beginPath(); ctx.arc(px, py, r * 0.52, 0, TAU); ctx.fill();
             ctx.strokeStyle = '#3b5b9a'; ctx.lineWidth = Math.max(1, r * 0.09); ctx.lineCap = 'round';
             ctx.beginPath(); ctx.arc(px, py, r * 0.52, 0, TAU);
@@ -1921,14 +2375,14 @@ Arcade.register('yarn-smash', function (api) {
     function drawBall(b) {
         var dz = b.z - camZ;
         if (dz < 0.9) return;  /* still in the paw */
-        var fl = floorAt(b.x - cx(b.z), b.z), big = b.big ? 2.6 : 1;
+        var fl = floorAt(b.x - cx(b.z), b.z), big = b.big ? 2.6 : b.heavy ? 1.6 : 1;
         if (fl > -1 && P(b.x, fl, b.z)) {
             var sq = clamp(EYE / dz, 0.1, 1);
             ctx.fillStyle = 'rgba(30,14,40,.18)'; ctx.beginPath(); ctx.ellipse(px, py, BR * big * pk * 1.2, BR * big * pk * sq, 0, 0, TAU); ctx.fill();
         }
         if (!P(b.x, b.y, b.z)) return;
         var r = Math.min(BR * big * pk * 1.35, PAW * 0.5 * big), bx = px, by = py;
-        ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = b.big ? '#b98cff' : '#e8739f'; ctx.lineWidth = clamp(r * 0.16, 1, 4);
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = b.big ? '#b98cff' : b.heavy || b.rico ? '#ffc94a' : '#e8739f'; ctx.lineWidth = clamp(r * 0.16, 1, 4);
         ctx.beginPath(); ctx.moveTo(bx, by);  /* the loose thread trailing behind */
         for (var i = 0; i < b.trail.length; i += 3) {
             if (b.trail[i + 2] - camZ > 0.9 && P(b.trail[i], b.trail[i + 1] + Math.sin(i * 0.9 + b.spin) * 0.03, b.trail[i + 2])) ctx.lineTo(px, py);
@@ -1936,7 +2390,77 @@ Arcade.register('yarn-smash', function (api) {
         ctx.globalAlpha = 0.85; ctx.stroke(); ctx.globalAlpha = 1;
         if (b.big) halo(bx, by, r * 2, [200, 150, 255], 0.45);
         ctx.globalAlpha = 1;
-        wool(bx, by, r, RM ? 0 : b.spin, b.big ? 'violet' : zoomT > 0 ? 'orange' : 'pink');
+        if (b.heavy || b.rico) halo(bx, by, r * 1.9, [255, 200, 90], b.heavy ? 0.6 : 0.35);
+        ctx.globalAlpha = 1;
+        wool(bx, by, r, RM ? 0 : b.spin, b.big ? 'violet' : b.heavy ? 'gold' : zoomT > 0 ? 'orange' : 'pink');
+    }
+
+    function drawBubble(e) {  /* a soap bubble: clear in the middle, rainbow sheen on the rim */
+        pos(e, clock);
+        if (!P(SX, SY, SZ)) return;
+        var A = fade(SZ - camZ), r = SR * pk, x = px, y = py, a0 = clock * 0.6 + e.ph;
+        shadow(SX, SZ, SR * 0.9, A * 0.25 * clamp(1 - (SY - SR) / 2.5, 0, 1));
+        ctx.globalAlpha = A;
+        var g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.1, x, y, r);
+        g.addColorStop(0, 'rgba(255,255,255,.05)'); g.addColorStop(0.68, 'rgba(225,232,255,.12)'); g.addColorStop(0.9, 'rgba(255,190,240,.45)'); g.addColorStop(1, 'rgba(170,232,255,.8)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+        ctx.lineWidth = Math.max(1, r * 0.07); ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(255,150,220,.55)'; ctx.beginPath(); ctx.arc(x, y, r * 0.84, a0, a0 + 1.3); ctx.stroke();
+        ctx.strokeStyle = 'rgba(130,230,255,.55)'; ctx.beginPath(); ctx.arc(x, y, r * 0.84, a0 + 2.2, a0 + 3.1); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,240,150,.45)'; ctx.beginPath(); ctx.arc(x, y, r * 0.84, a0 + 4.0, a0 + 4.7); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(x - r * 0.4, y - r * 0.42, r * 0.17, r * 0.09, -0.7, 0, TAU); ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+    function drawMirror(e) {  /* an archway of ice mirrors behind a row of glass */
+        var dz = e.z - camZ;
+        if (dz < NEAR + 0.1) return;
+        var A = fade(dz), f = fogf(dz), hw = e.hw;
+        ctx.globalAlpha = A;
+        [[-(hw + 1.7), -(hw + 0.05), 0, 3.2], [hw + 0.05, hw + 1.7, 0, 3.2], [-(hw + 1.7), hw + 1.7, 2.55, 3.6]].forEach(function (q) {
+            var r = rectW(q[0], q[1], q[2], q[3], e.z);
+            if (!r) return;
+            var g = ctx.createLinearGradient(r[0], r[1], r[0] + r[2], r[1] + r[3]);
+            g.addColorStop(0, mixa([34, 54, 116], FOG, f, 0.8)); g.addColorStop(0.36, mixa([150, 210, 246], FOG, f, 0.75));
+            g.addColorStop(0.5, mixa([250, 255, 255], FOG, f, 0.9)); g.addColorStop(0.62, mixa([140, 200, 240], FOG, f, 0.75)); g.addColorStop(1, mixa([60, 92, 164], FOG, f, 0.8));
+            ctx.fillStyle = g; ctx.fillRect(r[0], r[1], r[2], r[3]);
+            if (e.flash) { ctx.fillStyle = 'rgba(255,255,255,' + (e.flash * 2).toFixed(2) + ')'; ctx.fillRect(r[0], r[1], r[2], r[3]); }
+            ctx.strokeStyle = mixc([240, 252, 255], FOG, f); ctx.lineWidth = Math.max(1.5, Math.min(8, 0.06 * pk)); ctx.strokeRect(r[0], r[1], r[2], r[3]);
+        });
+        ctx.globalAlpha = 1;
+    }
+    var GUARDITEM = { type: 'guard', z: 0 };
+    function drawGuard() {
+        guardPos(clock);
+        if (!P(GX, GY, GZ)) return;
+        var d = GDES[guard.key], k = pk * gscale(), ox = px, oy = py, f = fogf(GZ - camZ) * 0.5;
+        var A = fade(GZ - camZ) * (guard.state === 'dead' ? Math.max(0, 1 - guard.dead / 1.1) : 1);
+        function path(p) { ctx.beginPath(); for (var i = 0; i < p.length; i += 2) { var X = ox + p[i] * k, Y = oy - p[i + 1] * k; if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); } }
+        halo(ox, oy, 3.4 * k, d.c, A * 0.42);
+        ctx.globalAlpha = A; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        if (d.body) { path(d.body); ctx.closePath(); ctx.fillStyle = mixa([44, 30, 74], FOG, f, 0.8); ctx.fill(); }
+        ctx.strokeStyle = mixa(d.c, FOG, f, 0.9); ctx.lineWidth = Math.max(1.5, Math.min(10, 0.07 * k));
+        d.lines.forEach(function (l) { path(l); ctx.stroke(); });
+        var gr = ctx.createLinearGradient(ox - 2 * k, oy - 2 * k, ox + 2 * k, oy + 2 * k);
+        gr.addColorStop(0, rgba(d.c2, 0.6)); gr.addColorStop(0.45, rgba(d.c, 0.28)); gr.addColorStop(0.55, 'rgba(255,255,255,.5)'); gr.addColorStop(1, rgba(d.c, 0.45));
+        guard.panels.forEach(function (p, i) {
+            if (p.broken) return;
+            var act = i === guard.idx && guard.state !== 'dead';
+            path(p.pts); ctx.closePath();
+            ctx.globalAlpha = A; ctx.fillStyle = gr; ctx.fill();
+            if (p.flash > 0) { ctx.fillStyle = 'rgba(255,80,110,' + Math.min(0.6, p.flash * 1.4).toFixed(2) + ')'; ctx.fill(); }
+            if (act) {
+                var pu = RM ? 0.85 : 0.6 + 0.4 * Math.sin(clock * 7);
+                ctx.strokeStyle = rgba(d.c2, 0.5 * pu); ctx.lineWidth = Math.max(4, Math.min(30, 0.34 * k)); ctx.stroke();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(2, Math.min(8, 0.07 * k)); ctx.stroke();
+                var mx = 0, my = 0, n = p.pts.length / 2;
+                for (var j = 0; j < p.pts.length; j += 2) { mx += p.pts[j] / n; my += p.pts[j + 1] / n; }
+                var an = RM ? 0 : clock * 3;
+                halo(ox + (mx + Math.cos(an) * 0.35) * k, oy - (my + Math.sin(an) * 0.35) * k, 0.2 * k, [255, 255, 255], A);
+                ctx.globalAlpha = A;
+            } else { ctx.strokeStyle = rgba(d.c, 0.3); ctx.lineWidth = Math.max(3, Math.min(16, 0.16 * k)); ctx.stroke(); ctx.strokeStyle = rgba(d.c, 0.95); ctx.lineWidth = Math.max(1.5, Math.min(8, 0.05 * k)); ctx.stroke(); }
+        });
+        d.eyes.forEach(function (eY) { halo(ox + eY[0] * k, oy - eY[1] * k, 0.16 * k, d.c2, A); });
+        ctx.globalAlpha = 1;
     }
 
     /* ---------- the frame ---------- */
@@ -1951,6 +2475,9 @@ Arcade.register('yarn-smash', function (api) {
         else if (t === 'vase') drawVase(e);
         else if (t === 'ball') drawBall(e);
         else if (t === 'lamp') drawLamp(e);
+        else if (t === 'mirror') drawMirror(e);
+        else if (t === 'guard') { if (guard) drawGuard(); }
+        else if (t === 'bubble') { if (!e.broken) drawBubble(e); }
         else if (!e.broken) { if (t === 'crystal') drawCrystal(e); else if (t === 'dot') drawDot(e); else if (t === 'power') drawPower(e); }
         ctx.globalAlpha = 1;
     }
@@ -1962,6 +2489,7 @@ Arcade.register('yarn-smash', function (api) {
         for (i = 0; i < ents.length; i++) list.push(ents[i]);
         for (i = 0; i < props.length; i++) list.push(props[i]);
         for (i = 0; i < flying.length; i++) list.push(flying[i]);
+        if (guard) { guardPos(clock); GUARDITEM.z = GZ; list.push(GUARDITEM); }
         list.sort(function (a, b) { return b.z - a.z; });
         while (j < list.length && list[j].z > camZ + FAR + 2) j++;
         while (j < list.length && list[j].z >= bz[n - 1]) drawItem(list[j++]);
@@ -2005,15 +2533,19 @@ Arcade.register('yarn-smash', function (api) {
         }
         ctx.globalAlpha = 1;
     }
-    function drawPaw(x, y, r, lift) {
-        ctx.lineWidth = 2.5; ctx.strokeStyle = OL; ctx.fillStyle = FUR; ctx.lineJoin = 'round';
+    function drawPaw(x, y, r, lift) {  /* in the colours of the chosen cat look: tuxedo paws are black with white toes */
+        ctx.lineWidth = 2.5; ctx.strokeStyle = SK.line; ctx.fillStyle = SK.toe; ctx.lineJoin = 'round';
         if (lift <= 0.25) for (var t = 0; t < 3; t++) { ctx.beginPath(); ctx.arc(x + (t - 1) * r * 0.5, y - r * (t === 1 ? 0.68 : 0.58), r * 0.3, 0, TAU); ctx.fill(); ctx.stroke(); }
+        ctx.fillStyle = SK.fur;
         ctx.beginPath(); ctx.moveTo(x - r * 0.72, H + 4); ctx.lineTo(x - r * 0.72, y + r * 0.55);
         ctx.quadraticCurveTo(x - r, y + r * 0.35, x - r, y);
         ctx.ellipse(x, y, r, r * 0.82, 0, Math.PI, TAU);
         ctx.quadraticCurveTo(x + r, y + r * 0.35, x + r * 0.72, y + r * 0.55); ctx.lineTo(x + r * 0.72, H + 4); ctx.closePath();
         ctx.fill(); ctx.stroke();
-        ctx.strokeStyle = STRIPE; ctx.lineWidth = Math.max(2, r * 0.1); ctx.lineCap = 'round';
+        var hg = ctx.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r * 1.1);
+        hg.addColorStop(0, SK.light); hg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.globalAlpha = 0.45; ctx.fillStyle = hg; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = SK.stripe; ctx.lineWidth = Math.max(2, r * 0.1); ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(x - r * 0.5, y + r * 0.6); ctx.quadraticCurveTo(x, y + r * 0.45, x + r * 0.5, y + r * 0.6);
         ctx.moveTo(x - r * 0.45, y + r * 1.05); ctx.quadraticCurveTo(x, y + r * 0.9, x + r * 0.45, y + r * 1.05); ctx.stroke();
         if (lift > 0.25) {
@@ -2075,6 +2607,8 @@ Arcade.register('yarn-smash', function (api) {
         if (bigT > 0) x += timerPill(x, y, 'Giant', bigT / 7, '#d9b8ff');
         if (slowT > 0) x += timerPill(x, y, 'Slow', slowT / 5, '#a8d8ff');
         if (zoomT > 0) x += timerPill(x, y, 'Zoomies', zoomT / 4, '#ffd166');
+        if (magT > 0) x += timerPill(x, y, 'Magnet', magT / 6, '#9ff5c4');
+        if (ricoT > 0) x += timerPill(x, y, 'Ricochet', ricoT / 8, '#ffe08a');
         var Z = ZONES[curZi % NZ], prog = clamp((camZ - curZi * ZL) / ZL, 0, 1);  /* the world and how far to the next gate */
         ctx.font = '800 13px ' + FONT;
         var zt = Z.name, zw = ctx.measureText(zt).width + 24;
@@ -2148,9 +2682,15 @@ Arcade.register('yarn-smash', function (api) {
             }
             ctx.stroke();
         }
-        var bob = RM ? 0 : Math.sin(runPh) * PAW * 0.08 * Math.min(1, speed / 4);
-        drawPaw(W * 0.24, H - PAW * 0.3 - paws[0] * PAW * 1.1 + bob, PAW, paws[0]);
-        drawPaw(W * 0.76, H - PAW * 0.3 - paws[1] * PAW * 1.1 - bob, PAW, paws[1]);
+        var bob = RM ? 0 : Math.sin(runPh) * PAW * 0.08 * Math.min(1, speed / 4), wind = charge.v * PAW * 0.45;
+        drawPaw(W * 0.24, H - PAW * 0.3 - paws[0] * PAW * 1.1 + bob + wind, PAW, paws[0]);
+        drawPaw(W * 0.76, H - PAW * 0.3 - paws[1] * PAW * 1.1 - bob + wind, PAW, paws[1]);
+        if (charge.id !== null && rt - charge.t0 > 0.22) {  /* the charge, a thin bar at the very bottom between the paws */
+            var bw = Math.min(150, W * 0.3), bx0 = CX - bw / 2, by0 = H - 12, full = charge.v >= 1;
+            ctx.fillStyle = 'rgba(20,14,42,.55)'; rrect(bx0 - 3, by0 - 3, bw + 6, 9, 4.5); ctx.fill();
+            ctx.fillStyle = full ? '#ffd25c' : '#ffb3cf'; rrect(bx0, by0, Math.max(3, bw * charge.v), 3, 1.5); ctx.fill();
+            if (full) { halo(CX, by0 + 1, 22, [255, 210, 90], RM ? 0.6 : 0.45 + 0.25 * Math.sin(rt * 10)); ctx.globalAlpha = 1; wool(CX, by0 - 12, 7, 0, 'gold'); }
+        }
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         drawOverlay();
         drawHud();
@@ -2159,20 +2699,36 @@ Arcade.register('yarn-smash', function (api) {
     api.loop(function (dt) { update(Math.min(dt, 0.05)); draw(); });
 
     /* ---------- input: tap or click to throw, Space throws straight ahead ---------- */
+    /* a tap throws when the finger lifts; holding charges a heavy ball (2 yarn) that goes straight through tough glass */
+    function release(heavyOk) {
+        var heavy = heavyOk && charge.v >= 1 && balls >= 2, x = charge.x, y = charge.y;
+        charge.id = null; charge.v = 0; charge.key = false;
+        throwAt(x, y, heavy);
+    }
+    function local(e) { var r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
     api.on(cv, 'pointerdown', function (e) {
         e.preventDefault();
-        var r = cv.getBoundingClientRect();
-        throwAt(e.clientX - r.left, e.clientY - r.top);
+        var p = local(e);
+        if (charge.id !== null) { throwAt(p[0], p[1]); return; }  /* a second finger: a plain throw */
+        charge.id = e.pointerId; charge.x = p[0]; charge.y = p[1]; charge.t0 = rt; charge.v = 0;
+        try { cv.setPointerCapture(e.pointerId); } catch (err) { /* fine without */ }
     });
+    api.on(cv, 'pointermove', function (e) { if (e.pointerId === charge.id) { var p = local(e); charge.x = p[0]; charge.y = p[1]; } });
+    api.on(cv, 'pointerup', function (e) { if (e.pointerId === charge.id) { var p = local(e); charge.x = p[0]; charge.y = p[1]; release(true); } });
+    api.on(cv, 'pointercancel', function (e) { if (e.pointerId === charge.id) { charge.id = null; charge.v = 0; } });
     api.on(cv, 'contextmenu', function (e) { e.preventDefault(); });
     api.on(window, 'keydown', function (e) {
         if (e.key !== ' ' && e.code !== 'Space') return;
         e.preventDefault();
-        if (!e.repeat) throwAt(CX, HOR);
+        if (!e.repeat && charge.id === null) { charge.id = 'key'; charge.key = true; charge.x = CX; charge.y = HOR; charge.t0 = rt; charge.v = 0; }
+    });
+    api.on(window, 'keyup', function (e) {
+        if ((e.key === ' ' || e.code === 'Space') && charge.id === 'key') { e.preventDefault(); release(true); }
     });
 
     fit(api.size());
     api.onResize(fit);
+    readSkin();
     camX = cx(0); camS = (cx(1) - cx(-1)) / 2; camHY = hy(0); camT = (hy(5) - camHY) / 5; HOR = HY + camT * F;
     env(0);
     prepWorld(0);
