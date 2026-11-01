@@ -138,6 +138,9 @@
     box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
 }
 .stop.is-now .degree-pop { left: auto; right: 0; }
+.journey-item.pop-up .degree-pop { top: auto; bottom: 100%; }
+/* an open list goes above the footer and the cat layer (fallen letters, the floor) */
+.main:has(.profile.home):has(.journey-item:hover, .journey-item:focus-within) { z-index: 6; }
 .journey-item:hover .degree-pop, .journey-item:focus-within .degree-pop { display: block; }
 .degree-pop a { display: block; padding: 8px 10px; border-radius: 8px; font-size: 0.9rem; line-height: 1.35; }
 .degree-pop a:hover, .degree-pop a:focus { background: #eef2ff; }

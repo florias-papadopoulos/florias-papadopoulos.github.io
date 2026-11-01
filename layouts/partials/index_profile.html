@@ -95,5 +95,18 @@
         </div>
     </div>
 </div>
+<script>
+/* a project list opens upward when there is more room above it, and never runs past the window */
+document.querySelectorAll('.journey-item.has-projects').forEach(function (li) {
+    function place() {
+        var pop = li.querySelector('.degree-pop'), r = li.getBoundingClientRect();
+        var below = innerHeight - r.bottom - 10, above = r.top - 10, up = pop.scrollHeight > below && above > below;
+        li.classList.toggle('pop-up', up);
+        pop.style.maxHeight = Math.max(160, up ? above : below) + 'px';
+    }
+    li.addEventListener('mouseenter', place);
+    li.addEventListener('focusin', place);
+});
+</script>
 {{ partial "cat.html" . }}
 {{- end }}
