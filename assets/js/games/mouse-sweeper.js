@@ -2,6 +2,7 @@
    The first tap always opens a patch. Tapping a number with as many paws around it opens the rest (chording).
    The cat's sniff shows a safe cell (a few times on easy, once otherwise); on easy the cat also catches the first
    mouse you uncover (+10 s). Board size and mice per difficulty; the long side of the board follows the screen.
+   One tap puts a paw (flag) on a cell, a second tap on the same cell right after opens it.
    Score = seconds, best = fastest win. Shell API: assets/js/games/arcade.js. */
 Arcade.register('mouse-sweeper', function (api) {
     'use strict';
@@ -17,8 +18,6 @@ Arcade.register('mouse-sweeper', function (api) {
         '  -webkit-tap-highlight-color: transparent; }' +
         '.ms-btn svg { width: 18px; height: 18px; }' +
         '.ms-btn:active { transform: translateY(2px); box-shadow: none; }' +
-        '.ms-btn[aria-pressed="true"] { background: #f6a23a; color: #fff; box-shadow: 0 2px 0 #c2410c; }' +
-        '.ms-btn[aria-pressed="true"] .pw { fill: #fff; }' +
         '.ms-btn:disabled { opacity: .45; cursor: default; transform: none; }' +
         '.ms-lives { color: #d6336c; }' +
         '.ms-grid { position: relative; display: grid; grid-template-columns: repeat(var(--cols), var(--c)); grid-auto-rows: var(--c); gap: 2px; padding: 6px;' +
@@ -35,7 +34,6 @@ Arcade.register('mouse-sweeper', function (api) {
         '.ms-cell.open, .ms-cell.mouse { animation: ms-open .22s ease-out backwards; animation-delay: var(--d, 0s); }' +
         '.ms-cell.open > span { animation: ms-in .2s ease-out backwards; animation-delay: var(--d, 0s); }' +
         '.ms-cell.flag svg { animation: ms-in .22s cubic-bezier(.3, 1.6, .5, 1); }' +
-        '.ms-cell.press::after { content: ""; position: absolute; inset: 8%; border-radius: 50%; border: 3px solid #f6a23a; animation: ms-press .4s linear forwards; }' +
         '.ms-cell.peek { background: #fde7c0; }' +
         '.ms-cell.sniff { z-index: 2; animation: ms-sniff .7s ease-in-out; box-shadow: 0 0 0 3px #f6a23a, 0 0 16px 4px rgba(246, 162, 58, .7); }' +
         '.ms-cell.mouse { background: #fff1d6; box-shadow: inset 0 0 0 1px #f6d9a8; }' +
@@ -54,7 +52,6 @@ Arcade.register('mouse-sweeper', function (api) {
         '.ms-still *, .ms-still .ms-cell { animation: none !important; transition: none !important; }' +
         '@keyframes ms-in { from { transform: scale(.2); } to { transform: scale(1); } }' +
         '@keyframes ms-open { from { transform: scale(.75); filter: brightness(1.15); } to { transform: none; filter: none; } }' +
-        '@keyframes ms-press { from { transform: scale(.2); opacity: .2; } to { transform: scale(1); opacity: 1; } }' +
         '@keyframes ms-sniff { 0%, 100% { transform: none; } 30% { transform: scale(1.15); } 60% { transform: scale(.95); } }' +
         '@keyframes ms-hop { 0% { transform: none; } 40% { transform: translateY(-30%) scale(1.08); } 100% { transform: none; } }' +
         '@keyframes ms-up { from { opacity: 1; } to { opacity: 0; transform: translate(-50%, -190%); } }');
@@ -82,11 +79,10 @@ Arcade.register('mouse-sweeper', function (api) {
     wrap.className = 'ms' + (api.reducedMotion ? ' ms-still' : '');
     wrap.innerHTML = '<div class="ms-bar"><span class="ms-pill ms-left" title="Mice left"></span>' +
         (L.lives ? '<span class="ms-pill ms-lives" title="The cat catches one mouse for you"></span>' : '') +
-        '<button class="ms-btn ms-sniff" type="button" disabled></button>' +
-        '<button class="ms-btn ms-mode" type="button" aria-pressed="false">' + PAW + 'Flag</button></div>' +
+        '<button class="ms-btn ms-sniff" type="button" disabled></button></div>' +
         '<div class="ms-grid" role="group" aria-label="Lawn"></div>';
     api.el.appendChild(wrap);
-    var grid = wrap.querySelector('.ms-grid'), leftEl = wrap.querySelector('.ms-left'), modeBtn = wrap.querySelector('.ms-mode');
+    var grid = wrap.querySelector('.ms-grid'), leftEl = wrap.querySelector('.ms-left');
     var sniffBtn = wrap.querySelector('.ms-sniff'), livesEl = wrap.querySelector('.ms-lives');
     grid.style.setProperty('--cols', COLS);
 
@@ -101,7 +97,7 @@ Arcade.register('mouse-sweeper', function (api) {
         mouse.push(false); near.push(0); shown.push(false); flag.push(false); caught.push(false);
         cellClass(i, '');
     }
-    var placed = false, over = false, opened = 0, flags = 0, flagMode = false, t0 = 0, secs = 0, ticker = null;
+    var placed = false, over = false, opened = 0, flags = 0, t0 = 0, secs = 0, ticker = null;
     var sniffs = L.sniffs, lives = L.lives, penalty = 0;
 
     /* cell size from the play area; keep the mascot corner free when that still leaves cells big enough to tap */
@@ -288,43 +284,23 @@ Arcade.register('mouse-sweeper', function (api) {
             text: 'All mice found!\n' + COLS + 'x' + ROWS + ', ' + MICE + ' mice in ' + s + ' s' + (penalty ? ' (with +' + penalty + ' s)' : '') });
     }
 
-    /* input: click or tap reveals (flags in flag mode), right click or a long press flags */
-    var lastType = 'mouse', press = null, pressCell = -1, px = 0, py = 0, longDone = false;
+    /* input: a tap or click puts a paw on a hidden cell, a second one on the same cell right after opens it
+       (a later tap on a paw takes it off again); tapping an open number chords; right click also toggles a paw */
+    var lastType = 'mouse', lastK = -1, lastT = 0, DOUBLE = 450;
     function cellOf(e) { var c = e.target.closest && e.target.closest('.ms-cell'); return c ? +c.dataset.i : -1; }
-    function cancelPress() {
-        if (press) clearTimeout(press);
-        press = null;
-        if (pressCell >= 0) cells[pressCell].classList.remove('press');
-        pressCell = -1;
+    function press(k) {
+        if (over || caught[k]) return;
+        var now = Date.now(), again = k === lastK && now - lastT < DOUBLE;
+        lastK = again ? -1 : k;
+        lastT = now;
+        if (shown[k]) return chord(k);
+        if (again && flag[k]) { toggleFlag(k); reveal(k); }
+        else toggleFlag(k);
     }
-    api.on(grid, 'pointerdown', function (e) {
-        lastType = e.pointerType;
-        longDone = false;
-        var k = cellOf(e);
-        if (e.pointerType === 'mouse' || k < 0 || over) return;
-        px = e.clientX; py = e.clientY;
-        cancelPress();
-        if (shown[k] || caught[k]) return;
-        pressCell = k;
-        cells[k].classList.add('press');
-        press = api.timeout(function () {
-            press = null;
-            longDone = true;
-            cancelPress();
-            act(k, !flagMode);                         /* a long press does the opposite of a tap */
-            if (navigator.vibrate) navigator.vibrate(15);
-        }, 380);
-    });
-    api.on(grid, 'pointermove', function (e) {
-        if (press && Math.abs(e.clientX - px) + Math.abs(e.clientY - py) > 12) cancelPress();
-    });
-    api.on(grid, 'pointerup', function () { if (press) cancelPress(); });
-    api.on(grid, 'pointercancel', cancelPress);
+    api.on(grid, 'pointerdown', function (e) { lastType = e.pointerType; });
     api.on(grid, 'click', function (e) {
         var k = cellOf(e);
-        if (k < 0) return;
-        if (longDone) { longDone = false; return; }        /* the click that ends a long press must not reveal */
-        act(k, flagMode);
+        if (k >= 0) press(k);
     });
     api.on(grid, 'contextmenu', function (e) {
         e.preventDefault();
@@ -335,11 +311,11 @@ Arcade.register('mouse-sweeper', function (api) {
         var k = cellOf(e);
         if (e.button === 1 && k >= 0 && shown[k]) chord(k);
     });
-    /* keyboard: arrows move, Enter or Space reveals (native click), F flags, S sniffs */
+    /* keyboard: arrows move, Enter or Space opens, F puts a paw, S sniffs */
     api.on(grid, 'keydown', function (e) {
         var k = cellOf(e);
         if (k < 0) return;
-        longDone = false;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(k, false); return; }
         if (e.key === 'f' || e.key === 'F') { e.preventDefault(); act(k, true); return; }
         if (e.key === 's' || e.key === 'S') { e.preventDefault(); sniff(); return; }
         var r = Math.floor(k / COLS), c = k % COLS;
@@ -351,16 +327,11 @@ Arcade.register('mouse-sweeper', function (api) {
         e.preventDefault();
         cells[r * COLS + c].focus();
     });
-    api.on(modeBtn, 'click', function () {
-        flagMode = !flagMode;
-        modeBtn.setAttribute('aria-pressed', flagMode);
-        api.sfx('tap');
-    });
     api.on(sniffBtn, 'click', sniff);
 
     counter();
     showSniff();
     showLives();
     api.score(0, 'Time');
-    api.say(api.touch ? 'Long-press or use Flag to mark a mouse' : 'Right click marks a mouse', 3000);
+    api.say((api.touch ? 'Tap' : 'Click') + ' once for a paw, twice to open', 3000);
 });
