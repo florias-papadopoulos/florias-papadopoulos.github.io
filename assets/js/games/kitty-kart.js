@@ -1,8 +1,10 @@
 /* Kitty Kart: a top-down kart race, the orange cat against three other cats. 3 laps; best score = fastest race time.
-   Before the race you pick one of four tracks (Catnip Meadow, Night City, Coral Reef, Moon Rim): each has its own
-   layout, scenery, handling and one twist (slippery puddles and cones, water currents, low grip and ramps).
-   A track is a closed path resampled into N evenly spaced points; karts find their nearest point to know where
-   they are, and a lap counts only after all checkpoints were passed in order (no shortcuts). Shell API: arcade.js. */
+   Before the race you pick one of four tracks (Catnip Meadow, Night City, Coral Reef, Moon Rim). Each has its own
+   layout, scenery and handling, a shortcut with a catch, boost pads and moving hazards. Floating fish tins give an
+   item (yarn ball, catnip, cardboard box, laser pointer, milk carton, nap bell); karts further back get better ones.
+   A track is a closed path resampled into N evenly spaced points, plus a shortcut path whose points map onto the
+   main ones; karts find their nearest point to know where they are, and a lap counts only after all checkpoints
+   were passed in order. Shell API: arcade.js. */
 Arcade.register('kitty-kart', function (api) {
     'use strict';
     api.css(
@@ -48,6 +50,11 @@ Arcade.register('kitty-kart', function (api) {
         '.kk-map small { display: block; margin-top: 2px; color: #64748b; font-size: .74rem; line-height: 1.25; }' +
         '.kk-map .kk-mbest { color: #1e3a8a; font-weight: 700; min-height: 1.2em; }' +
         '.kk-pick-tip { margin: 10px 0 0; color: #64748b; font-size: .8rem; font-weight: 600; }' +
+        '.kk-slot { width: 42px; height: 36px; padding: 0; display: grid; place-items: center; }' +
+        '.kk-slot canvas { width: 30px; height: 30px; display: block; }' +
+        '.kk-use { left: 14px; bottom: 100px; width: 64px; height: 64px; background: #fff7d6; box-shadow: 0 4px 0 #e5c76b; }' +
+        '.kk-use canvas { width: 40px; height: 40px; display: block; }' +
+        '.kk-empty canvas { opacity: .45; }' +
         '@keyframes kk-pop { from { transform: translate(-50%, -50%) scale(.4); } to { transform: translate(-50%, -50%) scale(1); } }');
 
     var N = 480, CP = 12, SEG = N / CP, LAPS = 3, HW = 52, PAD = 380, BRAKE = 520, REV = 90, R = 12;
@@ -56,13 +63,28 @@ Arcade.register('kitty-kart', function (api) {
     var VMAX, VGRASS, ACC, GRIP, GRIPOFF, COAST, TURN, CARE;  /* handling, set by the track */
     function wrap(a) { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; }
     function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
-    function nearest(o) {  /* o.idx, o.dist: the closest track point to (o.x, o.y) */
-        var best = 1e12, bi = 0;
-        for (var i = 0; i < N; i++) {
-            var dx = X[i] - o.x, dy = Y[i] - o.y, q = dx * dx + dy * dy;
+    var ALT = null;  /* the shortcut of the current track, see buildAlt */
+    function nearest(o) {  /* the closest track point to (o.x, o.y): idx, dist, px, py, ang, alt (on the shortcut), on (on a road) */
+        var best = 1e12, bi = 0, i, dx, dy, q;
+        for (i = 0; i < N; i++) {
+            dx = X[i] - o.x; dy = Y[i] - o.y; q = dx * dx + dy * dy;
             if (q < best) { best = q; bi = i; }
         }
-        o.idx = bi; o.dist = Math.sqrt(best);
+        var md = Math.sqrt(best);
+        o.idx = bi; o.alt = false; o.px = X[bi]; o.py = Y[bi]; o.ang = A[bi];
+        if (ALT) {
+            var aj = -1;
+            for (i = 1; i < ALT.n - 1; i++) {
+                dx = ALT.x[i] - o.x; dy = ALT.y[i] - o.y; q = dx * dx + dy * dy;
+                if (q < best) { best = q; aj = i; }
+            }
+            if (aj >= 0) {
+                o.alt = true; o.ai = aj; o.idx = ix(ALT.a + Math.round(ALT.span * aj / (ALT.n - 1)));
+                o.px = ALT.x[aj]; o.py = ALT.y[aj]; o.ang = ALT.ang[aj];
+            }
+        }
+        o.dist = Math.sqrt(best);
+        o.on = md <= HW + 4 || (o.alt && o.dist <= ALT.hw + 4);
     }
     var seed = 1;
     function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
@@ -119,6 +141,7 @@ Arcade.register('kitty-kart', function (api) {
         for (i = 0; i < N; i++) K[i] = wrap(A[(i + 1) % N] - A[(i + N - 1) % N]) / (2 * SP);
         var ph = map.phys;
         VMAX = ph.vmax; VGRASS = ph.vgrass; ACC = ph.acc; GRIP = ph.grip; GRIPOFF = ph.gripOff; COAST = ph.coast; TURN = ph.turn; CARE = ph.care;
+        buildAlt(map.alt);
     }
     function straight(j, a, b, lim) {  /* is the track nearly straight from j + a to j + b? */
         for (var i = j + a; i <= j + b; i++) if (Math.abs(K[ix(i)]) > lim) return false;
@@ -133,6 +156,68 @@ Arcade.register('kitty-kart', function (api) {
         return j0;
     }
     function inZone(i, z) { return (i - z.i0 + N) % N <= z.i1 - z.i0; }
+
+    /* ---------- the shortcut: a path from main point a to main point b; its points map onto the main indices ---------- */
+    function buildAlt(s) {
+        ALT = null;
+        if (!s) return;
+        var a = s.a, b = s.b, C = [X[ix(a - 3)], Y[ix(a - 3)], X[a], Y[a]], d = [], i, j, c;
+        (s.via || []).forEach(function (v) { C.push(X[v[0]] + (X[v[1]] - X[v[0]]) * v[2], Y[v[0]] + (Y[v[1]] - Y[v[0]]) * v[2]); });
+        C.push(X[b], Y[b], X[ix(b + 3)], Y[ix(b + 3)]);
+        var n = C.length / 2;
+        for (i = 1; i < n - 2; i++) for (j = 0; j < 24; j++) {  /* an open Catmull-Rom that leaves and joins the track smoothly */
+            var t = j / 24, t2 = t * t, t3 = t2 * t;
+            for (c = 0; c < 2; c++) {
+                var p0 = C[(i - 1) * 2 + c], p1 = C[i * 2 + c], p2 = C[(i + 1) * 2 + c], p3 = C[(i + 2) * 2 + c];
+                d.push(0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (3 * p1 - p0 - 3 * p2 + p3) * t3));
+            }
+        }
+        d.push(X[b], Y[b]);
+        var m = d.length / 2, len = [0];
+        for (i = 1; i < m; i++) len.push(len[i - 1] + Math.hypot(d[i * 2] - d[i * 2 - 2], d[i * 2 + 1] - d[i * 2 - 1]));
+        var cnt = Math.max(3, Math.round(len[m - 1] / SP)), st = len[m - 1] / cnt;
+        var r = { a: a, b: b, n: cnt + 1, x: [], y: [], ang: [], k: [], hw: s.hw, vf: s.vf || 1, step: st, span: (b - a + N) % N };
+        for (i = 0, j = 0; i <= cnt; i++) {  /* resampled every st units */
+            var at = Math.min(i * st, len[m - 1]);
+            while (j < m - 2 && len[j + 1] < at) j++;
+            var u = (at - len[j]) / ((len[j + 1] - len[j]) || 1);
+            r.x.push(d[j * 2] + (d[j * 2 + 2] - d[j * 2]) * u); r.y.push(d[j * 2 + 1] + (d[j * 2 + 3] - d[j * 2 + 1]) * u);
+        }
+        for (i = 0; i <= cnt; i++) r.ang.push(Math.atan2(r.y[Math.min(cnt, i + 1)] - r.y[Math.max(0, i - 1)], r.x[Math.min(cnt, i + 1)] - r.x[Math.max(0, i - 1)]));
+        for (i = 0; i <= cnt; i++) r.k.push(wrap(r.ang[Math.min(cnt, i + 1)] - r.ang[Math.max(0, i - 1)]) / (2 * st));
+        if (s.gate) r.gate = { i: Math.round(s.gate.at * cnt), open: s.gate.open, cyc: s.gate.open + s.gate.shut };
+        if (s.gap) { r.g0 = Math.round(s.gap[0] * cnt); r.g1 = Math.round(s.gap[1] * cnt); r.ramp = Math.round(s.ramp * cnt); }
+        ALT = r;
+    }
+    function routeAt(c, look) {  /* look points ahead on the kart's route: >= 0 a main index, < 0 the shortcut point -r - 1 */
+        if (ALT) {
+            var j = -1;
+            if (c.alt && (c.useAlt || c.ai > 4)) j = c.ai + look;
+            else if (c.useAlt) { var s = (ALT.a - c.idx + N) % N; if (s < 40 && look > s) j = look - s; }
+            if (j >= 0) return j < ALT.n ? -j - 1 : ix(ALT.b + j - ALT.n + 1);
+        }
+        return ix(c.idx + look);
+    }
+    function rX(r) { return r >= 0 ? X[r] : ALT.x[-r - 1]; }
+    function rY(r) { return r >= 0 ? Y[r] : ALT.y[-r - 1]; }
+    function rA(r) { return r >= 0 ? A[r] : ALT.ang[-r - 1]; }
+    function rK(r) { return r >= 0 ? K[r] : ALT.k[-r - 1]; }
+    function gateOpen(t) {  /* how open the shortcut gate is at time t: 0 shut, 1 open */
+        var g = ALT.gate, p = ((t % g.cyc) + g.cyc) % g.cyc;
+        return p >= g.open ? 0 : clamp(Math.min(p, g.open - p) / 0.45, 0, 1);
+    }
+    function toGate(c) {  /* distance along the kart's route to the gate, negative when there is none ahead */
+        if (!ALT || !ALT.gate) return -1;
+        if (c.alt && (c.useAlt || c.ai > 4)) return (ALT.gate.i - c.ai) * ALT.step;
+        var s = (ALT.a - c.idx + N) % N;
+        return c.useAlt && s < 40 ? s * SP + ALT.gate.i * ALT.step : -1;
+    }
+    function strokeAlt(g, from, to, width, color, dash) {
+        g.beginPath();
+        for (var i = from; i <= to; i++) { if (i === from) g.moveTo(ALT.x[i], ALT.y[i]); else g.lineTo(ALT.x[i], ALT.y[i]); }
+        g.lineWidth = width; g.strokeStyle = color; g.setLineDash(dash || []); g.lineCap = dash ? 'butt' : 'round'; g.stroke();
+    }
+    function altSide(i, l) { return { x: ALT.x[i] - Math.sin(ALT.ang[i]) * l, y: ALT.y[i] + Math.cos(ALT.ang[i]) * l }; }
 
     /* ---------- drawing helpers for the cached track ---------- */
     function strokeLoop(g, from, to, width, color, dash) {
@@ -157,11 +242,16 @@ Arcade.register('kitty-kart', function (api) {
         }
     }
     function circle(g, x, y, r, color) { g.fillStyle = color; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+    function rr(g, x, y, w, h, r) {
+        g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+        g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+    }
 
     /* ---------- particles: bubbles, splashes and moon dust ---------- */
     var parts = [];
     function puff(kind, x, y, vx, vy, life, r) {
         if (parts.length < 160) parts.push({ k: kind, x: x, y: y, vx: vx, vy: vy, t: 0, life: life, r: r });
+        return parts[parts.length - 1];
     }
     function moveParts(dt) {
         for (var i = parts.length - 1; i >= 0; i--) {
@@ -178,11 +268,14 @@ Arcade.register('kitty-kart', function (api) {
     function vis(x, y, r) { return x + r > VX0 && x - r < VX1 && y + r > VY0 && y - r < VY1; }
 
     var MEADOW = {
-        id: 'meadow', name: 'Catnip Meadow', blurb: 'The classic: grass, kerbs, sunshine',
+        id: 'meadow', name: 'Catnip Meadow', blurb: 'A sprinkler and a farm gate shortcut',
         ctrl: [829, 969, 1211, 944, 1435, 829, 1466, 638, 1339, 510, 1116, 542, 925, 670, 734, 638, 670, 479, 797, 319,
                1084, 287, 1244, 160, 956, 109, 574, 128, 287, 224, 191, 446, 224, 701, 287, 892, 446, 956], scale: 1,
         phys: { vmax: 330, vgrass: 100, acc: 360, grip: 9, gripOff: 5, coast: 0.7, turn: 3.1, care: 1 },
         col: { bg: '#cdeac6', edge: '#bfe2b6', road: '#b4bcc6', panel: 'rgba(255,255,255,.85)' },
+        alt: { a: 236, b: 286, hw: 30, vf: 0.8, gate: { at: 0.5, open: 3.4, shut: 2.6 } }, gate: 'farm',
+        pads: [[140, 0.5], [380, -0.5]], picks: [30, 330], padCol: ['#f59e0b', '#fff7d6'],
+        prep: function () { this.spr = side(410, HW + 34); },
         paint: function (g) {
             var i;
             g.fillStyle = '#cdeac6'; g.fillRect(0, 0, WW, WH);
@@ -200,23 +293,52 @@ Arcade.register('kitty-kart', function (api) {
                     circle(g, o.x - rr * 0.3, o.y - rr * 0.3, rr * 0.5, '#b4e2aa');
                 } else circle(g, o.x, o.y, rr, i % 3 ? '#ffffff' : '#f9c6d9');
             }
+            circle(g, this.spr.x, this.spr.y, 192, 'rgba(70,150,210,.12)');  /* the lawn the sprinkler keeps wet */
+            strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 20, '#bfe2b6');
             strokeLoop(g, 0, N, 2 * HW + 34, '#bfe2b6');  /* verge */
+            strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw, '#c49a62');  /* the farm lane shortcut: muddy and slow, with a gate */
+            strokeAlt(g, 2, ALT.n - 3, 3, 'rgba(110,72,35,.45)', [10, 9]);
+            for (i = 3; i < ALT.n - 3; i += 2) { var mp = altSide(i, (i % 4 - 1.5) * 9); circle(g, mp.x, mp.y, 6, 'rgba(110,72,35,.3)'); }
+            for (i = 1; i < ALT.n - 1; i += 2) for (var fk = -1; fk <= 1; fk += 2) {  /* fence posts along the lane */
+                var fp = altSide(i, fk * (ALT.hw + 5)); circle(g, fp.x + 1, fp.y + 2, 3.5, 'rgba(15,23,42,.15)'); circle(g, fp.x, fp.y, 3.2, '#8b5a2b');
+            }
             strokeLoop(g, 0, N, 2 * HW + 5, '#ffffff');  /* white edge lines */
             kerbs(g, 2 * HW + 16, '#ffffff', '#e8484f');
             strokeLoop(g, 0, N, 2 * HW, '#b4bcc6');  /* asphalt */
             strokeLoop(g, 0, N, 2, 'rgba(255,255,255,.55)', [18, 22]);  /* centre line */
+        },
+        effect: function (c, dt) {  /* the sprinkler: its jet sweeps round and makes the road wet */
+            var s = this.spr, th = clock * 1.3, dx = c.x - s.x, dy = c.y - s.y, d = Math.hypot(dx, dy);
+            if (c.z > 0 || d > 190 || d < 12 || Math.abs(wrap(Math.atan2(dy, dx) - th)) > 0.17) return;
+            if (c.slip < 0.1) { stat('sprinkler'); if (c === me && clock - lastSay > 4) say('Sprinkler! Wet paws!'); }
+            c.slip = Math.max(c.slip, 0.45);
+            c.vx += Math.cos(th) * 150 * dt; c.vy += Math.sin(th) * 150 * dt;
+        },
+        under: function () {
+            var s = this.spr, th = clock * 1.3, k;
+            if (!vis(s.x, s.y, 200)) return;
+            ctx.fillStyle = 'rgba(120,190,255,.22)'; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.arc(s.x, s.y, 188, th - 0.17, th + 0.17); ctx.fill();
+            ctx.fillStyle = 'rgba(110,180,250,.75)';
+            for (k = 1; k <= 13; k++) {
+                var r = k * 14, w = Math.sin(clock * 20 + k) * 2;
+                ctx.beginPath(); ctx.arc(s.x + Math.cos(th) * r - Math.sin(th) * w, s.y + Math.sin(th) * r + Math.cos(th) * w, 2.5 + k * 0.25, 0, 7); ctx.fill();
+            }
+            circle(ctx, s.x + 2, s.y + 3, 9, 'rgba(15,23,42,.2)'); circle(ctx, s.x, s.y, 8, '#64748b'); circle(ctx, s.x, s.y, 4, '#cbd5e1');
         }
     };
 
     /* Night City: street blocks with sharp corners, street lights, zebra crossings, puddles (slippery) and cones */
     var CITY = {
-        id: 'city', name: 'Night City', blurb: 'Neon streets, slippery puddles, cones',
+        id: 'city', name: 'Night City', blurb: 'Puddles, a tram, a gated building site',
         poly: [0, 250, 250, 0, 900, 0, 900, 300, 1200, 300, 1200, 900, 700, 900, 700, 600, 400, 600, 400, 900, 0, 900],
         round: 100, scale: 1.1, start: 0.94,
         phys: { vmax: 340, vgrass: 90, acc: 380, grip: 8, gripOff: 5, coast: 0.7, turn: 3.2, care: 1 },
         col: { bg: '#1a2030', edge: '#3b4253', road: '#4a5266', panel: 'rgba(15,23,42,.72)', mini: '#cbd5e1', grid: 'rgba(255,255,255,.6)' },
+        alt: { a: 312, b: 405, hw: 30, vf: 0.85, gate: { at: 0.5, open: 3.6, shut: 3 } }, gate: 'boom',
+        pads: [[25, 0.5], [300, -0.5]], picks: [88, 240], padCol: ['#0891b2', '#a5f3fc'],
         prep: function () {
-            var i, k;
+            var i, k, tj = 112;
+            this.tram = { j: tj, x: X[tj], y: Y[tj], ux: -Math.sin(A[tj]), uy: Math.cos(A[tj]), tx: Math.cos(A[tj]), ty: Math.sin(A[tj]) };
             seed = 21;
             this.puddles = [];
             var fr = [0.13, 0.3, 0.46, 0.6, 0.77];
@@ -238,6 +360,7 @@ Arcade.register('kitty-kart', function (api) {
         },
         reset: function () {
             this.cones.forEach(function (c) { c.x = c.x0; c.y = c.y0; c.vx = c.vy = c.va = 0; c.a = 0.3; c.hit = -9; });
+            this.tram.s = -620; this.tram.dir = 1; this.tram.wait = 2;
         },
         paint: function (g) {
             var i, k, p;
@@ -247,7 +370,11 @@ Arcade.register('kitty-kart', function (api) {
             for (i = 0; i < WH; i += 180) { g.beginPath(); g.moveTo(0, i); g.lineTo(WW, i); g.stroke(); }
             seed = 5;
             var o = { x: 0, y: 0 }, ROOF = ['#323b52', '#3b3452', '#2c4150', '#45383d', '#363f36', '#2f3346'];
-            function clear(x, y) { o.x = x; o.y = y; nearest(o); return o.dist > HW + 36; }
+            var tr = this.tram;
+            function clear(x, y) {  /* away from the roads and from the tram line */
+                if (Math.abs((x - tr.x) * tr.tx + (y - tr.y) * tr.ty) < 46) return false;
+                o.x = x; o.y = y; nearest(o); return o.dist > HW + 36;
+            }
             for (var gx = 0; gx < WW; gx += 180) for (var gy = 0; gy < WH; gy += 180) {  /* one block per street square */
                 var w = 110 + rnd() * 50, h = 100 + rnd() * 60, x = gx + 12 + rnd() * (156 - w), y = gy + 12 + rnd() * (156 - h);
                 if (!(clear(x, y) && clear(x + w, y) && clear(x, y + h) && clear(x + w, y + h) && clear(x + w / 2, y + h / 2) &&
@@ -270,6 +397,19 @@ Arcade.register('kitty-kart', function (api) {
                     g.beginPath(); g.moveTo(x + 8, y + 5); g.lineTo(x + w * 0.6, y + 5); g.stroke(); g.shadowBlur = 0;
                 }
             }
+            g.strokeStyle = '#4b5563'; g.lineWidth = 3;  /* tram rails across the top street */
+            for (k = -1; k <= 1; k += 2) {
+                g.beginPath(); g.moveTo(tr.x - tr.ux * 2000 + tr.tx * k * 11, tr.y - tr.uy * 2000 + tr.ty * k * 11);
+                g.lineTo(tr.x + tr.ux * 2000 + tr.tx * k * 11, tr.y + tr.uy * 2000 + tr.ty * k * 11); g.stroke();
+            }
+            strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 22, '#5b5148');  /* the building site shortcut: narrow gravel behind a barrier */
+            strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw, '#4a423a');
+            seed = 13;
+            for (i = 1; i < ALT.n - 1; i++) { p = altSide(i, (rnd() - 0.5) * 2 * ALT.hw); circle(g, p.x, p.y, 1.5 + rnd() * 2, 'rgba(255,255,255,.12)'); }
+            for (i = 2; i < ALT.n - 2; i += 2) for (k = -1; k <= 1; k += 2) {
+                p = altSide(i, k * (ALT.hw + 7));
+                g.save(); g.translate(p.x, p.y); g.rotate(ALT.ang[i]); g.fillStyle = i % 4 ? '#f97316' : '#f8fafc'; g.fillRect(-9, -3, 18, 6); g.restore();
+            }
             strokeLoop(g, 0, N, 2 * HW + 44, '#3b4253');  /* pavement */
             for (i = 0; i < N; i += 2) for (k = -1; k <= 1; k += 2) { p = side(i, k * (HW + 13)); g.fillStyle = 'rgba(255,255,255,.05)'; g.fillRect(p.x - 1, p.y - 1, 2, 2); }
             strokeLoop(g, 0, N, 2 * HW + 8, '#8e97a8');  /* kerb stones */
@@ -277,6 +417,11 @@ Arcade.register('kitty-kart', function (api) {
             strokeLoop(g, 0, N, 2 * HW - 8, 'rgba(255,255,255,.45)');
             strokeLoop(g, 0, N, 2 * HW - 12, '#272d3b');
             strokeLoop(g, 0, N, 3, '#e8c547', [22, 18]);  /* the yellow middle line */
+            g.strokeStyle = '#6b7280'; g.lineWidth = 3;  /* the rails again, over the road */
+            for (k = -1; k <= 1; k += 2) {
+                g.beginPath(); g.moveTo(tr.x - tr.ux * (HW + 30) + tr.tx * k * 11, tr.y - tr.uy * (HW + 30) + tr.ty * k * 11);
+                g.lineTo(tr.x + tr.ux * (HW + 30) + tr.tx * k * 11, tr.y + tr.uy * (HW + 30) + tr.ty * k * 11); g.stroke();
+            }
             this.cross.forEach(function (j) {  /* zebra crossings */
                 g.save(); g.translate(X[j], Y[j]); g.rotate(A[j]); g.fillStyle = '#272d3b'; g.fillRect(-18, -HW + 4, 36, 2 * HW - 8);
                 g.fillStyle = 'rgba(255,255,255,.85)';
@@ -305,8 +450,14 @@ Arcade.register('kitty-kart', function (api) {
             }
         },
         effect: function (c, dt) {
-            if (c.slip > 0) c.slip -= dt;
-            var sp = Math.hypot(c.vx, c.vy), i, q;
+            var sp = Math.hypot(c.vx, c.vy), i, q, t = this.tram;
+            var cx = t.x + t.ux * t.s, cy = t.y + t.uy * t.s, u = (c.x - cx) * t.ux + (c.y - cy) * t.uy, v = (c.x - cx) * t.tx + (c.y - cy) * t.ty;
+            if (Math.abs(u) < 78 + R && Math.abs(v) < 22 + R && c.z <= 0) {  /* the tram pushes you out of its way */
+                var push = (v < 0 ? -1 : 1) * (22 + R) - v, vn = c.vx * t.tx + c.vy * t.ty, move = t.wait > 0 ? 0 : 130 * t.dir;
+                c.x += t.tx * push; c.y += t.ty * push;
+                c.vx += t.ux * move - t.tx * vn * 1.4; c.vy += t.uy * move - t.ty * vn * 1.4;
+                if (clock - (c.tramT || -9) > 1) { c.tramT = clock; stat('tram'); spinOut(c, 0.6, 'Ding ding! Mind the tram!'); }
+            }
             for (i = 0; i < this.puddles.length; i++) {
                 q = this.puddles[i];
                 var dx = c.x - q.x, dy = c.y - q.y, ca = Math.cos(q.a), sa = Math.sin(q.a), u = (dx * ca + dy * sa) / q.rx, v = (dy * ca - dx * sa) / q.ry;
@@ -327,7 +478,38 @@ Arcade.register('kitty-kart', function (api) {
                 if (c === me) api.sfx('tap');
             }
         },
+        wait: function (c) {  /* the computer cats stop for the tram */
+            var t = this.tram, d = (t.j - c.idx + N) % N, p = t.s * t.dir;
+            return !c.alt && d > 2 && d < 22 && t.wait < 0.6 && p > -330 && p < 135;
+        },
+        over: function () {
+            var t = this.tram, cx = t.x + t.ux * t.s, cy = t.y + t.uy * t.s, p = t.s * t.dir, on = t.wait < 1.2 && p > -540 && p < 150, k;
+            for (k = -1; k <= 1; k += 2) {  /* crossing lights that blink while the tram comes */
+                var lx = t.x + t.ux * k * (HW + 20) - t.tx * 18 * k, ly = t.y + t.uy * k * (HW + 20) - t.ty * 18 * k;
+                if (!vis(lx, ly, 20)) continue;
+                var lit = on && Math.floor(clock * 4) % 2 === (k > 0 ? 0 : 1);
+                circle(ctx, lx, ly, 7, '#111827'); circle(ctx, lx, ly, 4.2, lit ? '#ef4444' : '#4b1d1d');
+                if (lit) circle(ctx, lx, ly, 13, 'rgba(239,68,68,.28)');
+            }
+            if (!vis(cx, cy, 110)) return;
+            ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.atan2(t.uy, t.ux));
+            ctx.fillStyle = 'rgba(0,0,0,.35)'; rrect(-72, -17, 156, 44, 10); ctx.fill();
+            ctx.fillStyle = '#0f766e'; rrect(-78, -22, 156, 44, 10); ctx.fill();
+            ctx.fillStyle = '#e2e8f0'; rrect(-70, -12, 140, 24, 6); ctx.fill();
+            ctx.fillStyle = '#fde68a';
+            for (k = -62; k < 60; k += 20) { ctx.fillRect(k, -17, 12, 3); ctx.fillRect(k, 14, 12, 3); }
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-22, 0); ctx.lineTo(4, -9); ctx.lineTo(26, 0); ctx.stroke();
+            var fx = 74 * t.dir;
+            circle(ctx, fx, -13, 3.5, '#fff7c2'); circle(ctx, fx, 13, 3.5, '#fff7c2'); circle(ctx, -fx, -13, 3, '#ef4444'); circle(ctx, -fx, 13, 3, '#ef4444');
+            ctx.restore();
+        },
         update: function (dt) {
+            var t = this.tram;
+            if (t.wait > 0) t.wait -= dt;
+            else {  /* from far up the street down to its stop inside the block, and back */
+                t.s += t.dir * 240 * dt;
+                if (t.s >= 330 || t.s <= -620) { t.s = t.s > 0 ? 330 : -620; t.dir = -t.dir; t.wait = 3.2; }
+            }
             this.cones.forEach(function (q) {
                 if (!q.vx && !q.vy) return;
                 q.x = clamp(q.x + q.vx * dt, 20, WW - 20); q.y = clamp(q.y + q.vy * dt, 20, WH - 20); q.a += q.va * dt;
@@ -364,13 +546,21 @@ Arcade.register('kitty-kart', function (api) {
 
     /* Coral Reef: a winding sand path on the sea floor, floaty handling and currents that carry you */
     var REEF = {
-        id: 'reef', name: 'Coral Reef', blurb: 'Floaty karts, currents push you',
+        id: 'reef', name: 'Coral Reef', blurb: 'Currents, a turtle, a tunnel with clams',
         ctrl: [200, 300, 500, 150, 800, 250, 1100, 150, 1400, 300, 1450, 600, 1250, 750, 1000, 650, 800, 800, 900, 1000,
                700, 1120, 400, 1020, 250, 800, 350, 600, 170, 470], scale: 1, start: 0,
         phys: { vmax: 325, vgrass: 135, acc: 310, grip: 4.2, gripOff: 3.2, coast: 0.45, turn: 2.8, care: 1.2 },
         col: { bg: '#3f98ad', edge: '#d9c48e', road: '#ecdcae', panel: 'rgba(255,255,255,.82)' },
+        alt: { a: 228, b: 316, hw: 32, vf: 1 }, flow: 120,
+        pads: [[70, 0.5], [440, -0.5]], picks: [30, 180], padCol: ['#0d9488', '#ccfbf1'],
+        reset: function () { this.turtle.s = -250; this.turtle.dir = 1; this.clams.forEach(function (q) { q.open = 1; }); },
         prep: function () {
-            var i;
+            var i, tj = 372;
+            this.clams = [0.33, 0.67].map(function (f, n) {  /* two giant clams in the tunnel, open and shut in turn */
+                var ci = Math.round(f * (ALT.n - 1)), q = altSide(ci, n ? 11 : -11);
+                return { x: q.x, y: q.y, a: ALT.ang[ci], off: n * 1.7, open: 1 };
+            });
+            this.turtle = { x0: X[tj], y0: Y[tj], ux: -Math.sin(A[tj]), uy: Math.cos(A[tj]), s: -250, dir: 1 };
             this.zones = [  /* side: push to the right (1) or left (-1) of the track; 0: a stream along the track */
                 { i0: Math.round(0.2 * N), side: 1, f: 62 },
                 { i0: Math.round(0.44 * N), side: 0, f: 85 },
@@ -420,6 +610,11 @@ Arcade.register('kitty-kart', function (api) {
                     g.closePath(); g.fill();
                 }
             });
+            strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 30, '#2a6c80');  /* the current tunnel shortcut: a deep trench */
+            strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw, '#4d93a3');
+            for (i = 1; i < ALT.n - 1; i += 2) for (k = -1; k <= 1; k += 2) {
+                var tp = altSide(i, k * (ALT.hw + 7)); circle(g, tp.x, tp.y, 5 + (i % 3) * 2, (i + k) % 3 ? '#ff7f9e' : '#b88ae6');
+            }
             strokeLoop(g, 0, N, 2 * HW + 30, '#d9c48e');  /* the sand path */
             strokeLoop(g, 0, N, 2 * HW, '#ecdcae');
             this.zones.forEach(function (z) { strokeLoop(g, z.i0, z.i1, 2 * HW, z.side ? 'rgba(80,190,235,.3)' : 'rgba(120,230,200,.32)', []); });
@@ -431,10 +626,23 @@ Arcade.register('kitty-kart', function (api) {
         effect: function (c, dt) {
             for (var i = 0; i < 3; i++) {  /* the water carries the kart, so steer against it */
                 var z = this.zones[i];
-                if (!inZone(c.idx, z) || c.dist > HW + 70) continue;
+                if (!inZone(c.idx, z) || c.dist > HW + 70 || c.alt) continue;
                 var a = A[c.idx], d0 = (c.idx - z.i0 + N) % N, e = Math.min(1, Math.min(d0, z.i1 - z.i0 - d0) / 6 + 0.2);  /* weaker at the ends */
                 var fx = z.side ? -Math.sin(a) * z.side : Math.cos(a), fy = z.side ? Math.cos(a) * z.side : Math.sin(a);
                 c.x += fx * z.f * e * dt; c.y += fy * z.f * e * dt;
+            }
+            if (c.alt && c.ai > 0 && c.ai < ALT.n - 1) {  /* the tunnel current carries you forward */
+                var fa = ALT.ang[c.ai]; c.x += Math.cos(fa) * this.flow * dt; c.y += Math.sin(fa) * this.flow * dt;
+            }
+            var t = this.turtle, tx = t.x0 + t.ux * t.s, ty = t.y0 + t.uy * t.s, ex = c.x - tx, ey = c.y - ty, ed = Math.hypot(ex, ey);
+            if (ed < 30 + R && ed > 0.1) {  /* bumping into the turtle */
+                var vn = (c.vx * ex + c.vy * ey) / ed;
+                c.x = tx + ex / ed * (30 + R); c.y = ty + ey / ed * (30 + R);
+                if (vn < 0) { c.vx -= ex / ed * vn * 1.5; c.vy -= ey / ed * vn * 1.5; }
+                if (clock - (c.turtleT || -9) > 1) {
+                    c.turtleT = clock; stat('turtle');
+                    if (c === me) { api.sfx('hit'); if (clock - lastSay > 3) say('Oops, sorry Mr Turtle!'); }
+                }
             }
             c.bt = (c.bt || 0) - dt;
             if (c.thr > 0 && c.bt <= 0 && vis(c.x, c.y, 40)) {  /* bubbles from the exhaust */
@@ -443,6 +651,17 @@ Arcade.register('kitty-kart', function (api) {
             }
         },
         update: function (dt) {
+            var t = this.turtle;
+            t.s += t.dir * 42 * dt;
+            if (Math.abs(t.s) > 260) { t.s = 260 * t.dir; t.dir = -t.dir; }
+            this.clams.forEach(function (q) {
+                var p = (clock + q.off) % 3.6, was = q.open;
+                q.open = p < 2.3 ? Math.min(1, p / 0.3) : p < 2.42 ? 1 - (p - 2.3) / 0.12 : 0;
+                q.warn = p > 1.8 && p < 2.3;
+                if (was > 0.5 && q.open <= 0.5 && phase !== 'pick') karts.forEach(function (c) {
+                    if (c.z <= 0 && Math.hypot(c.x - q.x, c.y - q.y) < 28) { stat('clam'); spinOut(c, 0.9, 'A clam nipped your tail!', 0); }
+                });
+            });
             this.fish.forEach(function (f) {
                 f.a += Math.sin(clock * 0.7 + f.ph) * 0.5 * dt;
                 f.x += Math.cos(f.a) * f.sp * dt; f.y += Math.sin(f.a) * f.sp * dt;
@@ -473,6 +692,44 @@ Arcade.register('kitty-kart', function (api) {
                 }
             }
             ctx.stroke();
+            ctx.strokeStyle = 'rgba(235,252,255,.7)'; ctx.beginPath();  /* the tunnel current */
+            var fs = (clock * 2.5) % 3;
+            for (k = 1; k < ALT.n - 4; k += 3) {
+                var pos = k + fs, a0 = Math.floor(pos), uu = pos - a0, ax = ALT.x[a0] + (ALT.x[a0 + 1] - ALT.x[a0]) * uu, ay = ALT.y[a0] + (ALT.y[a0 + 1] - ALT.y[a0]) * uu;
+                if (!vis(ax, ay, 20)) continue;
+                var aa = ALT.ang[a0], dc = Math.cos(aa), ds = Math.sin(aa);
+                ctx.moveTo(ax - dc * 6 - ds * 9, ay - ds * 6 + dc * 9); ctx.lineTo(ax, ay); ctx.lineTo(ax - dc * 6 + ds * 9, ay - ds * 6 - dc * 9);
+            }
+            ctx.stroke();
+            this.clams.forEach(function (q) {  /* giant clams: the top shell folds back when open */
+                if (!vis(q.x, q.y, 40)) return;
+                ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.a + (q.warn ? Math.sin(clock * 40) * 0.08 : 0));
+                ctx.fillStyle = 'rgba(8,40,60,.25)'; ctx.beginPath(); ctx.ellipse(3, 5, 24, 18, 0, 0, 7); ctx.fill();
+                ctx.fillStyle = '#d9c2e9'; ctx.strokeStyle = '#6b4a8a'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.ellipse(0, 0, 22, 16, 0, 0, 7); ctx.fill(); ctx.stroke();
+                if (q.open > 0.05) { circle(ctx, 2, 0, 13 * q.open, '#fbe7f3'); circle(ctx, 4, 0, 5.5 * q.open, '#ffffff'); circle(ctx, 2.5, -1.5, 1.8 * q.open, '#e0f2fe'); }
+                ctx.save(); ctx.translate(-q.open * 20, 0); ctx.scale(1 - q.open * 0.72, 1);
+                ctx.fillStyle = '#c4a5dd'; ctx.beginPath(); ctx.ellipse(0, 0, 22, 16, 0, 0, 7); ctx.fill(); ctx.stroke();
+                ctx.strokeStyle = 'rgba(107,74,138,.6)'; ctx.lineWidth = 1.2;
+                for (var r = -2; r <= 2; r++) { ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(18, r * 6.5); ctx.stroke(); }
+                ctx.restore(); ctx.restore();
+            });
+            var tt = this.turtle, ttx = tt.x0 + tt.ux * tt.s, tty = tt.y0 + tt.uy * tt.s;
+            if (vis(ttx, tty, 60)) {  /* the sea turtle, paddling slowly across */
+                var fl = Math.sin(clock * 3) * 0.4, sd;
+                ctx.save(); ctx.translate(ttx, tty); ctx.rotate(Math.atan2(tt.uy * tt.dir, tt.ux * tt.dir));
+                ctx.fillStyle = 'rgba(8,40,60,.22)'; ctx.beginPath(); ctx.ellipse(6, 9, 32, 25, 0, 0, 7); ctx.fill();
+                ctx.fillStyle = '#7bbf6a';
+                for (sd = -1; sd <= 1; sd += 2) {
+                    ctx.save(); ctx.translate(12, sd * 18); ctx.rotate(sd * (0.5 + fl)); ctx.beginPath(); ctx.ellipse(7, 0, 15, 6, 0, 0, 7); ctx.fill(); ctx.restore();
+                    ctx.save(); ctx.translate(-16, sd * 15); ctx.rotate(sd * (-0.6 - fl * 0.6)); ctx.beginPath(); ctx.ellipse(-4, 0, 9, 5, 0, 0, 7); ctx.fill(); ctx.restore();
+                }
+                circle(ctx, 31, 0, 9, '#8fcf7c'); circle(ctx, 35, -4, 1.7, '#0f172a'); circle(ctx, 35, 4, 1.7, '#0f172a');
+                ctx.fillStyle = '#6b4f2a'; ctx.strokeStyle = '#3f2d14'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, 0, 26, 21, 0, 0, 7); ctx.fill(); ctx.stroke();
+                circle(ctx, 0, 0, 8, '#9a7740');
+                for (sd = 0; sd < 6; sd++) circle(ctx, Math.cos(sd * 1.047) * 15, Math.sin(sd * 1.047) * 12, 5, '#8a6a3a');
+                ctx.restore();
+            }
             ctx.lineWidth = 4; ctx.strokeStyle = '#2f8f5b';  /* kelp swaying in the water */
             for (i = 0; i < this.kelp.length; i++) {
                 var q = this.kelp[i];
@@ -487,6 +744,14 @@ Arcade.register('kitty-kart', function (api) {
             }
         },
         over: function () {
+            ctx.lineCap = 'round';
+            for (var ai = 4; ai < ALT.n - 4; ai += 7) {  /* coral arches over the tunnel */
+                var a1 = altSide(ai, -ALT.hw - 10), a2 = altSide(ai, ALT.hw + 10);
+                if (!vis(a1.x, a1.y, 90)) continue;
+                ctx.strokeStyle = 'rgba(255,127,158,.78)'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(a1.x, a1.y);
+                ctx.quadraticCurveTo((a1.x + a2.x) / 2 + 8, (a1.y + a2.y) / 2 - 14, a2.x, a2.y); ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,214,226,.6)'; ctx.lineWidth = 3; ctx.stroke();
+            }
             for (var i = 0; i < this.fish.length; i++) {  /* little fish swim over everything */
                 var f = this.fish[i];
                 if (!vis(f.x, f.y, 30)) continue;
@@ -517,12 +782,16 @@ Arcade.register('kitty-kart', function (api) {
 
     /* Moon Rim: a dusty road on a slab of moon floating in space, low grip, ramps for long low gravity jumps */
     var MOON = {
-        id: 'moon', name: 'Moon Rim', blurb: 'Low grip, ramps, long floaty jumps',
+        id: 'moon', name: 'Moon Rim', blurb: 'Low grip, meteors, a jump over a crack',
         ctrl: [250, 250, 800, 200, 1350, 250, 1600, 450, 1500, 700, 1150, 700, 950, 560, 700, 520, 520, 700, 700, 900,
                1150, 920, 1450, 1050, 1300, 1250, 700, 1300, 250, 1150, 150, 700], scale: 0.74, start: 0.09,
         phys: { vmax: 350, vgrass: 125, acc: 300, grip: 3.4, gripOff: 2.4, coast: 0.35, turn: 2.9, care: 1.4 },
         col: { bg: '#070b1c', edge: '#8d8f99', road: '#b8bbc5', panel: 'rgba(15,23,42,.72)', mini: '#cbd5e1', grid: 'rgba(255,255,255,.7)' },
         sky: true, RIM: HW + 84, G: 150,
+        alt: { a: 142, b: 206, hw: 32, vf: 1, ramp: 0.3, gap: [0.4, 0.66] },
+        pads: [[262, 0.5], [430, -0.5]], picks: [100, 300], padCol: ['#ca8a04', '#fef9c3'],
+        altGood: function (c) { return c.vf > 170; },
+        reset: function () { this.met = []; this.metT = 4; },
         prep: function () {
             this.ramps = [straightNear(0.12, -2, 30, 0.004), straightNear(0.47, -2, 30, 0.004), straightNear(0.8, -2, 30, 0.004)];
             seed = 77;
@@ -546,6 +815,7 @@ Arcade.register('kitty-kart', function (api) {
             function slab(dx, dy, color) {
                 g.save(); g.translate(dx, dy);
                 strokeLoop(g, 0, N, 2 * (HW + 100), color);
+                strokeAlt(g, 0, ALT.n - 1, 2 * (ALT.hw + 44), color);
                 g.fillStyle = color; self.blobs.forEach(function (q) { g.beginPath(); g.arc(q.x, q.y, q.r, 0, 7); g.fill(); });
                 g.restore();
             }
@@ -587,19 +857,32 @@ Arcade.register('kitty-kart', function (api) {
                     g.restore();
                 }
             });
+            strokeAlt(g, ALT.g0, ALT.g1, 2 * ALT.hw + 96, '#3b3d4a', []);  /* the crack on the shortcut: jump it or fall into space */
+            g.globalCompositeOperation = 'destination-out';
+            strokeAlt(g, ALT.g0, ALT.g1, 2 * ALT.hw + 84, '#000', []);
+            g.globalCompositeOperation = 'source-over';
+            var ends = [[0, ALT.g0], [ALT.g1, ALT.n - 1]];
+            ends.forEach(function (e) { strokeAlt(g, e[0], e[1], 2 * ALT.hw + 10, '#6f7280', []); });
+            ends.forEach(function (e) { strokeAlt(g, e[0], e[1], 2 * ALT.hw, '#b8bbc5', []); });
+            [ALT.g0, ALT.g1].forEach(function (j) {  /* hazard stripes at both edges of the crack */
+                g.save(); g.translate(ALT.x[j], ALT.y[j]); g.rotate(ALT.ang[j]);
+                for (b = -ALT.hw; b < ALT.hw; b += 8) { g.fillStyle = (b / 8) % 2 ? '#111827' : '#facc15'; g.fillRect(j === ALT.g0 ? -8 : 0, b, 8, 8); }
+                g.restore();
+            });
             strokeLoop(g, 0, N, 2 * HW + 10, '#6f7280');  /* the road */
             strokeLoop(g, 0, N, 2 * HW, '#b8bbc5');
             strokeLoop(g, 0, N, 2, 'rgba(255,255,255,.45)', [16, 20]);
             for (i = 0; i < N; i += 4) for (k = -1; k <= 1; k += 2) {  /* runway lights along both edges */
                 p = side(i, k * (HW + 2)); circle(g, p.x, p.y, 6, 'rgba(110,220,255,.25)'); circle(g, p.x, p.y, 2.6, '#bff3ff');
             }
-            this.ramps.forEach(function (j) {  /* ramps: yellow plates with chevrons */
-                g.save(); g.translate(X[j], Y[j]); g.rotate(A[j]);
-                g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(-14, -HW + 2, 34, 2 * HW - 4);
-                g.fillStyle = '#e2b13c'; g.fillRect(-18, -HW + 4, 34, 2 * HW - 8);
-                g.fillStyle = '#fde68a'; g.fillRect(12, -HW + 4, 4, 2 * HW - 8);
+            this.ramps.concat([-ALT.ramp - 1]).forEach(function (j) {  /* ramps: yellow plates with chevrons */
+                g.save(); g.translate(rX(j), rY(j)); g.rotate(rA(j));
+                var hw = j < 0 ? ALT.hw : HW;
+                g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(-14, -hw + 2, 34, 2 * hw - 4);
+                g.fillStyle = '#e2b13c'; g.fillRect(-18, -hw + 4, 34, 2 * hw - 8);
+                g.fillStyle = '#fde68a'; g.fillRect(12, -hw + 4, 4, 2 * hw - 8);
                 g.strokeStyle = '#3b2a10'; g.lineWidth = 4;
-                for (b = -HW + 18; b < HW - 10; b += 22) { g.beginPath(); g.moveTo(-10, b - 7); g.lineTo(4, b); g.lineTo(-10, b + 7); g.stroke(); }
+                for (b = -hw + 18; b < hw - 10; b += 22) { g.beginPath(); g.moveTo(-10, b - 7); g.lineTo(4, b); g.lineTo(-10, b + 7); g.stroke(); }
                 g.restore();
             });
         },
@@ -613,23 +896,76 @@ Arcade.register('kitty-kart', function (api) {
                     if (c === me) api.sfx('tap');
                 }
             } else if (c.rampT <= 0 && c.vf > 110) {
-                for (var i = 0; i < 3; i++) {
+                for (var i = 0; i < 4; i++) {
                     var j = this.ramps[i], d = (c.idx - j + N) % N;
-                    if (d <= 1 && c.dist < HW) {
+                    if (i === 3 ? c.alt && Math.abs(c.ai - ALT.ramp) <= 1 : !c.alt && d <= 1 && c.dist < HW) {
                         c.vz = c.vf * 0.22; c.z = 0.01; c.rampT = 1.5;
                         if (c === me) { api.sfx('jump'); if (clock - lastSay > 6) say('Wheee! Low gravity!'); }
                     }
                 }
             }
+            if (c.alt && c.z <= 0 && c.ai >= ALT.g0 && c.ai <= ALT.g1 && !(c.fall > 0)) {  /* too slow over the crack */
+                c.fall = 1.3; c.vx = c.vy = 0; stat('fall');
+                if (c === me) { api.sfx('hit'); api.cat('sad'); say('Lost in space! Back you go.'); }
+                return;
+            }
             if (!c.z && c.dist > HW + 4 && Math.abs(c.vf) > 90 && Math.random() < 0.25) puff('dust', c.x, c.y, -c.vx * 0.1, -c.vy * 0.1, 0.7, 4 + Math.random() * 3);
             nearest(c);
-            if (c.dist > this.RIM) {  /* the rocks on the rim stop you from driving into space */
-                var px = X[c.idx], py = Y[c.idx], nx = (c.x - px) / c.dist, ny = (c.y - py) / c.dist, vn = c.vx * nx + c.vy * ny;
-                c.x = px + nx * this.RIM; c.y = py + ny * this.RIM;
+            var rim = c.alt && c.ai > 3 && c.ai < ALT.n - 4 ? ALT.hw + 36 : this.RIM;
+            if (c.dist > rim) {  /* the rocks on the rim stop you from driving into space */
+                var px = c.px, py = c.py, nx = (c.x - px) / c.dist, ny = (c.y - py) / c.dist, vn = c.vx * nx + c.vy * ny;
+                c.x = px + nx * rim; c.y = py + ny * rim;
                 if (vn > 0) { c.vx -= nx * vn * 1.4; c.vy -= ny * vn * 1.4; if (c === me && vn > 60 && clock - hitAt > 0.5) { hitAt = clock; api.sfx('hit'); } }
             }
         },
-        under: function () { drawParts('dust'); },
+        update: function (dt) {  /* meteor showers: a warning ring first, then the rock */
+            if (phase !== 'race') return;
+            var i, m, self = this;
+            this.metT -= dt;
+            if (this.metT <= 0) {
+                this.metT = 2.6 + Math.random() * 2.6;
+                var lead = me;
+                karts.forEach(function (c) { if (!c.fin && c.prog > lead.prog) lead = c; });
+                var p = side(lead.idx + 26 + Math.floor(Math.random() * 30), (Math.random() - 0.5) * 1.2 * HW);
+                this.met.push({ x: p.x, y: p.y, t: 0 });
+            }
+            for (i = this.met.length - 1; i >= 0; i--) {
+                m = this.met[i]; m.t += dt;
+                if (m.t >= 1.5 && !m.hit) {
+                    m.hit = true;
+                    for (var k = 0; k < 10; k++) puff('dust', m.x, m.y, (Math.random() - 0.5) * 220, (Math.random() - 0.5) * 220, 0.9, 6 + Math.random() * 6);
+                    if (Math.hypot(me.x - m.x, me.y - m.y) < 500) api.sfx('hit');
+                    karts.forEach(function (c) { if (c.z < 20 && !(c.fall > 0) && Math.hypot(c.x - m.x, c.y - m.y) < 50) { stat('meteor'); spinOut(c, 1, 'Meteor! Ouch!'); } });
+                }
+                if (m.t > 3.2) self.met.splice(i, 1);
+            }
+        },
+        under: function () {
+            this.met.forEach(function (m) {
+                if (!vis(m.x, m.y, 60)) return;
+                if (m.t < 1.5) {
+                    var pulse = 0.5 + 0.5 * Math.sin(m.t * 18);
+                    ctx.fillStyle = 'rgba(239,68,68,.14)'; ctx.beginPath(); ctx.arc(m.x, m.y, 50, 0, 7); ctx.fill();
+                    ctx.strokeStyle = 'rgba(239,68,68,' + (0.5 + 0.4 * pulse).toFixed(2) + ')'; ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.arc(m.x, m.y, 50 - m.t * 12, 0, 7); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(m.x - 12, m.y); ctx.lineTo(m.x + 12, m.y); ctx.moveTo(m.x, m.y - 12); ctx.lineTo(m.x, m.y + 12); ctx.stroke();
+                } else {
+                    var f = Math.max(0, 1 - (m.t - 1.5) / 1.7);
+                    ctx.globalAlpha = f; circle(ctx, m.x, m.y, 30, '#3c3c46'); circle(ctx, m.x, m.y, 18, '#ff8c28'); ctx.globalAlpha = 1;
+                }
+            });
+            drawParts('dust');
+        },
+        over: function () {  /* the falling rocks, coming in from the top right */
+            this.met.forEach(function (m) {
+                if (m.t < 1 || m.t >= 1.5) return;
+                var f = (1.5 - m.t) / 0.5, x = m.x + f * 260, y = m.y - f * 380;
+                if (!vis(x, y, 90)) return;
+                ctx.strokeStyle = 'rgba(255,170,60,.6)'; ctx.lineWidth = 10; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 50, y - 72); ctx.stroke();
+                circle(ctx, x, y, 15, 'rgba(255,190,90,.35)'); circle(ctx, x, y, 12, '#78716c'); circle(ctx, x - 3, y - 3, 6, '#a8a29e');
+            });
+        },
         drawSky: function (cw, ch, k) {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.fillStyle = '#060a1a'; ctx.fillRect(0, 0, cw, ch);
@@ -676,6 +1012,9 @@ Arcade.register('kitty-kart', function (api) {
                 ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.stroke();
                 ctx.fillStyle = '#fff'; ctx.fillRect(p.x - r * 0.45, p.y - r * 0.55, r * 0.35, r * 0.35);
             } else if (kind === 'drop') { circle(ctx, p.x, p.y, p.r, '#a9c8ff'); }
+            else if (kind === 'leaf') { ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, p.r * 0.5, p.t * 6 + i, 0, 7); ctx.fill(); }
+            else if (kind === 'card') { ctx.fillStyle = '#c08a4f'; ctx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2); }
+            else if (kind === 'spark') { circle(ctx, p.x, p.y, p.r * (1 - f * 0.5), p.c || '#fde047'); }
             else { ctx.globalAlpha = (1 - f) * 0.5; circle(ctx, p.x, p.y, p.r * (1 + f * 1.5), '#cfd2da'); }
         }
         if (any) ctx.globalAlpha = 1;
@@ -683,12 +1022,14 @@ Arcade.register('kitty-kart', function (api) {
 
     /* ---------- page: canvas, HUD, countdown, touch buttons, track picker ---------- */
     function arrow(d) { return '<svg viewBox="0 0 24 24"><path d="' + d + '"/></svg>'; }
+    var TOUCH_HINT = 'Hold Gas, steer with the arrows, tap the item button to use an item';
     var wrapEl = document.createElement('div');
     wrapEl.className = 'kk kk-picking' + (api.touch ? ' kk-touch' : '');
     wrapEl.innerHTML = '<canvas class="kk-cv"></canvas>' +
         '<div class="kk-hud"><span class="kk-pill kk-pos">4th</span><span class="kk-pill"><small>Lap</small><b class="kk-lap">1/3</b></span>' +
-        '<span class="kk-pill kk-time">0.0</span></div><div class="kk-count"></div>' +
-        '<div class="kk-hint">' + (api.touch ? 'Hold Gas, steer with the arrows' : 'Arrows or WASD: up to drive, down to brake, left and right to steer') + '</div>' +
+        '<span class="kk-pill kk-time">0.0</span><span class="kk-pill kk-slot kk-empty" title="Item"><canvas width="64" height="64"></canvas></span></div>' +
+        '<div class="kk-count"></div><div class="kk-hint">' + (api.touch ? TOUCH_HINT : 'Arrows or WASD to drive and brake, Space or Shift to use an item') + '</div>' +
+        '<button class="kk-btn kk-use kk-empty" aria-label="Use item"><canvas width="64" height="64"></canvas></button>' +
         '<button class="kk-btn kk-left" data-k="left" aria-label="Steer left">' + arrow('M15 5l-7 7 7 7') + '</button>' +
         '<button class="kk-btn kk-right" data-k="right" aria-label="Steer right">' + arrow('M9 5l7 7-7 7') + '</button>' +
         '<button class="kk-btn kk-brake" data-k="down">Brake</button><button class="kk-btn kk-gas" data-k="up">Gas</button>' +
@@ -698,6 +1039,8 @@ Arcade.register('kitty-kart', function (api) {
     var cv = wrapEl.querySelector('.kk-cv'), ctx = cv.getContext('2d', { alpha: false });
     var posEl = wrapEl.querySelector('.kk-pos'), lapEl = wrapEl.querySelector('.kk-lap'), timeEl = wrapEl.querySelector('.kk-time');
     var countEl = wrapEl.querySelector('.kk-count'), hintEl = wrapEl.querySelector('.kk-hint'), mapsEl = wrapEl.querySelector('.kk-maps');
+    var slotEl = wrapEl.querySelector('.kk-slot'), useEl = wrapEl.querySelector('.kk-use');
+    var slotG = slotEl.querySelector('canvas').getContext('2d'), useG = useEl.querySelector('canvas').getContext('2d');
 
     /* the last track and the best time on each track are remembered in this browser */
     var saved = null;
@@ -709,9 +1052,18 @@ Arcade.register('kitty-kart', function (api) {
     MAPS.forEach(function (m, i) { if (m.id === saved.map) sel = i; });
     var MAP = MAPS[sel];
 
-    var cards = MAPS.map(function (m, i) {
+    var tins = [], boosts = [], yarns = [], milks = [], rings = [];
+    function load(m) {  /* build a track with its shortcut, fish tins and boost pads */
         build(m);
         if (m.prep) m.prep();
+        tins = []; boosts = [];
+        (m.picks || []).forEach(function (j) {
+            [-0.55, 0, 0.55].forEach(function (l) { var q = side(j, l * HW); tins.push({ x: q.x, y: q.y, idx: j, lat: l * HW, t: 0 }); });
+        });
+        (m.pads || []).forEach(function (d) { var q = side(d[0], d[1] * HW); boosts.push({ x: q.x, y: q.y, a: A[d[0]], ca: Math.cos(A[d[0]]), sa: Math.sin(A[d[0]]) }); });
+    }
+    var cards = MAPS.map(function (m, i) {
+        load(m);
         var b = document.createElement('button');
         b.type = 'button'; b.className = 'kk-map';
         b.innerHTML = '<canvas width="240" height="180"></canvas><b></b><small></small><small class="kk-mbest"></small>';
@@ -732,6 +1084,7 @@ Arcade.register('kitty-kart', function (api) {
         if (m === CITY) { seed = 3; for (i = 0; i < 40; i++) { g.fillStyle = i % 4 ? '#323b52' : '#ffd27a'; g.fillRect(rnd() * WW, rnd() * WH, 90, 70); } }
         if (m === MEADOW) { seed = 3; for (i = 0; i < 40; i++) circle(g, rnd() * WW, rnd() * WH, 34, '#97d08f'); }
         strokeLoop(g, 0, N, 2 * HW + (m === MOON ? 200 : 60), m.col.edge);
+        if (ALT) { strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 30, m.col.edge); strokeAlt(g, 1, ALT.n - 2, 2 * ALT.hw + 6, m.col.road, [26, 14]); }
         strokeLoop(g, 0, N, 2 * HW + 30, m.col.road);
         g.setLineDash([]);
         g.translate(X[0], Y[0]); g.rotate(A[0]); g.fillStyle = '#0f172a'; g.fillRect(-12, -HW - 15, 24, 2 * HW + 30);
@@ -770,6 +1123,14 @@ Arcade.register('kitty-kart', function (api) {
         g.lineJoin = g.lineCap = 'round';
         MAP.paint(g);
         g.setLineDash([]);
+        boosts.forEach(function (b) {  /* boost pads */
+            g.save(); g.translate(b.x, b.y); g.rotate(b.a);
+            g.fillStyle = 'rgba(15,23,42,.25)'; rr(g, -20, -14, 44, 34, 6); g.fill();
+            g.fillStyle = MAP.padCol[0]; rr(g, -22, -17, 44, 34, 6); g.fill();
+            g.strokeStyle = MAP.padCol[1]; g.lineWidth = 4; g.lineCap = g.lineJoin = 'round';
+            for (k = -10; k <= 14; k += 12) { g.beginPath(); g.moveTo(k - 6, -9); g.lineTo(k, 0); g.lineTo(k - 6, 9); g.stroke(); }
+            g.restore();
+        });
         g.save();  /* start/finish line, chequered */
         g.translate(X[0], Y[0]); g.rotate(A[0]);
         var q = HW / 5;
@@ -789,6 +1150,7 @@ Arcade.register('kitty-kart', function (api) {
         var g = mini.getContext('2d');
         g.setTransform(mmK * dpr, 0, 0, mmK * dpr, 0, 0);
         g.lineJoin = g.lineCap = 'round';
+        if (ALT) strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 10, MAP.col.mini || '#b4bcc6', [40, 26]);
         strokeLoop(g, 0, N, 2 * HW, MAP.col.mini || '#b4bcc6');
         g.setLineDash([]);
         g.translate(X[0], Y[0]); g.rotate(A[0]);  /* the start line */
@@ -812,17 +1174,20 @@ Arcade.register('kitty-kart', function (api) {
             c.x = X[j] - Math.sin(A[j]) * sd * HW * 0.45; c.y = Y[j] + Math.cos(A[j]) * sd * HW * 0.45;
             c.a = A[j]; c.vx = c.vy = c.vf = c.steer = c.thr = 0;
             c.k = 0; c.fin = 0; c.prog = 0; c.z = c.vz = c.slip = c.rampT = 0;
+            c.item = null; c.itemT = 0; c.boost = c.shield = c.spin = c.nap = c.laser = c.fall = c.tangled = 0;
+            c.useAlt = false; c.decided = -1; c.altLap = -1;
             nearest(c);
         });
-        parts.length = 0;
+        parts.length = yarns.length = milks.length = rings.length = 0;
+        tins.forEach(function (t) { t.t = 0; });
+        slot();
         if (MAP.reset) MAP.reset();
         camX = me.x; camY = me.y;
     }
     function choose(i) {  /* switch the track shown behind the picker */
         sel = (i + MAPS.length) % MAPS.length;
         MAP = MAPS[sel];
-        build(MAP);
-        if (MAP.prep) MAP.prep();
+        load(MAP);
         reset();
         dirty = true;
         fit(api.size());
@@ -840,31 +1205,236 @@ Arcade.register('kitty-kart', function (api) {
 
     /* driving: same simple physics for everybody, the inputs come from keys, touch or the computer */
     function step(c, dt) {
-        var ca = Math.cos(c.a), sa = Math.sin(c.a);
-        var vf = c.vx * ca + c.vy * sa, vr = c.vy * ca - c.vx * sa, air = c.z > 0;
-        var off = c.dist > HW + 4 && !air, vmax = off ? VGRASS : VMAX, thr = air ? 0 : c.thr;
-        if (thr > 0) vf += (vf < 0 ? BRAKE : ACC * Math.max(0, 1 - vf / vmax)) * thr * dt;
+        if (c.fall > 0) { c.fall -= dt; if (c.fall <= 0) respawn(c); return; }
+        var ca = Math.cos(c.a), sa = Math.sin(c.a), i;
+        var vf = c.vx * ca + c.vy * sa, vr = c.vy * ca - c.vx * sa, air = c.z > 0, spin = c.spin > 0;
+        var off = !c.on && !air, vmax = (off ? VGRASS : c.alt ? VMAX * ALT.vf : VMAX) * (c.boost > 0 ? 1.3 : 1) * (c.nap > 0 ? 0.55 : 1);
+        var acc = ACC * (c.boost > 0 ? 1.8 : 1), thr = air || spin ? 0 : c.thr;
+        if (thr > 0) vf += (vf < 0 ? BRAKE : acc * Math.max(0, 1 - vf / vmax)) * thr * dt;
         else if (thr < 0) vf += (vf > 0 ? BRAKE : ACC * 0.5 * Math.max(0, 1 + vf / REV)) * thr * dt;
-        else if (!air) vf -= vf * COAST * dt;
-        if (vf > vmax) vf -= (vf - vmax) * 2.6 * dt;  /* the grass slows you down */
+        else if (!air) vf -= vf * (spin ? 2.4 : COAST) * dt;
+        if (vf > vmax) vf -= (vf - vmax) * 2.6 * dt;  /* the grass (or a nap) slows you down */
         if (!air) vr *= Math.max(0, 1 - (off ? GRIPOFF : GRIP) * (c.slip > 0 ? 0.12 : 1) * dt);  /* grip: a little slide, not much */
-        var sp = Math.abs(vf), turn = air ? 0 : c.steer * TURN * Math.min(1, sp / 60) * (1 - 0.25 * Math.min(1, sp / VMAX));
-        c.a += (vf < 0 ? -turn : turn) * dt;
+        var sp = Math.abs(vf), turn = air || spin ? 0 : c.steer * TURN * Math.min(1, sp / 60) * (1 - 0.25 * Math.min(1, sp / VMAX));
+        c.a += (vf < 0 ? -turn : turn) * dt + (spin ? c.spinK * dt : 0);
         ca = Math.cos(c.a); sa = Math.sin(c.a);
         c.vx = ca * vf - sa * vr; c.vy = sa * vf + ca * vr; c.vf = vf;
         c.x += c.vx * dt; c.y += c.vy * dt;
+        c.slip -= dt; c.boost -= dt; c.nap -= dt; c.spin -= dt; c.shield -= dt; c.laser -= dt; c.tangled -= dt;
         if (MAP.effect) MAP.effect(c, dt);
+        if (!air) for (i = 0; i < boosts.length; i++) {  /* boost pads */
+            var b = boosts[i], dx = c.x - b.x, dy = c.y - b.y;
+            if (Math.abs(dx * b.ca + dy * b.sa) < 24 && Math.abs(dy * b.ca - dx * b.sa) < 20) {
+                if (c.boost < 0.5) { stat('pad'); if (c === me) api.sfx('point'); }
+                c.boost = Math.max(c.boost, 1);
+            }
+        }
+        if (ALT && ALT.gate && gateOpen(clock) < 0.5) {  /* the shortcut gate is shut: it is a wall */
+            var gi = ALT.gate.i, gc = Math.cos(ALT.ang[gi]), gs = Math.sin(ALT.ang[gi]), gx = c.x - ALT.x[gi], gy = c.y - ALT.y[gi];
+            var gu = gx * gc + gy * gs, gw = gy * gc - gx * gs;
+            if (Math.abs(gw) < ALT.hw + 14 && Math.abs(gu) < 10) {
+                var vn = c.vx * gc + c.vy * gs, back = vn > 0 ? -10 : 10;
+                c.x += gc * (back - gu); c.y += gs * (back - gu);
+                c.vx -= gc * vn * 1.3; c.vy -= gs * vn * 1.3;
+                if (Math.abs(vn) > 40 && clock - (c.gateT || -9) > 0.6) {
+                    c.gateT = clock; stat('gate');
+                    if (c === me) { api.sfx('hit'); if (clock - lastSay > 3) say(MAP.gate === 'boom' ? 'Barrier down! Wait for it.' : 'Bonk! The gate is shut.'); }
+                }
+            }
+        }
         if (c.x < 30 || c.x > WW - 30) { c.x = clamp(c.x, 30, WW - 30); c.vx *= -0.3; }  /* the fence around the field */
         if (c.y < 30 || c.y > WH - 30) { c.y = clamp(c.y, 30, WH - 30); c.vy *= -0.3; }
     }
     function autopilot(c, skill) {
-        var look = Math.round((34 + Math.abs(c.vf) * 0.32) / SP), j = (c.idx + look) % N, lane = c.lane * Math.sin(clock * 0.35 + c.phase);
-        var tx = X[j] - Math.sin(A[j]) * lane, ty = Y[j] + Math.cos(A[j]) * lane;
+        var look = Math.round((34 + Math.abs(c.vf) * 0.32) / SP), j = routeAt(c, look), lane = c.lane * Math.sin(clock * 0.35 + c.phase);
+        if (j < 0) lane *= 0.3;
+        else if (!c.item) lane = tinLane(c, lane);
+        var tx = rX(j) - Math.sin(rA(j)) * lane, ty = rY(j) + Math.cos(rA(j)) * lane;
         c.steer = clamp(wrap(Math.atan2(ty - c.y, tx - c.x) - c.a) * 3, -1, 1);
         var km = 0;
-        for (var i = 1; i < 26; i++) km = Math.max(km, Math.abs(K[(c.idx + i) % N]));
-        var vt = VMAX * skill / (1 + km * 80 * CARE);
+        for (var i = 1; i < 26; i++) km = Math.max(km, Math.abs(rK(routeAt(c, i))));
+        var vt = VMAX * skill / (1 + km * 80 * CARE), rash = c === me && test && test.rash;
+        if (rash && test.slowAlt && (c.useAlt || c.alt)) vt = 110;  /* test only: too slow for the moon crack */
         c.thr = c.vf < vt ? 1 : c.vf > vt + 30 ? -0.7 : 0;
+        if (c.laser > 0) { c.steer = clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1); c.thr = 0.6; }  /* chasing the red dot */
+        var dg = toGate(c);
+        if (rash) return;  /* test only: drive into gates and trams */
+        if (dg > 0 && dg < 170 && gateOpen(clock + dg / Math.max(c.vf, 80)) < 0.6) c.thr = c.vf > 15 ? -1 : 0;  /* wait for the gate */
+        if (MAP.wait && MAP.wait(c)) c.thr = c.vf > 10 ? -1 : 0;
+    }
+    function tinLane(c, lane) {  /* steer for a fish tin ahead when holding nothing */
+        var best = lane, bd = 1e9;
+        for (var i = 0; i < tins.length; i++) {
+            var t = tins[i], d = (t.idx - c.idx + N) % N;
+            if (t.t > 0 || d < 3 || d > 30 || Math.abs(t.lat - lane) >= bd) continue;
+            bd = Math.abs(t.lat - lane); best = t.lat;
+        }
+        return best;
+    }
+    function decide(c) {  /* the computer cats pick the shortcut sometimes, when the gate or their speed allows */
+        if (!ALT) return;
+        var s = (ALT.a - c.idx + N) % N, lap = laps(c);
+        if (!c.alt && s > 8 && s < 36 && c.decided !== lap) {
+            c.decided = lap;
+            var rash = c === me && test && test.rash, ok = rash || !MAP.altGood || MAP.altGood(c);
+            if (ok && ALT.gate) {  /* worth it when the gate will be open, sometimes they gamble and wait */
+                var T = (s * SP + ALT.gate.i * ALT.step) / Math.max(c.vf, 150);
+                ok = gateOpen(clock + T) > 0.6 && gateOpen(clock + T + 0.5) > 0.6 || Math.random() < 0.3 || (c === me && test && test.alt === 1);
+            }
+            c.useAlt = ok && Math.random() < (c === me ? (test && test.alt != null ? test.alt : 0.5) : 0.45);
+        } else if (c.useAlt && !c.alt && (c.idx - ALT.b + N) % N < 40) c.useAlt = false;
+    }
+    function respawn(c) {  /* back on the road before the shortcut, after falling into space */
+        var j = ix(ALT.a - 4);
+        c.x = X[j]; c.y = Y[j]; c.a = A[j]; c.vx = c.vy = c.vf = c.z = c.vz = 0; c.useAlt = false; c.decided = laps(c);
+        nearest(c);
+    }
+
+    /* ---------- items: fish tins give one, the further back you are the better it is ---------- */
+    var ITEMS = ['yarn', 'catnip', 'box', 'laser', 'milk', 'bell'];
+    var WEIGHT = [[30, 10, 25, 0, 35, 0], [30, 20, 20, 10, 15, 5], [25, 30, 10, 20, 5, 10], [15, 35, 5, 25, 0, 20]];
+    var NAMES = { yarn: 'Yarn ball', catnip: 'Catnip', box: 'Cardboard box', laser: 'Laser pointer', milk: 'Milk carton', bell: 'Nap bell' };
+    var USE = { yarn: 'Fetch, everyone!', catnip: 'Catnip zoomies!', box: 'Safe in my box!', laser: 'Look, a red dot!', milk: 'Oops, spilt milk!', bell: 'Ding! Nap time up front!' };
+    var USE_SFX = { yarn: 'jump', catnip: 'point', box: 'move', laser: 'tap', milk: 'move', bell: 'point' };
+    function roll(place) {
+        var w = WEIGHT[clamp(place, 1, 4) - 1], sum = 0, i, r;
+        for (i = 0; i < 6; i++) sum += w[i];
+        r = Math.random() * sum;
+        for (i = 0; i < 6; i++) { r -= w[i]; if (r < 0) return ITEMS[i]; }
+        return 'catnip';
+    }
+    function ahead(o, c) { return o !== c && (o.fin ? !c.fin || o.fin < c.fin : !c.fin && o.prog > c.prog); }
+    function rankOf(c) { var p = 1; for (var i = 0; i < 4; i++) if (ahead(karts[i], c)) p++; return p; }
+    function hit(c, why) {  /* an item or hazard hits c; a cardboard box takes the hit instead */
+        if (c.shield > 0) {
+            c.shield = 0; stat('blocked');
+            for (var k = 0; k < 8; k++) puff('card', c.x, c.y, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, 0.6, 3);
+            if (c === me) { api.sfx('pop'); say('The box saved you!'); }
+            return false;
+        }
+        if (c === me && why) { api.cat('sad'); api.sfx('hit'); say(why); }
+        return true;
+    }
+    function spinOut(c, t, why, rate) {
+        if (!hit(c, why)) return false;
+        c.spin = Math.max(c.spin, t); c.spinK = rate === 0 ? 0 : Math.random() < 0.5 ? -9 : 9;
+        return true;
+    }
+    function useItem(c) {
+        var it = c.item, i, o, ca = Math.cos(c.a), sa = Math.sin(c.a);
+        if (!it || phase !== 'race' || c.fall > 0) return;
+        c.item = null;
+        stat('use-' + it);
+        if (c === me) { stat('use-me'); slot(); if (clock - lastSay > 1) say(USE[it]); }
+        if (c === me || Math.hypot(c.x - me.x, c.y - me.y) < 450) api.sfx(USE_SFX[it]);
+        if (it === 'yarn') {  /* thrown ahead, it follows the road and tangles the first cat it meets */
+            var v = Math.max(c.vf, 0) + 430;
+            yarns.push({ x: c.x + ca * 22, y: c.y + sa * 22, vx: ca * v, vy: sa * v, sp: v, owner: c, t: 0, roll: 0, trail: [], useAlt: c.useAlt });
+        } else if (it === 'catnip') c.boost = 2.2;
+        else if (it === 'box') c.shield = 12;
+        else if (it === 'laser') {  /* the leader (or the closest rival when you lead) chases a red dot off the racing line */
+            var tg = null;
+            for (i = 0; i < 4; i++) { o = karts[i]; if (o !== c && !o.fin && (!tg || o.prog > tg.prog)) tg = o; }
+            if (tg && hit(tg, 'Ooh, a red dot! Must chase it!')) { tg.laser = 1.8; tg.dotS = Math.random() < 0.5 ? -1 : 1; setDot(tg, 0); stat('hit-laser'); }
+        } else if (it === 'milk') milks.push({ x: c.x - ca * 28, y: c.y - sa * 28, t: 0, owner: c, mask: 0 });
+        else if (it === 'bell') {  /* everyone ahead gets sleepy for a moment */
+            var any = false;
+            for (i = 0; i < 4; i++) {
+                o = karts[i];
+                if (!ahead(o, c) || o.fin) continue;
+                any = true;
+                if (hit(o, 'Ding... so sleepy...')) { o.nap = 2.2; stat('hit-bell'); }
+            }
+            if (!any) for (i = 0; i < 4; i++) { o = karts[i]; if (o !== c && !o.fin && hit(o, 'Ding... so sleepy...')) o.nap = 1.2; }
+            rings.push({ x: c.x, y: c.y, t: 0, who: c });
+        }
+    }
+    function setDot(c, i) {  /* the red dot dances just off the kart's nose */
+        var da = c.a + c.dotS * (0.9 + Math.sin(clock * 4 + i) * 0.4);
+        c.dotx = c.x + Math.cos(da) * 80; c.doty = c.y + Math.sin(da) * 80;
+    }
+    function aiItem(c, dt) {  /* when the computer cats use what they hold */
+        if (!c.item || phase !== 'race') return;
+        c.itemT -= dt;
+        if (c.itemT > 0) return;
+        var it = c.item, go = false, i, o;
+        if (it === 'box') go = true;
+        else if (it === 'catnip') {  /* on a straight */
+            go = true;
+            for (i = 1; i < 30; i += 2) if (Math.abs(rK(routeAt(c, i))) > 0.004) { go = c.itemT < -6; break; }
+        } else if (it === 'yarn') {
+            go = c.itemT < -7;
+            for (i = 0; i < 4; i++) {
+                o = karts[i];
+                if (o === c || o.fin || Math.abs(o.z - c.z) > 8) continue;
+                var dx = o.x - c.x, dy = o.y - c.y;
+                if (dx * dx + dy * dy < 420 * 420 && Math.abs(wrap(Math.atan2(dy, dx) - c.a)) < 0.3) go = true;
+            }
+        } else if (it === 'laser' || it === 'bell') go = rankOf(c) > 1 || c.itemT < -10;
+        else if (it === 'milk') {
+            go = c.itemT < -8;
+            for (i = 0; i < 4; i++) { o = karts[i]; if (o !== c && !o.fin && c.prog - o.prog > 0 && c.prog - o.prog < SEG * 0.8) go = true; }
+        }
+        if (go) useItem(c);
+    }
+    function pickups(dt) {
+        for (var i = 0; i < tins.length; i++) {
+            var t = tins[i];
+            if (t.t > 0) { t.t -= dt; continue; }
+            for (var j = 0; j < 4; j++) {
+                var c = karts[j];
+                if (c.item || c.fall > 0 || c.z > 14 || Math.abs(c.x - t.x) > 26 || Math.abs(c.y - t.y) > 26 || Math.hypot(c.x - t.x, c.y - t.y) > R + 13) continue;
+                t.t = 4; c.item = roll(rankOf(c)); c.itemT = 0.5 + Math.random() * 2;
+                for (var k = 0; k < 7; k++) puff('spark', t.x, t.y, (Math.random() - 0.5) * 170, (Math.random() - 0.5) * 170, 0.5, 2.6);
+                stat('pick');
+                if (c === me) { stat('pick-me'); api.sfx('pop'); api.cat('wow'); slot(); if (clock - lastSay > 1.5) say(NAMES[c.item] + '!'); }
+                break;
+            }
+        }
+    }
+    function moveItems(dt) {
+        var i, j, c;
+        for (i = yarns.length - 1; i >= 0; i--) {
+            var y = yarns[i];
+            y.t += dt;
+            nearest(y);
+            var r = routeAt(y, 4), want = Math.atan2(rY(r) - y.y, rX(r) - y.x), cur = Math.atan2(y.vy, y.vx);
+            cur += clamp(wrap(want - cur), -5 * dt, 5 * dt);
+            y.vx = Math.cos(cur) * y.sp; y.vy = Math.sin(cur) * y.sp;
+            y.x += y.vx * dt; y.y += y.vy * dt; y.roll += y.sp * dt / 9;
+            y.trail.push(y.x, y.y);
+            if (y.trail.length > 18) y.trail.splice(0, 2);
+            var gone = y.t > 3 || y.x < 0 || y.y < 0 || y.x > WW || y.y > WH;
+            for (j = 0; j < 4 && !gone; j++) {
+                c = karts[j];
+                if ((c === y.owner && y.t < 0.6) || c.fall > 0 || c.z > 12 || Math.hypot(c.x - y.x, c.y - y.y) > R + 9) continue;
+                gone = true; stat('hit-yarn');
+                if (spinOut(c, 1.3, 'Tangled in yarn!')) c.tangled = 1.3;
+                if (y.owner === me && c !== me) { api.sfx('pop'); api.cat('happy'); if (clock - lastSay > 1) say('Got them with the yarn!'); }
+            }
+            if (gone) {
+                for (j = 0; j < 6; j++) { var q = puff('spark', y.x, y.y, (Math.random() - 0.5) * 140, (Math.random() - 0.5) * 140, 0.5, 2.4); if (q) q.c = '#f472b6'; }
+                yarns.splice(i, 1);
+            }
+        }
+        for (i = milks.length - 1; i >= 0; i--) {
+            var m = milks[i];
+            m.t += dt;
+            if (m.t > 14) { milks.splice(i, 1); continue; }
+            for (j = 0; j < 4; j++) {
+                c = karts[j];
+                if (m.mask & (1 << j) || c.z > 0 || (c === m.owner && m.t < 0.8) || Math.hypot(c.x - m.x, c.y - m.y) > 26) continue;
+                m.mask |= 1 << j; stat('hit-milk');
+                if (hit(c, 'Spilt milk! So slippery!')) { c.slip = 1; c.vx *= 0.75; c.vy *= 0.75; c.a += (Math.random() - 0.5) * 1.2; }
+            }
+        }
+        for (i = rings.length - 1; i >= 0; i--) { rings[i].t += dt; if (rings[i].t > 0.8) rings.splice(i, 1); }
+        for (i = 0; i < 4; i++) {
+            c = karts[i];
+            if (c.laser > 0) setDot(c, i);
+            if (c.boost > 0 && Math.random() < 0.6) puff('leaf', c.x - Math.cos(c.a) * 18, c.y - Math.sin(c.a) * 18, -c.vx * 0.2 + (Math.random() - 0.5) * 60, -c.vy * 0.2 + (Math.random() - 0.5) * 60, 0.5, 3);
+            if (ALT && c.alt && c.ai > ALT.n / 2 && c.altLap !== laps(c)) { c.altLap = laps(c); stat('alt'); if (c === me) stat('alt-me'); }
+        }
     }
     /* checkpoints: k counts the ones passed in order (the start line is the first); a lap is CP of them */
     function progress(c) {
@@ -903,7 +1473,7 @@ Arcade.register('kitty-kart', function (api) {
     function collide() {
         for (var i = 0; i < 4; i++) for (var j = i + 1; j < 4; j++) {
             var a = karts[i], b = karts[j], dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy;
-            if (d2 >= 4 * R * R || d2 === 0 || Math.abs(a.z - b.z) > 8) continue;  /* a jumping kart flies over */
+            if (d2 >= 4 * R * R || d2 === 0 || Math.abs(a.z - b.z) > 8 || a.fall > 0 || b.fall > 0) continue;  /* a jumping kart flies over */
             var d = Math.sqrt(d2), nx = dx / d, ny = dy / d, push = (2 * R - d) / 2;
             a.x -= nx * push; a.y -= ny * push; b.x += nx * push; b.y += ny * push;
             var vn = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
@@ -927,7 +1497,11 @@ Arcade.register('kitty-kart', function (api) {
             ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(c.z * 0.5, c.z * 0.8, 16, 11, c.a, 0, 7); ctx.fill();
             ctx.scale(1 + c.z / 45, 1 + c.z / 45);
         }
+        if (c.fall > 0) { var fs = 0.15 + 0.85 * c.fall / 1.3; ctx.globalAlpha = c.fall / 1.3; ctx.scale(fs, fs); ctx.rotate((1.3 - c.fall) * 6); }
         ctx.rotate(c.a);
+        if (c.boost > 0) {  /* catnip or a boost pad: a green flame */
+            ctx.fillStyle = 'rgba(74,222,128,.75)'; ctx.beginPath(); ctx.moveTo(-15, -5); ctx.lineTo(-27 - Math.random() * 9, 0); ctx.lineTo(-15, 5); ctx.fill();
+        }
         ctx.fillStyle = 'rgba(15,23,42,.16)'; rrect(-14, -8, 32, 20, 8); ctx.fill();
         ctx.fillStyle = '#1f2937';
         rrect(-14, -13, 10, 6, 2); ctx.fill(); rrect(-14, 7, 10, 6, 2); ctx.fill();
@@ -946,7 +1520,186 @@ Arcade.register('kitty-kart', function (api) {
             ctx.strokeStyle = c.stripe; ctx.lineWidth = 1.6; ctx.beginPath();
             ctx.moveTo(-6.5, -3); ctx.lineTo(-2.5, -2.4); ctx.moveTo(-7.4, 0); ctx.lineTo(-2.5, 0); ctx.moveTo(-6.5, 3); ctx.lineTo(-2.5, 2.4); ctx.stroke();
         }
+        if (c.shield > 0) {  /* sitting in a cardboard box, flaps open */
+            ctx.fillStyle = '#d4a464'; ctx.strokeStyle = '#7c4a1e'; ctx.lineWidth = 1.2;
+            for (var f = -1; f <= 1; f += 2) {
+                ctx.beginPath(); ctx.moveTo(-19, f * 14); ctx.lineTo(-13, f * 23); ctx.lineTo(13, f * 23); ctx.lineTo(19, f * 14); ctx.closePath(); ctx.fill(); ctx.stroke();
+            }
+            ctx.strokeStyle = '#a26b35'; ctx.lineWidth = 4.5; ctx.strokeRect(-19, -14, 38, 28);
+            ctx.fillStyle = '#ecd9b0'; ctx.fillRect(-3, -16.5, 6, 5); ctx.fillRect(-3, 11.5, 6, 5);
+        }
+        if (c.tangled > 0) {  /* wrapped in pink wool */
+            ctx.strokeStyle = '#f472b6'; ctx.lineWidth = 1.6;
+            for (var w = 0; w < 3; w++) { ctx.beginPath(); ctx.ellipse(0, 0, 20, 9, w * 1.05 + clock * 3, 0, 7); ctx.stroke(); }
+        }
         ctx.restore();
+    }
+    function drawYarn(g, r, rot, tail) {  /* a ball of pink wool: shading, wound strands at different tilts, outline, highlight, loose thread */
+        var k, b;
+        if (tail) {
+            g.strokeStyle = '#db2777'; g.lineWidth = Math.max(1, r * 0.12); g.lineCap = 'round';
+            g.beginPath(); g.moveTo(r * 0.55, r * 0.75); g.bezierCurveTo(r * 1.1, r * 1.15, r * 0.4, r * 1.35, r * 1.15, r * 1.3); g.stroke();
+        }
+        var gr = g.createRadialGradient(-r * 0.35, -r * 0.4, r * 0.1, 0, 0, r);
+        gr.addColorStop(0, '#ffd1e6'); gr.addColorStop(0.55, '#f472b6'); gr.addColorStop(1, '#be185d');
+        g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+        g.save(); g.beginPath(); g.arc(0, 0, r, 0, 7); g.clip();
+        g.lineWidth = Math.max(0.7, r * 0.08);
+        for (b = 0; b < 3; b++) {  /* three bands of strands, each wound at its own tilt */
+            g.save(); g.rotate(rot + b * 1.05);
+            g.strokeStyle = b === 1 ? 'rgba(255,214,232,.6)' : 'rgba(131,24,67,.5)';
+            for (k = -2; k <= 2; k++) {
+                var yy = k * r * 0.34, rx = r * Math.sqrt(Math.max(0.05, 1 - (yy / r) * (yy / r)));
+                g.beginPath(); g.ellipse(0, yy, rx, r * 0.22, 0, 0, Math.PI); g.stroke();
+            }
+            g.restore();
+        }
+        g.restore();
+        g.strokeStyle = '#831843'; g.lineWidth = Math.max(0.8, r * 0.1); g.beginPath(); g.arc(0, 0, r, 0, 7); g.stroke();
+        g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(-r * 0.38, -r * 0.42, r * 0.24, r * 0.13, -0.6, 0, 7); g.fill();
+    }
+    function drawIcon(g, it, r) {  /* the item pictures for the HUD slot and the touch button, centred on 0, 0 */
+        var i;
+        g.lineCap = g.lineJoin = 'round';
+        if (it === 'yarn') { g.save(); g.translate(-r * 0.15, -r * 0.15); drawYarn(g, r * 0.7, 0.5, 1); g.restore(); }
+        else if (it === 'catnip') {
+            g.strokeStyle = '#15803d'; g.lineWidth = r * 0.12; g.beginPath(); g.moveTo(0, r * 0.95); g.quadraticCurveTo(r * 0.12, 0, 0, -r * 0.55); g.stroke();
+            [[-0.42, 0.3, -0.8], [0.42, 0.1, 0.8], [-0.34, -0.3, -0.5], [0.34, -0.5, 0.5], [0, -0.78, 0]].forEach(function (l) {
+                g.save(); g.translate(l[0] * r, l[1] * r); g.rotate(l[2]); g.fillStyle = '#22c55e'; g.strokeStyle = '#166534'; g.lineWidth = r * 0.06;
+                g.beginPath(); g.ellipse(0, 0, r * 0.2, r * 0.34, 0, 0, 7); g.fill(); g.stroke(); g.restore();
+            });
+            circle(g, r * 0.7, -r * 0.75, r * 0.09, '#86efac'); circle(g, -r * 0.75, -r * 0.55, r * 0.07, '#86efac');
+        } else if (it === 'box') {
+            g.fillStyle = '#c8955a'; g.strokeStyle = '#7c4a1e'; g.lineWidth = r * 0.07;
+            g.beginPath(); g.rect(-r * 0.7, -r * 0.2, r * 1.4, r * 0.95); g.fill(); g.stroke();
+            g.fillStyle = '#deb07a';
+            for (i = -1; i <= 1; i += 2) {
+                g.beginPath(); g.moveTo(i * r * 0.7, -r * 0.2); g.lineTo(i * r * 0.98, -r * 0.68); g.lineTo(i * r * 0.12, -r * 0.68); g.lineTo(0, -r * 0.2); g.closePath(); g.fill(); g.stroke();
+            }
+            g.fillStyle = '#ecd9b0'; g.fillRect(-r * 0.12, -r * 0.2, r * 0.24, r * 0.95);
+            circle(g, -r * 0.35, r * 0.3, r * 0.08, '#7c4a1e'); circle(g, r * 0.35, r * 0.3, r * 0.08, '#7c4a1e');
+        } else if (it === 'laser') {
+            g.save(); g.rotate(-0.7);
+            g.fillStyle = '#475569'; rr(g, -r * 0.85, -r * 0.15, r * 1.25, r * 0.3, r * 0.12); g.fill();
+            g.fillStyle = '#94a3b8'; g.fillRect(-r * 0.5, -r * 0.15, r * 0.22, r * 0.3);
+            g.fillStyle = '#ef4444'; g.fillRect(r * 0.4, -r * 0.1, r * 0.1, r * 0.2);
+            g.strokeStyle = 'rgba(239,68,68,.8)'; g.lineWidth = r * 0.07; g.beginPath(); g.moveTo(r * 0.5, 0); g.lineTo(r * 0.95, 0); g.stroke();
+            g.restore();
+            circle(g, r * 0.73, -r * 0.61, r * 0.22, 'rgba(239,68,68,.35)'); circle(g, r * 0.73, -r * 0.61, r * 0.11, '#ef4444');
+        } else if (it === 'milk') {
+            g.fillStyle = '#f8fafc'; g.strokeStyle = '#475569'; g.lineWidth = r * 0.07;
+            g.beginPath(); g.moveTo(-r * 0.45, -r * 0.35); g.lineTo(-r * 0.1, -r * 0.8); g.lineTo(r * 0.1, -r * 0.8); g.lineTo(r * 0.45, -r * 0.35);
+            g.lineTo(r * 0.45, r * 0.85); g.lineTo(-r * 0.45, r * 0.85); g.closePath(); g.fill(); g.stroke();
+            g.beginPath(); g.moveTo(-r * 0.45, -r * 0.35); g.lineTo(r * 0.45, -r * 0.35); g.stroke();
+            g.fillStyle = '#60a5fa'; g.fillRect(-r * 0.43, r * 0.02, r * 0.86, r * 0.48);
+            circle(g, 0, r * 0.32, r * 0.1, '#fff');
+            for (i = -1; i <= 1; i++) circle(g, i * r * 0.13, r * 0.14 - (i ? 0 : r * 0.04), r * 0.05, '#fff');
+        } else if (it === 'bell') {
+            g.fillStyle = '#ef4444'; g.fillRect(-r * 0.12, -r * 0.88, r * 0.24, r * 0.3);
+            g.fillStyle = '#facc15'; g.strokeStyle = '#a16207'; g.lineWidth = r * 0.07;
+            g.beginPath(); g.moveTo(-r * 0.62, r * 0.45); g.quadraticCurveTo(-r * 0.52, -r * 0.62, 0, -r * 0.64); g.quadraticCurveTo(r * 0.52, -r * 0.62, r * 0.62, r * 0.45); g.closePath(); g.fill(); g.stroke();
+            circle(g, 0, r * 0.6, r * 0.15, '#a16207');
+            g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = r * 0.09; g.beginPath(); g.arc(-r * 0.05, -r * 0.05, r * 0.38, 3.5, 4.3); g.stroke();
+        }
+    }
+    function slot() {  /* the held item, in the HUD and on the touch button */
+        [slotG, useG].forEach(function (g) {
+            g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 64, 64);
+            g.setTransform(1, 0, 0, 1, 32, 32);
+            if (me.item) drawIcon(g, me.item, 27);
+            else { g.strokeStyle = '#94a3b8'; g.lineWidth = 3; g.setLineDash([5, 5]); g.beginPath(); g.arc(0, 0, 20, 0, 7); g.stroke(); g.setLineDash([]); }
+        });
+        slotEl.classList.toggle('kk-empty', !me.item); useEl.classList.toggle('kk-empty', !me.item);
+    }
+    function drawGate() {
+        var gi = ALT.gate.i, o = gateOpen(clock), w = ALT.hw + 8, k;
+        if (!vis(ALT.x[gi], ALT.y[gi], 90)) return;
+        ctx.save(); ctx.translate(ALT.x[gi], ALT.y[gi]); ctx.rotate(ALT.ang[gi]);
+        if (MAP.gate === 'farm') {  /* a wooden farm gate in two halves that swing forward */
+            for (k = -1; k <= 1; k += 2) {
+                ctx.save(); ctx.translate(0, k * w); ctx.rotate(k * o * 1.45);
+                ctx.strokeStyle = '#6b3f17'; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -k * w); ctx.stroke();
+                ctx.strokeStyle = '#c8955a'; ctx.lineWidth = 3.5; ctx.stroke();
+                ctx.restore();
+                circle(ctx, 0, k * w, 6, '#4a2a0e');
+            }
+        } else {  /* a striped barrier that lifts, with a blinking light */
+            var len = 2 * w * (1 - o * 0.85);
+            ctx.fillStyle = '#1f2937'; ctx.fillRect(-8, -w - 10, 16, 14);
+            for (k = 0; k < len; k += 12) { ctx.fillStyle = (k / 12) % 2 ? '#f8fafc' : '#ef4444'; ctx.fillRect(-3.5, -w + k, 7, Math.min(12, len - k)); }
+            var lit = o < 0.99 && Math.floor(clock * 4) % 2 === 0;
+            circle(ctx, 0, -w - 3, 3.8, lit ? '#fbbf24' : '#78350f');
+            if (lit) circle(ctx, 0, -w - 3, 10, 'rgba(251,191,36,.3)');
+        }
+        ctx.restore();
+    }
+    function drawUnder() {  /* pads, gate, spilt milk, fish tins and laser dots, under the karts */
+        var i, b, t, c;
+        for (i = 0; i < boosts.length; i++) {
+            b = boosts[i];
+            if (!vis(b.x, b.y, 30)) continue;
+            ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.a); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(((clock * 2) % 1) * 36 - 22, -17, 8, 34); ctx.restore();
+        }
+        if (ALT && ALT.gate) drawGate();
+        for (i = 0; i < milks.length; i++) {
+            var m = milks[i];
+            if (!vis(m.x, m.y, 30)) continue;
+            ctx.globalAlpha = Math.min(1, m.t * 4, (14 - m.t) / 1.5);
+            circle(ctx, m.x, m.y, 22, 'rgba(100,116,139,.35)');
+            circle(ctx, m.x, m.y, 20, '#f8fafc'); circle(ctx, m.x + 13, m.y + 7, 10, '#f8fafc'); circle(ctx, m.x - 11, m.y + 9, 9, '#f8fafc');
+            circle(ctx, m.x - 6, m.y - 7, 5, '#ffffff'); circle(ctx, m.x + 4, m.y + 2, 6, '#eef2f7');
+            ctx.globalAlpha = 1;
+        }
+        for (i = 0; i < tins.length; i++) {  /* fish tins floating in a bubble */
+            t = tins[i];
+            if (t.t > 0 || !vis(t.x, t.y, 30)) continue;
+            var bob = Math.sin(clock * 3 + i) * 3, sc = 1 + Math.sin(clock * 5 + i) * 0.05;
+            ctx.save(); ctx.translate(t.x, t.y);
+            ctx.fillStyle = 'rgba(15,23,42,.2)'; ctx.beginPath(); ctx.ellipse(3, 8, 13, 6, 0, 0, 7); ctx.fill();
+            ctx.translate(0, bob - 6); ctx.scale(sc, sc);
+            circle(ctx, 0, 0, 17, 'rgba(255,255,255,.3)');
+            ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.stroke();
+            ctx.rotate(Math.sin(clock * 2 + i) * 0.3);
+            ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.ellipse(0, 1, 12, 8, 0, 0, 7); ctx.fill();
+            ctx.fillStyle = '#e2e8f0'; ctx.beginPath(); ctx.ellipse(0, -0.5, 11.5, 7.2, 0, 0, 7); ctx.fill();
+            ctx.fillStyle = '#d6336c'; ctx.beginPath(); ctx.ellipse(0, -0.5, 8, 4.6, 0, 0, 7); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(-1.5, -0.5, 3.8, 2, 0, 0, 7); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(1.8, -0.5); ctx.lineTo(5.5, -3); ctx.lineTo(5.5, 2); ctx.fill();
+            ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(-8.5, -0.5, 2, 0, 7); ctx.stroke();
+            circle(ctx, -6, -9, 2.2, 'rgba(255,255,255,.95)');
+            ctx.restore();
+        }
+        for (i = 0; i < 4; i++) {
+            c = karts[i];
+            if (c.laser > 0 && c.dotx !== undefined) { circle(ctx, c.dotx, c.doty, 14, 'rgba(239,68,68,.25)'); circle(ctx, c.dotx, c.doty, 5, '#ef4444'); circle(ctx, c.dotx - 1.5, c.doty - 1.5, 1.8, '#fecaca'); }
+        }
+        drawParts('leaf'); drawParts('card'); drawParts('spark');
+    }
+    function drawOver() {  /* flying yarn, sleepy Zs and the bell ring, over the karts */
+        var i, c;
+        for (i = 0; i < yarns.length; i++) {
+            var y = yarns[i], h = y.trail;
+            if (!vis(y.x, y.y, 60)) continue;
+            ctx.strokeStyle = '#db2777'; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(y.x, y.y - 4);
+            for (var j = h.length - 2; j >= 0; j -= 2) ctx.lineTo(h[j] + Math.sin(j + clock * 20) * 2, h[j + 1] - 4 + Math.cos(j + clock * 20) * 2);
+            ctx.stroke();
+            circle(ctx, y.x + 2, y.y + 5, 8, 'rgba(15,23,42,.2)');
+            ctx.save(); ctx.translate(y.x, y.y - 4); drawYarn(ctx, 9, y.roll, 0); ctx.restore();
+        }
+        ctx.font = '800 13px sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#1e3a8a'; ctx.fillStyle = '#fde047';
+        for (i = 0; i < 4; i++) {
+            c = karts[i];
+            if (!(c.nap > 0) || !vis(c.x, c.y, 40)) continue;
+            for (var z = 0; z < 2; z++) {
+                var b = (clock * 1.2 + c.phase + z * 0.5) % 1, zx = c.x + 4 + b * 10 - z * 8, zy = c.y - 14 - b * 18;
+                ctx.strokeText(z ? 'Z' : 'z', zx, zy); ctx.fillText(z ? 'Z' : 'z', zx, zy);
+            }
+        }
+        for (i = 0; i < rings.length; i++) {
+            var rg = rings[i];
+            ctx.globalAlpha = Math.max(0, 1 - rg.t / 0.8); ctx.strokeStyle = '#facc15'; ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.arc(rg.who.x, rg.who.y, 20 + rg.t * 480, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+        }
     }
     function draw() {
         var k = dpr * zoom, cw = cv.width, ch = cv.height, i;
@@ -966,8 +1719,10 @@ Arcade.register('kitty-kart', function (api) {
         }
         ctx.setTransform(k, 0, 0, k, -ox, -oy);
         if (MAP.under) MAP.under();
+        drawUnder();
         for (i = 3; i >= 0; i--) if (!(karts[i].z > 0)) drawKart(karts[i]);
         for (i = 3; i >= 0; i--) if (karts[i].z > 0) drawKart(karts[i]);
+        drawOver();
         if (MAP.over) MAP.over();
         if (MAP.screen) MAP.screen();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);  /* minimap, top right */
@@ -997,8 +1752,9 @@ Arcade.register('kitty-kart', function (api) {
     }
 
     /* ---------- the loop ---------- */
-    var test = window.__errors ? (window.__kk = { bot: false, steps: 1 }) : null;  /* only on the test page */
-    if (test) test.state = function () { return { phase: phase, map: MAP.id, lap: laps(me), place: place, time: raceTime, z: me.z, slip: me.slip, fin: karts.map(function (c) { return c.fin; }) }; };
+    var test = window.__errors ? (window.__kk = { bot: false, steps: 1, alt: null, stats: {} }) : null;  /* only on the test page */
+    if (test) test.state = function () { return { phase: phase, map: MAP.id, lap: laps(me), place: place, time: raceTime, item: me.item, idx: me.idx, alt: me.alt, ai: me.ai, altn: ALT ? ALT.n : 0, yarns: yarns.length, milks: milks.length, fx: yarns.concat(milks, karts.filter(function (c) { return c.shield > 0 || c.tangled > 0 || c.nap > 0 || c.laser > 0; })).filter(function (o) { return Math.hypot(o.x - me.x, o.y - me.y) < 300; }).length, met: MAP.met ? MAP.met.filter(function (m) { return m.t < 1.5 && Math.hypot(m.x - me.x, m.y - me.y) < 260; }).length : 0, fin: karts.map(function (c) { return c.fin; }) }; };
+    function stat(k) { if (test) test.stats[k] = (test.stats[k] || 0) + 1; }
     function update(dt) {
         clock += dt;
         if (MAP.update) MAP.update(dt);
@@ -1011,20 +1767,25 @@ Arcade.register('kitty-kart', function (api) {
         } else {
             if (phase === 'race') {
                 raceTime += dt;
-                if (test && test.bot) autopilot(me, 0.98);
+                if (test && test.bot) { decide(me); autopilot(me, 0.98); aiItem(me, dt); }
                 else {
                     me.thr = (keys.up || pads.up ? 1 : 0) - (keys.down || pads.down ? 1 : 0);
                     var want = (keys.right || pads.right ? 1 : 0) - (keys.left || pads.left ? 1 : 0);
                     me.steer += (want - me.steer) * Math.min(1, dt * 10);
+                    if (me.laser > 0) me.steer = me.steer * 0.3 + 0.7 * clamp(wrap(Math.atan2(me.doty - me.y, me.dotx - me.x) - me.a) * 3, -1, 1);
                 }
             } else autopilot(me, 0.45);  /* after the finish: a slow lap of honour */
             for (var i = 1; i < 4; i++) {
                 var c = karts[i];  /* a little rubber band: the others ease off when far ahead and push when behind */
+                decide(c);
                 autopilot(c, c.fin ? 0.6 : c.skill * (1 + clamp((me.prog - c.prog) / (SEG * 30), -0.07, 0.05)));
+                aiItem(c, dt);
             }
             for (i = 0; i < 4; i++) step(karts[i], dt);
             collide();
             for (i = 0; i < 4; i++) progress(karts[i]);
+            pickups(dt);
+            moveItems(dt);
             if (phase === 'race') {
                 var p = 1;
                 for (i = 1; i < 4; i++) if (karts[i].fin || karts[i].prog > me.prog) p++;
@@ -1034,7 +1795,7 @@ Arcade.register('kitty-kart', function (api) {
                     else if (p === 2 && place === 1) { api.cat('sad'); say('Hiss! Catch them!'); }
                 }
                 place = p;
-                var wrong = Math.abs(wrap(me.a - A[me.idx])) > 2.1 && me.vf > 20;
+                var wrong = Math.abs(wrap(me.a - me.ang)) > 2.1 && me.vf > 20 && !(me.spin > 0) && !(me.fall > 0);
                 wrongFor = wrong ? wrongFor + dt : 0;
                 if (clock > 5) count(wrongFor > 0.8 ? 'Wrong way!' : '', 'kk-warn');
             }
@@ -1062,11 +1823,14 @@ Arcade.register('kitty-kart', function (api) {
             else if (key === 'enter' || key === ' ') { e.preventDefault(); go(); }
             return;
         }
+        if (key === ' ' || key === 'shift') { e.preventDefault(); useItem(me); return; }
         if (k) { keys[k] = true; e.preventDefault(); }
     });
     api.on(window, 'keyup', function (e) { var k = KEYMAP[(e.key || '').toLowerCase()]; if (k) keys[k] = false; });
     api.on(window, 'blur', function () { keys = {}; });
-    Array.prototype.forEach.call(wrapEl.querySelectorAll('.kk-btn'), function (b) {
+    api.on(useEl, 'pointerdown', function (e) { e.preventDefault(); useItem(me); });
+    api.on(useEl, 'contextmenu', function (e) { e.preventDefault(); });
+    Array.prototype.forEach.call(wrapEl.querySelectorAll('.kk-btn[data-k]'), function (b) {
         function set(on) { return function (e) { e.preventDefault(); pads[b.dataset.k] = on; b.classList.toggle('kk-on', on); }; }
         api.on(b, 'pointerdown', set(true));
         ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) { api.on(b, t, set(false)); });
@@ -1074,12 +1838,11 @@ Arcade.register('kitty-kart', function (api) {
     });
     api.on(wrapEl, 'pointerdown', function (e) {  /* a touch screen the media query missed */
         if (e.pointerType === 'touch' && !wrapEl.classList.contains('kk-touch')) {
-            wrapEl.classList.add('kk-touch'); hintEl.textContent = 'Hold Gas, steer with the arrows';
+            wrapEl.classList.add('kk-touch'); hintEl.textContent = TOUCH_HINT;
         }
     });
 
-    build(MAP);
-    if (MAP.prep) MAP.prep();
+    load(MAP);
     reset();
     fit(api.size());
     api.onResize(fit);
