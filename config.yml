@@ -24,10 +24,6 @@ module:
     - source: _pages/projects
       target: static/_pages/projects
       files: ["! **/*.md"]
-    # Teaching (the CryptoGames course games, built into teaching/) hidden for now: uncomment this mount and add
-    # a "Teaching" menu entry and button with url /teaching/ to publish it
-    # - source: teaching
-    #   target: static/teaching
 
 menu:
   main:
