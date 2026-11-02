@@ -172,6 +172,10 @@ html[data-cat="calico"] .cat .stripe { display: none; }
 .cat.sleep .p-sleep { display: inline; }
 .cat-head { transform-box: view-box; transform: translate(66px, 30px); transition: transform 0.2s; }
 .cat.moving .cat-head { transform: translate(82px, 36px); }
+/* the astronaut's helmet would stick out of the drawing at the front, and Safari leaves a trail of what is drawn
+   outside the cat's box when it moves (or is carried): its head sits a little further back, and a little lower when sitting */
+html[data-cat="astronaut"] .cat:not(.mascot):not(.moving):not(.sleep):not(.groom) .cat-head { transform: translate(66px, 33px); }
+html[data-cat="astronaut"] .cat.moving .cat-head { transform: translate(79px, 36px); }
 .cat.sleep .cat-head { transform: translate(78px, 66px) rotate(-10deg) scale(0.9); }
 .cat.groom .cat-head { transform: translate(64px, 32px) rotate(14deg); }
 
