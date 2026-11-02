@@ -863,6 +863,72 @@ Arcade.register('paw-raiders', function (api) {
         g.addColorStop(0, c + '0)'); g.addColorStop(f, c + w.va + ')'); g.addColorStop(1 - f, c + w.va + ')'); g.addColorStop(1, c + '0)');
         ctx.fillStyle = g; ctx.fillRect(x0, 0, x1 - x0, H);
     }
+    /* the edges of the column on wide screens: a rail in each world's style (knitted yarn, kitchen checks, candy cane,
+       hazard stripes, a vine with fireflies, rising bubbles, a neon tube), scrolling with the scene */
+    var RAIL = 12;
+    function rail(cx, right) {
+        var r = RAIL / 2, off = bgY * 0.6, t = RM ? 0 : clock, y, i, sh = ctx.createLinearGradient(r, 0, r + 26, 0);
+        ctx.save(); ctx.translate(cx, 0); if (right) ctx.scale(-1, 1);
+        /* a soft shadow falling into the column gives the rail some depth */
+        sh.addColorStop(0, 'rgba(0,0,0,.16)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = sh; ctx.fillRect(r, 0, 26, H);
+        ctx.beginPath(); ctx.rect(-r, 0, RAIL, H); ctx.clip();
+        switch (world) {
+            case 0:   /* knitted yarn: rows of V stitches */
+                ctx.fillStyle = '#f4a7c4'; ctx.fillRect(-r, 0, RAIL, H);
+                ctx.strokeStyle = '#d9628f'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.beginPath();
+                for (y = (off % 8) - 8; y < H + 8; y += 8) { ctx.moveTo(-r + 2, y); ctx.lineTo(0, y + 5); ctx.lineTo(r - 2, y); }
+                ctx.stroke(); break;
+            case 1:   /* kitchen checks */
+                ctx.fillStyle = '#fffaf2'; ctx.fillRect(-r, 0, RAIL, H); ctx.fillStyle = '#f08a5d';
+                for (y = (off % 12) - 12, i = 0; y < H + 12; y += 6, i++) ctx.fillRect(i % 2 ? 0 : -r, y, r, 6);
+                break;
+            case 2:   /* candy cane */
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(-r, 0, RAIL, H); ctx.fillStyle = '#ef4f7a'; ctx.beginPath();
+                for (y = (off % 16) - 32; y < H + 16; y += 16) { ctx.moveTo(-r, y); ctx.lineTo(r, y - 10); ctx.lineTo(r, y - 4); ctx.lineTo(-r, y + 6); }
+                ctx.fill(); break;
+            case 3:   /* hazard stripes with rivets */
+                ctx.fillStyle = '#ffc93c'; ctx.fillRect(-r, 0, RAIL, H); ctx.fillStyle = '#2b2f3a'; ctx.beginPath();
+                for (y = (off % 20) - 40; y < H + 20; y += 20) { ctx.moveTo(-r, y); ctx.lineTo(r, y - 12); ctx.lineTo(r, y - 2); ctx.lineTo(-r, y + 10); }
+                ctx.fill(); ctx.fillStyle = '#c7ccd6';
+                for (y = (off % 90) - 90; y < H + 90; y += 90) { ctx.beginPath(); ctx.arc(0, y, 2.4, 0, TAU); ctx.fill(); }
+                break;
+            case 4:   /* a vine with leaves and fireflies */
+                ctx.fillStyle = 'rgba(12,22,30,.75)'; ctx.fillRect(-r, 0, RAIL, H);
+                ctx.strokeStyle = '#4f9a6a'; ctx.lineWidth = 2; ctx.beginPath();
+                for (y = -10; y < H + 10; y += 6) { var vx = Math.sin((y - off) / 22) * 3; if (y === -10) ctx.moveTo(vx, y); else ctx.lineTo(vx, y); }
+                ctx.stroke(); ctx.fillStyle = '#6cc489';
+                for (y = (off % 34) - 34, i = Math.floor(off / 34); y < H + 34; y += 34, i--) {
+                    ctx.beginPath(); ctx.ellipse(i % 2 ? 2.5 : -2.5, y, 3.2, 1.8, i % 2 ? -0.6 : 0.6, 0, TAU); ctx.fill();
+                }
+                for (i = 0; i < 6; i++) {
+                    var fy = ((hsh(i + 9) * H + off * 0.8) % (H + 40)) - 20, fa = RM ? 0.7 : 0.4 + 0.6 * Math.abs(Math.sin(t * 2 + i * 1.7));
+                    ctx.globalAlpha = fa; blitC(glowSprite('rgba(255,240,140,.9)', 10), Math.sin(fy / 22) * 3, fy, 12); ctx.globalAlpha = 1;
+                }
+                break;
+            case 5:   /* rising bubbles in a glass tube */
+                ctx.fillStyle = 'rgba(170,235,255,.28)'; ctx.fillRect(-r, 0, RAIL, H);
+                ctx.strokeStyle = 'rgba(235,252,255,.85)'; ctx.lineWidth = 1.2;
+                for (i = 0; i < 14; i++) {
+                    var by = H - ((hsh(i + 3) * H + t * (30 + 25 * hsh(i + 5))) % (H + 20)) + 10;
+                    ctx.beginPath(); ctx.arc((hsh(i + 7) - 0.5) * 5 + Math.sin(t * 2 + i) * 1.2, by, 1.5 + hsh(i + 1) * 2.2, 0, TAU); ctx.stroke();
+                }
+                break;
+            default:   /* a neon tube with blinking lights */
+                ctx.fillStyle = 'rgba(8,4,26,.85)'; ctx.fillRect(-r, 0, RAIL, H);
+                ctx.fillStyle = 'rgba(120,220,255,.35)'; ctx.fillRect(-2.5, 0, 5, H);
+                ctx.fillStyle = '#9ff0ff'; ctx.fillRect(-1, 0, 2, H);
+                for (y = (off % 40) - 40, i = Math.floor(off / 40); y < H + 40; y += 40, i--) {
+                    ctx.globalAlpha = RM ? 0.8 : 0.35 + 0.65 * (Math.sin(t * 3 + i) > 0 ? 1 : 0.3);
+                    ctx.fillStyle = i % 2 ? '#ff6ad5' : '#ffd36e'; ctx.beginPath(); ctx.arc(0, y, 2.6, 0, TAU); ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+        }
+        /* a darker outer line and a light inner line, like a frame */
+        ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(-r, 0, 1.5, H);
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(r - 1.5, 0, 1.5, H);
+        ctx.restore();
+    }
     function backdrop(wi) {
         var t = RM ? 0 : clock, i, x, y;
         if (wi === 1) {   /* faint kitchen tiles, scrolling slowly */
@@ -1572,9 +1638,7 @@ Arcade.register('paw-raiders', function (api) {
         ctx.globalAlpha = 1; ctx.textBaseline = 'alphabetic';
         ctx.restore();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if (wide) {   /* a faint edge marks where the action stops */
-            ctx.fillStyle = 'rgba(255,255,255,.16)'; ctx.fillRect(OX - 1, 0, 1, H); ctx.fillRect(W - OX, 0, 1, H);
-        }
+        if (wide) { rail(OX - RAIL / 2, false); rail(W - OX + RAIL / 2, true); }
         drawBank();
         if (redFlash > 0) { ctx.fillStyle = 'rgba(255,60,90,' + (redFlash * (RM ? 0.12 : 0.28)).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
         drawHud();
