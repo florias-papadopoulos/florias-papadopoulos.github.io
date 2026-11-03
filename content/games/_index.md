@@ -8,6 +8,10 @@ layout: arcade
 # script: <file> runs a game from another game's file (assets/js/games/<file>.js registers both ids).
 # restart: false hides the restart button (a two-player race would lose the other player).
 games:
+  - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
+  - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: simple, levels: true }
+  - { id: paw-raiders,    title: "Paw Raiders",         emoji: "🚀", desc: "Fly a cardboard box rocket and throw yarn at ducks, drones and robot vacuums.", group: simple, levels: true }
+  - { id: dino-valley,    title: "Dino Valley",         emoji: "🦕", desc: "Ride a baby dinosaur home with the cat on its back before the volcano blows.", group: simple, levels: true }
   - { id: long-cat,       title: "Long Cat",            emoji: "🐈", desc: "Eat fish, grow the longest cat, don't trip over your own tail.", group: simple, levels: true }
   - { id: whack-a-mouse,  title: "Whack-a-Mouse",       emoji: "🐭", desc: "Tap the mice before they hide.", group: simple, levels: true }
   - { id: paw-pairs,      title: "Paw Pairs",           emoji: "🃏",  desc: "Flip cards, find the matching cats.", group: simple, levels: true }
@@ -23,9 +27,5 @@ games:
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
   - { id: four-in-a-row-2p, title: "Four for Two",        emoji: "🟠", desc: "Two players on one phone or computer, taking turns. Four or five in a row.", group: two, script: four-in-a-row }
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex }
-  - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
-  - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: simple, levels: true }
-  - { id: paw-raiders,    title: "Paw Raiders",         emoji: "🚀", desc: "Fly a cardboard box rocket and throw yarn at ducks, drones and robot vacuums.", group: simple, levels: true }
   - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out of the garden with a water pistol.", group: complex, levels: true }
-  - { id: dino-valley,    title: "Dino Valley",         emoji: "🦕", desc: "Ride a baby dinosaur home with the cat on its back before the volcano blows.", group: simple, levels: true }
 ---
