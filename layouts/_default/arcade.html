@@ -13,6 +13,7 @@
 <div class="arcade" id="arcade" data-games="{{ $list | jsonify }}"{{ with site.Params.statsEndpoint }} data-server="{{ . }}"{{ end }}>
     <header class="arcade-head">
         <h1>Games</h1>
+        {{- with .Params.intro }}<p class="arcade-intro">{{ . }}</p>{{ end }}
         {{- /* The music button: a menu of four background mixes (10+ minutes each, several CC0 tracks joined), files in
                static/music, every track credited in static/music/credits.txt. It sits here on the list and moves into
                the top bar of a running game. */}}

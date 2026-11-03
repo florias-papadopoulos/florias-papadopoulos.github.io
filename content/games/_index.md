@@ -1,6 +1,7 @@
 ---
 title: "Games"
 description: "Small games to play with the cat."
+intro: "Testing the limits of Claude, one cat game at a time."
 layout: arcade
 # Each game is assets/js/games/<id>.js (loaded only when opened). group: complex, two or simple (the three tabs of the page:
 # Best, 2 Player, More; Best opens first).
