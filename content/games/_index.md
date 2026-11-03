@@ -12,6 +12,8 @@ layout: arcade
 # to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track).
 games:
   - { id: cipher-cat,     title: "Cipher Cat",          emoji: "🔐", desc: "The cat hid a message. Crack the code before the clock runs out.", group: simple, levels: true }
+  - { id: cat-tower,      title: "Cat Tower Stack",     emoji: "🗼", desc: "Drop the pieces, build the tallest wobbly cat tower.", group: simple, levels: true }
+  - { id: laser-chase,    title: "Laser Chase",         emoji: "💫", desc: "Steer the laser dot, the cat follows. Mind the vases.", group: simple, levels: true }
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
   - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: simple, levels: true }
   - { id: paw-raiders,    title: "Paw Raiders",         emoji: "🚀", desc: "Fly a cardboard box rocket and throw yarn at ducks, drones and robot vacuums.", group: simple, levels: true }
@@ -25,7 +27,8 @@ games:
   - { id: mouse-sweeper,  title: "Mouse Sweeper",       emoji: "🔎",  desc: "Find every hidden mouse.", group: simple, levels: true }
   - { id: brick-paw,      title: "Brick Paw",           emoji: "🧱", desc: "Bounce the yarn ball, clear the bricks.", group: simple, levels: true }
   - { id: cucumber-hop,   title: "Cucumber Hop",        emoji: "🥒", desc: "Jump the cucumbers, run as far as you can.", group: simple, levels: true }
-  - { id: kitty-kart,     title: "Kitty Kart",          emoji: "🏎️",  desc: "Race the cats on eight tracks, from a volcano to the moon.", group: complex, levels: true }
+  - { id: kitty-kart,     title: "Kitty Kart",          emoji: "🏎️",  desc: "Race the cats on twelve tracks, from a volcano to a singing piano road.", group: complex, levels: true,
+      tracks: [{ id: meadow, name: "Catnip Meadow" }, { id: city, name: "Night City" }, { id: reef, name: "Coral Reef" }, { id: moon, name: "Moon Rim" }, { id: volcano, name: "Lava Peak" }, { id: trees, name: "Giant Grove" }, { id: desert, name: "Red Canyon" }, { id: sky, name: "Blossom Town" }, { id: music, name: "Melody Lane" }, { id: rainbow, name: "Prism Skyway" }, { id: zombie, name: "Zombie Town" }, { id: room, name: "Living Room Rally" }] }
   - { id: kitty-kart-duo, title: "Kitty Kart Duo",      emoji: "🏁", desc: "Race a friend on their own phone or computer, both on the same home wifi.", group: two, script: kitty-kart, restart: false }
   - { id: kitty-kart-split, title: "Kitty Kart Split Screen", emoji: "📱", desc: "Two players on one phone, one half each, or on one keyboard. No internet needed.", group: two, script: kitty-kart, levels: true }
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
