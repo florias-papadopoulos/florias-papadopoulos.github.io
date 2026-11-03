@@ -5,7 +5,10 @@
 .arcade-head h1 { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
 .arcade-head p { margin: 4px 0 12px; color: var(--muted); }
 .arcade-intro { max-width: 34em; margin-left: auto !important; margin-right: auto !important; }
-@media (max-width: 600px) { .arcade-intro { font-size: 0.92rem; } }
+@media (max-width: 600px) {
+    .arcade-head { margin-bottom: 16px; }
+    .arcade-head .arcade-intro { margin: 8px auto 6px; font-size: 0.95rem; line-height: 1.4; }
+}
 .arcade-tabs { display: flex; justify-content: center; gap: 28px; margin: 0 0 20px; border-bottom: 1px solid var(--line); }
 .arcade-tab {
     margin-bottom: -1px;
@@ -155,6 +158,7 @@ body.arcade-playing { overflow: hidden; }
 @media (max-width: 600px) {
     .arcade-head h1 { font-size: 1.8rem; }
     .arcade-tabs { gap: 20px; }
+    .arcade-head .music { top: 1.1rem; }
     .arcade-tab { font-size: 1rem; }
     .arcade-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .game-card { padding: 14px 8px 10px; }
