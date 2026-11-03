@@ -43,7 +43,7 @@ const LETTERS = 'BCDFGHJKLMNPQRSTVWXZ';  // room codes: no vowels (so no words),
 const BOARDS = {
     'long-cat': {}, 'whack-a-mouse': {}, 'paw-pairs': {}, 'four-in-a-row': {}, 'tic-tac-paw': {}, 'brick-paw': {},
     'cucumber-hop': {}, 'yarn-smash': {}, 'night-prowl': {}, 'orbit-paws': {}, 'paw-raiders': {}, 'garden-defender': {},
-    'dino-valley': {},
+    'dino-valley': {}, 'cipher-cat': { max: 2500 },
     'sliding-kitten': { lower: true, min: 1 }, 'mouse-sweeper': { lower: true, min: 1 },
     'kitty-kart': { lower: true, min: 10, max: 3600, dec: 1 }
 };

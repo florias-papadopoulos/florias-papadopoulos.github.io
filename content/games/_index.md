@@ -11,6 +11,7 @@ layout: arcade
 # tracks: the sub-boards of a game's leaderboard (Kitty Kart tracks, Garden Defender gardens): the ids the game passes
 # to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track).
 games:
+  - { id: cipher-cat,     title: "Cipher Cat",          emoji: "🔐", desc: "The cat hid a message. Crack the code before the clock runs out.", group: simple, levels: true }
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
   - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: simple, levels: true }
   - { id: paw-raiders,    title: "Paw Raiders",         emoji: "🚀", desc: "Fly a cardboard box rocket and throw yarn at ducks, drones and robot vacuums.", group: simple, levels: true }
