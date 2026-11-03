@@ -27,6 +27,6 @@ games:
   - { id: kitty-kart-split, title: "Kitty Kart Split Screen", emoji: "📱", desc: "Two players on one phone, one half each, or on one keyboard. No internet needed.", group: two, script: kitty-kart, levels: true }
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
   - { id: four-in-a-row-2p, title: "Four for Two",        emoji: "🟠", desc: "Two players on one phone or computer, taking turns. Four or five in a row.", group: two, script: four-in-a-row }
-  - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex }
+  - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex, levels: true }
   - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out of the garden with a water pistol.", group: complex, levels: true }
 ---
