@@ -38,11 +38,17 @@
             </div>
         </div>
     </header>
-    {{- range slice (slice "complex" "Best Games") (slice "two" "2 Player Games") (slice "simple" "Classic Games") }}
-    {{- $games := where $list "group" (index . 0) }}
-    {{- if $games }}
-    <h2 class="arcade-group">{{ index . 1 }}</h2>
-    <div class="arcade-grid">
+    {{- /* Three tabs (Best, 2 Player, More; Best opens first), one panel of cards each; arcade.js switches them and opens the tab of a game
+           that is started from a link. */}}
+    {{- $groups := slice (slice "complex" "Best") (slice "two" "2 Player") (slice "simple" "More") }}
+    <div class="arcade-tabs" role="tablist" aria-label="Game groups">
+        {{- range $i, $g := $groups }}
+        <button class="arcade-tab" type="button" role="tab" id="tab-{{ index $g 0 }}" aria-controls="panel-{{ index $g 0 }}" aria-selected="{{ if eq $i 0 }}true{{ else }}false{{ end }}"{{ if ne $i 0 }} tabindex="-1"{{ end }}>{{ index $g 1 }}</button>
+        {{- end }}
+    </div>
+    {{- range $i, $g := $groups }}
+    {{- $games := where $list "group" (index $g 0) }}
+    <div class="arcade-grid" role="tabpanel" id="panel-{{ index $g 0 }}" aria-labelledby="tab-{{ index $g 0 }}"{{ if ne $i 0 }} hidden{{ end }}>
         {{- range $games }}
         <button class="game-card" type="button" data-id="{{ .id }}"{{ if not .src }} disabled{{ end }}>
             <span class="gc-icon" aria-hidden="true">{{ .emoji }}</span>
@@ -52,7 +58,6 @@
         </button>
         {{- end }}
     </div>
-    {{- end }}
     {{- end }}
 
     <section class="arcade-stage" hidden aria-live="polite">

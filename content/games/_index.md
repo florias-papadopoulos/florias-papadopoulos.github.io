@@ -2,8 +2,8 @@
 title: "Games"
 description: "Small games to play with the cat."
 layout: arcade
-# Each game is assets/js/games/<id>.js (loaded only when opened). group: complex, two or simple (the three sections of the page:
-# Best Games, 2 Player Games, Classic Games).
+# Each game is assets/js/games/<id>.js (loaded only when opened). group: complex, two or simple (the three tabs of the page:
+# Best, 2 Player, More; Best opens first).
 # levels: true shows the Easy/Normal/Hard picker while playing (the game reads it with api.level()).
 # script: <file> runs a game from another game's file (assets/js/games/<file>.js registers both ids).
 # restart: false hides the restart button (a two-player race would lose the other player).
@@ -23,9 +23,9 @@ games:
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
   - { id: four-in-a-row-2p, title: "Four for Two",        emoji: "🟠", desc: "Two players on one phone or computer, taking turns. Four or five in a row.", group: two, script: four-in-a-row }
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex }
-  - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: complex, levels: true }
-  - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: complex, levels: true }
-  - { id: paw-raiders,    title: "Paw Raiders",         emoji: "🚀", desc: "Fly a cardboard box rocket and throw yarn at ducks, drones and robot vacuums.", group: complex, levels: true }
+  - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
+  - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: simple, levels: true }
+  - { id: paw-raiders,    title: "Paw Raiders",         emoji: "🚀", desc: "Fly a cardboard box rocket and throw yarn at ducks, drones and robot vacuums.", group: simple, levels: true }
   - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out of the garden with a water pistol.", group: complex, levels: true }
-  - { id: dino-valley,    title: "Dino Valley",         emoji: "🦕", desc: "Ride a baby dinosaur home with the cat on its back before the volcano blows.", group: complex, levels: true }
+  - { id: dino-valley,    title: "Dino Valley",         emoji: "🦕", desc: "Ride a baby dinosaur home with the cat on its back before the volcano blows.", group: simple, levels: true }
 ---

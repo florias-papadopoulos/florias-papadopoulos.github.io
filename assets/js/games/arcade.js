@@ -386,10 +386,35 @@
         document.body.classList.remove('arcade-playing');
         if (musicBox && musicBox.parentNode === stage.querySelector('.stage-bar')) { musicBox.close(); root.querySelector('.arcade-head').appendChild(musicBox); }
     }
+    /* The Best / 2 Player / More tabs above the cards. */
+    var tabs = Array.prototype.slice.call(root.querySelectorAll('.arcade-tab'));
+    function showTab(tab, focus) {
+        tabs.forEach(function (t) {
+            var on = t === tab;
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            t.tabIndex = on ? 0 : -1;
+            document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+        });
+        if (focus) tab.focus();
+    }
+    tabs.forEach(function (t, i) {
+        t.addEventListener('click', function () { showTab(t); });
+        t.addEventListener('keydown', function (e) {
+            var j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null;
+            if (j === null) return;
+            e.preventDefault();
+            showTab(tabs[(j + tabs.length) % tabs.length], true);
+        });
+    });
     function route() {
         var m = /^#play\/([\w-]+)$/.exec(location.hash);
         if (m && RENAMED[m[1]]) { history.replaceState(null, '', '#play/' + RENAMED[m[1]]); m[1] = RENAMED[m[1]]; }
-        if (m) open(m[1]); else close();
+        if (m) {
+            var card = root.querySelector('.game-card[data-id="' + m[1] + '"]');   /* back from a linked game lands on its tab */
+            var panel = card && card.closest('[role="tabpanel"]');
+            if (panel) showTab(document.getElementById(panel.getAttribute('aria-labelledby')));
+            open(m[1]);
+        } else close();
     }
     Array.prototype.forEach.call(root.querySelectorAll('.game-card'), function (c) {
         c.addEventListener('click', function () { audio(); location.hash = 'play/' + c.dataset.id; });

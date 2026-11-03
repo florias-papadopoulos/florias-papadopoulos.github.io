@@ -4,7 +4,22 @@
 .arcade-head { position: relative; margin: 8px 0 22px; text-align: center; }
 .arcade-head h1 { margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
 .arcade-head p { margin: 4px 0 12px; color: var(--muted); }
-.arcade-group { margin: 0 0 12px; font-size: 1.15rem; font-weight: 700; color: var(--ink); }
+.arcade-tabs { display: flex; justify-content: center; gap: 28px; margin: 0 0 20px; border-bottom: 1px solid var(--line); }
+.arcade-tab {
+    margin-bottom: -1px;
+    padding: 6px 2px 10px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 1.08rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.arcade-tab:hover { color: var(--ink); }
+.arcade-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--navy); }
+.arcade-grid[hidden] { display: none; }
 
 .arcade-btn {
     padding: 6px 12px;
@@ -19,7 +34,7 @@
 .arcade-btn:hover { border-color: var(--navy); }
 .arcade-btn[aria-pressed="false"] { color: var(--muted); }
 
-.arcade-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 40px; }
+.arcade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 200px)); justify-content: center; gap: 14px; margin-bottom: 40px; }
 .game-card {
     display: flex;
     flex-direction: column;
@@ -137,6 +152,8 @@ body.arcade-playing { overflow: hidden; }
 
 @media (max-width: 600px) {
     .arcade-head h1 { font-size: 1.8rem; }
+    .arcade-tabs { gap: 20px; }
+    .arcade-tab { font-size: 1rem; }
     .arcade-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .game-card { padding: 14px 8px 10px; }
     .gc-icon { font-size: 2rem; }
