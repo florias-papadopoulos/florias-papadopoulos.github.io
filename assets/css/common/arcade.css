@@ -25,6 +25,17 @@
 .arcade-tab:hover { color: var(--ink); }
 .arcade-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--navy); }
 .arcade-grid[hidden] { display: none; }
+/* the Leaderboards tab */
+.arcade-boards { max-width: 640px; margin: 0 auto 40px; }
+.arcade-boards[hidden] { display: none; }
+.ab-pick { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 18px; margin-bottom: 18px; font-size: 0.9rem; color: var(--muted); }
+.ab-pick label { display: flex; align-items: center; gap: 8px; }
+.ab-pick label[hidden] { display: none; }
+.ab-pick select { padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font: inherit; font-size: 0.95rem; }
+.ab-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.ab-cols h3 { margin: 0 0 4px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-size: 1rem; }
+@media (max-width: 600px) { .ab-cols { grid-template-columns: 1fr; gap: 20px; } }
+@media (pointer: coarse) { .ab-pick select { font-size: 16px; } }
 
 .arcade-btn {
     padding: 6px 12px;
@@ -127,6 +138,32 @@ body.arcade-playing { overflow: hidden; }
 .stage-msg[hidden] { display: none; }
 .stage-msg-box { padding: 22px 28px; border-radius: 18px; background: #fff; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25); }
 .stage-msg-text { margin: 0 0 14px; font-size: 1.15rem; font-weight: 700; white-space: pre-line; }
+.stage-msg-box { max-width: calc(100% - 24px); max-height: calc(100% - 24px); overflow: auto; }
+/* the leaderboard under the result */
+.stage-board { width: 300px; max-width: 100%; margin: 0 auto 16px; text-align: left; }
+.stage-board[hidden] { display: none; }
+.sb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.sb-title { font-weight: 700; font-size: 0.95rem; }
+.sb-tabs { display: flex; gap: 10px; }
+.sb-tab { padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.sb-tab[aria-pressed="true"] { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.sb-list { margin: 6px 0 0; padding: 0 0 0 1.6em; font-size: 0.9rem; }
+.sb-list li { padding: 1px 0; }
+.sb-list li span { display: inline-flex; }
+.sb-list li { display: list-item; }
+.sb-name { min-width: 0; }
+.sb-score { float: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.sb-me { font-weight: 700; color: var(--navy); }
+.sb-me .sb-score { color: var(--navy); }
+.sb-empty, .sb-load { margin: 8px 0 0; color: var(--muted); font-size: 0.88rem; }
+.sb-form { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.sb-label { display: block; font-size: 0.88rem; }
+.sb-label span { display: block; margin-bottom: 6px; }
+.sb-input { width: 100%; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 0.95rem; }
+.sb-input:focus { outline: 2px solid var(--navy); outline-offset: 1px; }
+.sb-send { margin-top: 8px; }
+.sb-note { min-height: 1.2em; margin: 6px 0 0; color: var(--pink); font-size: 0.82rem; }
+@media (pointer: coarse) { .sb-input { font-size: 16px; } }
 .stage-again { background: var(--ink); color: #fff; border-color: var(--ink); padding: 8px 18px; }
 
 /* the cat in the corner, reacting to the game */

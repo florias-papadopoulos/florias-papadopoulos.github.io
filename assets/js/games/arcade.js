@@ -20,7 +20,11 @@
      api.level()                 'easy', 'normal' or 'hard': the difficulty picked in the top bar. The picker shows for
                                  games with "levels: true" in content/games/_index.md; changing it restarts the game,
                                  and each difficulty keeps its own best
-     api.end({score, win, text, lowerIsBetter})   game over: saves the best, shows text and "Play again"
+     api.end({score, win, text, lowerIsBetter, board})   game over: saves the best, shows text and "Play again". When the
+                                 site has its server, it also shows the game's leaderboard (top 10 this week and all
+                                 time, per difficulty) and, if the score makes it in, a box to add it under a nickname;
+                                 board: an optional sub-board, e.g. the Kitty Kart track. Games of the "two" group have
+                                 no leaderboard (the server lists the games that have one: tools/stats-worker/worker.js)
      api.cat(mood)               the cat in the corner: 'happy', 'sad', 'wow', 'think' or 'idle'
      api.say(text, ms)           a speech bubble from the cat
      api.sfx(name)               'tap', 'pop', 'point', 'hit', 'jump', 'move', 'win', 'lose'
@@ -278,11 +282,102 @@
         document.head.appendChild(s);
     }
 
+    /* ---------- leaderboards (end of a game; server side: /scores in tools/stats-worker/worker.js) ---------- */
+    var boardEl = msg.querySelector('.stage-board'), boardSeq = 0;
+    var LEVEL_NAME = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
+    function hideBoard() { boardSeq++; if (boardEl) { boardEl.hidden = true; boardEl.innerHTML = ''; } }
+    function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function scoreFmt(id) { return function (v) { return id === 'kitty-kart' ? v.toFixed(1) + ' s' : String(v); }; }
+    function topList(list, fmt, mine, empty) {
+        if (!list.length) return el('p', 'sb-empty', empty);
+        var ol = el('ol', 'sb-list');
+        list.forEach(function (r) {
+            var li = el('li', mine && r.n.toLowerCase() === mine.toLowerCase() ? 'sb-me' : '');
+            li.appendChild(el('span', 'sb-name', r.n));
+            li.appendChild(el('span', 'sb-score', fmt(r.s)));
+            ol.appendChild(li);
+        });
+        return ol;
+    }
+    function showBoard(id, o) {
+        var server = root.dataset.server, g = byId[id];
+        if (!boardEl || !server || !g || g.group === 'two' || typeof o.score !== 'number' || !(o.lowerIsBetter || o.score > 0)) return;
+        var seq = ++boardSeq, lower = !!o.lowerIsBetter, level = levelOf(id), sub = o.board || '';
+        var q = 'g=' + encodeURIComponent(id) + '&l=' + level + (sub ? '&b=' + encodeURIComponent(sub) : '');
+        var fmt = scoreFmt(id);
+        var better = function (a, b) { return lower ? a < b : a > b; };
+        var shown = 'week', data = null, mine = null;
+        boardEl.innerHTML = '';
+        boardEl.appendChild(el('p', 'sb-load', 'Loading the leaderboard...'));
+        boardEl.hidden = false;
+        function fits(list) { return list.length < 10 || better(o.score, list[list.length - 1].s); }
+        function render() {
+            boardEl.innerHTML = '';
+            var head = el('div', 'sb-head');
+            head.appendChild(el('span', 'sb-title', 'Leaderboard' + (g.levels ? ', ' + LEVEL_NAME[level] : '')));
+            var tabs = el('span', 'sb-tabs');
+            [['week', 'This week'], ['all', 'All time']].forEach(function (t) {
+                var b = el('button', 'sb-tab', t[1]);
+                b.type = 'button';
+                b.setAttribute('aria-pressed', shown === t[0] ? 'true' : 'false');
+                b.addEventListener('click', function () { shown = t[0]; render(); });
+                tabs.appendChild(b);
+            });
+            head.appendChild(tabs);
+            boardEl.appendChild(head);
+            boardEl.appendChild(topList(data[shown], fmt, mine, 'No scores yet. Be the first!'));
+            if (!mine && (fits(data.week) || fits(data.all))) form();
+        }
+        function form() {
+            var box = el('div', 'sb-form');
+            var label = el('label', 'sb-label');
+            label.appendChild(el('span', null, 'Your score ' + fmt(o.score) + ' makes the list. Your name:'));
+            var input = el('input', 'sb-input');
+            input.type = 'text'; input.maxLength = 12; input.autocomplete = 'nickname'; input.spellcheck = false;
+            input.placeholder = 'Nickname';
+            input.value = store('arcade-name') || '';
+            label.appendChild(input);
+            box.appendChild(label);
+            var send = el('button', 'arcade-btn sb-send', 'Add my score');
+            send.type = 'button';
+            box.appendChild(send);
+            var note = el('p', 'sb-note');
+            box.appendChild(note);
+            /* typing a name must not steer the game or close it */
+            ['keydown', 'keyup', 'keypress'].forEach(function (t) { input.addEventListener(t, function (e) { e.stopPropagation(); if (t === 'keydown' && e.key === 'Enter') submit(); }); });
+            send.addEventListener('click', submit);
+            function submit() {
+                var name = input.value.trim().replace(/\s+/g, ' ');
+                if (name.length < 2) { note.textContent = 'At least 2 letters, please.'; return; }
+                send.disabled = true; note.textContent = 'Sending...';
+                fetch(server + '/scores', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ g: id, l: level, b: sub, n: name, s: o.score }) })
+                    .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { status: r.status, d: d }; }); })
+                    .then(function (r) {
+                        if (seq !== boardSeq) return;
+                        send.disabled = false;
+                        if (r.status === 422) { note.textContent = 'That name is not allowed. Try another one.'; return; }
+                        if (r.status !== 200 || !r.d.all) { note.textContent = 'The leaderboard is not reachable right now.'; return; }
+                        store('arcade-name', name);
+                        mine = name; data = r.d;
+                        render();
+                    })
+                    .catch(function () { if (seq === boardSeq) { send.disabled = false; note.textContent = 'The leaderboard is not reachable right now.'; } });
+            }
+            boardEl.appendChild(box);
+        }
+        fetch(server + '/scores?' + q)
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (d) { if (seq !== boardSeq) return; data = { week: d.week || [], all: d.all || [] }; render(); })
+            .catch(function () { if (seq === boardSeq) { boardEl.innerHTML = ''; boardEl.appendChild(el('p', 'sb-load', 'The leaderboard is not reachable right now.')); } });
+    }
+
     function start(id) {
         stop();
         var g = byId[id];
         var cleanups = [], resizeFns = [], ended = false;
         msg.hidden = true;
+        hideBoard();
         area.innerHTML = '';
         area.className = 'stage-area game-' + id;
         stage.querySelector('.stage-title').textContent = g.title;
@@ -347,6 +442,7 @@
                 api.sfx(o.win === false ? 'lose' : 'win');
                 var mt = o.text || (o.win === false ? 'Game over' : 'You win!');
                 msg.querySelector('.stage-msg-text').textContent = mt + (isBest && typeof o.score === 'number' ? (mt.indexOf('\n') >= 0 ? '\n' : '  ') + 'New best!' : '');
+                showBoard(id, o);
                 setTimeout(function () { if (current && current.id === id) { msg.hidden = false; msg.querySelector('.stage-again').focus(); } }, 650);
                 return isBest;
             },
@@ -383,10 +479,55 @@
         stop();
         stage.hidden = true;
         msg.hidden = true;
+        hideBoard();
         document.body.classList.remove('arcade-playing');
         if (musicBox && musicBox.parentNode === stage.querySelector('.stage-bar')) { musicBox.close(); root.querySelector('.arcade-head').appendChild(musicBox); }
     }
-    /* The Best / 2 Player / More tabs above the cards. */
+    /* The Leaderboards tab: pick a game, a difficulty (and a Kitty Kart track), see both top 10s. Filled when first opened. */
+    var boards = document.getElementById('panel-boards'), boardsReady = false, boardsSeq = 0;
+    function boardsLoad() {
+        var gSel = boards.querySelector('.ab-game'), lSel = boards.querySelector('.ab-level'), tSel = boards.querySelector('.ab-track');
+        var id = gSel.value, g = byId[id], server = root.dataset.server;
+        boards.querySelector('.ab-level-l').hidden = !g.levels;
+        var tracks = g.tracks || [];
+        boards.querySelector('.ab-track-l').hidden = !tracks.length;
+        if (tSel.dataset.game !== id) {
+            tSel.innerHTML = '';
+            tracks.forEach(function (t) { var op = el('option', null, t.name); op.value = t.id; tSel.appendChild(op); });
+            tSel.dataset.game = id;
+        }
+        var level = g.levels ? lSel.value : 'normal', sub = tracks.length ? tSel.value : '';
+        var lists = boards.querySelectorAll('.ab-list'), seq = ++boardsSeq;
+        Array.prototype.forEach.call(lists, function (l) { l.innerHTML = ''; l.appendChild(el('p', 'sb-load', 'Loading...')); });
+        fetch(server + '/scores?g=' + encodeURIComponent(id) + '&l=' + level + (sub ? '&b=' + encodeURIComponent(sub) : ''))
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (d) {
+                if (seq !== boardsSeq) return;
+                var mine = store('arcade-name');
+                Array.prototype.forEach.call(lists, function (l) { l.innerHTML = ''; l.appendChild(topList(d[l.dataset.k] || [], scoreFmt(id), mine, 'No scores yet.')); });
+            })
+            .catch(function () {
+                if (seq !== boardsSeq) return;
+                Array.prototype.forEach.call(lists, function (l) { l.innerHTML = ''; l.appendChild(el('p', 'sb-load', 'Not reachable right now.')); });
+            });
+    }
+    function boardsOpen() {
+        if (!boards || !root.dataset.server) return;
+        if (!boardsReady) {
+            boardsReady = true;
+            var gSel = boards.querySelector('.ab-game');
+            Array.prototype.forEach.call(root.querySelectorAll('.arcade-grid .game-card'), function (c) {   /* page order: Best, then More */
+                var g = byId[c.dataset.id];
+                if (!g || g.group === 'two' || !g.src) return;
+                var op = el('option', null, g.title); op.value = g.id; gSel.appendChild(op);
+            });
+            boards.querySelector('.ab-level').value = 'normal';
+            Array.prototype.forEach.call(boards.querySelectorAll('select'), function (sel) { sel.addEventListener('change', boardsLoad); });
+        }
+        boardsLoad();
+    }
+
+    /* The Best / 2 Player / More tabs above the cards (and Leaderboards). */
     var tabs = Array.prototype.slice.call(root.querySelectorAll('.arcade-tab'));
     function showTab(tab, focus) {
         tabs.forEach(function (t) {
@@ -396,6 +537,7 @@
             document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
         });
         if (focus) tab.focus();
+        if (tab.id === 'tab-boards') boardsOpen();
     }
     tabs.forEach(function (t, i) {
         t.addEventListener('click', function () { showTab(t); });

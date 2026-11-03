@@ -12,8 +12,17 @@
 //   GET  /room/BDFG/answer   the host waits: {"answer": "v=0..."} once it is there, and the room is deleted; 204 until then
 //   POST /room/BDFG/close    the host gives up waiting: the room is deleted
 // Every request first deletes the rooms older than ROOM_TTL (so does the scheduled handler, if a cron trigger is set).
-// Tables (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser or country;
-//                      rooms(code, offer, answer, at), at = when the room was opened (ms).
+// Leaderboards (Games page): each game and difficulty (and Kitty Kart track) has a board; players add a score under a
+// nickname they type. Only the nickname, the score and when are stored, never an IP address.
+//   GET  /scores?g=long-cat&l=normal(&b=meadow)   {"all": [{"n": "Milo", "s": 420}, ...], "week": [...]}: the top 10,
+//                one line per nickname, all time and since Monday (UTC)
+//   POST /scores {"g": "long-cat", "l": "normal", "b": "", "n": "Milo", "s": 420}   adds a score, answers like GET;
+//                400 for a bad game or score, 422 {"error": "name"} for a nickname that is not allowed
+// To remove a nickname: DELETE FROM scores WHERE name = 'Bad Name'; in the D1 console.
+// Tables (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser, country (or scores: the
+//                      scores added that day, for SCORE_CAP);
+//                      rooms(code, offer, answer, at), at = when the room was opened (ms);
+//                      scores(id, board, name, score, week, at), board = game/level(/track), week = its Monday.
 const SITE = 'https://florias-papadopoulos.github.io';
 const BROWSERS = ['Firefox', 'Chrome', 'Safari', 'Edge', 'Opera', 'Other'];
 const TOP = 40;   // /stats lists at most this many pages, referrers, countries... (keeps the answer small whatever is sent)
@@ -29,6 +38,24 @@ const ROOM_TTL = 120000;  // ms a room lives at most
 const MAX_ROOMS = 100;    // rooms open at once; past it new ones are refused
 const MAX_SDP = 6000;     // bytes; an offer or answer with its network addresses is usually 1 to 3 KB
 const LETTERS = 'BCDFGHJKLMNPQRSTVWXZ';  // room codes: no vowels (so no words), no I or O to mix up with 1 or 0
+/* Games with a leaderboard: lower = lower is better (a time or a number of moves), max = the highest score that can be
+   real, dec = decimals allowed (else whole numbers). Two-player games have none. */
+const BOARDS = {
+    'long-cat': {}, 'whack-a-mouse': {}, 'paw-pairs': {}, 'four-in-a-row': {}, 'tic-tac-paw': {}, 'brick-paw': {},
+    'cucumber-hop': {}, 'yarn-smash': {}, 'night-prowl': {}, 'orbit-paws': {}, 'paw-raiders': {}, 'garden-defender': {},
+    'dino-valley': {},
+    'sliding-kitten': { lower: true, min: 1 }, 'mouse-sweeper': { lower: true, min: 1 },
+    'kitty-kart': { lower: true, min: 10, max: 3600, dec: 1 }
+};
+const LEVELS = ['easy', 'normal', 'hard'];
+const KEEP = 100;          // scores kept per board (all time), and again per board this week
+const SCORE_CAP = 2000;    // scores added a day across all games; past it new ones are refused
+/* Nicknames: 2 to 12 letters, digits, spaces and . _ ' -, and none of these words inside (checked after lower case,
+   digits read as letters, and everything but letters removed, so "B.a.d" and "b4d" count too). */
+const BAD = ['fuck', 'fuk', 'shit', 'cunt', 'bitch', 'dick', 'cock', 'pussy', 'penis', 'vagina', 'porn', 'sex', 'nazi',
+    'hitler', 'nigg', 'nigga', 'fag', 'retard', 'whore', 'slut', 'rape', 'kill', 'kys', 'scheiss', 'fotze', 'hure', 'wichs',
+    'arsch', 'schlampe', 'putain', 'merde', 'connard', 'salope', 'puta', 'mierda', 'cazzo', 'stronzo', 'vaffanculo',
+    'malaka', 'gamo', 'poutana', 'admin', 'florias', 'moderator'];
 
 function headers(extra) {
     return Object.assign({ 'Access-Control-Allow-Origin': SITE, 'Vary': 'Origin' }, extra || {});
@@ -46,6 +73,7 @@ export default {
             if (ctx && ctx.waitUntil) ctx.waitUntil(Promise.resolve().then(function () { return sweep(env); }).catch(function () {}));
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
             if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
+            if (url.pathname === '/scores') return await scores(req, url, env);
             if (url.pathname === '/whoami' && req.method === 'GET') {
                 return new Response(JSON.stringify({ country: (req.cf && req.cf.country) || 'XX' }),
                     { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) });
@@ -190,4 +218,62 @@ async function stats(url, env) {
         memo[key] = { at: Date.now(), text: text };
     }
     return new Response(text, { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' }) });
+}
+
+/* ---------- leaderboards ---------- */
+function json(status, obj, cache) {
+    return new Response(obj === undefined ? null : JSON.stringify(obj), { status: status,
+        headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': cache || 'no-store' }) });
+}
+function monday() {
+    const d = new Date(Date.parse(new Date().toISOString().slice(0, 10)));
+    return new Date(d - ((d.getUTCDay() + 6) % 7) * 864e5).toISOString().slice(0, 10);
+}
+function nameOk(n) {
+    if (!/^[\p{L}\p{N}][\p{L}\p{N} ._'-]{0,10}[\p{L}\p{N}.]$/u.test(n) || /  /.test(n)) return false;
+    const flat = n.toLowerCase().replace(/[0134578@$]/g, function (c) { return { 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't', 8: 'b', '@': 'a', $: 's' }[c]; })
+        .normalize('NFD').replace(/[^a-z]/g, '');
+    return !BAD.some(function (w) { return flat.indexOf(w) >= 0; });
+}
+async function top(env, board, lower, week) {
+    const best = lower ? 'MIN' : 'MAX';
+    const st = env.DB.prepare('SELECT name, ' + best + '(score) AS s, MIN(at) AS at FROM scores WHERE board = ?1' +
+        (week ? ' AND week = ?2' : '') + ' GROUP BY LOWER(name) ORDER BY s ' + (lower ? 'ASC' : 'DESC') + ', at ASC LIMIT 10');
+    const rows = (await (week ? st.bind(board, week) : st.bind(board)).all()).results;
+    return rows.map(function (r) { return { n: r.name, s: r.s }; });
+}
+async function scores(req, url, env) {
+    const post = req.method === 'POST';
+    if (!post && req.method !== 'GET') return json(404);
+    let d;
+    if (post) {
+        if (req.headers.get('Origin') !== SITE) return json(403);
+        d = await body(req, MAX_BODY);
+        if (!d) return json(400);
+    } else d = { g: url.searchParams.get('g'), l: url.searchParams.get('l'), b: url.searchParams.get('b') };
+    const game = BOARDS[d.g], level = LEVELS.indexOf(d.l) >= 0 ? d.l : null;
+    const track = d.b == null || d.b === '' ? '' : String(d.b);
+    if (!game || !level || (track && !/^[a-z]{2,16}$/.test(track))) return json(400);
+    const board = d.g + '/' + level + (track ? '/' + track : ''), lower = !!game.lower, week = monday();
+    if (post) {
+        const name = typeof d.n === 'string' ? d.n.trim() : '';
+        const sc = d.s, dec = Math.pow(10, game.dec || 0);
+        if (typeof sc !== 'number' || !isFinite(sc) || sc < (game.min || 1) || sc > (game.max || 1e7) || Math.abs(Math.round(sc * dec) - sc * dec) > 1e-6) return json(400);
+        if (!nameOk(name)) return json(422, { error: 'name' });
+        const day = new Date().toISOString().slice(0, 10);
+        const used = await env.DB.prepare("SELECT n FROM counts WHERE day = ?1 AND kind = 'scores' AND key = 'all'").bind(day).first();
+        if (used && used.n >= SCORE_CAP) return json(503);
+        const order = 'ORDER BY score ' + (lower ? 'ASC' : 'DESC') + ', at ASC';
+        await env.DB.batch([
+            env.DB.prepare('INSERT INTO scores (board, name, score, week, at) VALUES (?1, ?2, ?3, ?4, ?5)').bind(board, name, sc, week, Date.now()),
+            env.DB.prepare("INSERT INTO counts (day, kind, key, n) VALUES (?1, 'scores', 'all', 1) ON CONFLICT(day, kind, key) DO UPDATE SET n = n + 1").bind(day),
+            /* one nickname keeps only its best score, and its best of this week */
+            env.DB.prepare('DELETE FROM scores WHERE board = ?1 AND LOWER(name) = LOWER(?2) AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND LOWER(name) = LOWER(?2) ' + order + ' LIMIT 1) ' +
+                'AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND LOWER(name) = LOWER(?2) AND week = ?3 ' + order + ' LIMIT 1)').bind(board, name, week),
+            /* and a board keeps its KEEP best of all time and of this week */
+            env.DB.prepare('DELETE FROM scores WHERE board = ?1 AND id NOT IN (SELECT id FROM scores WHERE board = ?1 ' + order + ' LIMIT ?3) ' +
+                'AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND week = ?2 ' + order + ' LIMIT ?3)').bind(board, week, KEEP)
+        ]);
+    }
+    return json(200, { all: await top(env, board, lower), week: await top(env, board, lower, week) }, post ? 'no-store' : 'public, max-age=15');
 }

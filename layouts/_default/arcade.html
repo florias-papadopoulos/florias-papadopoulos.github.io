@@ -8,7 +8,7 @@
 {{- $g := . }}
 {{- $src := "" }}{{ $sri := "" }}
 {{- with resources.Get (printf "js/games/%s.js" ($g.script | default $g.id)) }}{{ $js := . | minify | fingerprint }}{{ $src = $js.RelPermalink }}{{ $sri = $js.Data.Integrity }}{{ end }}
-{{- $list = $list | append (dict "id" $g.id "title" $g.title "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "src" $src "integrity" $sri) }}
+{{- $list = $list | append (dict "id" $g.id "title" $g.title "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "tracks" ($g.tracks | default slice) "src" $src "integrity" $sri) }}
 {{- end }}
 <div class="arcade" id="arcade" data-games="{{ $list | jsonify }}"{{ with site.Params.statsEndpoint }} data-server="{{ . }}"{{ end }}>
     <header class="arcade-head">
@@ -46,6 +46,9 @@
         {{- range $i, $g := $groups }}
         <button class="arcade-tab" type="button" role="tab" id="tab-{{ index $g 0 }}" aria-controls="panel-{{ index $g 0 }}" aria-selected="{{ if eq $i 0 }}true{{ else }}false{{ end }}"{{ if ne $i 0 }} tabindex="-1"{{ end }}>{{ index $g 1 }}</button>
         {{- end }}
+        {{- if site.Params.statsEndpoint }}
+        <button class="arcade-tab" type="button" role="tab" id="tab-boards" aria-controls="panel-boards" aria-selected="false" tabindex="-1">Leaderboards</button>
+        {{- end }}
     </div>
     {{- range $i, $g := $groups }}
     {{- $games := where $list "group" (index $g 0) }}
@@ -58,6 +61,21 @@
             <span class="gc-best" data-best="{{ .id }}"></span>
         </button>
         {{- end }}
+    </div>
+    {{- end }}
+    {{- /* Leaderboards: arcade.js fills the game, difficulty (and track) pickers and the two top 10 lists when the tab
+           opens; the scores come from /scores on the site's server. */}}
+    {{- if site.Params.statsEndpoint }}
+    <div class="arcade-boards" role="tabpanel" id="panel-boards" aria-labelledby="tab-boards" hidden>
+        <div class="ab-pick">
+            <label>Game <select class="ab-game"></select></label>
+            <label class="ab-level-l">Difficulty <select class="ab-level"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></label>
+            <label class="ab-track-l" hidden>Track <select class="ab-track"></select></label>
+        </div>
+        <div class="ab-cols">
+            <section><h3>This week</h3><div class="ab-list" data-k="week"></div></section>
+            <section><h3>All time</h3><div class="ab-list" data-k="all"></div></section>
+        </div>
     </div>
     {{- end }}
 
@@ -76,6 +94,7 @@
         <div class="stage-msg" hidden>
             <div class="stage-msg-box">
                 <p class="stage-msg-text"></p>
+                <div class="stage-board" hidden></div>
                 <button class="arcade-btn stage-again" type="button">Play again</button>
             </div>
         </div>
