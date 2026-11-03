@@ -366,7 +366,7 @@
             }
             boardEl.appendChild(box);
         }
-        fetch(server + '/scores?' + q)
+        fetch(server + '/scores?' + q, { cache: 'no-cache' })   /* fresh: a score may have been added a moment ago */
             .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(function (d) { if (seq !== boardSeq) return; data = { week: d.week || [], all: d.all || [] }; render(); })
             .catch(function () { if (seq === boardSeq) { boardEl.innerHTML = ''; boardEl.appendChild(el('p', 'sb-load', 'The leaderboard is not reachable right now.')); } });
@@ -491,6 +491,7 @@
         boards.querySelector('.ab-level-l').hidden = !g.levels;
         var tracks = g.tracks || [];
         boards.querySelector('.ab-track-l').hidden = !tracks.length;
+        boards.querySelector('.ab-track-n').textContent = g.trackLabel || 'Track';
         if (tSel.dataset.game !== id) {
             tSel.innerHTML = '';
             tracks.forEach(function (t) { var op = el('option', null, t.name); op.value = t.id; tSel.appendChild(op); });
@@ -499,7 +500,7 @@
         var level = g.levels ? lSel.value : 'normal', sub = tracks.length ? tSel.value : '';
         var lists = boards.querySelectorAll('.ab-list'), seq = ++boardsSeq;
         Array.prototype.forEach.call(lists, function (l) { l.innerHTML = ''; l.appendChild(el('p', 'sb-load', 'Loading...')); });
-        fetch(server + '/scores?g=' + encodeURIComponent(id) + '&l=' + level + (sub ? '&b=' + encodeURIComponent(sub) : ''))
+        fetch(server + '/scores?g=' + encodeURIComponent(id) + '&l=' + level + (sub ? '&b=' + encodeURIComponent(sub) : ''), { cache: 'no-cache' })
             .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(function (d) {
                 if (seq !== boardsSeq) return;

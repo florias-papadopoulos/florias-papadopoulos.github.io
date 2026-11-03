@@ -8,6 +8,8 @@ layout: arcade
 # levels: true shows the Easy/Normal/Hard picker while playing (the game reads it with api.level()).
 # script: <file> runs a game from another game's file (assets/js/games/<file>.js registers both ids).
 # restart: false hides the restart button (a two-player race would lose the other player).
+# tracks: the sub-boards of a game's leaderboard (Kitty Kart tracks, Garden Defender gardens): the ids the game passes
+# to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track).
 games:
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
   - { id: orbit-paws,     title: "Purrbit Patrol",      emoji: "🛰️", desc: "Steer cat satellites around space junk and zap debris with lasers.", group: simple, levels: true }
@@ -28,5 +30,6 @@ games:
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
   - { id: four-in-a-row-2p, title: "Four for Two",        emoji: "🟠", desc: "Two players on one phone or computer, taking turns. Four or five in a row.", group: two, script: four-in-a-row }
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex, levels: true }
-  - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out of the garden with a water pistol.", group: complex, levels: true }
+  - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out of six gardens with a water pistol, and grab the power ups they drop.", group: complex, levels: true,
+      trackLabel: Garden, tracks: [{ id: lawn, name: "Front Lawn" }, { id: patch, name: "Vegetable Patch" }, { id: pond, name: "Lily Pond" }, { id: orchard, name: "Apple Orchard" }, { id: court, name: "Hedge Court" }, { id: night, name: "Moonlit Garden" }, { id: tour, name: "Garden Tour" }] }
 ---

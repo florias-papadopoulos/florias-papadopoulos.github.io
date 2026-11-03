@@ -8,7 +8,7 @@
 {{- $g := . }}
 {{- $src := "" }}{{ $sri := "" }}
 {{- with resources.Get (printf "js/games/%s.js" ($g.script | default $g.id)) }}{{ $js := . | minify | fingerprint }}{{ $src = $js.RelPermalink }}{{ $sri = $js.Data.Integrity }}{{ end }}
-{{- $list = $list | append (dict "id" $g.id "title" $g.title "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "tracks" ($g.tracks | default slice) "src" $src "integrity" $sri) }}
+{{- $list = $list | append (dict "id" $g.id "title" $g.title "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "tracks" ($g.tracks | default slice) "trackLabel" ($g.trackLabel | default "Track") "src" $src "integrity" $sri) }}
 {{- end }}
 <div class="arcade" id="arcade" data-games="{{ $list | jsonify }}"{{ with site.Params.statsEndpoint }} data-server="{{ . }}"{{ end }}>
     <header class="arcade-head">
@@ -70,7 +70,7 @@
         <div class="ab-pick">
             <label>Game <select class="ab-game"></select></label>
             <label class="ab-level-l">Difficulty <select class="ab-level"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></label>
-            <label class="ab-track-l" hidden>Track <select class="ab-track"></select></label>
+            <label class="ab-track-l" hidden><span class="ab-track-n">Track</span> <select class="ab-track"></select></label>
         </div>
         <div class="ab-cols">
             <section><h3>This week</h3><div class="ab-list" data-k="week"></div></section>
