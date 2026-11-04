@@ -1,5 +1,6 @@
 /* World of the cat on the Bachelor, Master and Papers tabs (the cat itself: assets/js/cat-core.js, bundled before this
-   file by layouts/partials/cat.html; the page: layouts/_default/timeline.html).
+   file by layouts/partials/cat.html; the page: layouts/_default/timeline.html), and on the Games page
+   (layouts/_default/arcade.html: it sits on the title, the tabs and the game cards; hidden while a game is open).
 
    The cat lives in the window, not on the whole page: its ground is the bottom of the window, and it sits on the page
    title, the semester (or year) labels of the rail and the entries that are in view, above their pictures so it does
@@ -9,7 +10,7 @@
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');
-    var page = document.querySelector('.tl-page');
+    var page = document.querySelector('.tl-page') || document.querySelector('.arcade');
     if (!layer || !page || !window.SiteCat) return;
     layer.classList.add('cat-viewport');
 
@@ -51,6 +52,11 @@
         push('.tl-h1-text', 'title', { w: 1.2, room: CH - 6 });
         push('.tl-label-text', 'rail', { w: 1.6 });
         push('.tl-toggle', 'row', { w: 0.7 });
+        if (document.body.classList.contains('arcade-playing')) return [];
+        push('.arcade-head h1', 'title', { w: 1.2, room: CH - 6 });
+        push('.arcade-tab', 'tab', { w: 0.5, room: CH - 6 });
+        push('.arcade-grid:not([hidden]) .game-card', 'card', { w: 0.9 });
+        push('.arcade-boards:not([hidden]) .ab-card', 'card', { w: 0.9 });
         return list;
     }
     /* on a row the cat sits over the pictures (the row above has its picture there too), never over the titles */
@@ -80,7 +86,7 @@
             if (r < 0.45) api.nap(rnd(14000, 24000)); else { if (r > 0.8) api.groom(); api.next(rnd(7000, 13000)); }
             return true;
         }
-        if (p.kind === 'row') {                    /* a short stop on a row */
+        if (p.kind === 'row' || p.kind === 'card') {   /* a short stop on a row or a game card */
             if (r < 0.3) api.groom();
             api.next(rnd(1600, 3400));
             return true;

@@ -667,6 +667,7 @@
         });
         if (focus) tab.focus();
         if (tab.id === 'tab-boards') boardsOpen();
+        window.dispatchEvent(new Event('tl-change'));   /* the roaming cat (cat-pages.js) leaves cards that just hid */
     }
     tabs.forEach(function (t, i) {
         t.addEventListener('click', function () { showTab(t); });

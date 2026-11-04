@@ -16,6 +16,14 @@ html[data-cat="silver"], .cat-opt[data-look="silver"] {
     --fur-top: #dde2e8; --fur-bot: #a9b2bd; --head-top: #e4e8ed; --fur-dark: #97a1ac; --stripe: #7a8592;
     --tail: #b4bcc6; --cream: #f5f7f9; --iris: #e9b949; --tuft: #ffffff; --whisker: #8a9099;
 }
+html[data-cat="dino"], .cat-opt[data-look="dino"] {
+    --fur-top: #ffc06e; --fur-bot: #f0932c; --head-top: #ffc479; --fur-dark: #de8a2c; --stripe: #cf7419;
+    --tail: #5fb35a; --cream: #ffe9c9; --iris: #8ed383; --tuft: #fff4e2; --whisker: #9a7a60;
+}
+html[data-cat="dog-dino"], .cat-opt[data-look="dog-dino"] {
+    --fur-top: #f6d79a; --fur-bot: #dca456; --head-top: #f8dda6; --fur-dark: #c98d40; --stripe: #c98d40;
+    --tail: #5fb35a; --cream: #fcefd6; --iris: #6b4423; --tuft: #fff6e4; --whisker: #8a6a48; --ear: #b97a33; --nose: #2b2220;
+}
 html[data-cat="bat"], .cat-opt[data-look="bat"] {
     --fur-top: #a2a9b3; --fur-bot: #6f7681; --head-top: #aab1bb; --fur-dark: #5f6671; --stripe: #6f7681;
     --tail: #2b2e36; --cream: #dfe3e8; --iris: #fff4b8; --tuft: #c4c9d0; --whisker: #4b5058;
@@ -128,8 +136,7 @@ html[data-pet="dog"] .profile.home, html[data-pet="dog"] .arcade, html[data-pet=
 .cat.away { visibility: hidden; pointer-events: none; }
 /* ... after scratching the cursor away: the real cursor hidden, a drawn grab hand flying off, scratch marks */
 html.cursor-gone, html.cursor-gone * { cursor: none !important; }
-.fake-cursor { position: fixed; z-index: 2147483647; width: 24px; height: 24px; margin: -9px 0 0 -12px; pointer-events: none;
-    transition: transform 0.9s cubic-bezier(.2, .7, .4, 1), opacity 0.9s ease-in; }
+.fake-cursor { position: fixed; z-index: 2147483647; width: 26px; height: 26px; margin: -10px 0 0 -13px; pointer-events: none; }
 .fake-cursor svg { width: 100%; height: 100%; fill: #fff; stroke: #000; stroke-width: 1.3; stroke-linejoin: round; }
 .cat-scratch { position: fixed; z-index: 2147483646; width: 60px; height: 60px; margin: -30px 0 0 -30px; pointer-events: none;
     animation: cat-scratch 1.4s ease-out forwards; }
@@ -210,6 +217,14 @@ html[data-cat="calico"] .cat .stripe { display: none; }
 .cat .suit-buckle { fill: none; stroke: #f2c94c; stroke-width: 1.6; }
 .cat .suit-fluff, .cat .suit-collar { fill: #fbf7f0; stroke-width: 1.2; }
 /* the dogs: cat parts out, dog parts in */
+/* Dinocat and Dinodog: a green dinosaur onesie with a spiky hood and little white teeth; the hood hides the ears */
+.cat .dino-only { display: none; }
+html:is([data-cat="dino"], [data-cat="dog-dino"]) .cat .dino-only { display: inline; }
+html:is([data-cat="dino"], [data-cat="dog-dino"])[data-cat] .cat :is(.ears, .dog-ear, .stripe, .tail-stripe) { display: none; }
+.cat .dino-suit { fill: #5fb35a; stroke-width: 1.2; }
+.cat .dino-spike { fill: #3f8f45; stroke-width: 1; stroke-linejoin: round; }
+.cat .dino-belly { fill: #d8ef9a; }
+.cat .dino-tooth { fill: #fff; stroke: #3b2a1e; stroke-width: 0.6; stroke-linejoin: round; }
 .cat .dog-only { display: none; }
 html[data-pet="dog"] .cat .dog-only { display: inline; }
 html[data-pet="dog"] .cat .cat-only, html[data-pet="dog"] .cat .stripe, html[data-pet="dog"] .cat .tail-stripe { display: none; }

@@ -120,4 +120,7 @@
 </div>
 {{- $shell := resources.Get "js/games/arcade.js" | minify | fingerprint }}
 <script src="{{ $shell.RelPermalink }}" integrity="{{ $shell.Data.Integrity }}" defer></script>
+{{- /* the visitor's cat (or dog) roams the list of games too: on the title, the tabs and the cards (assets/js/cat-pages.js);
+       hidden while a game is open */}}
+{{ partial "cat.html" (dict "world" "pages") }}
 {{- end }}

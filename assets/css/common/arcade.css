@@ -250,3 +250,6 @@ body.arcade-playing { overflow: hidden; }
 /* names and texts of the games: the dog ones while a dog is chosen (dogTitle, dogDesc, dogIntro in content/games/_index.md) */
 .arcade .for-dog, html[data-pet="dog"] .arcade .for-cat { display: none; }
 html[data-pet="dog"] .arcade .for-dog { display: inline; }
+
+/* the roaming cat (or dog) of the page (cat-pages.js) stays out of the way while a game is open */
+body.arcade-playing .cat-layer { display: none; }

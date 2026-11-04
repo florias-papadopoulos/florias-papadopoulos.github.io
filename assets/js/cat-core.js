@@ -313,15 +313,22 @@
             document.body.appendChild(fake);
             root.classList.add('cursor-gone');
             var dir = (x < rel(cat).x + layer.getBoundingClientRect().left + CW / 2) ? -1 : 1;
-            requestAnimationFrame(function () { requestAnimationFrame(function () {
-                fake.style.transform = 'translate(' + (dir * (window.innerWidth * 0.7 + 200)) + 'px, -' + (window.innerHeight * 0.5 + 150) + 'px) rotate(' + (dir * 900) + 'deg)';
-                fake.style.opacity = '0';
-            }); });
-            setTimeout(function () { fake.remove(); }, 1000);
+            /* a short knock first, then a slow spinning flight off the screen, so it is clear what happened */
+            var fx = dir * (window.innerWidth * 0.75 + 160), fy = -(window.innerHeight * 0.16 + 40);   /* across the screen, not up and out at once */
+            var frames = [
+                { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+                { transform: 'translate(' + dir * 46 + 'px, -34px) rotate(' + dir * 70 + 'deg)', opacity: 1, offset: 0.16 },
+                { transform: 'translate(' + dir * 70 + 'px, -44px) rotate(' + dir * 110 + 'deg)', opacity: 1, offset: 0.3 },
+                { transform: 'translate(' + fx * 0.9 + 'px, ' + fy * 0.9 + 'px) rotate(' + dir * 620 + 'deg)', opacity: 1, offset: 0.88 },
+                { transform: 'translate(' + fx + 'px, ' + fy + 'px) rotate(' + dir * 720 + 'deg)', opacity: 0 }
+            ];
+            if (fake.animate) fake.animate(frames, { duration: 2300, easing: 'cubic-bezier(.3, .1, .4, 1)', fill: 'forwards' });
+            else fake.style.opacity = '0';
+            setTimeout(function () { fake.remove(); }, 2400);
             /* the real cursor back at the next move (not before the swat has been seen) */
             var t0 = Date.now();
             function back() {
-                if (Date.now() - t0 < 500) return;
+                if (Date.now() - t0 < 2000) return;   /* not while the drawn one is still flying */
                 root.classList.remove('cursor-gone');
                 document.removeEventListener('pointermove', back);
             }
