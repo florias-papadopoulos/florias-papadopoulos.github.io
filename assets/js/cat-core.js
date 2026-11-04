@@ -312,17 +312,17 @@
             fake.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 11V5.6a1.4 1.4 0 0 1 2.8 0V10V4.4a1.4 1.4 0 0 1 2.8 0V10V5.2a1.4 1.4 0 0 1 2.8 0V10.6V7.4a1.4 1.4 0 0 1 2.8 0v6.8c0 4-2.6 6.8-6.4 6.8h-.6c-2.4 0-3.8-.9-5.2-2.6l-3.4-4.4a1.5 1.5 0 0 1 2.2-2l2.2 2z"/></svg>';
             document.body.appendChild(fake);
             root.classList.add('cursor-gone');
-            var dir = (x < rel(cat).x + layer.getBoundingClientRect().left + CW / 2) ? -1 : 1;
-            /* a short knock first, then a slow spinning flight off the screen, so it is clear what happened */
-            var fx = dir * (window.innerWidth * 0.75 + 160), fy = -(window.innerHeight * 0.16 + 40);   /* across the screen, not up and out at once */
-            var frames = [
-                { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
-                { transform: 'translate(' + dir * 46 + 'px, -34px) rotate(' + dir * 70 + 'deg)', opacity: 1, offset: 0.16 },
-                { transform: 'translate(' + dir * 70 + 'px, -44px) rotate(' + dir * 110 + 'deg)', opacity: 1, offset: 0.3 },
-                { transform: 'translate(' + fx * 0.9 + 'px, ' + fy * 0.9 + 'px) rotate(' + dir * 620 + 'deg)', opacity: 1, offset: 0.88 },
-                { transform: 'translate(' + fx + 'px, ' + fy + 'px) rotate(' + dir * 720 + 'deg)', opacity: 0 }
-            ];
-            if (fake.animate) fake.animate(frames, { duration: 3800, easing: 'cubic-bezier(.25, .1, .45, 1)', fill: 'forwards' });
+            var dir = x < window.innerWidth / 2 ? 1 : -1;   /* toward the side with more room, so it crosses the screen */
+            /* one steady flight off the screen at the same speed all the way (each stretch of the path gets its share of
+               the time by its length), spinning as it goes, so it is clear what happened */
+            var fx = dir * ((dir > 0 ? window.innerWidth - x : x) + 60), fy = -(window.innerHeight * 0.16 + 40);   /* across the screen, not up and out at once */
+            var pts = [[0, 0], [dir * 46, -34], [dir * 70, -44], [fx * 0.9, fy * 0.9], [fx, fy]], len = [0];
+            for (var i = 1; i < pts.length; i++) len[i] = len[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+            var frames = pts.map(function (q, i) {
+                var f = len[i] / len[len.length - 1];
+                return { transform: 'translate(' + q[0] + 'px, ' + q[1] + 'px) rotate(' + Math.round(dir * 720 * f) + 'deg)', opacity: i === pts.length - 1 ? 0 : 1, offset: f };
+            });
+            if (fake.animate) fake.animate(frames, { duration: 3800, easing: 'linear', fill: 'forwards' });
             else fake.style.opacity = '0';
             setTimeout(function () { fake.remove(); }, 3900);
             /* the real cursor back at the next move (not before the swat has been seen) */
