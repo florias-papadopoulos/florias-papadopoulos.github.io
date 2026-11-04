@@ -68,7 +68,10 @@
 .arcade-btn:hover { border-color: var(--navy); }
 .arcade-btn[aria-pressed="false"] { color: var(--muted); }
 
-.arcade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 200px)); justify-content: center; gap: 14px; margin-bottom: 40px; }
+/* the cards of a tab, in rows that differ by at most one card (arcade.js deals them into .gc-row), each row centred */
+.arcade-grid { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 40px; }
+.gc-row { display: flex; justify-content: center; gap: 14px; width: 100%; }
+.gc-row > .game-cell, .arcade-grid > .game-cell { flex: 0 0 200px; }
 .game-card {
     display: flex;
     flex-direction: column;
@@ -215,7 +218,8 @@ body.arcade-playing { overflow: hidden; }
     .arcade-tabs { gap: 20px; }
     .arcade-head .music { top: 1.1rem; }
     .arcade-tab { font-size: 1rem; }
-    .arcade-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .arcade-grid, .gc-row { gap: 10px; }
+    .gc-row > .game-cell, .arcade-grid > .game-cell { flex-basis: calc(50% - 5px); }
     .game-card { padding: 14px 8px 10px; }
     .gc-icon { font-size: 2rem; }
     .stage-bar { gap: 6px; padding: 6px 8px; }

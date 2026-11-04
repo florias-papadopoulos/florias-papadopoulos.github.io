@@ -628,6 +628,7 @@
                 cells.sort(function (a, b) { return likes(b) - likes(a) || a.dataset.order - b.dataset.order; });
                 cells.forEach(function (c) { grid.appendChild(c); });
             });
+            balance();
         }
         function take(d) { counts = d && typeof d === 'object' ? d : {}; }
         fetch(server + '/likes', { cache: 'no-cache' })
@@ -655,6 +656,30 @@
                 .then(function () { busy = false; });
         });
     })();
+
+    /* ---------- balanced rows of cards: the cards of a tab are dealt into rows that differ by at most one card (the
+       longer rows first), as many per row as fit: 4 cards where 3 fit become 2 + 2, 13 where 4 fit 4 + 3 + 3 + 3.
+       Each row is a .gc-row; rebuilt on resize and after the cards are sorted by likes. ---------- */
+    function balance() {
+        Array.prototype.forEach.call(root.querySelectorAll('.arcade-grid'), function (grid) {
+            var cells = Array.prototype.slice.call(grid.querySelectorAll('.game-cell')), n = cells.length, avail = root.clientWidth;
+            if (!n || !avail) return;
+            var phone = window.matchMedia('(max-width: 600px)').matches, gap = phone ? 10 : 14, w = phone ? (avail - gap) / 2 : 200;
+            var fit = phone ? 2 : Math.max(1, Math.floor((avail + gap) / (w + gap)));
+            var rows = Math.ceil(n / Math.min(fit, n)), base = Math.floor(n / rows), extra = n % rows, at = 0;
+            var frag = document.createDocumentFragment();
+            for (var r = 0; r < rows; r++) {
+                var row = document.createElement('div'), size = base + (r < extra ? 1 : 0);
+                row.className = 'gc-row';
+                for (var i = 0; i < size; i++) row.appendChild(cells[at++]);
+                frag.appendChild(row);
+            }
+            Array.prototype.forEach.call(grid.querySelectorAll('.gc-row'), function (old) { old.remove(); });
+            grid.appendChild(frag);
+        });
+    }
+    balance();
+    window.addEventListener('resize', balance);
 
     /* The Best / 2 Player / More tabs above the cards (and Leaderboards). */
     var tabs = Array.prototype.slice.call(root.querySelectorAll('.arcade-tab'));
