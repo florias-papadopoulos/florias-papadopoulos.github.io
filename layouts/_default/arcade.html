@@ -61,11 +61,10 @@
             <span class="gc-desc">{{ if .src }}{{ .desc }}{{ else }}Coming soon{{ end }}</span>
             <span class="gc-best" data-best="{{ .id }}"></span>
         </button>
-        {{- /* thumbs up and down, totals from /likes on the site's server (arcade.js); hidden until they load */}}
+        {{- /* a like (a paw print, "paws up"), totals from /likes on the site's server (arcade.js); hidden until they load */}}
         {{- if and site.Params.statsEndpoint .src }}
         <div class="gc-votes" hidden>
-            <button class="gc-vote" type="button" data-v="1" aria-pressed="false" aria-label="I like {{ .title }}"><span aria-hidden="true">👍</span><span class="gc-n">0</span></button>
-            <button class="gc-vote" type="button" data-v="-1" aria-pressed="false" aria-label="I don't like {{ .title }}"><span aria-hidden="true">👎</span><span class="gc-n">0</span></button>
+            <button class="gc-vote" type="button" data-v="1" aria-pressed="false" aria-label="Paws up for {{ .title }}"><svg class="gc-paw" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><ellipse cx="5.6" cy="10.4" rx="2" ry="2.6" transform="rotate(-18 5.6 10.4)"/><ellipse cx="9.6" cy="6.6" rx="2.1" ry="2.8" transform="rotate(-6 9.6 6.6)"/><ellipse cx="14.4" cy="6.6" rx="2.1" ry="2.8" transform="rotate(6 14.4 6.6)"/><ellipse cx="18.4" cy="10.4" rx="2" ry="2.6" transform="rotate(18 18.4 10.4)"/></svg><span class="gc-n">0</span></button>
         </div>
         {{- end }}
         </div>

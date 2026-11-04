@@ -37,10 +37,10 @@
    assets/js/games/<file>.js and runs the game registered under its own id. "restart: false" hides the restart button
    (for a game that a restart would break, like one linked to another player).
 
-   Likes: every card has a thumbs up and a thumbs down with the totals of all visitors (GET and POST /likes on the site's
+   Likes: every card has a like button (a paw print, "paws up") with the total of all visitors (GET and POST /likes on the site's
    server, tools/stats-worker/worker.js). When the page loads, the cards of each tab are ordered by likes (most first,
-   then the better ratio of up to all votes, then the order of content/games/_index.md). A browser's own vote is kept
-   in localStorage 'arcade-votes' ({id: 1 or -1}); pressing it again takes it back.
+   then the order of content/games/_index.md). A browser's own like is kept in localStorage 'arcade-votes' ({id: 1});
+   pressing it again takes it back.
 
    Sound: short effects generated with the Web Audio API (nothing downloaded). Music: the note button (in the list
    header, and in the top bar while a game runs) picks one of four looping background mixes of 11 to 12 minutes, files
@@ -533,7 +533,7 @@
         boardsLoad();
     }
 
-    /* ---------- likes: thumbs up and down on every card, the most liked first in each tab ---------- */
+    /* ---------- likes: a paw print on every card, the most liked first in each tab ---------- */
     (function () {
         var server = root.dataset.server;
         if (!server || !window.fetch) return;
@@ -550,8 +550,7 @@
                     b.querySelector('.gc-n').textContent = v === 1 ? c.u : c.d;
                     b.setAttribute('aria-pressed', mine[id] === v ? 'true' : 'false');
                 });
-                var all = c.u + c.d;
-                box.title = all ? Math.round(c.u / all * 100) + '% of ' + all + (all === 1 ? ' vote' : ' votes') + ' liked it' : 'No votes yet';
+                box.title = c.u === 1 ? '1 paw up' : c.u + ' paws up';
                 box.hidden = false;
             });
         }
@@ -559,11 +558,8 @@
             Array.prototype.forEach.call(root.querySelectorAll('.arcade-grid'), function (grid) {
                 var cells = Array.prototype.slice.call(grid.querySelectorAll('.game-cell'));
                 cells.forEach(function (c, i) { if (c.dataset.order == null) c.dataset.order = i; });
-                function key(c) { var n = counts[c.dataset.id] || { u: 0, d: 0 }; return [n.u, n.u + n.d ? n.u / (n.u + n.d) : 0]; }
-                cells.sort(function (a, b) {
-                    var ka = key(a), kb = key(b);
-                    return kb[0] - ka[0] || kb[1] - ka[1] || a.dataset.order - b.dataset.order;
-                });
+                function likes(c) { return (counts[c.dataset.id] || { u: 0 }).u; }
+                cells.sort(function (a, b) { return likes(b) - likes(a) || a.dataset.order - b.dataset.order; });
                 cells.forEach(function (c) { grid.appendChild(c); });
             });
         }
@@ -576,13 +572,14 @@
             var b = e.target.closest('.gc-vote');
             if (!b || busy) return;
             e.stopPropagation();
-            var id = b.closest('.game-cell').dataset.id, v = +b.dataset.v, from = mine[id] || 0, to = from === v ? 0 : v;
+            var id = b.closest('.game-cell').dataset.id, v = +b.dataset.v, from = mine[id] || 0, to = from === v ? 0 : v;   /* an old dislike (-1) turns into a like */
             /* show it at once, then take the server's totals */
             var c = counts[id] || (counts[id] = { u: 0, d: 0 });
             c.u = Math.max(0, c.u + (to === 1) - (from === 1)); c.d = Math.max(0, c.d + (to === -1) - (from === -1));
             if (to) mine[id] = to; else delete mine[id];
             try { localStorage.setItem('arcade-votes', JSON.stringify(mine)); } catch (err) { /* kept for this visit only */ }
             show();
+            if (to) { b.classList.remove('boop'); void b.offsetWidth; b.classList.add('boop'); }
             if (audio()) SFX[to ? 'pop' : 'tap'](ctx.currentTime + 0.005);
             busy = true;
             fetch(server + '/likes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ g: id, f: from, t: to }) })

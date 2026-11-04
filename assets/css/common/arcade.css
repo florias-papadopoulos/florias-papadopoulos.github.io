@@ -209,7 +209,7 @@ body.arcade-playing { overflow: hidden; }
     .mascot-say { right: 52px; bottom: 54px; }
 }
 
-/* ---------- likes on the cards (arcade.js, /likes on the site's server): the card and its thumbs below it ---------- */
+/* ---------- likes on the cards (arcade.js, /likes on the site's server): the card and its paw below it ---------- */
 .game-cell { display: flex; flex-direction: column; gap: 6px; }
 .game-cell .game-card { flex: 1; }
 .gc-votes { display: flex; justify-content: center; gap: 8px; }
@@ -220,7 +220,11 @@ body.arcade-playing { overflow: hidden; }
     background: #fff; color: var(--muted); font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
     transition: border-color 0.15s, transform 0.15s;
 }
-.gc-vote:hover { border-color: var(--navy); }
+.gc-vote:hover { border-color: #f0a6b8; }
 .gc-vote:active { transform: scale(0.94); }
-.gc-vote[aria-pressed="true"] { border-color: var(--navy); color: var(--navy); background: #f8fafc; }
-html[data-pet="dog"] .gc-vote[aria-pressed="true"] { background: #fdf3e6; }
+/* the paw print: grey until it is pressed, then pink toe beans and a little hop */
+.gc-paw { width: 16px; height: 16px; fill: #b4bcc8; }
+.gc-vote[aria-pressed="true"] { border-color: #f0a6b8; color: #d6336c; background: #fff0f4; }
+.gc-vote[aria-pressed="true"] .gc-paw { fill: #f0789a; }
+.gc-vote.boop .gc-paw { animation: gc-boop 0.45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes gc-boop { 0% { transform: scale(1); } 40% { transform: scale(1.45) rotate(-14deg); } 100% { transform: scale(1); } }
