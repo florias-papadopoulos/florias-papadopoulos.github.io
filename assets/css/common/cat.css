@@ -67,6 +67,9 @@ html[data-cat="dog-bat"], .cat-opt[data-look="dog-bat"] {
 /* the Batdog wears the Batcat's cowl, mask, cape and belt; the cowl's pointed ears replace the floppy ones */
 html[data-cat="dog-bat"] .cat .bat-only { display: inline; }
 html[data-cat="dog-bat"] .cat .dog-ear { display: none; }
+.cat .batdog-eyes { display: none; }
+html[data-cat="dog-bat"] .cat .batdog-eyes { display: inline; }
+html[data-cat="dog-bat"][data-pet] .cat .dog-eyes { display: none; }
 /* with a dog the site turns warm: browns and amber instead of navy and pink */
 html[data-pet="dog"] .glyph, html[data-pet="dog"] .glyph.keyicon { color: rgba(138, 59, 18, 0.55); }
 html[data-pet="dog"] .glyph.pink { color: rgba(194, 124, 14, 0.6); }
