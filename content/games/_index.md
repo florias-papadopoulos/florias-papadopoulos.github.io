@@ -15,7 +15,7 @@ layout: arcade
 # to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track;
 # with a single track the picker is not shown and that board is used).
 games:
-  - { id: cipher-cat,     title: "Cipher Cat",          emoji: "🔐", desc: "The cat hid a message. Crack the code before the clock runs out.", dogTitle: "Cipher Dog", dogDesc: "The dog hid a message. Crack the code before the clock runs out.", group: simple, levels: true }
+  - { id: cipher-cat,     title: "Cipher Cat",          emoji: "🔐", desc: "The cat hid a message. Crack the code before the clock runs out.", dogTitle: "Cipher Dog", dogDesc: "The dog hid a message. Crack the code before the clock runs out.", group: complex, levels: true }
   - { id: cat-tower,      title: "Cat Tower Stack",     emoji: "🗼", desc: "Drop the pieces, build the tallest wobbly cat tower.", dogTitle: "Dog Tower Stack", dogDesc: "Drop the pieces, build the tallest wobbly dog tower.", group: simple, levels: true }
   - { id: laser-chase,    title: "Laser Chase",         emoji: "💫", desc: "Steer the laser dot, the cat follows. Mind the vases.", dogDesc: "Steer the laser dot, the dog follows. Mind the vases.", group: simple, levels: true }
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
