@@ -4,7 +4,8 @@ description: "Small games to play with the cat."
 intro: "Testing the limits of Claude, one cat game at a time."
 dogIntro: "Testing the limits of Claude, one dog game at a time."
 layout: arcade
-# Each game is assets/js/games/<id>.js (loaded only when opened). group: complex, two or simple (the three tabs of the page:
+# Each game is assets/js/games/<id>.js, or for a big one a folder assets/js/games/<id>/ of parts (loaded only when opened;
+# new games over about 600 lines are written as such a folder, see assets/js/games/README.md). group: complex, two or simple (the three tabs of the page:
 # Best, 2 Player, More; Best opens first).
 # levels: true shows the Easy/Normal/Hard picker while playing (the game reads it with api.level()).
 # script: <file> runs a game from another game's file (assets/js/games/<file>.js registers both ids).
@@ -36,6 +37,7 @@ games:
   - { id: kitty-kart-split, title: "Kitty Kart Split Screen", emoji: "📱", desc: "Two players on one phone, one half each, or on one keyboard. No internet needed.", dogTitle: "Puppy Kart Split Screen", group: two, script: kitty-kart, levels: true }
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
   - { id: four-in-a-row-2p, title: "Four for Two",        emoji: "🟠", desc: "Two players on one phone or computer, taking turns. Four or five in a row.", group: two, script: four-in-a-row }
+  - { id: crypto-heist,   title: "Crypto Heist",        emoji: "🗝️", desc: "Break into the Treat Vault room by room: one-time pads, RSA, hashes, Diffie-Hellman and zero knowledge, by hand.", group: complex, levels: true }
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex, levels: true }
   - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out with a water pistol while the garden keeps changing, and grab the power ups they drop.", group: complex, levels: true,
       tracks: [{ id: tour, name: "Garden Tour" }] }

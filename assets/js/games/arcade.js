@@ -1,4 +1,5 @@
-/* Games page shell (layouts/_default/arcade.html, styles assets/css/common/arcade.css).
+/* Games page shell (layouts/_default/arcade.html, styles assets/css/common/arcade.css). How games are built, and the
+   rule to write big games as a folder of parts: assets/js/games/README.md.
 
    A game is a file assets/js/games/<id>.js that calls
 
