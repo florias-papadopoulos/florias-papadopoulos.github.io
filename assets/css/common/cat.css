@@ -7,14 +7,10 @@
 /* on the Bachelor, Master and Papers tabs the cat lives in the window (assets/js/cat-pages.js) */
 .cat-layer.cat-viewport { position: fixed; inset: 0; width: auto; height: auto; }
 
-/* ---------- The eight looks of the cat (the "winter" look is the Santa cat, "bat" the Batcat), chosen with the cat button in the top right corner (baseof.html) ---------- */
+/* ---------- The looks of the cat (the "winter" look is the Santa cat, "bat" the Batcat), chosen with the cat button in the top right corner (baseof.html) ---------- */
 :root, .cat-opt[data-look="ginger"] {
     --fur-top: #ffc06e; --fur-bot: #f0932c; --head-top: #ffc479; --fur-dark: #de8a2c; --stripe: #cf7419;
     --tail: #f5a03c; --cream: #ffe9c9; --iris: #8ed383; --tuft: #fff4e2; --whisker: #9a7a60;
-}
-html[data-cat="silver"], .cat-opt[data-look="silver"] {
-    --fur-top: #dde2e8; --fur-bot: #a9b2bd; --head-top: #e4e8ed; --fur-dark: #97a1ac; --stripe: #7a8592;
-    --tail: #b4bcc6; --cream: #f5f7f9; --iris: #e9b949; --tuft: #ffffff; --whisker: #8a9099;
 }
 html[data-cat="dino"], .cat-opt[data-look="dino"] {
     --fur-top: #ffc06e; --fur-bot: #f0932c; --head-top: #ffc479; --fur-dark: #de8a2c; --stripe: #cf7419;
@@ -27,10 +23,6 @@ html[data-cat="dog-dino"], .cat-opt[data-look="dog-dino"] {
 html[data-cat="bat"], .cat-opt[data-look="bat"] {
     --fur-top: #a2a9b3; --fur-bot: #6f7681; --head-top: #aab1bb; --fur-dark: #5f6671; --stripe: #6f7681;
     --tail: #2b2e36; --cream: #dfe3e8; --iris: #fff4b8; --tuft: #c4c9d0; --whisker: #4b5058;
-}
-html[data-cat="tuxedo"], .cat-opt[data-look="tuxedo"] {
-    --fur-top: #50545d; --fur-bot: #2c2f35; --head-top: #5b6069; --fur-dark: #26292e; --stripe: #3d4148;
-    --tail: #373a40; --cream: #f6f6f4; --iris: #c8e06c; --tuft: #9ba1a9; --whisker: #c9cdd2;
 }
 /* calico: white with orange and black patches (no stripes on the body, --stripe is the orange the games use) */
 html[data-cat="calico"], .cat-opt[data-look="calico"] {
@@ -52,10 +44,6 @@ html[data-cat="winter"], .cat-opt[data-look="winter"] {
 /* ---------- The dogs, chosen with the dog button next to the cat button. A dog look sets data-pet="dog" on <html>
    (assets/js/cat-look.js) and data-cat to its id; the same variables as the cats, plus --ear (the floppy ears) and
    --nose. The games read these and draw a dog instead of a cat when data-pet is "dog". ---------- */
-html[data-cat="dog-golden"], .cat-opt[data-look="dog-golden"] {
-    --fur-top: #f6d79a; --fur-bot: #dca456; --head-top: #f8dda6; --fur-dark: #c98d40; --stripe: #c98d40;
-    --tail: #e0ad66; --cream: #fcefd6; --iris: #6b4423; --tuft: #fff6e4; --whisker: #8a6a48; --ear: #b97a33; --nose: #2b2220;
-}
 html[data-cat="dog-beagle"], .cat-opt[data-look="dog-beagle"] {
     --fur-top: #e8b57a; --fur-bot: #c98546; --head-top: #ecbd86; --fur-dark: #b5743a; --stripe: #3a2e28;
     --tail: #fffaf2; --cream: #fffaf2; --iris: #5a3a1e; --tuft: #ffffff; --whisker: #7a5a3e; --ear: #8a5428; --nose: #2b2220;

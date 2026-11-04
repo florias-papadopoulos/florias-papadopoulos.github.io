@@ -5,7 +5,7 @@
    games draw a dog instead of the cat. */
 try {
     var l = localStorage.getItem('cat-look');
-    if (['silver', 'tuxedo', 'calico', 'hacker', 'astronaut', 'winter', 'bat', 'dino', 'dog-golden', 'dog-beagle', 'dog-husky', 'dog-choco', 'dog-bat', 'dog-dino'].indexOf(l) >= 0) {
+    if (['calico', 'hacker', 'astronaut', 'winter', 'bat', 'dino', 'dog-beagle', 'dog-husky', 'dog-choco', 'dog-bat', 'dog-dino'].indexOf(l) >= 0) {
         document.documentElement.dataset.cat = l;
         if (l.indexOf('dog-') === 0) document.documentElement.dataset.pet = 'dog';
     }
