@@ -42,8 +42,9 @@
    then the order of content/games/_index.md). A browser's own like is kept in localStorage 'arcade-votes' ({id: 1});
    pressing it again takes it back.
 
-   Sound: short effects generated with the Web Audio API (nothing downloaded). Music: the note button (in the list
-   header, and in the top bar while a game runs) picks one of four looping background mixes of 11 to 12 minutes, files
+   Sound: short effects generated with the Web Audio API (nothing downloaded). The note button (in the list header, and
+   in the top bar while a game runs) opens the sound menu: an Effects volume (0 is off; localStorage 'arcade-sfx',
+   also read by games with sounds of their own through Arcade.sfxLevel()), then the music, which picks one of four looping background mixes of 11 to 12 minutes, files
    in static/music (CC0 tracks joined, credits in static/music/credits.txt), listed in the layout. One <audio>, quieter
    than the effects, which play on top; a file loads only once its mix is picked. The choice and volume are kept in
    localStorage 'arcade-music'; after a reload the music starts again at the first click or key (browsers only allow
@@ -94,6 +95,8 @@
     function bestKey(id) { var l = levelOf(id); return l === 'normal' ? id : id + '/' + l; }   /* normal: the old key */
 
     window.Arcade = {
+        /* 0..1: how loud effects should be; for games that make sounds of their own (Kitty Kart's piano road) */
+        sfxLevel: function () { return sfxLevel(); },
         register: function (id, factory) {
             factories[id] = factory;
             if (loading[id]) { loading[id].forEach(function (cb) { cb(); }); delete loading[id]; }
@@ -102,13 +105,17 @@
 
     /* ---------- sound: one AudioContext for the effects ---------- */
     var ctx = null, master = null, sfxGain = null;
+    /* the effects' volume, 0 to 100 (the Effects slider in the sound menu; localStorage 'arcade-sfx'), squared so it feels even */
+    var sfxVol = (function () { var v = store('arcade-sfx'); return typeof v === 'number' && v >= 0 && v <= 100 ? Math.round(v) : 100; })();
+    function sfxLevel() { return Math.pow(sfxVol / 100, 2); }
+    function setSfx() { if (sfxGain) sfxGain.gain.value = 0.32 * sfxLevel(); }
     function audio() {
         if (!ctx) {
             var AC = window.AudioContext || window.webkitAudioContext;
             if (!AC) return null;
             ctx = new AC();
             master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
-            sfxGain = ctx.createGain(); sfxGain.gain.value = 0.32; sfxGain.connect(master);
+            sfxGain = ctx.createGain(); sfxGain.connect(master); setSfx();
         }
         if (ctx.state === 'suspended') ctx.resume();
         return ctx;
@@ -162,7 +169,16 @@
     if (musicBox) (function () {
         musicBtn = musicBox.querySelector('.music-btn');
         musicMenu = musicBox.querySelector('.music-menu');
-        var volRow = musicBox.querySelector('.music-vol'), volInput = volRow.querySelector('input');
+        var volRow = musicBox.querySelector('.music-only'), volInput = volRow.querySelector('input');
+        /* the effects' own volume, at the top of the menu */
+        var sfxInput = musicBox.querySelector('.sfx-vol input');
+        if (sfxInput) {
+            sfxInput.value = sfxVol;
+            sfxInput.addEventListener('input', function () {
+                sfxVol = +sfxInput.value; setSfx(); store('arcade-sfx', sfxVol);
+                if (audio() && SFX.tap) SFX.tap(ctx.currentTime + 0.005);   /* a little sound to hear the new level */
+            });
+        }
         var credit = musicBox.querySelector('.music-credit');
         var inputs = musicBox.querySelectorAll('input[name="music-mix"]'), MIXES = {};
         Array.prototype.forEach.call(inputs, function (i) { MIXES[i.value] = i; });

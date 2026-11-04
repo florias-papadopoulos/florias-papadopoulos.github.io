@@ -29,10 +29,12 @@
             (dict "id" "chiptune" "name" "Chiptune" "tracks" 6 "min" 12 "file" "mix-chiptune.mp3")
             (dict "id" "lofi" "name" "Lo-fi" "tracks" 5 "min" 11 "file" "mix-lofi.mp3") }}
         <div class="music" hidden>
-            <button class="arcade-btn music-btn" type="button" title="Music" aria-label="Music" aria-expanded="false" aria-controls="music-menu">
+            <button class="arcade-btn music-btn" type="button" title="Sound and music" aria-label="Sound and music" aria-expanded="false" aria-controls="music-menu">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 17.5V5.5l11-2.5v12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.2" cy="17.5" r="2.9" fill="currentColor"/><circle cx="17.2" cy="15" r="2.9" fill="currentColor"/></svg>
             </button>
-            <div class="music-menu" id="music-menu" role="group" aria-label="Music" hidden>
+            <div class="music-menu" id="music-menu" role="group" aria-label="Sound and music" hidden>
+                {{- /* the sound effects of the games: their own volume (0 is off), kept in localStorage arcade-sfx */}}
+                <label class="music-vol sfx-vol"><span>Sound effects</span><input type="range" min="0" max="100" step="1" value="100" aria-label="Sound effects volume"></label>
                 <fieldset class="music-mixes">
                     <legend>Music</legend>
                     <label class="music-mix"><input type="radio" name="music-mix" value="off" checked><span class="mm-name">Off</span></label>
@@ -40,7 +42,7 @@
                     <label class="music-mix"><input type="radio" name="music-mix" value="{{ .id }}" data-src="{{ printf "music/%s" .file | relURL }}" data-tracks="{{ .tracks }}"><span class="mm-name">{{ .name }}</span><span class="mm-title">{{ .tracks }} tracks, {{ .min }} min</span></label>
                     {{- end }}
                 </fieldset>
-                <label class="music-vol"><span>Volume</span><input type="range" min="0" max="100" step="1" value="45"></label>
+                <label class="music-vol music-only"><span>Volume</span><input type="range" min="0" max="100" step="1" value="45" aria-label="Music volume"></label>
                 <p class="music-credit" data-credits="{{ "music/credits.txt" | relURL }}"></p>
             </div>
         </div>

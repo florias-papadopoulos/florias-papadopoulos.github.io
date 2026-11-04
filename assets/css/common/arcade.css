@@ -143,6 +143,8 @@ body.arcade-playing { overflow: hidden; }
 .mm-title { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.35; }   /* wraps between words only */
 .music-vol { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; padding: 6px 6px 0; border-top: 1px solid var(--line); }
 .music-vol[hidden] { display: none; }
+/* the effects volume heads the menu, with a line under it before the music */
+.music-vol.sfx-vol { margin: 0 0 8px; padding: 0 6px 8px; border-top: 0; border-bottom: 1px solid var(--line); }
 .music-vol input { flex: 1; min-width: 0; accent-color: var(--navy); }
 .music-credit { margin: 8px 6px 0; color: var(--muted); font-size: 0.75rem; line-height: 1.35; }
 .music-credit a { color: var(--navy); }

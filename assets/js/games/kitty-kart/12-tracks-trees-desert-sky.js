@@ -456,7 +456,9 @@
                 if (!AC) return;
                 noteAC = new AC(); noteOut = noteAC.createGain(); noteOut.gain.value = 0.28; noteOut.connect(noteAC.destination);
             }
+            noteOut.gain.value = 0.28 * (window.Arcade && Arcade.sfxLevel ? Arcade.sfxLevel() : 1);   /* the Effects slider */
             if (noteAC.state === 'suspended') noteAC.resume();
+            if (!noteOut.gain.value) return;
             var m = ((k % 18) + 18) % 18; if (m > 9) m = 18 - m;
             var f = 261.63 * Math.pow(2, (Math.floor(m / 5) * 12 + PENT[m % 5]) / 12) * (type === 'sine' ? 2 : 1);
             var t = noteAC.currentTime + 0.005, o = noteAC.createOscillator(), g = noteAC.createGain();
