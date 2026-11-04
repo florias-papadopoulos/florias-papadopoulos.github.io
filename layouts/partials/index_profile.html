@@ -29,9 +29,6 @@
         </header>
 
         {{- with .tagline }}<p class="tagline">{{ . | markdownify }}</p>{{ end }}
-        {{- with .interests }}
-        <ul class="chips">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
-        {{- end }}
 
         {{- with .journey }}
         {{- $n := len . }}
