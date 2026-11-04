@@ -134,18 +134,20 @@ body.arcade-playing { overflow: hidden; }
     overflow-wrap: normal;
 }
 .music-menu[hidden] { display: none; }
-.music-mixes { margin: 0; padding: 0; border: 0; }
-.music-mixes legend { padding: 0 0 4px; font-weight: 800; }
+/* the sound menu: "Sound effects" with its volume, a line, "Music" with its volume and the mixes */
+.snd-head { margin: 0 6px 2px; font-weight: 800; }
+.snd-next { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.snd-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.music-mixes { margin: 4px 0 0; padding: 0; border: 0; }
 .music-mix { display: flex; align-items: baseline; gap: 8px; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
 .music-mix:hover { background: #f1f5f9; }
 .music-mix input { margin: 0; accent-color: var(--navy); align-self: center; }
 .mm-name { flex-shrink: 0; font-weight: 700; white-space: nowrap; }
 .mm-title { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.35; }   /* wraps between words only */
-.music-vol { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; padding: 6px 6px 0; border-top: 1px solid var(--line); }
+.music-vol { display: flex; align-items: center; gap: 10px; padding: 2px 6px; }
 .music-vol[hidden] { display: none; }
-/* the effects volume heads the menu, with a line under it before the music */
-.music-vol.sfx-vol { margin: 0 0 8px; padding: 0 6px 8px; border-top: 0; border-bottom: 1px solid var(--line); }
-.music-vol input { flex: 1; min-width: 0; accent-color: var(--navy); }
+.music-vol input { flex: 1; min-width: 0; margin: 0; accent-color: var(--navy); }
+.snd-val { flex: none; width: 3.2em; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
 .music-credit { margin: 8px 6px 0; color: var(--muted); font-size: 0.75rem; line-height: 1.35; }
 .music-credit a { color: var(--navy); }
 /* phones: 16px controls (no zoom on iPhones), bigger rows and a taller slider to hit with a finger */

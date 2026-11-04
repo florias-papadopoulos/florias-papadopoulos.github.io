@@ -172,10 +172,11 @@
         var volRow = musicBox.querySelector('.music-only'), volInput = volRow.querySelector('input');
         /* the effects' own volume, at the top of the menu */
         var sfxInput = musicBox.querySelector('.sfx-vol input');
+        function level(i) { var o = i.parentNode.querySelector('.snd-val'); if (o) o.textContent = i.value + '%'; }   /* the % next to a slider */
         if (sfxInput) {
-            sfxInput.value = sfxVol;
+            sfxInput.value = sfxVol; level(sfxInput);
             sfxInput.addEventListener('input', function () {
-                sfxVol = +sfxInput.value; setSfx(); store('arcade-sfx', sfxVol);
+                sfxVol = +sfxInput.value; setSfx(); store('arcade-sfx', sfxVol); level(sfxInput);
                 if (audio() && SFX.tap) SFX.tap(ctx.currentTime + 0.005);   /* a little sound to hear the new level */
             });
         }
@@ -230,8 +231,8 @@
         Array.prototype.forEach.call(inputs, function (i) {
             i.addEventListener('change', function () { if (!i.checked) return; mix = i.value; save(); show(); play(); });
         });
-        volInput.value = vol;
-        volInput.addEventListener('input', function () { vol = +volInput.value; setVolume(); save(); });
+        volInput.value = vol; level(volInput);
+        volInput.addEventListener('input', function () { vol = +volInput.value; setVolume(); save(); level(volInput); });
         musicBtn.addEventListener('click', function () { menu(musicMenu.hidden); });
         musicBtn.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !musicMenu.hidden) { e.stopPropagation(); menu(false); }
