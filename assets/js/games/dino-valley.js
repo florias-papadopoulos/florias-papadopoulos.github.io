@@ -468,7 +468,7 @@ Arcade.register('dino-valley', function (api) {
         SK.fur = v('--fur-bot', SK.fur); SK.light = v('--fur-top', SK.light); SK.stripe = v('--stripe', SK.stripe);
         SK.calico = look === 'calico';
         SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;
-        SK.line = look === 'tuxedo' || look === 'bat' || look === 'hacker' ? '#17181c' : SK.line;
+        SK.line = look === 'tuxedo' || look === 'bat' || look === 'dog-bat' || look === 'hacker' ? '#17181c' : SK.line;
         SK.dog = document.documentElement.getAttribute('data-pet') === 'dog';   /* a dog rides instead, with --ear and --nose */
         if (SK.dog) { SK.ear = v('--ear', SK.ear); SK.nose = v('--nose', SK.nose); SK.cream = v('--cream', SK.cream); SK.toe = SK.fur; }
     })();

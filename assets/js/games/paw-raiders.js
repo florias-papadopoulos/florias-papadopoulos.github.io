@@ -82,7 +82,7 @@ Arcade.register('paw-raiders', function (api) {
         function v(name, dflt) { var s = cs && cs.getPropertyValue(name).trim(); return s || dflt; }
         var look = document.documentElement.getAttribute('data-cat') || 'ginger';
         SK.fur = v('--fur-bot', SK.fur); SK.light = v('--fur-top', SK.light); SK.stripe = v('--stripe', SK.stripe);
-        if (look === 'tuxedo' || look === 'bat' || look === 'hacker') SK.line = '#17181c';
+        if (look === 'tuxedo' || look === 'bat' || look === 'dog-bat' || look === 'hacker') SK.line = '#17181c';
         SK.dog = document.documentElement.getAttribute('data-pet') === 'dog';
         if (SK.dog) { SK.ear = v('--ear', SK.ear); SK.nose = v('--nose', SK.nose); SK.cream = v('--cream', SK.cream); SK.tail = v('--tail', SK.fur); SK.line = '#3b2a1e'; }
     })();

@@ -158,7 +158,7 @@ Arcade.register('garden-defender', function (api) {
         function v(name, dflt) { var s = cs && cs.getPropertyValue(name).trim(); return s || dflt; }
         var look = document.documentElement.getAttribute('data-cat') || 'ginger';
         SK.fur = v('--fur-bot', SK.fur); SK.light = v('--fur-top', SK.light); SK.stripe = v('--stripe', SK.stripe); SK.tail = v('--tail', SK.fur);
-        if (look === 'tuxedo' || look === 'bat' || look === 'hacker') SK.line = '#17181c';
+        if (look === 'tuxedo' || look === 'bat' || look === 'dog-bat' || look === 'hacker') SK.line = '#17181c';
         SK.dog = document.documentElement.dataset.pet === 'dog';   /* a dog look: floppy ears, a snout with a dark nose */
         SK.ear = v('--ear', SK.stripe); SK.nose = v('--nose', '#2b2220'); SK.cream = v('--cream', SK.light);
     })();

@@ -60,6 +60,13 @@ html[data-cat="dog-choco"], .cat-opt[data-look="dog-choco"] {
     --fur-top: #93644a; --fur-bot: #64402a; --head-top: #9c6d52; --fur-dark: #543420; --stripe: #543420;
     --tail: #6e4730; --cream: #c49a7a; --iris: #e2a93b; --tuft: #d9b89c; --whisker: #3e2617; --ear: #4a2b19; --nose: #1d1411;
 }
+html[data-cat="dog-bat"], .cat-opt[data-look="dog-bat"] {
+    --fur-top: #a2a9b3; --fur-bot: #6f7681; --head-top: #aab1bb; --fur-dark: #5f6671; --stripe: #5f6671;
+    --tail: #2b2e36; --cream: #dfe3e8; --iris: #5a3a1e; --tuft: #c4c9d0; --whisker: #4b5058; --ear: #2b2e36; --nose: #17181c;
+}
+/* the Batdog wears the Batcat's cowl, mask, cape and belt; the cowl's pointed ears replace the floppy ones */
+html[data-cat="dog-bat"] .cat .bat-only { display: inline; }
+html[data-cat="dog-bat"] .cat .dog-ear { display: none; }
 /* with a dog the site turns warm: browns and amber instead of navy and pink */
 html[data-pet="dog"] .glyph, html[data-pet="dog"] .glyph.keyicon { color: rgba(138, 59, 18, 0.55); }
 html[data-pet="dog"] .glyph.pink { color: rgba(194, 124, 14, 0.6); }

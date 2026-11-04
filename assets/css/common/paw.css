@@ -41,6 +41,9 @@ html[data-cat="bat"] .cat-pick .cf-bat, .cat-opt[data-look="bat"] .cf-bat { disp
 .cf-nose { fill: var(--nose); }
 .cf-tongue { fill: #f07a8a; }
 .cf-dog-eye { fill: #3b2a1e; }
+.cf-batdog { display: none; fill: #1f222a; stroke: #3b2a1e; stroke-width: 1.4; stroke-linejoin: round; }
+html[data-cat="dog-bat"] .dog-pick .cf-batdog, .cat-opt[data-look="dog-bat"] .cf-batdog { display: inline; }
+html[data-cat="dog-bat"] .dog-pick .cf-ear, .cat-opt[data-look="dog-bat"] .cf-ear { display: none; }
 html[data-pet="dog"] .cat-pick:not(.dog-pick) {
     --fur-bot: #f0932c; --cream: #ffe9c9; --iris: #8ed383;
 }

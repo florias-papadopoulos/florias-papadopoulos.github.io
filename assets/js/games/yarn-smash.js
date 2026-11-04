@@ -107,7 +107,7 @@ Arcade.register('yarn-smash', function (api) {
         var look = document.documentElement.getAttribute('data-cat') || 'ginger';
         SK.fur = v('--fur-bot', FUR); SK.light = v('--fur-top', '#ffc06e'); SK.stripe = v('--stripe', STRIPE);
         SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;
-        SK.line = look === 'tuxedo' || look === 'bat' || look === 'hacker' ? '#17181c' : OL;
+        SK.line = look === 'tuxedo' || look === 'bat' || look === 'dog-bat' || look === 'hacker' ? '#17181c' : OL;
         SK.dog = document.documentElement.getAttribute('data-pet') === 'dog';   /* a dog: --ear and --nose too */
         SK.ear = v('--ear', '#b97a33'); SK.nose = v('--nose', '#2b2220');
         if (SK.dog) { SK.toe = SK.fur; SK.line = OL; }
