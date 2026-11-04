@@ -228,3 +228,7 @@ body.arcade-playing { overflow: hidden; }
 .gc-vote[aria-pressed="true"] .gc-paw { fill: #f0789a; }
 .gc-vote.boop .gc-paw { animation: gc-boop 0.45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes gc-boop { 0% { transform: scale(1); } 40% { transform: scale(1.45) rotate(-14deg); } 100% { transform: scale(1); } }
+
+/* names and texts of the games: the dog ones while a dog is chosen (dogTitle, dogDesc, dogIntro in content/games/_index.md) */
+.arcade .for-dog, html[data-pet="dog"] .arcade .for-cat { display: none; }
+html[data-pet="dog"] .arcade .for-dog { display: inline; }

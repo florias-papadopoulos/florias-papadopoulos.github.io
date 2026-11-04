@@ -60,6 +60,8 @@
     var msg = stage.querySelector('.stage-msg');
     var mascot = stage.querySelector('.mascot');
     var factories = {}, loading = {}, current = null;
+    /* a game's name: its dog name (dogTitle in content/games/_index.md) while a dog is chosen */
+    function nameOf(g) { return document.documentElement.dataset.pet === 'dog' && g.dogTitle ? g.dogTitle : g.title; }
 
     function store(key, value) {
         try {
@@ -385,7 +387,7 @@
         hideBoard();
         area.innerHTML = '';
         area.className = 'stage-area game-' + id;
-        stage.querySelector('.stage-title').textContent = g.title;
+        stage.querySelector('.stage-title').textContent = nameOf(g);
         stage.querySelector('.stage-score').textContent = '';
         var key = bestKey(id), b = bests[key];
         stage.querySelector('.stage-best').textContent = b == null ? '' : 'Best ' + b;
@@ -525,7 +527,7 @@
             Array.prototype.forEach.call(root.querySelectorAll('.arcade-grid .game-card'), function (c) {   /* page order: Best, then More */
                 var g = byId[c.dataset.id];
                 if (!g || g.group === 'two' || !g.src) return;
-                var op = el('option', null, g.title); op.value = g.id; gSel.appendChild(op);
+                var op = el('option', null, nameOf(g)); op.value = g.id; gSel.appendChild(op);
             });
             boards.querySelector('.ab-level').value = 'normal';
             Array.prototype.forEach.call(boards.querySelectorAll('select'), function (sel) { sel.addEventListener('change', boardsLoad); });

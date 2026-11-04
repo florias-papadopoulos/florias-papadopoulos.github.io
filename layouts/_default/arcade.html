@@ -8,12 +8,12 @@
 {{- $g := . }}
 {{- $src := "" }}{{ $sri := "" }}
 {{- with resources.Get (printf "js/games/%s.js" ($g.script | default $g.id)) }}{{ $js := . | minify | fingerprint }}{{ $src = $js.RelPermalink }}{{ $sri = $js.Data.Integrity }}{{ end }}
-{{- $list = $list | append (dict "id" $g.id "title" $g.title "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "tracks" ($g.tracks | default slice) "trackLabel" ($g.trackLabel | default "Track") "src" $src "integrity" $sri) }}
+{{- $list = $list | append (dict "id" $g.id "title" $g.title "dogTitle" ($g.dogTitle | default $g.title) "dogDesc" ($g.dogDesc | default $g.desc) "dogEmoji" ($g.dogEmoji | default $g.emoji) "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "tracks" ($g.tracks | default slice) "trackLabel" ($g.trackLabel | default "Track") "src" $src "integrity" $sri) }}
 {{- end }}
 <div class="arcade" id="arcade" data-games="{{ $list | jsonify }}"{{ with site.Params.statsEndpoint }} data-server="{{ . }}"{{ end }}>
     <header class="arcade-head">
         <h1>Games</h1>
-        {{- with .Params.intro }}<p class="arcade-intro">{{ . }}</p>{{ end }}
+        {{- with .Params.intro }}<p class="arcade-intro"><span class="for-cat">{{ . }}</span><span class="for-dog">{{ $.Params.dogIntro | default . }}</span></p>{{ end }}
         {{- /* The music button: a menu of four background mixes (10+ minutes each, several CC0 tracks joined), files in
                static/music, every track credited in static/music/credits.txt. It sits here on the list and moves into
                the top bar of a running game. */}}
@@ -56,9 +56,9 @@
         {{- range $games }}
         <div class="game-cell" data-id="{{ .id }}">
         <button class="game-card" type="button" data-id="{{ .id }}"{{ if not .src }} disabled{{ end }}>
-            <span class="gc-icon" aria-hidden="true">{{ .emoji }}</span>
-            <span class="gc-title">{{ .title }}</span>
-            <span class="gc-desc">{{ if .src }}{{ .desc }}{{ else }}Coming soon{{ end }}</span>
+            <span class="gc-icon" aria-hidden="true"><span class="for-cat">{{ .emoji }}</span><span class="for-dog">{{ .dogEmoji }}</span></span>
+            <span class="gc-title"><span class="for-cat">{{ .title }}</span><span class="for-dog">{{ .dogTitle }}</span></span>
+            <span class="gc-desc">{{ if .src }}<span class="for-cat">{{ .desc }}</span><span class="for-dog">{{ .dogDesc }}</span>{{ else }}Coming soon{{ end }}</span>
             <span class="gc-best" data-best="{{ .id }}"></span>
         </button>
         {{- /* a like (a paw print, "paws up"), totals from /likes on the site's server (arcade.js); hidden until they load */}}

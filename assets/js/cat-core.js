@@ -40,6 +40,7 @@
         var timer = null, moving = false, token = 0;
         var pets = 0, streak = 0, lastPet = 0, away = false;
         function isDog() { return document.documentElement.dataset.pet === 'dog'; }
+        if (isDog()) cat.setAttribute('aria-label', 'A dog. Click to pet it.');
         try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
 
         /* ---------- helpers ---------- */
