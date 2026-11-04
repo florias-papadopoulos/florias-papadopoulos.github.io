@@ -123,6 +123,17 @@ html[data-pet="dog"] .profile.home, html[data-pet="dog"] .arcade, html[data-pet=
 .cat.vanish { opacity: 0; }
 /* petted too often on the home page: it ran off (cat-core.js leave), the reset button brings it back */
 .cat.away { visibility: hidden; pointer-events: none; }
+/* ... after scratching the cursor away: the real cursor hidden, a drawn grab hand flying off, scratch marks */
+html.cursor-gone, html.cursor-gone * { cursor: none !important; }
+.fake-cursor { position: fixed; z-index: 2147483647; width: 24px; height: 24px; margin: -9px 0 0 -12px; pointer-events: none;
+    transition: transform 0.9s cubic-bezier(.2, .7, .4, 1), opacity 0.9s ease-in; }
+.fake-cursor svg { width: 100%; height: 100%; fill: #fff; stroke: #000; stroke-width: 1.3; stroke-linejoin: round; }
+.cat-scratch { position: fixed; z-index: 2147483646; width: 60px; height: 60px; margin: -30px 0 0 -30px; pointer-events: none;
+    animation: cat-scratch 1.4s ease-out forwards; }
+.cat-scratch svg { width: 100%; height: 100%; fill: none; stroke: #d6336c; stroke-width: 3.2; stroke-linecap: round;
+    stroke-dasharray: 60; stroke-dashoffset: 60; animation: cat-scratch-draw 0.18s ease-out forwards; }
+@keyframes cat-scratch { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes cat-scratch-draw { to { stroke-dashoffset: 0; } }
 /* while it moves the cat gets a layer of its own, so Safari moves the picture instead of redrawing (and leaving a trail) */
 .cat.moving { will-change: transform; }
 .cat-tilt { width: 100%; height: 100%; transform-origin: 50% 100%; transform: rotate(var(--tilt, 0deg)); }
@@ -201,6 +212,8 @@ html[data-pet="dog"] .cat .dog-only { display: inline; }
 html[data-pet="dog"] .cat .cat-only, html[data-pet="dog"] .cat .stripe, html[data-pet="dog"] .cat .tail-stripe { display: none; }
 .cat .dog-ear { fill: var(--ear, var(--fur-dark)); stroke-width: 1.2; }
 .cat .dog-nose { fill: var(--nose, #2b2220); }
+.cat .dog-eye { fill: #2b1d12; }
+.cat .dog-brow { fill: none; stroke: var(--fur-dark); stroke-width: 1.6; stroke-linecap: round; opacity: 0.8; }
 .cat .dog-tongue { fill: #f07a8a; stroke-width: 0.9; }
 .cat .tail-ol.dog-tail { stroke-width: 11.5; }
 .cat .tail-fur.dog-tail { stroke-width: 7.6; }

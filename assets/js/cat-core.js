@@ -22,7 +22,10 @@
      arrive(p, r)          true if the world handled what the cat does at p (r: a random number in [0, 1))
      start()               perch to start on (with .fx), {kind: 'ground', x} or null for the ground in the middle
      leaveAfter            pets in a row (each within 15 s of the last) after which the cat has had enough and runs off
-                           the page; reset() brings it back (home page: 10)
+                           the page; reset() brings it back (home page: 10). First it scratches the visitor's
+                           cursor away: the real one is hidden (pages cannot move it) and a drawn copy in the
+                           same spot gets swatted off the screen; the real one is back at the next mouse move.
+                           On touch screens it leaves scratch marks where the finger was.
 
    With a dog chosen (html[data-pet="dog"]) the same animal is a dog: it says woof instead of purr. */
 (function () {
@@ -39,6 +42,8 @@
         var at = null;                                 /* where it is: {kind, el?, fx?} */
         var timer = null, moving = false, token = 0;
         var pets = 0, streak = 0, lastPet = 0, away = false;
+        var lastPtr = null;   /* where the visitor's pointer last was (window coordinates) and what it is */
+        document.addEventListener('pointerdown', function (e) { lastPtr = { x: e.clientX, y: e.clientY, mouse: e.pointerType === 'mouse' }; }, true);
         function isDog() { return document.documentElement.dataset.pet === 'dog'; }
         if (isDog()) cat.setAttribute('aria-label', 'A dog. Click to pet it.');
         try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
@@ -289,7 +294,42 @@
             cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, hint ? 5000 : 2300);
             if (!moving) next(2900);
         }
-        /* petted too often: it says so, jumps down and runs off the nearer side of the page, until reset() */
+        /* the swat at the cursor: a drawn copy of the grab hand (the cursor over the cat) where the real one was, which
+           flies off spinning while the real one is hidden; three scratch marks either way */
+        function scratchCursor() {
+            if (!lastPtr) return;
+            var x = lastPtr.x, y = lastPtr.y, root = document.documentElement;
+            var marks = document.createElement('div');
+            marks.className = 'cat-scratch';
+            marks.style.left = x + 'px'; marks.style.top = y + 'px';
+            marks.innerHTML = '<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M8 10L40 46M18 6L50 40M28 4L56 30"/></svg>';
+            document.body.appendChild(marks);
+            setTimeout(function () { marks.remove(); }, 1400);
+            if (!lastPtr.mouse || reduce) return;
+            var fake = document.createElement('div');
+            fake.className = 'fake-cursor';
+            fake.style.left = x + 'px'; fake.style.top = y + 'px';
+            fake.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 11V5.6a1.4 1.4 0 0 1 2.8 0V10V4.4a1.4 1.4 0 0 1 2.8 0V10V5.2a1.4 1.4 0 0 1 2.8 0V10.6V7.4a1.4 1.4 0 0 1 2.8 0v6.8c0 4-2.6 6.8-6.4 6.8h-.6c-2.4 0-3.8-.9-5.2-2.6l-3.4-4.4a1.5 1.5 0 0 1 2.2-2l2.2 2z"/></svg>';
+            document.body.appendChild(fake);
+            root.classList.add('cursor-gone');
+            var dir = (x < rel(cat).x + layer.getBoundingClientRect().left + CW / 2) ? -1 : 1;
+            requestAnimationFrame(function () { requestAnimationFrame(function () {
+                fake.style.transform = 'translate(' + (dir * (window.innerWidth * 0.7 + 200)) + 'px, -' + (window.innerHeight * 0.5 + 150) + 'px) rotate(' + (dir * 900) + 'deg)';
+                fake.style.opacity = '0';
+            }); });
+            setTimeout(function () { fake.remove(); }, 1000);
+            /* the real cursor back at the next move (not before the swat has been seen) */
+            var t0 = Date.now();
+            function back() {
+                if (Date.now() - t0 < 500) return;
+                root.classList.remove('cursor-gone');
+                document.removeEventListener('pointermove', back);
+            }
+            document.addEventListener('pointermove', back);
+            setTimeout(function () { root.classList.remove('cursor-gone'); document.removeEventListener('pointermove', back); }, 6000);
+        }
+        /* petted too often: it scratches the cursor away, says so, jumps down and runs off the nearer side of the page,
+           until reset() */
         function leave() {
             away = true;
             token++;
@@ -299,9 +339,12 @@
             Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz, .cat-bubble, .cat-heart'), function (e) { e.remove(); });
             var b = document.createElement('span');
             b.className = 'cat-bubble';
-            b.textContent = isDog() ? 'Grrr, enough! Bye.' : 'Hiss! Enough. Bye.';
+            b.textContent = isDog() ? 'GRRR!' : 'HISS!';
             cat.appendChild(b);
             var id = token;
+            cat.classList.add('bat');
+            setTimeout(scratchCursor, 200);
+            setTimeout(function () { cat.classList.remove('bat'); if (id === token) b.textContent = isDog() ? 'Enough! Bye.' : 'Enough. Bye.'; }, 950);
             setTimeout(function () {
                 if (id !== token) return;
                 b.remove();
@@ -318,7 +361,7 @@
                         place(x, ground(clamp(x, 0, W)));
                     }, function () { pose(''); moving = false; cat.classList.add('away'); at = null; });
                 });
-            }, 1300);
+            }, 2200);
         }
         /* the first surface below (x, y): a page element or the ground */
         function surfaceBelow(x, y) {
