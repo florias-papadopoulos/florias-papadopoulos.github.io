@@ -59,6 +59,26 @@
         push('.arcade-boards:not([hidden]) .ab-card', 'card', { w: 0.9 });
         return list;
     }
+    /* Games page: the cat climbs up the side of a game card instead of jumping when the card stands in the same column
+       as where it is: from the ground if the column of cards reaches down near it, or from the top of a card below */
+    function climbPath(p, at, pos) {
+        if (p.kind !== 'card' || phone) return null;
+        var r = rel(p.el), cx = r.x + r.w / 2;
+        function sameColumn(e) { var q = rel(e); return Math.abs(q.x + q.w / 2 - cx) < r.w / 2; }
+        var left = pos.x < cx, side = left ? r.x - 2 : r.x + r.w + 2, wall = left ? 1 : -1;
+        if (at && at.el && at.kind === 'card' && at.el !== p.el && sameColumn(at.el) && rel(at.el).y > r.y + r.h - 4) {
+            return { x: side, from: pos.y, to: r.y, side: wall };      /* the card right below: climb from its top */
+        }
+        if (at && at.kind === 'ground') {
+            var low = r.y + r.h;                              /* the bottom of the column of cards under this one */
+            Array.prototype.forEach.call(document.querySelectorAll('.arcade-grid:not([hidden]) .game-card'), function (e) {
+                var q = rel(e);
+                if (sameColumn(e) && q.y > r.y && q.y - low < 30) low = Math.max(low, q.y + q.h);
+            });
+            if (ground() - low < 120) return { x: side, from: ground(), to: r.y, side: wall };
+        }
+        return null;
+    }
     /* on a row the cat sits over the pictures (the row above has its picture there too), never over the titles */
     function spot(p, fx) {
         if (p.kind !== 'row') return null;
@@ -138,6 +158,7 @@
         climb: 460,
         perches: perches,
         spot: spot,
+        climbPath: climbPath,
         allow: allow,
         wander: wander,
         arrive: arrive,

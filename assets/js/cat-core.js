@@ -21,6 +21,8 @@
      step(x, dir, run)     called on every step on the ground
      arrive(p, r)          true if the world handled what the cat does at p (r: a random number in [0, 1))
      start()               perch to start on (with .fx), {kind: 'ground', x} or null for the ground in the middle
+     climbPath(p, at, pos) null, or {x, from, to, side} (side: 1 the wall is right of x, -1 left of it) to climb up a wall instead of jumping to perch p: the cat walks to x
+                           (on the ground or along the perch it is on), climbs from y from to y to, then hops on
      leaveAfter            pets in a row (each within 15 s of the last) after which the cat has had enough and runs off
                            the page; reset() brings it back (home page: 10). First it scratches the visitor's
                            cursor away: the real one is hidden (pages cannot move it) and a drawn copy in the
@@ -162,6 +164,21 @@
             }, reduce ? 0 : 160);
         }
         function land() { cat.classList.remove('land'); void cat.offsetWidth; cat.classList.add('land'); }
+        /* along the top of the perch it is on, to x (it may step a little past the edge, to a wall beside it) */
+        function walkTop(x1, done) {
+            var x0 = pos.x, y = pos.y, dx = x1 - x0;
+            if (Math.abs(dx) < 3) return done();
+            face(dx);
+            animate(Math.abs(dx) / 95 * 1000, function (t) { pose('walk'); place(x0 + dx * t, y); }, function () { pose(''); done(); });
+        }
+        /* up a wall at c.x: turned on its side so its feet hold the wall and its head points up, from c.from to c.to */
+        function climbUp(c, done) {
+            var side = c.side || 1, y0 = c.from - CW / 2, y1 = c.to + CW / 2 - 10;   /* side: the wall is to the right (1) or left (-1) */
+            if (y0 <= y1) return done();
+            face(side);
+            tilt(side > 0 ? -90 : 90);
+            animate((y0 - y1) / 120 * 1000, function (t) { pose('walk climb'); place(c.x, y0 + (y1 - y0) * t); }, function () { pose(''); tilt(0); done(); });
+        }
         function settle(p) {
             moving = false;
             cat.classList.remove('moving');
@@ -181,6 +198,12 @@
             if (reduce) { var t = o.target(); place(t.x, t.y); at = o.p; return; }
             startMove();
             var tg = o.target(), fromGround = at && at.kind === 'ground';
+            var c = o.p.kind !== 'ground' && world.climbPath ? world.climbPath(o.p, at, pos) : null;
+            if (c) {
+                return (fromGround ? walkGround : walkTop)(c.x, function () {
+                    climbUp(c, function () { leap(o.target, function () { settle(o.p); }); });
+                });
+            }
             if (o.p.kind === 'ground') {
                 if (fromGround) return walkGround(tg.x, function () { settle(o.p); });
                 var lx = pos.x + (tg.x > pos.x ? 60 : -60);
