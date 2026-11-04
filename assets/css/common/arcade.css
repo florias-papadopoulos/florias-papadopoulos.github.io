@@ -169,7 +169,7 @@ body.arcade-playing { overflow: hidden; }
 .sb-list li { padding: 1px 0; }
 .sb-list li span { display: inline-flex; }
 .sb-list li { display: list-item; }
-.sb-name { min-width: 0; }
+.sb-name { min-width: 0; overflow-wrap: anywhere; }   /* nicknames up to 20 letters */
 .sb-score { float: right; font-variant-numeric: tabular-nums; color: var(--muted); }
 .sb-me { font-weight: 700; color: var(--navy); }
 .sb-me .sb-score { color: var(--navy); }

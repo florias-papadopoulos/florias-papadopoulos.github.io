@@ -55,7 +55,7 @@ const BOARDS = {
     'cucumber-hop': {}, 'yarn-smash': {}, 'night-prowl': {}, 'orbit-paws': {}, 'paw-raiders': {}, 'garden-defender': {},
     'dino-valley': {}, 'cipher-cat': { max: 2500 }, 'cat-tower': { max: 20000 }, 'laser-chase': { max: 30000 },
     'sliding-kitten': { lower: true, min: 1 }, 'mouse-sweeper': { lower: true, min: 1 },
-    'kitty-kart': { lower: true, min: 10, max: 3600, dec: 1 }
+    'kitty-kart': { lower: true, min: 10, max: 3600, dec: 1 }, 'crypto-heist': { max: 6000 }
 };
 const LEVELS = ['easy', 'normal', 'hard'];
 /* Games that can be liked: all of the leaderboard ones and the two-player games */
@@ -63,7 +63,7 @@ const LIKES = Object.keys(BOARDS).concat(['kitty-kart-duo', 'kitty-kart-split', 
 const LIKE_CAP = 3000;     // vote changes a day across all games; past it new ones are refused
 const KEEP = 100;          // scores kept per board (all time), and again per board this week
 const SCORE_CAP = 2000;    // scores added a day across all games; past it new ones are refused
-/* Nicknames: 2 to 12 letters, digits, spaces and . _ ' -, and none of these words inside (checked after lower case,
+/* Nicknames: 2 to 20 letters, digits, spaces and . _ ' -, and none of these words inside (checked after lower case,
    digits read as letters, and everything but letters removed, so "B.a.d" and "b4d" count too). */
 const BAD = ['fuck', 'fuk', 'shit', 'cunt', 'bitch', 'dick', 'cock', 'pussy', 'penis', 'vagina', 'porn', 'sex', 'nazi',
     'hitler', 'nigg', 'nigga', 'fag', 'retard', 'whore', 'slut', 'rape', 'kill', 'kys', 'scheiss', 'fotze', 'hure', 'wichs',
@@ -245,7 +245,7 @@ function monday() {
     return new Date(d - ((d.getUTCDay() + 6) % 7) * 864e5).toISOString().slice(0, 10);
 }
 function nameOk(n) {
-    if (!/^[\p{L}\p{N}][\p{L}\p{N} ._'-]{0,10}[\p{L}\p{N}.]$/u.test(n) || /  /.test(n)) return false;
+    if (!/^[\p{L}\p{N}][\p{L}\p{N} ._'-]{0,18}[\p{L}\p{N}.]$/u.test(n) || /  /.test(n)) return false;
     const flat = n.toLowerCase().replace(/[0134578@$]/g, function (c) { return { 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't', 8: 'b', '@': 'a', $: 's' }[c]; })
         .normalize('NFD').replace(/[^a-z]/g, '');
     return !BAD.some(function (w) { return flat.indexOf(w) >= 0; });

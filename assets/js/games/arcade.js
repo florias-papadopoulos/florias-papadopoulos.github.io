@@ -340,7 +340,7 @@
             var label = el('label', 'sb-label');
             label.appendChild(el('span', null, 'Your score ' + fmt(o.score) + ' makes the list. Your name:'));
             var input = el('input', 'sb-input');
-            input.type = 'text'; input.maxLength = 12; input.autocomplete = 'nickname'; input.spellcheck = false;
+            input.type = 'text'; input.maxLength = 20; input.autocomplete = 'nickname'; input.spellcheck = false;
             input.placeholder = 'Nickname';
             input.value = store('arcade-name') || '';
             label.appendChild(input);
