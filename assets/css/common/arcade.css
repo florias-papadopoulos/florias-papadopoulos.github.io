@@ -193,7 +193,12 @@ body.arcade-playing { overflow: hidden; }
 .sb-me { font-weight: 700; color: var(--navy); }
 .sb-me .sb-score { color: var(--navy); }
 .sb-empty, .sb-load { margin: 8px 0 0; color: var(--muted); font-size: 0.88rem; }
-.sb-form { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.sb-form { position: relative; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+/* the x that closes the name box for players who do not want to add their score */
+.sb-close { position: absolute; top: 6px; right: 0; width: 28px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 50%;
+    background: #fff; color: var(--muted); font: 700 1.05rem/1 system-ui, sans-serif; cursor: pointer; }
+.sb-close:hover { border-color: var(--navy); color: var(--ink); }
+.sb-form .sb-label span { padding-right: 34px; }
 .sb-label { display: block; font-size: 0.88rem; }
 .sb-label span { display: block; margin-bottom: 6px; }
 .sb-input { width: 100%; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 0.95rem; }

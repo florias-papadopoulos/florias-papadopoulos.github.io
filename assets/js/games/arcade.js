@@ -351,10 +351,15 @@
             head.appendChild(tabs);
             boardEl.appendChild(head);
             boardEl.appendChild(topList(data[shown], fmt, mine, 'No scores yet. Be the first!'));
-            if (!mine && (fits(data.week) || fits(data.all))) form();
+            if (!mine && !skipped && (fits(data.week) || fits(data.all))) form();
         }
+        var skipped = false;   /* the player closed the name box (x): it stays closed for this score */
         function form() {
             var box = el('div', 'sb-form');
+            var x = el('button', 'sb-close', '×');
+            x.type = 'button'; x.title = 'No thanks'; x.setAttribute('aria-label', 'Close, do not add my score');
+            x.addEventListener('click', function () { skipped = true; box.remove(); });
+            box.appendChild(x);
             var label = el('label', 'sb-label');
             label.appendChild(el('span', null, 'Your score ' + fmt(o.score) + ' makes the list. Your name:'));
             var input = el('input', 'sb-input');
