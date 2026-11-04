@@ -131,7 +131,7 @@
         init: function (a) { api = a; },
         size: function () {
             phone = layer.clientWidth < 700;
-            return phone ? { w: 46, h: 38 } : { w: 70, h: 57 };
+            return phone ? { w: 46, h: 38 } : { w: 88, h: 72 };
         },
         ground: ground,
         reach: 520,
