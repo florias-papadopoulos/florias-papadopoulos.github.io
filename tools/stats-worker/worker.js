@@ -22,10 +22,11 @@
 //                board that has scores, with its number of players (nicknames) and its all time top 3 (the Leaderboards
 //                tab's overview)
 // To remove a nickname: DELETE FROM scores WHERE name = 'Bad Name'; in the D1 console.
-// Likes (Games page): every game has a thumbs up and a thumbs down count, shown on its card; the cards of each tab are
-// ordered by them. A browser remembers its own vote (localStorage), the server only keeps the two totals per game.
+// Likes (Games page): every game has a like count (a paw print on its card); the cards of each tab are ordered by it.
+// A browser remembers its own like (localStorage), the server only keeps the totals per game. The site only sends likes
+// (1) and taking one back (0); the down count is kept for old dislikes (-1) from before the site dropped them.
 //   GET  /likes                                 {"long-cat": {"u": 12, "d": 1}, ...}
-//   POST /likes {"g": "long-cat", "f": 0, "t": 1}   moves one vote from f to t (1 up, -1 down, 0 none), answers like GET;
+//   POST /likes {"g": "long-cat", "f": 0, "t": 1}   moves one vote from f to t (1 like, -1 old dislike, 0 none), answers like GET;
 //                400 for an unknown game or vote, 503 past LIKE_CAP changes a day
 // Tables (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser, country (or scores: the
 //                      scores added that day, for SCORE_CAP; likes: the vote changes that day, for LIKE_CAP);
