@@ -322,18 +322,18 @@
                 { transform: 'translate(' + fx * 0.9 + 'px, ' + fy * 0.9 + 'px) rotate(' + dir * 620 + 'deg)', opacity: 1, offset: 0.88 },
                 { transform: 'translate(' + fx + 'px, ' + fy + 'px) rotate(' + dir * 720 + 'deg)', opacity: 0 }
             ];
-            if (fake.animate) fake.animate(frames, { duration: 2300, easing: 'cubic-bezier(.3, .1, .4, 1)', fill: 'forwards' });
+            if (fake.animate) fake.animate(frames, { duration: 3800, easing: 'cubic-bezier(.25, .1, .45, 1)', fill: 'forwards' });
             else fake.style.opacity = '0';
-            setTimeout(function () { fake.remove(); }, 2400);
+            setTimeout(function () { fake.remove(); }, 3900);
             /* the real cursor back at the next move (not before the swat has been seen) */
             var t0 = Date.now();
             function back() {
-                if (Date.now() - t0 < 2000) return;   /* not while the drawn one is still flying */
+                if (Date.now() - t0 < 3400) return;   /* not while the drawn one is still flying */
                 root.classList.remove('cursor-gone');
                 document.removeEventListener('pointermove', back);
             }
             document.addEventListener('pointermove', back);
-            setTimeout(function () { root.classList.remove('cursor-gone'); document.removeEventListener('pointermove', back); }, 6000);
+            setTimeout(function () { root.classList.remove('cursor-gone'); document.removeEventListener('pointermove', back); }, 7000);
         }
         /* petted too often: it scratches the cursor away, says so, jumps down and runs off the nearer side of the page,
            until reset() */
