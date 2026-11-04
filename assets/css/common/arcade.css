@@ -52,7 +52,19 @@
 .ab-pick select { padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font: inherit; font-size: 0.95rem; }
 .ab-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .ab-cols h3 { margin: 0 0 4px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-size: 1rem; }
-@media (max-width: 600px) { .ab-cols { grid-template-columns: 1fr; gap: 20px; } }
+/* phones: two side by side, both the overview cards and This week / All time, a little more compact */
+@media (max-width: 600px) {
+    .ab-cols { gap: 14px; }
+    .ab-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .ab-card { padding: 10px 10px 10px; border-radius: 14px; }
+    .ab-card-h { font-size: 0.9rem; gap: 6px; }
+    .ab-card-i { font-size: 1.1rem; }
+    .ab-card-sub { font-size: 0.72rem; }
+    .ab-podium { font-size: 0.82rem; }
+    .ab-podium li::before { width: 1.4em; }
+    .ab-more { padding: 5px 10px; font-size: 0.74rem; }
+    .arcade-boards .sb-list { font-size: 0.84rem; padding-left: 1.3em; }
+}
 @media (pointer: coarse) { .ab-pick select { font-size: 16px; } }
 
 .arcade-btn {

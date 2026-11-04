@@ -1,6 +1,6 @@
 /* Corner buttons, on every page (layouts/_default/baseof.html): top right the paw that leads to the cat games and the
-   cat and dog pickers; top left the eye that leads to what this site knows about you, and on the home page the reset
-   button next to it */
+   cat and dog pickers; the eye that leads to what this site knows about you next to them; on the home page the eye
+   sits top left instead, next to the reset button */
 .corner-btn {
     position: fixed;
     top: 6px;
@@ -25,7 +25,9 @@
 .cat-pick { right: 52px; }
 .cat-pick svg { width: 22px; height: 20px; }
 .dog-pick { right: 94px; }
-.you-link { left: 10px; }   /* the eye and the reset button sit top left, the pets and the games top right */
+.you-link { right: 136px; }
+/* on the home page the eye sits top left, next to the reset button */
+body:has(.home-reset) .you-link { left: 10px; right: auto; }
 .you-link svg { width: 19px; height: 19px; fill: currentColor; }
 .home-reset { left: 52px; }
 .home-reset svg { width: 17px; height: 17px; }
@@ -94,15 +96,16 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
 .cat-opt:hover { background: #f1f5f9; }
 .cat-opt[aria-checked="true"] { border-color: #cbd5e1; background: #f8fafc; font-weight: 700; }
 
-/* leave room for the eye at the left end of the menu and the three buttons at its right end */
-.nav { padding-inline-start: 44px; padding-inline-end: 134px; }
+/* leave room for the four buttons at the right end of the menu */
+.nav { padding-inline-end: 176px; }
 @keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
 @media (max-width: 600px) {
-    .nav { padding-inline-start: 40px; padding-inline-end: 0; }
+    .nav { padding-inline-end: 0; }
     .corner-btn { top: 5px; }
     .paw-link { right: 8px; }
     .cat-pick { right: 48px; }
     .dog-pick { right: 88px; }
-    .you-link { left: 8px; }
+    .you-link { right: 128px; }
+    body:has(.home-reset) .you-link { left: 8px; right: auto; }
     .home-reset { left: 48px; }
 }
