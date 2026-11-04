@@ -66,8 +66,10 @@ Arcade.register('laser-chase', function (api) {
         function v(name, dflt) { var s = cs && cs.getPropertyValue('--' + name).trim(); return s || dflt; }
         return { fur: v('fur-bot', '#f0932c'), light: v('fur-top', '#ffc06e'), head: v('head-top', '#ffc479'),
                  stripe: v('stripe', '#cf7419'), cream: v('cream', '#ffe9c9'), tail: v('tail', '#f5a03c'),
-                 iris: v('iris', '#8ed383'), line: '#3b2a1e' };
+                 iris: v('iris', '#8ed383'), line: '#3b2a1e', ear: v('ear', '#b97a33'), nose: v('nose', '#2b2220'),
+                 dog: document.documentElement.dataset.pet === 'dog' };   /* a dog look: the hero is a dog */
     })();
+    var PET = C.dog ? 'dog' : 'cat';
 
     var wrap = document.createElement('div');
     wrap.className = 'lc';
@@ -75,7 +77,7 @@ Arcade.register('laser-chase', function (api) {
     api.el.appendChild(wrap);
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d'), hint = wrap.querySelector('.lc-hint');
     hint.textContent = (api.touch ? 'Drag anywhere to move the laser dot' : 'Click, then move the mouse (or use the arrow keys)') +
-        '\nThe cat chases the dot. Don\'t let it break things!';
+        '\nThe ' + PET + ' chases the dot. Don\'t let it break things!';
     var small = document.createElement('small');
     small.textContent = 'Treats and close calls raise your multiplier, catnip gives soft paws';
     hint.appendChild(small);
@@ -459,12 +461,12 @@ Arcade.register('laser-chase', function (api) {
         api.score(score);
         var m = Math.floor(dist / METER), what;
         if (why === 'vacuum') what = 'Spooked by the robot vacuum!';
-        else if (why === 'behind') what = 'The cat got stuck and lost the dot!';
-        else what = 'Crash! The cat knocked over ' + why + '.';
+        else if (why === 'behind') what = 'The ' + PET + ' got stuck and lost the dot!';
+        else what = 'Crash! The ' + PET + ' knocked over ' + why + '.';
         api.cat('sad');
         api.say(why === 'vacuum' ? 'Hiss!' : 'Oh no...', 1600);
         api.sfx('lose');
-        api.end({ score: score, win: false, text: what + '\nScore: ' + score + ' (' + m + ' cat lengths, ' + treats + ' treats' +
+        api.end({ score: score, win: false, text: what + '\nScore: ' + score + ' (' + m + ' ' + PET + ' lengths, ' + treats + ' treats' +
             (closeCalls ? ', ' + closeCalls + ' close call' + (closeCalls === 1 ? '' : 's') : '') + ')' });
     }
     function streak(n) {
@@ -900,6 +902,7 @@ Arcade.register('laser-chase', function (api) {
     }
     /* the cat seen from above, facing its heading: tail, paws, a striped body and the round head with ears */
     function drawCat(now) {
+        if (C.dog) return drawDog();
         var blink = inv > 0 && state === 'run' && Math.floor(inv * 10) % 2;
         g.save();
         g.translate(cat.x, cat.y);
@@ -939,6 +942,43 @@ Arcade.register('laser-chase', function (api) {
         g.strokeStyle = 'rgba(59, 42, 30, .55)'; g.lineWidth = 0.8; g.beginPath();
         g.moveTo(-4, -23.5); g.lineTo(-13, -25); g.moveTo(-4, -22.5); g.lineTo(-13, -21.5);
         g.moveTo(4, -23.5); g.lineTo(13, -25); g.moveTo(4, -22.5); g.lineTo(13, -21.5); g.stroke();
+        g.restore();
+        g.globalAlpha = 1;
+    }
+    /* the dog in dog mode, the same size: a wagging tail, plain body, round head with a snout, a dark nose and floppy ears */
+    function drawDog() {
+        var blink = inv > 0 && state === 'run' && Math.floor(inv * 10) % 2;
+        g.save();
+        g.translate(cat.x, cat.y);
+        g.fillStyle = 'rgba(80, 50, 20, .2)'; ell(g, 2, 5, 17, 21); g.fill();
+        if (soft > 0) {
+            g.strokeStyle = soft < 2 && Math.floor(soft * 6) % 2 ? 'rgba(74, 222, 128, .3)' : 'rgba(74, 222, 128, .8)';
+            g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 27, 0, TAU); g.stroke();
+        }
+        if (blink) g.globalAlpha = 0.45;
+        g.rotate(cat.ang);
+        var moving = state === 'run' ? 1 : 0, st = api.reducedMotion ? 0 : Math.sin(cat.step) * 4 * moving;
+        var sw = api.reducedMotion ? 0.3 : Math.sin(cat.tail * 2.6) * (state === 'run' ? 0.8 : 0.5);   /* a quick wag */
+        g.lineCap = 'round'; g.lineJoin = 'round';
+        g.beginPath(); g.moveTo(0, 14); g.quadraticCurveTo(sw * 6, 22, sw * 13, 28);
+        g.strokeStyle = C.line; g.lineWidth = 9; g.stroke();
+        g.strokeStyle = C.tail; g.lineWidth = 6.4; g.stroke();
+        g.lineWidth = 1.5; g.strokeStyle = C.line; g.fillStyle = C.fur;
+        [[-9, 9 + st], [9, 9 - st], [-9, -7 - st], [9, -7 + st]].forEach(function (p) { ell(g, p[0], p[1], 4.4, 5.4); g.fill(); g.stroke(); });
+        ell(g, 0, 2, 11.5, 16); g.fillStyle = C.fur; g.fill(); g.stroke();
+        g.fillStyle = C.light; ell(g, 0, 3, 6, 9.5); g.fill();
+        g.beginPath(); g.arc(0, -15, 10.5, 0, TAU); g.fillStyle = C.head; g.fill(); g.stroke();
+        g.fillStyle = C.cream; ell(g, 0, -24, 5.2, 4.6); g.fill(); g.stroke();      /* the snout */
+        g.fillStyle = C.nose; ell(g, 0, -27.6, 2.8, 2); g.fill();
+        g.fillStyle = 'rgba(255, 255, 255, .55)'; ell(g, -0.9, -28.1, 0.9, 0.5); g.fill();
+        g.fillStyle = C.iris; ell(g, -4.4, -18.2, 2.2, 2.3); g.fill(); ell(g, 4.4, -18.2, 2.2, 2.3); g.fill();
+        g.fillStyle = '#1f1610'; ell(g, -4.4, -18.4, 1.4, 1.5); g.fill(); ell(g, 4.4, -18.4, 1.4, 1.5); g.fill();
+        g.fillStyle = C.ear; g.strokeStyle = C.line; g.lineWidth = 1.5;
+        [-1, 1].forEach(function (sd) {                    /* floppy ears hanging down the sides of the head */
+            g.save(); g.translate(sd * 10, -12); g.rotate(sd * 0.25);
+            ell(g, 0, 0, 3.8, 7.5); g.fill(); g.stroke();
+            g.restore();
+        });
         g.restore();
         g.globalAlpha = 1;
     }

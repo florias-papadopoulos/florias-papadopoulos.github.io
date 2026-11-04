@@ -24,6 +24,13 @@ function ticTacPaw(api, duo) {
         '<path class="body" d="M7 23l1-7 4 4zM17 21l-1-6-4 4z"/><circle class="body" cx="12" cy="24" r="6.5"/>' +
         '<path class="line" d="M8.5 24.5q1.5 1.3 3 0M13 24.5q1.5 1.3 3 0M34 28c3 2 1 6-4 6H14"/>' +
         '<text x="27" y="15">z</text><text x="32" y="9" class="small">z</text></svg>';
+    /* dog mode (a dog look, data-pet="dog", single player only): you play against the dog and its bones, a puppy naps */
+    var DOG = !duo && document.documentElement.dataset.pet === 'dog', PET = DOG ? 'dog' : 'cat';
+    var BONE = '<svg class="ttp-fish ttp-bone" viewBox="0 0 40 40"><g transform="rotate(-35 20 20)"><rect x="10" y="16.5" width="20" height="7" rx="2"/>' +
+        '<circle cx="10" cy="16" r="4.4"/><circle cx="10" cy="24" r="4.4"/><circle cx="30" cy="16" r="4.4"/><circle cx="30" cy="24" r="4.4"/></g></svg>';
+    if (DOG) KITTEN = KITTEN.replace('<path class="body" d="M7 23l1-7 4 4zM17 21l-1-6-4 4z"/>', '').replace('</svg>',
+        '<path class="ear" d="M7 19c-3.2 0-3.8 5.4-2.7 8.4.6 1.8 2.8 1.4 3.1-.5L8.6 20zM17 19c3.2 0 3.8 5.4 2.7 8.4-.6 1.8-2.8 1.4-3.1-.5L15.4 20z"/>' +
+        '<ellipse class="nose" cx="12.2" cy="27.3" rx="1.5" ry="1.1"/></svg>');
     var hoverPaw = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#f6a23a" opacity=".22">' +
         PAW_PATH + '</svg>') + '")';
     var hoverMilo = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="#2563eb" opacity=".2">' +
@@ -54,6 +61,7 @@ function ticTacPaw(api, duo) {
         '.ttp-paw { fill: #f08c2e; filter: drop-shadow(0 3px 0 #f8d3a6); }' +
         '.ttp-fish path { fill: #4c6ef5; } .ttp-fish .fin { fill: #748ffc; } .ttp-fish .eye { fill: #fff; }' +
         '.ttp-fish { filter: drop-shadow(0 3px 0 #c5d0fa); }' +
+        '.ttp-bone rect, .ttp-bone circle { fill: #4c6ef5; } .ttp-nap .ear { fill: #9a8472; } .ttp-nap .nose { fill: #3b2a1e; }' +
         '.ttp-nap .body { fill: #c9b8a6; } .ttp-nap .line { fill: none; stroke: #8a7563; stroke-width: 1.4; stroke-linecap: round; }' +
         '.ttp-nap text { fill: #7c93c9; font: 700 7px sans-serif; animation: ttp-z 2s ease-in-out infinite; }' +
         '.ttp-nap .small { font-size: 5px; animation-delay: .6s; }' +
@@ -192,9 +200,9 @@ function ticTacPaw(api, duo) {
     }
     function put(k, who) {
         grid[k] = who;
-        cells[k].innerHTML = who === 'Y' ? PAW : who === 'C' ? FISH : KITTEN;
+        cells[k].innerHTML = who === 'Y' ? PAW : who === 'C' ? (DOG ? BONE : FISH) : KITTEN;
         cells[k].disabled = true;
-        if (who === 'N') { cells[k].classList.add('napping'); cells[k].setAttribute('aria-label', 'A kitten naps here'); }
+        if (who === 'N') { cells[k].classList.add('napping'); cells[k].setAttribute('aria-label', DOG ? 'A puppy naps here' : 'A kitten naps here'); }
     }
 
     function show(nap) {
@@ -202,7 +210,7 @@ function ticTacPaw(api, duo) {
         chips.innerHTML = '<span class="ttp-chip">Round ' + round + '</span>' +
             (streak > 1 ? '<span class="ttp-chip hot">Streak ' + streak + '</span>' : '') +
             (draws ? '<span class="ttp-chip">Draws ' + draws + '</span>' : '') +
-            (nap ? '<span class="ttp-chip nap">Kitten nap</span>' : '');
+            (nap ? '<span class="ttp-chip nap">' + (DOG ? 'Puppy' : 'Kitten') + ' nap</span>' : '');
     }
     /* a line drawn through the three winning squares */
     function strike(line, who) {
@@ -256,15 +264,15 @@ function ticTacPaw(api, duo) {
             api.say(level === 'hard' ? 'Nobody beats me. Again!' : 'A draw. Again!');
             api.timeout(newRound, 1300);
         } else {
-            turnEl.textContent = 'The cat got three in a row';
-            api.say('Meow! I win.');
-            api.end({ score: points, win: false, text: 'The cat wins round ' + round + '.\n' + points + (points === 1 ? ' point' : ' points') +
+            turnEl.textContent = 'The ' + PET + ' got three in a row';
+            api.say(DOG ? 'Woof! I win.' : 'Meow! I win.');
+            api.end({ score: points, win: false, text: 'The ' + PET + ' wins round ' + round + '.\n' + points + (points === 1 ? ' point' : ' points') +
                 (draws ? ', ' + draws + (draws === 1 ? ' draw' : ' draws') : '') });
         }
     }
     function catTurn() {
         busy = true;
-        turnEl.textContent = 'The cat is thinking…';
+        turnEl.textContent = 'The ' + PET + ' is thinking…';
         api.cat('think');
         api.timeout(function () {
             put(catMove(), 'C');
@@ -327,7 +335,7 @@ function ticTacPaw(api, duo) {
         var nap = NAP_EVERY && round % NAP_EVERY === 0;
         if (nap) {
             put(Math.floor(Math.random() * 9), 'N');
-            if (round === NAP_EVERY) api.say('A kitten naps on one square. Play around it!', 2400);
+            if (round === NAP_EVERY) api.say('A ' + (DOG ? 'puppy' : 'kitten') + ' naps on one square. Play around it!', 2400);
         }
         if (duo) {                                /* the starter changes every round */
             turn = tally.next;
@@ -339,7 +347,7 @@ function ticTacPaw(api, duo) {
         show(nap);
         if (round % 2 === 0) {                    /* the cat starts every other round */
             catTurn();
-            turnEl.textContent = 'The cat starts';
+            turnEl.textContent = 'The ' + PET + ' starts';
         } else {
             turnEl.textContent = 'Your turn';
         }

@@ -146,6 +146,8 @@ Arcade.register('whack-a-mouse', function (api) {
     var timeEl = wrap.querySelector('.wm-time'), banner = wrap.querySelector('.wm-banner');
     var heartsEl = wrap.querySelector('.wm-hearts'), roundEl = wrap.querySelector('.wm-round');
     var catArt = document.querySelector('.arcade .mascot svg');
+    /* dog mode (a dog look, data-pet="dog"): the cloned mascot is a dog (cat.css), so a puppy naps in the hole */
+    var DOG = document.documentElement.dataset.pet === 'dog', KIT = DOG ? 'puppy' : 'kitten';
     var holes = [], i;
     for (i = 0; i < N * N; i++) {
         var h = document.createElement('div');
@@ -219,7 +221,7 @@ Arcade.register('whack-a-mouse', function (api) {
                 c.appendChild(art);
                 c.insertAdjacentHTML('beforeend', svg('<text class="zz" x="78" y="40">z</text><text class="zz" x="86" y="26" style="animation-delay:.6s">z</text>'));
                 c.lastChild.style.cssText = 'position:absolute;inset:0';
-            } else c.innerHTML = svg('<text x="50" y="90" font-size="56" text-anchor="middle">😺</text>');
+            } else c.innerHTML = svg('<text x="50" y="90" font-size="56" text-anchor="middle">' + (DOG ? '🐶' : '😺') + '</text>');
             o.who.appendChild(c);
         } else o.who.innerHTML = svg(ART[o.kind]);
         o.el.classList.remove('hit');
@@ -289,7 +291,7 @@ Arcade.register('whack-a-mouse', function (api) {
             loseHeart();
             api.sfx('hit');
             effect(o, 'bad', '-1 ♥', ['#f472b6', '#d6336c']);
-            chat(['Hey! Let the kitten sleep!', 'Shh, mice only.', 'Not the kitten!'][Math.floor(Math.random() * 3)], 'wow');
+            chat(['Hey! Let the ' + KIT + ' sleep!', 'Shh, mice only.', 'Not the ' + KIT + '!'][Math.floor(Math.random() * 3)], 'wow');
             if (hearts <= 0) api.timeout(function () { finish(false); }, 350);
             return;
         }
@@ -318,7 +320,7 @@ Arcade.register('whack-a-mouse', function (api) {
                     armor: ['#c08348', '#fbbf24', '#fde68a'], gold: ['#fbbf24', '#fde047', '#fff7c2'] }[o.kind];
         effect(o, o.kind === 'mouse' ? '' : o.kind === 'armor' ? 'clank' : o.kind, '+' + pts, col);
         if (o.kind === 'gold') chat('Golden cheese!', 'wow');
-        else if (combo === 8 || combo === 16 || combo === 24) chat(['Purrfect!', 'What a paw!', 'Unstoppable!'][combo / 8 - 1], 'happy');
+        else if (combo === 8 || combo === 16 || combo === 24) chat([DOG ? 'Pawsome!' : 'Purrfect!', 'What a paw!', 'Unstoppable!'][combo / 8 - 1], 'happy');
     }
     function finish(win) {
         if (phase === 'over') return;
@@ -391,5 +393,5 @@ Arcade.register('whack-a-mouse', function (api) {
     showBanner('Ready?');
     timeEl.textContent = L.dur + 's';
     api.score(0);
-    api.say(N === 4 ? 'Big lawn! Mice only, let the kitten sleep.' : 'Tap the mice, let the kitten sleep!', 2200);
+    api.say(N === 4 ? 'Big lawn! Mice only, let the ' + KIT + ' sleep.' : 'Tap the mice, let the ' + KIT + ' sleep!', 2200);
 });

@@ -106,8 +106,18 @@ Arcade.register('paw-pairs', function (api) {
         ['laser', '#fff5f5', '<circle cx="35" cy="28" r="15" fill="#ffc9c9"/><circle cx="35" cy="28" r="8.5" fill="#ff8787"/><circle cx="35" cy="28" r="4" fill="#f03e3e"/>' +
             '<path d="M6 55l22-20" stroke-width="2.2" stroke-dasharray="3 4" ' + S + '"#ff6b6b"/>']
     ];
+    /* dog mode (a dog look, data-pet="dog"): a dog card instead of the cat card (floppy ears, snout, dark nose, tongue),
+       puppy eyes instead of cat eyes, zoomies puppies instead of kittens */
+    var DOG = document.documentElement.dataset.pet === 'dog';
+    if (DOG) FACES[0] = ['dog', '#fff4e6', '<ellipse cx="30" cy="31" rx="18" ry="17" fill="#e0a85a"/>' +
+        '<path d="M15 16C6 16 4 30 7 40c2 5 8 4 9-2l2-16zM45 16c9 0 11 14 8 24-2 5-8 4-9-2l-2-16z" fill="#a8692e"/>' +
+        '<ellipse cx="23" cy="28" rx="2.6" ry="3" fill="#2b2b2b"/><ellipse cx="37" cy="28" rx="2.6" ry="3" fill="#2b2b2b"/>' +
+        '<ellipse cx="30" cy="39" rx="9" ry="7" fill="#fcefd6"/><path d="M27.5 43.5q0 5 2.5 5t2.5-5z" fill="#ff7f96"/>' +
+        '<ellipse cx="30" cy="35.5" rx="3.6" ry="2.6" fill="#2b2220"/><path d="M30 38v3M25.5 42q4.5 3 9 0" stroke-width="1.6" ' + S + '"#7a3e10"/>'];
     var PEEK = ['peek', '', '<path d="M5 28Q30 6 55 28Q30 50 5 28z" fill="#fff" stroke="#1e3a8a" stroke-width="2.5"/><circle cx="30" cy="28" r="11" fill="#94d82d"/>' +
         '<ellipse cx="30" cy="28" rx="3" ry="9" fill="#212529"/><circle cx="34" cy="23" r="2.2" fill="#fff"/>', 'PEEK'];
+    if (DOG) PEEK[2] = '<path d="M5 28Q30 6 55 28Q30 50 5 28z" fill="#fff" stroke="#1e3a8a" stroke-width="2.5"/><circle cx="30" cy="28" r="11" fill="#8a5a2b"/>' +
+        '<circle cx="30" cy="28" r="6" fill="#212529"/><circle cx="34" cy="23" r="2.2" fill="#fff"/>';
     var ZOOM = ['zoom', '', '<path d="M35 3L17 31h12l-4 19 20-29H33z" fill="#7950f2"/><path d="M5 18h9M3 28h9M5 38h9" stroke-width="2.6" ' + S + '"#b197fc"/>', 'ZOOM'];
     var PAW = '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="26" rx="8" ry="6.8"/><circle cx="10.5" cy="17.5" r="3.4"/><circle cx="16.3" cy="11" r="3.4"/>' +
         '<circle cx="23.7" cy="11" r="3.4"/><circle cx="29.5" cy="17.5" r="3.4"/></svg>';
@@ -221,7 +231,7 @@ Arcade.register('paw-pairs', function (api) {
     /* the cat-eye pair: every card face up for a moment */
     function peek() {
         busy = true;
-        api.say('Cat eyes! Look closely…', CFG.peek);
+        api.say(DOG ? 'Puppy eyes! Look closely…' : 'Cat eyes! Look closely…', CFG.peek);
         api.timeout(function () {
             board.classList.add('pp-peek');
             api.sfx('pop');
@@ -293,7 +303,7 @@ Arcade.register('paw-pairs', function (api) {
             burst(b.el, '+' + gain + (combo > 1 ? ' x' + Math.min(combo, 5) : ''), 10);
             if (found === PAIRS) return win();
             if (a.f === PEEK) peek();
-            else if (combo === 3 || combo === 5) { api.cat('happy'); api.say(combo === 3 ? 'Purrfect!' : 'On a roll!', 1400); }
+            else if (combo === 3 || combo === 5) { api.cat('happy'); api.say(combo === 3 ? (DOG ? 'Pawsome!' : 'Purrfect!') : 'On a roll!', 1400); }
             else if (found === Math.ceil(PAIRS / 2) && combo < 2) api.say('Halfway there!', 1400);
             outOfMoves();
         } else {
@@ -327,6 +337,6 @@ Arcade.register('paw-pairs', function (api) {
         var k = +c.dataset.i + d;
         if (k >= 0 && k < cards.length) cards[k].el.focus();
     });
-    if (level === 'hard') api.say('Watch out for the zoomies kittens!', 2200);
+    if (level === 'hard') api.say(DOG ? 'Watch out for the zoomies puppies!' : 'Watch out for the zoomies kittens!', 2200);
     show();
 });

@@ -74,11 +74,17 @@ Arcade.register('mouse-sweeper', function (api) {
         '<ellipse cx="15.5" cy="9.5" rx="3.8" ry="4.8"/><ellipse cx="24.5" cy="9.5" rx="3.8" ry="4.8"/><ellipse cx="31.5" cy="16" rx="3.8" ry="4.8"/></g></svg>';
     var NOSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f08c2e" d="M3 9l2-7 5 5zM21 9l-2-7-5 5z"/><ellipse fill="#f6a23a" cx="12" cy="13" rx="9" ry="8"/>' +
         '<path fill="#ff8fa3" d="M10 13h4c0 1.4-1 2.2-2 2.6-1-.4-2-1.2-2-2.6z"/><circle fill="#3b2a1e" cx="8.5" cy="10.5" r="1.3"/><circle fill="#3b2a1e" cx="15.5" cy="10.5" r="1.3"/></svg>';
+    /* dog mode (a dog look, data-pet="dog"): the dog sniffs instead, with a dog head on the button (floppy ears, dark nose) */
+    var DOG = document.documentElement.dataset.pet === 'dog', PET = DOG ? 'dog' : 'cat';
+    if (DOG) NOSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse style="fill:var(--fur-bot,#dca456)" cx="12" cy="12.5" rx="8" ry="8"/>' +
+        '<path style="fill:var(--ear,#b97a33)" d="M5.5 5C2 5 1 10 2.3 14c.8 2.4 3.4 2 3.8-.6L7 7zM18.5 5C22 5 23 10 21.7 14c-.8 2.4-3.4 2-3.8-.6L17 7z"/>' +
+        '<ellipse style="fill:var(--cream,#fcefd6)" cx="12" cy="16" rx="4.6" ry="3.4"/><ellipse style="fill:var(--nose,#2b2220)" cx="12" cy="14.4" rx="2" ry="1.5"/>' +
+        '<circle fill="#3b2a1e" cx="8.6" cy="10.5" r="1.3"/><circle fill="#3b2a1e" cx="15.4" cy="10.5" r="1.3"/></svg>';
 
     var wrap = document.createElement('div');
     wrap.className = 'ms' + (api.reducedMotion ? ' ms-still' : '');
     wrap.innerHTML = '<div class="ms-bar"><span class="ms-pill ms-left" title="Mice left"></span>' +
-        (L.lives ? '<span class="ms-pill ms-lives" title="The cat catches one mouse for you"></span>' : '') +
+        (L.lives ? '<span class="ms-pill ms-lives" title="The ' + PET + ' catches one mouse for you"></span>' : '') +
         '<button class="ms-btn ms-sniff" type="button" disabled></button></div>' +
         '<div class="ms-grid" role="group" aria-label="Lawn"></div>';
     api.el.appendChild(wrap);
@@ -143,7 +149,7 @@ Arcade.register('mouse-sweeper', function (api) {
     function showSniff() {
         sniffBtn.innerHTML = NOSE + 'Sniff' + (sniffs > 1 ? ' ' + sniffs : '');
         sniffBtn.disabled = !placed || over || sniffs <= 0;
-        sniffBtn.title = sniffs > 0 ? 'The cat sniffs out a safe cell' : 'No sniffs left';
+        sniffBtn.title = sniffs > 0 ? 'The ' + PET + ' sniffs out a safe cell' : 'No sniffs left';
     }
     function showLives() { if (livesEl) livesEl.textContent = '♥ ' + lives; }
     function float(k, text) {

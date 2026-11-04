@@ -50,6 +50,15 @@ Arcade.register('cat-tower', function (api) {
         { name: 'Ziggy',   fur: '#e8935a', mark: '#fbf8f2', patches: true },
         { name: 'Olive',   fur: '#b8a794', mark: '#968572', tabby: true }
     ];
+    /* dog mode (a dog look, data-pet="dog"): dogs hop on instead of cats, the big paw is the chosen dog's, drops are "pawfect" */
+    var DOG = document.documentElement.dataset.pet === 'dog';
+    var PAW = (function () {
+        var cs = null;
+        try { cs = getComputedStyle(document.documentElement); } catch (e) { /* golden */ }
+        function v(name, dflt) { var x = cs && cs.getPropertyValue('--' + name).trim(); return x || dflt; }
+        return { arm: v('fur-bot', '#dca456'), line: v('fur-dark', '#c98d40'), band: v('fur-dark', '#c98d40'), pad: v('fur-top', '#f6d79a') };
+    })();
+    var PERF = DOG ? 'Pawfect' : 'Purrfect';
     var G = 1500, STEP = 1 / 120, ITER = 10, SLOP = 0.4, BIAS = 0.2, MAXBIAS = 80, FLOOR = -90, TAU = 6.2832;
     var rm = api.reducedMotion;
 
@@ -60,7 +69,7 @@ Arcade.register('cat-tower', function (api) {
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d'), hint = wrap.querySelector('.ctw-hint');
     hint.textContent = api.touch ? 'Tap to drop the piece' : 'Click or press Space to drop';
     var small = document.createElement('small');
-    small.textContent = 'Stack it high, center drops are purrfect';
+    small.textContent = 'Stack it high, center drops are ' + PERF.toLowerCase();
     hint.appendChild(small);
 
     var W = 0, H = 0, S = 1;
@@ -258,7 +267,7 @@ Arcade.register('cat-tower', function (api) {
             var add = 10 * Math.min(streak, 5);
             bonus += add;
             sway.v *= 0.3;
-            text(b.x, topOf(b) + 12, streak > 1 ? 'Purrfect x' + streak : 'Purrfect!', '#c2410c', 1.3);
+            text(b.x, topOf(b) + 12, streak > 1 ? PERF + ' x' + streak : PERF + '!', '#c2410c', 1.3);
             text(b.x, topOf(b) - 4, '+' + add, '#7a3e12', 1);
             sparkle(b.x, b.y - b.hh);
             api.sfx(streak >= 3 ? 'pop' : 'point');
@@ -296,8 +305,8 @@ Arcade.register('cat-tower', function (api) {
         var s = score(), best = api.best();
         var m = (maxH / 100).toFixed(2);
         api.end({ score: s, win: best === null || s > best,
-                  text: 'Your cat tower reached ' + m + ' m!\n' + placed + ' pieces, ' + perfects + ' purrfect' +
-                        (catsIn ? ', ' + catsIn + (catsIn === 1 ? ' cat' : ' cats') + ' hopped on' : '') + '\nScore: ' + s });
+                  text: 'Your ' + (DOG ? '' : 'cat ') + 'tower reached ' + m + ' m!\n' + placed + ' pieces, ' + perfects + ' ' + PERF.toLowerCase() +
+                        (catsIn ? ', ' + catsIn + ' ' + (DOG ? 'dog' : 'cat') + (catsIn === 1 ? '' : 's') + ' hopped on' : '') + '\nScore: ' + s });
     }
 
     /* cats */
@@ -591,7 +600,7 @@ Arcade.register('cat-tower', function (api) {
         g.lineWidth = 2.2; g.strokeStyle = L2.fur; g.stroke();
         g.lineWidth = 1; g.strokeStyle = out;
         g.beginPath(); g.ellipse(-1, hop ? -8 : -7, hop ? 9 : 7.5, hop ? 5.5 : 7, 0, 0, TAU); g.fill(); g.stroke();   /* body */
-        if (L2.tabby) {
+        if (L2.tabby && !DOG) {
             g.strokeStyle = L2.mark; g.lineWidth = 1.4;
             for (var i = 0; i < 3; i++) { g.beginPath(); g.moveTo(-6 + i * 3, -12.5); g.lineTo(-5 + i * 3, -9); g.stroke(); }
             g.lineWidth = 1; g.strokeStyle = out;
@@ -601,12 +610,22 @@ Arcade.register('cat-tower', function (api) {
         g.beginPath(); g.ellipse(2.5, -0.8, 2.2, 1.4, 0, 0, TAU); g.ellipse(-3.5, -0.8, 2.2, 1.4, 0, 0, TAU); g.fill(); g.stroke();
         var hx = 5, hy = hop ? -14 : -16;                  /* head */
         g.fillStyle = L2.fur;
+        if (!DOG) {
         g.beginPath(); g.moveTo(hx - 5, hy - 2); g.lineTo(hx - 4.2, hy - 8.5); g.lineTo(hx - 0.8, hy - 4.8); g.closePath(); g.fill(); g.stroke();
         g.beginPath(); g.moveTo(hx + 5, hy - 2); g.lineTo(hx + 4.2, hy - 8.5); g.lineTo(hx + 0.8, hy - 4.8); g.closePath(); g.fill(); g.stroke();
+        }
         g.beginPath(); g.ellipse(hx, hy, 6, 5.4, 0, 0, TAU); g.fill(); g.stroke();
         if (L2.patches) { g.fillStyle = L2.mark; g.beginPath(); g.ellipse(hx - 2.5, hy - 2.5, 2.6, 2.2, 0, 0, TAU); g.fill(); }
+        if (DOG) {                                         /* a dog: snout with a dark nose, floppy ears */
+            g.fillStyle = 'rgba(255, 250, 240, .8)';
+            g.beginPath(); g.ellipse(hx + 5.2, hy + 2.2, 3.2, 2.3, 0, 0, TAU); g.fill(); g.stroke();
+            g.fillStyle = '#2b2220'; g.beginPath(); g.ellipse(hx + 7.8, hy + 1.3, 1.4, 1.1, 0, 0, TAU); g.fill();
+            g.fillStyle = L2.mark !== L2.fur ? L2.mark : out;
+            g.beginPath(); g.ellipse(hx - 3.6, hy + 0.6, 1.9, 3.8, 0.25, 0, TAU); g.fill();
+        } else {
         g.fillStyle = '#f9a8b8';
         g.beginPath(); g.moveTo(hx + 1.6, hy + 1); g.lineTo(hx + 3.2, hy + 1); g.lineTo(hx + 2.4, hy + 2); g.closePath(); g.fill();
+        }
         var eye = L2.fur === '#2f2f36' || L2.fur === '#4a4a55' ? '#f6d860' : '#2b2b33';
         if (cat.blink < 0 || cat.st === 'flee') {
             g.strokeStyle = eye; g.lineWidth = 0.9;
@@ -705,18 +724,19 @@ Arcade.register('cat-tower', function (api) {
     function drawPaw() {
         var x = sx(pawX), y = sy(pawY), aw = 24 * S, lift = pawOpen * 10 * S;
         y -= lift;
-        g.fillStyle = '#f4a259'; g.strokeStyle = '#c9732e'; g.lineWidth = 1.5;
+        g.fillStyle = DOG ? PAW.arm : '#f4a259'; g.strokeStyle = DOG ? PAW.line : '#c9732e'; g.lineWidth = 1.5;
         g.fillRect(x - aw / 2, -4, aw, y + 4);
         g.beginPath(); g.moveTo(x - aw / 2, -4); g.lineTo(x - aw / 2, y); g.moveTo(x + aw / 2, -4); g.lineTo(x + aw / 2, y); g.stroke();
-        g.fillStyle = '#de8a3f';
+        g.fillStyle = DOG ? PAW.band : '#de8a3f';
         for (var k = y - 30 * S; k > -10; k -= 26 * S) g.fillRect(x - aw / 2 + 2, k, aw - 4, 7 * S);
         var pw = 17 * S, ph = 12 * S, spread = pawOpen * 4 * S;
-        g.fillStyle = '#f7b06b'; g.strokeStyle = '#c9732e';
+        var pf = DOG ? PAW.pad : '#f7b06b';
+        g.fillStyle = pf; g.strokeStyle = DOG ? PAW.line : '#c9732e';
         g.beginPath(); g.ellipse(x, y - 2 * S, pw, ph, 0, 0, TAU); g.fill(); g.stroke();
         for (var i = -1.5; i <= 1.5; i++) {
             g.beginPath(); g.ellipse(x + i * (8 * S + spread), y + 7 * S - pawOpen * 2 * S, 4.5 * S, 5 * S, 0, 0, TAU);
-            g.fillStyle = '#f7b06b'; g.fill(); g.stroke();
-            if (pawOpen > 0) { g.fillStyle = '#f9a8b8'; g.beginPath(); g.arc(x + i * (8 * S + spread), y + 8 * S - pawOpen * 2 * S, 2 * S, 0, TAU); g.fill(); }
+            g.fillStyle = pf; g.fill(); g.stroke();
+            if (pawOpen > 0) { g.fillStyle = DOG ? '#4a3a32' : '#f9a8b8'; g.beginPath(); g.arc(x + i * (8 * S + spread), y + 8 * S - pawOpen * 2 * S, 2 * S, 0, TAU); g.fill(); }
         }
     }
     function landY(x, hw) {                        /* where a straight drop at x would meet the tower (for the guide) */
@@ -760,7 +780,7 @@ Arcade.register('cat-tower', function (api) {
         }
         if (streak >= 2) {
             g.font = '800 14px system-ui, sans-serif';
-            var st = 'Purrfect streak x' + streak;
+            var st = PERF + ' streak x' + streak;
             g.lineWidth = 3; g.strokeText(st, x, 58); g.fillStyle = '#c2410c'; g.fillText(st, x, 58);
         }
         if (nextKind && state === 'play') {               /* the next piece, top right */

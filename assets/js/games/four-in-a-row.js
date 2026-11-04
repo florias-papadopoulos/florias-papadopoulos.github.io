@@ -113,6 +113,10 @@ function fourInARow(api, duo) {
         '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="25" rx="7.5" ry="6.5"/><circle cx="11" cy="17" r="3.2"/>' +
         '<circle cx="16.5" cy="11.5" r="3.2"/><circle cx="23.5" cy="11.5" r="3.2"/><circle cx="29" cy="17" r="3.2"/></svg>',
         '<svg viewBox="0 0 40 40"><path d="M7 20c4-6 12-8 18-4l7-5v18l-7-5c-6 4-14 2-18-4z"/><circle class="eye" cx="13" cy="19" r="1.7"/></svg>'];
+    /* dog mode (a dog look, data-pet="dog", single player only): you play against the dog and its bones */
+    var DOG = !duo && document.documentElement.dataset.pet === 'dog', PET = DOG ? 'dog' : 'cat', LOOT = DOG ? 'bones' : 'fish';
+    if (DOG) ART[2] = '<svg viewBox="0 0 40 40"><g transform="rotate(-35 20 20)"><rect x="11" y="17" width="18" height="6" rx="2"/>' +
+        '<circle cx="11" cy="16.6" r="3.8"/><circle cx="11" cy="23.4" r="3.8"/><circle cx="29" cy="16.6" r="3.8"/><circle cx="29" cy="23.4" r="3.8"/></g></svg>';
 
     /* every line of N as cell indices (cell = column * ROWS + row, row 0 at the bottom), and the lines through each cell */
     var LINES = [], AT = [], STEPS = [];
@@ -140,7 +144,7 @@ function fourInARow(api, duo) {
         '<button type="button" class="fr-btn go" hidden>Play again</button></div></div>' :
         '<span class="fr-chip" title="Your round wins"><span class="fr-tok fr-you">' + ART[YOU] + '</span>You <b class="fr-wins">0</b></span>' +
         '<span class="fr-round"></span>' +
-        '<span class="fr-chip" title="Rounds the cat has won (three end the game)"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>Cat ' +
+        '<span class="fr-chip" title="Rounds the ' + PET + ' has won (three end the game)"><span class="fr-tok fr-cat">' + ART[CAT] + '</span>' + (DOG ? 'Dog ' : 'Cat ') +
         '<span class="fr-pip"></span><span class="fr-pip"></span><span class="fr-pip"></span></span>' +
         (CFG.undo ? '<button type="button" class="fr-undo"></button>' : '') +
         '</div><div class="fr-turn" aria-live="polite"></div></div>') +
@@ -406,15 +410,15 @@ function fourInARow(api, duo) {
             losses++;
             showScore();
             if (losses < LIVES) {
-                status(M.name + ' fish in a row. ' + (LIVES - losses) + (LIVES - losses === 1 ? ' life left' : ' lives left'));
+                status(M.name + ' ' + LOOT + ' in a row. ' + (LIVES - losses) + (LIVES - losses === 1 ? ' life left' : ' lives left'));
                 api.sfx('hit');
-                chat(['Meow! ' + M.name + ' fish.', 'Mine!', 'Purrfect line.'][losses % 3], 'happy', true);
+                chat([(DOG ? 'Woof! ' : 'Meow! ') + M.name + ' ' + LOOT + '.', 'Mine!', DOG ? 'Pawfect line.' : 'Purrfect line.'][losses % 3], 'happy', true);
                 later(newRound, 2200);
             } else {
                 over = true;
-                status(M.name + ' fish in a row');
-                api.say('Meow! Three rounds to me.', 2000);
-                api.end({ score: wins0, win: false, text: 'The cat won three rounds.\nYou won ' + wins0 + (wins0 === 1 ? ' round' : ' rounds') + '\n(' + M.name.toLowerCase() + ' in a row, ' + level + ')' });
+                status(M.name + ' ' + LOOT + ' in a row');
+                api.say(DOG ? 'Woof! Three rounds to me.' : 'Meow! Three rounds to me.', 2000);
+                api.end({ score: wins0, win: false, text: 'The ' + PET + ' won three rounds.\nYou won ' + wins0 + (wins0 === 1 ? ' round' : ' rounds') + '\n(' + M.name.toLowerCase() + ' in a row, ' + level + ')' });
             }
         } else {
             status('A draw. Again!');
@@ -426,7 +430,7 @@ function fourInARow(api, duo) {
     function catTurn(text) {
         busy = true;
         showAim();
-        status(text || 'The cat is thinking…');
+        status(text || 'The ' + PET + ' is thinking…');
         api.cat('think');
         later(function () {                       /* short pause first so the screen shows the last move */
             var threat = -1;                      /* did you have a winning drop? */
@@ -438,7 +442,7 @@ function fourInARow(api, duo) {
                 if (check(line, CAT)) return;
                 if (m.value > MATE && m.value < WIN && !boasted) {
                     boasted = true;
-                    chat(['I see a way to win.', 'Purr. This looks good for me.', 'Got you now, I think.'][Math.floor(Math.random() * 3)], 'happy', true);
+                    chat(['I see a way to win.', DOG ? 'Arf. This looks good for me.' : 'Purr. This looks good for me.', 'Got you now, I think.'][Math.floor(Math.random() * 3)], 'happy', true);
                 } else if (m.col === threat) {
                     chat(['Not so fast!', 'I saw that.', 'Nice try!'][Math.floor(Math.random() * 3)], 'wow');
                 } else if (m.value < -MATE) {
@@ -552,7 +556,7 @@ function fourInARow(api, duo) {
             return duoShow();
         }
         if (round % 2 === 0) {                    /* the cat starts every other round */
-            catTurn('The cat starts');
+            catTurn('The ' + PET + ' starts');
         } else {
             busy = false;
             showAim();

@@ -23,6 +23,15 @@ Arcade.register('brick-paw', function (api) {
         { name: 'Paw print', rows: ['..22.22..', '..22.22..', '22.....22', '22.333.22', '..33333..', '.333*333.', '.3333333.', '..33333..'] },
         { name: 'Fortress', rows: ['#2222222#', '#2333332#', '#23*1*32#', '#2333332#', '#2222222#', '##1###1##', '.........', '111111111'] }
     ];
+    /* dog mode (a dog look, data-pet="dog"): the paw is the chosen dog's, and the cat face becomes a dog face with floppy ears */
+    var DOG = document.documentElement.dataset.pet === 'dog';
+    if (DOG) LEVELS[2] = { name: 'Dog face', rows: ['..22222..', '332222233', '332#2#233', '332222233', '3.21112.3', '3.21*12.3', '..21112..', '...222...'] };
+    var DOGPAW = (function () {
+        var cs = null;
+        try { cs = getComputedStyle(document.documentElement); } catch (e) { /* golden */ }
+        function v(name, dflt) { var x = cs && cs.getPropertyValue('--' + name).trim(); return x || dflt; }
+        return { top: v('fur-top', '#f6d79a'), bot: v('fur-bot', '#dca456') };
+    })();
     /* difficulty: lives, ball speed (share of the height per second), speed-up per brick and its cap, paw width
        (share of the field), chance that a brick drops a power-up, ball size, extra hits for tough bricks */
     var LV = {
@@ -269,7 +278,7 @@ Arcade.register('brick-paw', function (api) {
         if (level === LEVELS.length) {
             add(100 * lives);
             state = 'over';
-            api.say('All clear, purr!');
+            api.say(DOG ? 'All clear, woof!' : 'All clear, purr!');
             api.end({ score: score, win: true, text: 'Every level cleared!\nScore: ' + score + ' (lives left: ' + lives + ')' });
             return;
         }
@@ -464,17 +473,20 @@ Arcade.register('brick-paw', function (api) {
             g.globalAlpha = 1;
         }
         var gr = g.createLinearGradient(0, py, 0, py + ph);
-        gr.addColorStop(0, '#fbbf6a'); gr.addColorStop(1, '#ef9a2e');
+        gr.addColorStop(0, DOG ? DOGPAW.top : '#fbbf6a'); gr.addColorStop(1, DOG ? DOGPAW.bot : '#ef9a2e');
         g.fillStyle = gr; g.strokeStyle = '#3b2a1e'; g.lineWidth = 2;
         rr(x, py, pw, ph, ph / 2); g.fill(); g.stroke();
         g.fillStyle = 'rgba(255, 255, 255, .35)';
         rr(x + ph / 2, py + 3, pw - ph, 3, 1.5); g.fill();
+        if (!DOG) {
         g.strokeStyle = '#d9822b'; g.lineWidth = 1.5;     /* fur stripes at the ends */
         g.beginPath();
         g.moveTo(x + 8, py + 4); g.lineTo(x + 12, py + ph - 4);
         g.moveTo(x + pw - 8, py + 4); g.lineTo(x + pw - 12, py + ph - 4);
         g.stroke();
-        g.fillStyle = '#ffb3c4'; g.strokeStyle = '#e07a96'; g.lineWidth = 1;
+        }
+        if (DOG) { g.fillStyle = '#4a3a32'; g.strokeStyle = '#2b2220'; } else { g.fillStyle = '#ffb3c4'; g.strokeStyle = '#e07a96'; }   /* dark dog pads */
+        g.lineWidth = 1;
         var s = Math.min(1.25, pw / 100);
         g.beginPath(); g.ellipse(px, py + ph * 0.64, 11 * s, ph * 0.22, 0, 0, TAU); g.fill(); g.stroke();
         for (var i = 0; i < 4; i++) {                      /* four toe beans */

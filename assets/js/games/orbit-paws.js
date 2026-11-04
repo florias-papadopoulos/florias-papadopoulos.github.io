@@ -30,6 +30,9 @@ Arcade.register('orbit-paws', function (api) {
         '.op-head:before, .op-head:after { content: ""; position: absolute; top: -4px; border-left: 3px solid transparent; border-right: 3px solid transparent;' +
         '  border-bottom: 6px solid currentColor; }' +
         '.op-head:before { left: -1px; } .op-head:after { right: -1px; }' +
+        'html[data-pet="dog"] .op-head:before, html[data-pet="dog"] .op-head:after { top: 1px; width: 4px; height: 8px; border: 0; border-radius: 50%;' +
+        '  background: currentColor; filter: brightness(.7); }' +
+        'html[data-pet="dog"] .op-head:before { left: -2px; } html[data-pet="dog"] .op-head:after { right: -2px; }' +
         '.op-head.op-spare { background: transparent; box-shadow: inset 0 0 0 1.6px currentColor; color: #7f8cc0 !important; }' +
         '.op-head.op-hurt { opacity: .55; }' +
         '.op-head.op-launch { animation: op-blink .5s steps(2) infinite; }' +
@@ -96,6 +99,18 @@ Arcade.register('orbit-paws', function (api) {
     var HIT = { cat: 0.09, station: 0.22, debris: 0.045, frag: 0.035, big: 0.085, rogue: 0.09, dog: 0.08, fuzzy: 0.08, meteor: 0.05 };
     var BIG = { big: 1, rogue: 1, dog: 1, fuzzy: 1 };
     var HNAME = { debris: 'debris', frag: 'fragment', big: 'rocket body', rogue: 'dead sat', dog: 'Woof Co sat', fuzzy: 'private zone', meteor: 'meteor' };
+    /* dog mode (a dog look, data-pet="dog"): the satellites are dogs, so the rival operator becomes a cat company */
+    var DOG = document.documentElement.dataset.pet === 'dog';
+    function pet(t) {
+        if (!DOG || !t) return t;
+        return String(t).replace(/Dog Corp/g, '\u0001').replace(/Woof Co/g, '\u0002')
+            .replace(/Purr Station/g, 'Woof Station').replace(/Purrfect/g, 'Pawsome').replace(/Mission meowcomplished!/g, 'Mission accomplished, woof!')
+            .replace(/Mrrrp!/g, 'Arf arf!').replace(/Mrrp,/g, 'Arf,').replace(/Purr!/g, 'Woof!')
+            .replace(/whiskers/g, 'ears').replace(/Whiskers/g, 'Ears')
+            .replace(/\bcats\b/g, 'dogs').replace(/\bcat\b/g, 'dog').replace(/\bCat\b/g, 'Dog')
+            .replace(/\u0001/g, 'Cat Corp').replace(/\u0002/g, 'Meow Co');
+    }
+    if (DOG) HNAME.dog = 'Meow Co sat';
     var PATHCOL = { debris: '#a3afc9', frag: '#ffb37a', big: '#e6e9f2', rogue: '#b3a9c9', dog: '#7fb3ff', meteor: '#ffb347', fuzzy: '#c39bff' };
     var ZR = 0.28, RANGE = 1.15, RANGE_ST = 1.4, DOCK_D = 0.3;
     var MAXH = 72, MAXP = api.reducedMotion ? 60 : 200;
@@ -145,12 +160,13 @@ Arcade.register('orbit-paws', function (api) {
           brief: 'Protect the Purr Station. To dock, bring a courier cat onto the station lane and line it up inside the green ring: ' +
                  'the station refuels it and sends a spare cat.' }];
 
+    if (DOG) MISSIONS.forEach(function (m) { m.title = pet(m.title); m.brief = pet(m.brief); });
     function waveDef(n) {
         var ev = [[7 + Math.random() * 5, ['swarm', 'storm', 'kessler'][(n - 1) % 3]]];
         if (n >= 2) ev.push([22 + Math.random() * 6, pick(['swarm', 'kessler', 'swarm', 'storm'])]);
         return { title: 'Endless orbit', wave: n, sats: 4, lanes: [0, 1, 2, 3], T: 40, filler: Math.min(13, 5 + n), bigs: 1 + (n >> 1), rogues: 1,
             dogs: 1, fuzzy: n % 2 ? 1 : 2, threat: [Math.max(2.3, 4.6 - n * 0.35), 'mixed'], fuzzyThreat: 0.2, events: ev, goal: { type: 'safe' },
-            brief: 'Wave ' + n + '. The junk keeps coming and every wave is busier. How long can your cats keep their whiskers clean?' };
+            brief: pet('Wave ' + n + '. The junk keeps coming and every wave is busier. How long can your cats keep their whiskers clean?') };
     }
 
     function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -213,7 +229,7 @@ Arcade.register('orbit-paws', function (api) {
         '<div class="op-ctl"><div class="op-sel"></div><div class="op-btns">' +
         btn('up', 'Raise') + btn('down', 'Lower') + btn('back', 'Back', 'op-half') + btn('ahead', 'Ahead', 'op-half') +
         btn('laser', 'Laser', 'op-laser') + btn('check', 'Check', 'op-check') + '</div>' +
-        '<div class="op-keys">W S raise, lower &middot; A D phase &middot; Space laser &middot; C check &middot; Tab next cat</div></div>' +
+        '<div class="op-keys">W S raise, lower &middot; A D phase &middot; Space laser &middot; C check &middot; Tab next ' + (DOG ? 'dog' : 'cat') + '</div></div>' +
         '<div class="op-card op-hide"><b></b><strong></strong><span></span><em></em></div>';
     api.el.appendChild(root);
     var cv = root.querySelector('.op-cv'), ctx = cv.getContext('2d', { alpha: false });
@@ -243,7 +259,7 @@ Arcade.register('orbit-paws', function (api) {
     function makeSat(kind, r, th) {
         var c = CATS[catIdx % CATS.length];
         if (kind === 'cat') catIdx += 1;
-        return { id: ++uid, kind: kind, name: kind === 'station' ? 'Purr Station' : c.name, look: kind === 'station' ? CATS[4] : c,
+        return { id: ++uid, kind: kind, name: kind === 'station' ? pet('Purr Station') : c.name, look: kind === 'station' ? CATS[4] : c,
             r: r, th: th, tr: null, ph: null, drag: storm > 0 ? (kind === 'station' ? -0.006 : -0.012) : 0, kick: null,
             fuel: 100, heat: 0, hot: false, hp: kind === 'station' ? 4 : 2, maxHp: kind === 'station' ? 4 : 2, hr: HIT[kind],
             plan: 0, x: r * Math.cos(th), y: r * Math.sin(th), alive: true, launch: 0, dock: 0, dockCd: 0, blink: Math.random() * 4, hurt: 0,
@@ -651,7 +667,7 @@ Arcade.register('orbit-paws', function (api) {
     }
     var lastToast = 0;
     function toast(text, ms, kind) {
-        toastEl.textContent = text;
+        toastEl.textContent = pet(text);
         toastEl.className = 'op-toast' + (kind === 'info' ? ' op-info' : kind === 'good' ? ' op-good' : '');
         lastToast = clock + (ms || 2500) / 1000;
     }
@@ -659,7 +675,7 @@ Arcade.register('orbit-paws', function (api) {
         if (!force && clock - lastSay < 2.6) return;
         lastSay = clock;
         if (mood) api.cat(mood);
-        api.say(text, 2000);
+        api.say(pet(text), 2000);
     }
 
     /* collisions, explosions and fragment clouds */
@@ -1063,7 +1079,7 @@ Arcade.register('orbit-paws', function (api) {
         ended = true;
         var win = cleared >= MISSIONS.length, def = curDef();
         api.end({ score: score, win: win,
-            text: gameOver.text + '\n' + (win ? 'You reached endless wave ' + endless + '!' :
+            text: pet(gameOver.text) + '\n' + (win ? 'You reached endless wave ' + endless + '!' :
                 'Missions cleared: ' + cleared + ' of ' + MISSIONS.length + ' (lost in ' + def.title + ').') +
                 '\nJunk zapped ' + totals.zaps + ', dodges ' + totals.dodges + ', safe checks ' + totals.safe + '.\nScore ' + score });
     }
@@ -1589,10 +1605,16 @@ Arcade.register('orbit-paws', function (api) {
             ctx.fillRect(-d * 3, -d * 0.5, d * 1.8, d); ctx.fillRect(d * 1.2, -d * 0.5, d * 1.8, d);
             ctx.fillStyle = '#7fb3ff'; rrect(-d, -d, d, d, d * 0.4); ctx.fill();
             ctx.fillStyle = '#8a5a3c';
+            if (DOG) {   /* dog mode: the rival is Meow Co, with pointed cat ears and a pink nose */
+                ctx.beginPath(); ctx.moveTo(-d * 0.95, -d * 0.55); ctx.lineTo(-d * 0.8, -d * 1.6); ctx.lineTo(-d * 0.15, -d * 0.95); ctx.closePath();
+                ctx.moveTo(d * 0.95, -d * 0.55); ctx.lineTo(d * 0.8, -d * 1.6); ctx.lineTo(d * 0.15, -d * 0.95); ctx.closePath(); ctx.fill();
+            } else {
             ctx.beginPath(); ctx.ellipse(-d * 1.05, -d * 0.1, d * 0.35, d * 0.75, 0.25, 0, TAU); ctx.fill();
             ctx.beginPath(); ctx.ellipse(d * 1.05, -d * 0.1, d * 0.35, d * 0.75, -0.25, 0, TAU); ctx.fill();
             ctx.fillStyle = '#e8f0ff'; ctx.beginPath(); ctx.ellipse(0, d * 0.35, d * 0.5, d * 0.36, 0, 0, TAU); ctx.fill();
-            ctx.fillStyle = '#1b1530'; ctx.beginPath(); ctx.arc(0, d * 0.2, d * 0.17, 0, TAU); ctx.fill();
+            }
+            ctx.fillStyle = DOG ? '#ff8fab' : '#1b1530'; ctx.beginPath(); ctx.arc(0, d * 0.2, d * 0.17, 0, TAU); ctx.fill();
+            ctx.fillStyle = '#1b1530';
             ctx.beginPath(); ctx.arc(-d * 0.38, -d * 0.3, d * 0.12, 0, TAU); ctx.arc(d * 0.38, -d * 0.3, d * 0.12, 0, TAU); ctx.fill();
             ctx.restore();
         } else if (h.kind === 'meteor') {
@@ -1637,13 +1659,17 @@ Arcade.register('orbit-paws', function (api) {
             ctx.moveTo(x0 + u * 0.15, 0); ctx.lineTo(x1 - u * 0.15, 0); ctx.stroke();
         }
         ctx.fillStyle = L.body; ctx.strokeStyle = L.dark; ctx.lineWidth = Math.max(1, u * 0.14); ctx.lineJoin = 'round';
-        for (sd = -1; sd <= 1; sd += 2) {   /* ears */
+        for (sd = -1; sd <= 1 && !DOG; sd += 2) {   /* ears */
             ctx.fillStyle = L.body;
             ctx.beginPath(); ctx.moveTo(sd * u * 0.95, -u * 0.45); ctx.lineTo(sd * u * 0.8, -u * 1.6); ctx.lineTo(sd * u * 0.1, -u * 0.85); ctx.closePath(); ctx.fill(); ctx.stroke();
             ctx.fillStyle = L.ear;
             ctx.beginPath(); ctx.moveTo(sd * u * 0.78, -u * 0.7); ctx.lineTo(sd * u * 0.72, -u * 1.3); ctx.lineTo(sd * u * 0.35, -u * 0.88); ctx.closePath(); ctx.fill();
         }
         ctx.fillStyle = L.body; rrect(-u, -u * 0.95, u, u * 0.9, u * 0.5); ctx.fill(); ctx.stroke();
+        if (DOG) {   /* dog mode: floppy ears hanging down the sides, in the satellite's dark colour */
+            ctx.fillStyle = L.dark;
+            for (sd = -1; sd <= 1; sd += 2) { ctx.beginPath(); ctx.ellipse(sd * u * 0.98, -u * 0.2, u * 0.3, u * 0.62, sd * 0.3, 0, TAU); ctx.fill(); }
+        }
         var blink = !api.reducedMotion && ((clock + s.blink * 1.7) % 3.6) < 0.13;
         ctx.fillStyle = '#1b1530'; ctx.strokeStyle = '#1b1530'; ctx.lineWidth = Math.max(1, u * 0.12);
         for (sd = -1; sd <= 1; sd += 2) {
@@ -1653,12 +1679,18 @@ Arcade.register('orbit-paws', function (api) {
                 ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(sd * u * 0.4 + u * 0.05, -u * 0.2, u * 0.055, 0, TAU); ctx.fill();
             }
         }
+        if (DOG) {   /* a round snout, a dark nose and a small tongue, no whiskers */
+            ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(0, u * 0.36, u * 0.42, u * 0.3, 0, 0, TAU); ctx.fill();
+            ctx.fillStyle = '#ff7f96'; ctx.beginPath(); ctx.ellipse(0, u * 0.62, u * 0.11, u * 0.14, 0, 0, TAU); ctx.fill();
+            ctx.fillStyle = '#1b1530'; ctx.beginPath(); ctx.ellipse(0, u * 0.24, u * 0.17, u * 0.12, 0, 0, TAU); ctx.fill();
+        } else {
         ctx.fillStyle = '#ff8fab';
         ctx.beginPath(); ctx.moveTo(-u * 0.12, u * 0.17); ctx.lineTo(u * 0.12, u * 0.17); ctx.lineTo(0, u * 0.32); ctx.closePath(); ctx.fill();
         ctx.strokeStyle = L.dark; ctx.lineWidth = Math.max(0.6, u * 0.07); ctx.globalAlpha *= 0.8;
         ctx.beginPath();
         for (sd = -1; sd <= 1; sd += 2) { ctx.moveTo(sd * u * 0.32, u * 0.3); ctx.lineTo(sd * u * 1.25, u * 0.18); ctx.moveTo(sd * u * 0.32, u * 0.38); ctx.lineTo(sd * u * 1.2, u * 0.52); }
         ctx.stroke();
+        }
         if (s.hp < s.maxHp) {   /* a bandage */
             ctx.globalAlpha = 1; ctx.fillStyle = '#fff3d6'; ctx.save(); ctx.rotate(-0.5);
             ctx.fillRect(-u * 0.95, -u * 0.95, u * 0.8, u * 0.28); ctx.restore();
@@ -1687,11 +1719,16 @@ Arcade.register('orbit-paws', function (api) {
         for (i = 0; i < 6; i++) { var b = sp + i * TAU / 6; ctx.fillStyle = i % 2 ? '#ffd66b' : '#7dffb5'; ctx.globalAlpha = api.reducedMotion || ((clock * 2 + i) % 2) < 1 ? 1 : 0.35; ctx.beginPath(); ctx.arc(Math.cos(b) * su * 2, Math.sin(b) * su * 2, su * 0.14, 0, TAU); ctx.fill(); }
         ctx.globalAlpha = 1;
         ctx.fillStyle = '#f5f2ea'; ctx.strokeStyle = '#7d786b'; ctx.lineWidth = Math.max(1, su * 0.12);
-        for (i = -1; i <= 1; i += 2) { ctx.beginPath(); ctx.moveTo(i * su * 0.95, -su * 0.45); ctx.lineTo(i * su * 0.85, -su * 1.5); ctx.lineTo(i * su * 0.15, -su * 0.85); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+        for (i = -1; i <= 1 && !DOG; i += 2) { ctx.beginPath(); ctx.moveTo(i * su * 0.95, -su * 0.45); ctx.lineTo(i * su * 0.85, -su * 1.5); ctx.lineTo(i * su * 0.15, -su * 0.85); ctx.closePath(); ctx.fill(); ctx.stroke(); }
         ctx.beginPath(); ctx.arc(0, 0, su * 1.05, 0, TAU); ctx.fill(); ctx.stroke();
+        if (DOG) {   /* floppy ears */
+            ctx.fillStyle = '#c9bfae';
+            for (i = -1; i <= 1; i += 2) { ctx.beginPath(); ctx.ellipse(i * su * 1.02, -su * 0.15, su * 0.3, su * 0.62, i * 0.3, 0, TAU); ctx.fill(); ctx.stroke(); }
+        }
         ctx.fillStyle = '#1b1530';
         for (i = -1; i <= 1; i += 2) { ctx.beginPath(); ctx.ellipse(i * su * 0.4, -su * 0.1, su * 0.14, su * 0.2, 0, 0, TAU); ctx.fill(); }
-        ctx.fillStyle = '#ff8fab'; ctx.beginPath(); ctx.moveTo(-su * 0.12, su * 0.2); ctx.lineTo(su * 0.12, su * 0.2); ctx.lineTo(0, su * 0.34); ctx.fill();
+        if (DOG) { ctx.beginPath(); ctx.ellipse(0, su * 0.26, su * 0.17, su * 0.12, 0, 0, TAU); ctx.fill(); }
+        else { ctx.fillStyle = '#ff8fab'; ctx.beginPath(); ctx.moveTo(-su * 0.12, su * 0.2); ctx.lineTo(su * 0.12, su * 0.2); ctx.lineTo(0, su * 0.34); ctx.fill(); }
         if (s.x > 0 && Math.abs(s.y) < 1) { ctx.globalAlpha = 0.3; ctx.fillStyle = '#060a28'; ctx.beginPath(); ctx.arc(0, 0, su * 2.4, 0, TAU); ctx.fill(); }
         ctx.restore();
     }
@@ -1870,7 +1907,7 @@ Arcade.register('orbit-paws', function (api) {
         }
         for (i = 0; i < launches.length; i++) h += '<i class="op-head op-launch" style="color:#9fb0e6"></i>';
         for (i = 0; i < spares; i++) h += '<i class="op-head op-spare"></i>';
-        if (!h) h = '<small>no cats left</small>';
+        if (!h) h = (DOG ? '<small>no dogs left</small>' : '<small>no cats left</small>');
         if (st) {
             h += '<small>&nbsp;Station</small><span class="op-st">';
             for (i = 0; i < st.maxHp; i++) h += i < (st.alive ? st.hp : 0) ? '&#9632;' : '<i>&#9632;</i>';
@@ -1878,7 +1915,7 @@ Arcade.register('orbit-paws', function (api) {
         }
         setHTML(catsEl, 'cats', h);
         var g = goalInfo();
-        setText(goalEl, 'goal', g ? g.text : '');
+        setText(goalEl, 'goal', g ? pet(g.text) : '');
         setCls(goalEl, 'goalc', 'op-pill op-goal' + (g && g.done && g.text.indexOf('No cat') < 0 && g.text.indexOf('Stop') < 0 ? ' op-done' : ''));
         if (shown.score !== score) { shown.score = score; api.score(score); }
         var sel = selSat();
@@ -1888,7 +1925,7 @@ Arcade.register('orbit-paws', function (api) {
                 ' <small>L' + laneLabel(sel.r) + (status ? ' ' + status : '') + '</small>' +
                 ' <small>Fuel</small><span class="op-bar"><i style="width:' + Math.round(sel.fuel) + '%"></i></span>' +
                 ' <small>Heat</small><span class="op-bar op-heat' + (sel.hot ? ' op-hot' : '') + '"><i style="width:' + Math.round(sel.heat) + '%"></i></span>');
-        } else setHTML(selEl, 'sel', '<small>Tap a cat satellite to select it</small>');
+        } else setHTML(selEl, 'sel', (DOG ? '<small>Tap a dog satellite to select it</small>' : '<small>Tap a cat satellite to select it</small>'));
         var ok = canAct(sel);
         setCls(btnEls.up, 'bu', 'op-btn' + (ok && laneFrom(sel.r, 1) !== null && sel.fuel >= cost(sel, 'up') ? '' : ' op-off'));
         setCls(btnEls.down, 'bd', 'op-btn' + (ok && laneFrom(sel.r, -1) !== null && sel.fuel >= cost(sel, 'down') ? '' : ' op-off'));
@@ -1925,9 +1962,9 @@ Arcade.register('orbit-paws', function (api) {
         setHTML(alertsEl, 'alerts', h);
     }
     function showCard(kicker, title, text, sub, cls) {
-        cardEl.querySelector('b').textContent = kicker;
-        cardEl.querySelector('strong').textContent = title;
-        cardEl.querySelector('span').textContent = text;
+        cardEl.querySelector('b').textContent = pet(kicker);
+        cardEl.querySelector('strong').textContent = pet(title);
+        cardEl.querySelector('span').textContent = pet(text);
         cardEl.querySelector('em').textContent = sub || '';
         cardEl.className = 'op-card' + (cls ? ' ' + cls : '');
     }

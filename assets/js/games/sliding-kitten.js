@@ -773,7 +773,7 @@
                 if (c) c.classList.add('happy');
                 sparkle();
                 api.end({ score: moves, win: true, lowerIsBetter: true,
-                    text: 'Kitten restored!\n' + SCENES[cur].name + ', ' + n + 'x' + n + ' in ' + moves + ' moves, ' + timeEl.textContent + (peeks ? ', ' + peeks + (peeks === 1 ? ' peek' : ' peeks') : '') });
+                    text: (document.documentElement.dataset.pet === 'dog' ? 'Puppy' : 'Kitten') + ' restored!\n' + SCENES[cur].name + ', ' + n + 'x' + n + ' in ' + moves + ' moves, ' + timeEl.textContent + (peeks ? ', ' + peeks + (peeks === 1 ? ' peek' : ' peeks') : '') });
             }
         }
         function peek(on) {

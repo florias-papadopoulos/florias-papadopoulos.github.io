@@ -219,7 +219,7 @@ Arcade.register('long-cat', function (api) {
             if (eaten % 10 === 0) {
                 api.sfx('point');
                 api.cat('happy');
-                api.say(['Yum, ' + eaten + ' fish!', 'Such a long cat!', 'Purrfect!'][(eaten / 10) % 3]);
+                api.say(['Yum, ' + eaten + ' fish!', C.dog ? 'Such a long dog!' : 'Such a long cat!', C.dog ? 'Pawsome!' : 'Purrfect!'][(eaten / 10) % 3]);
             } else {
                 api.sfx('pop');
                 if (eaten % 5 === 0) api.cat('wow');
@@ -316,7 +316,7 @@ Arcade.register('long-cat', function (api) {
     }
     function win() {
         state = 'over';
-        api.end({ score: score, win: true, text: 'The whole board is cat!\nScore: ' + score });
+        api.end({ score: score, win: true, text: 'The whole board is ' + (C.dog ? 'dog' : 'cat') + '!\nScore: ' + score });
     }
 
     /* ---------- particles: little bursts and floating points ---------- */
@@ -475,7 +475,8 @@ Arcade.register('long-cat', function (api) {
         function v(name, dflt) { var s = cs && cs.getPropertyValue(name).trim(); return s || dflt; }
         return { fur: v('--fur-bot', '#f0932c'), light: v('--fur-top', '#ffc06e'), head: v('--head-top', '#ffc479'),
                  stripe: v('--stripe', '#cf7419'), cream: v('--cream', '#ffe9c9'), tail: v('--tail', '#f5a03c'),
-                 iris: v('--iris', '#8ed383'), line: '#3b2a1e' };
+                 iris: v('--iris', '#8ed383'), line: '#3b2a1e', ear: v('--ear', '#b97a33'), nose: v('--nose', '#2b2220'),
+                 dog: document.documentElement.dataset.pet === 'dog' };   /* a dog look: a long dog instead */
     })();
     /* opaque blends of the fur with its lighter and darker tones (drawing twice at a joint must not change them) */
     function blend(a, b, t) {
@@ -535,6 +536,7 @@ Arcade.register('long-cat', function (api) {
         g.strokeStyle = C.back; g.lineWidth = cell * 0.3; g.stroke();
         trace(list, from, to, cell * 0.13, cell * 0.15);
         g.strokeStyle = C.belly; g.lineWidth = cell * 0.17; g.stroke();
+        if (C.dog) return;                                 /* a dog has no tabby stripes */
         g.beginPath();
         var hw = cell * BODY / 2;
         for (var i = from; i < to; i++) {
@@ -569,6 +571,7 @@ Arcade.register('long-cat', function (api) {
         g.lineCap = 'round';
         path(); g.strokeStyle = nipT > 0 ? '#2f9e5b' : C.line; g.lineWidth = c * 0.34; g.stroke();
         path(); g.strokeStyle = C.tail; g.lineWidth = c * 0.24; g.stroke();
+        if (C.dog) return;                                 /* a plain dog tail: no rings, no cream tip */
         path(); g.setLineDash([c * 0.09, c * 0.16]); g.strokeStyle = C.stripe; g.globalAlpha = 0.8; g.stroke();
         g.setLineDash([]); g.globalAlpha = 1;
         g.fillStyle = C.cream;                             /* the tip */
@@ -621,6 +624,7 @@ Arcade.register('long-cat', function (api) {
     }
     /* the cat's face, looking a little towards where it walks */
     function drawHead(x, y) {
+        if (C.dog) return drawDogHead(x, y);
         var s = cell * 0.5, lx = DX[dir] * s * 0.12, ly = DY[dir] * s * 0.12;
         g.lineWidth = Math.max(1, cell * 0.06);
         g.strokeStyle = C.line;
@@ -668,6 +672,46 @@ Arcade.register('long-cat', function (api) {
         g.ellipse(x - s * 0.58 + lx, y + s * 0.2, s * 0.14, s * 0.08, 0, 0, TAU);
         g.ellipse(x + s * 0.58 + lx, y + s * 0.2, s * 0.14, s * 0.08, 0, 0, TAU);
         g.fill();
+    }
+    /* the dog's face in dog mode, the same size: floppy ears hanging down, a round cream snout, a dark nose, a small tongue */
+    function drawDogHead(x, y) {
+        var s = cell * 0.5, lx = DX[dir] * s * 0.12, ly = DY[dir] * s * 0.12;
+        g.lineWidth = Math.max(1, cell * 0.06);
+        g.strokeStyle = C.line;
+        var hg = g.createRadialGradient(x - s * 0.3, y - s * 0.35, s * 0.1, x, y, s);
+        hg.addColorStop(0, C.head); hg.addColorStop(1, C.fur);
+        g.fillStyle = hg;
+        g.beginPath(); g.ellipse(x, y, s * 0.88, s * 0.84, 0, 0, TAU); g.fill(); g.stroke();
+        g.fillStyle = C.ear;                               /* floppy ears */
+        [-1, 1].forEach(function (sd) {
+            g.beginPath(); g.ellipse(x + sd * s * 0.8, y + s * 0.02, s * 0.24, s * 0.5, sd * 0.3, 0, TAU); g.fill(); g.stroke();
+        });
+        g.fillStyle = C.cream;                             /* the snout */
+        g.beginPath(); g.ellipse(x + lx, y + s * 0.36 + ly, s * 0.44, s * 0.33, 0, 0, TAU); g.fill();
+        g.fillStyle = '#ff7f96';                           /* tongue */
+        g.beginPath(); g.ellipse(x + lx, y + s * 0.66 + ly, s * 0.11, s * 0.13, 0, 0, TAU); g.fill();
+        g.fillStyle = C.iris;                              /* eyes: round, with a big dark pupil */
+        g.beginPath();
+        g.arc(x - s * 0.34 + lx, y - s * 0.14 + ly, s * 0.15, 0, TAU);
+        g.arc(x + s * 0.34 + lx, y - s * 0.14 + ly, s * 0.15, 0, TAU);
+        g.fill();
+        g.fillStyle = '#1f1610';
+        g.beginPath();
+        g.arc(x - s * 0.34 + lx * 1.4, y - s * 0.14 + ly * 1.4, s * 0.1, 0, TAU);
+        g.arc(x + s * 0.34 + lx * 1.4, y - s * 0.14 + ly * 1.4, s * 0.1, 0, TAU);
+        g.fill();
+        g.fillStyle = '#fff';
+        g.beginPath();
+        g.arc(x - s * 0.3 + lx, y - s * 0.2 + ly, s * 0.045, 0, TAU);
+        g.arc(x + s * 0.38 + lx, y - s * 0.2 + ly, s * 0.045, 0, TAU);
+        g.fill();
+        g.fillStyle = C.nose;                              /* nose */
+        g.beginPath(); g.ellipse(x + lx, y + s * 0.2 + ly, s * 0.17, s * 0.12, 0, 0, TAU); g.fill();
+        g.strokeStyle = C.line; g.lineWidth = Math.max(1, cell * 0.04);   /* mouth */
+        g.beginPath();
+        g.moveTo(x + lx, y + s * 0.3 + ly); g.lineTo(x + lx, y + s * 0.44 + ly);
+        g.moveTo(x - s * 0.16 + lx, y + s * 0.5 + ly); g.quadraticCurveTo(x + lx, y + s * 0.58 + ly, x + s * 0.16 + lx, y + s * 0.5 + ly);
+        g.stroke();
     }
     function drawFx() {
         for (var i = 0; i < parts.length; i++) {

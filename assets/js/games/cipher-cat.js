@@ -258,6 +258,17 @@
             '<rect x="4.5" y="10.5" width="15" height="11" rx="2.5" fill="#e8771c" stroke="#2b2340" stroke-width="2"/><circle cx="12" cy="15.5" r="1.7" fill="#2b2340"/></svg>';
         var PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 11V8a4.5 4.5 0 0 1 9 0v3" fill="none" stroke="#3f8f3a" stroke-width="2.4"/>' +
             '<rect x="5" y="11" width="14" height="10" rx="2.5" fill="#3f8f3a"/></svg>';
+        /* dog mode (a dog look, data-pet="dog"): the chosen dog locked the diary, drawn with floppy ears, a snout and a tongue */
+        var DOG = document.documentElement.dataset.pet === 'dog', PET = DOG ? 'dog' : 'cat';
+        var DOG_FACE = '<svg class="cc-face" viewBox="0 0 80 68" aria-hidden="true">' +
+            '<ellipse cx="40" cy="38" rx="27" ry="25" style="fill:var(--fur-bot,#dca456)" stroke="#2b2340" stroke-width="2.5"/>' +
+            '<path d="M18 18 C6 18 4 34 8 46 C11 53 19 51 20 42 Z M62 18 C74 18 76 34 72 46 C69 53 61 51 60 42 Z" style="fill:var(--ear,#b97a33)" stroke="#2b2340" stroke-width="2.5" stroke-linejoin="round"/>' +
+            '<path d="M29 33 q4 -5 8 0 M43 33 q4 -5 8 0" fill="none" stroke="#2b2340" stroke-width="3" stroke-linecap="round"/>' +
+            '<ellipse cx="40" cy="47" rx="12" ry="8.5" style="fill:var(--cream,#fcefd6)" stroke="#2b2340" stroke-width="2"/>' +
+            '<path d="M36 51.5 q0 6 4 6 q4 0 4 -6 z" fill="#ff7f96" stroke="#2b2340" stroke-width="1.5"/>' +
+            '<ellipse cx="40" cy="43" rx="4.6" ry="3.4" style="fill:var(--nose,#2b2220)"/>' +
+            '<path d="M40 46.5 v3 M34 50 q6 4 12 0" fill="none" stroke="#2b2340" stroke-width="2" stroke-linecap="round"/>' +
+            '<rect x="30" y="56" width="20" height="12" rx="2" fill="#ffe08a" stroke="#2b2340" stroke-width="2"/><path d="M34 56 v-4 a6 6 0 0 1 12 0 v4" fill="none" stroke="#2b2340" stroke-width="2"/></svg>';
         var FACE = '<svg class="cc-face" viewBox="0 0 80 68" aria-hidden="true"><path d="M12 30 L14 4 L32 18 Z M68 30 L66 4 L48 18 Z" fill="#e8771c" stroke="#2b2340" stroke-width="2.5" stroke-linejoin="round"/>' +
             '<path d="M17 12 L19 22 L26 17 Z M63 12 L61 22 L54 17 Z" fill="#ffb3c4"/>' +
             '<ellipse cx="40" cy="40" rx="30" ry="25" fill="#f39a3c" stroke="#2b2340" stroke-width="2.5"/>' +
@@ -318,11 +329,11 @@
             phase = 'intro';
             inner.innerHTML = '';
             var card = el('div', 'cc-card');
-            card.innerHTML = FACE + '<h2>Cipher Cat</h2>' +
-                '<p>The cat locked its diary with four secret codes. Crack each lock before its clock runs out.</p>' +
+            card.innerHTML = (DOG ? DOG_FACE : FACE) + '<h2>Cipher Cat</h2>' +
+                '<p>The ' + PET + ' locked its diary with four secret codes. Crack each lock before its clock runs out.</p>' +
                 '<ol>' + LOCKS.map(function (L, i) { return '<li>' + PADLOCK + '<span><b>' + (i + 1) + '. ' + L.name + '</b> (' + fmt(L.t[level]) + ')</span></li>'; }).join('') + '</ol>' +
                 '<p class="cc-small">' + (easy ? 'Easy: the clock only sets your time bonus, it never ends the game.' :
-                    'When a clock runs out, the cat changes the code and the run ends.') +
+                    'When a clock runs out, the ' + PET + ' changes the code and the run ends.') +
                 ' Hints cost ' + HINT_COST + ' seconds. No codebreaking experience needed!</p>';
             var go = button('cc-go', 'Start cracking', function () { startLock(0); });
             card.appendChild(go);
@@ -395,13 +406,13 @@
         function finish(plain) {
             over = true;
             phase = 'over';
-            api.end({ score: score, win: true, text: 'All four locks open!\n"' + plain + '"\nScore ' + score + '\n\n' + pick(FACTS.final, 'f-final') });
+            api.end({ score: score, win: true, text: 'All four locks open!\n"' + plain + '"\nScore ' + score + '\n\n' + pick(FACTS.final, 'f-final').replace('The cat approves', 'The ' + PET + ' approves') });
         }
         function fail() {
             if (over) return;
             over = true; running = false; phase = 'over';
             if (puzzle && puzzle.reveal) puzzle.reveal();
-            api.end({ score: score, win: false, text: 'Time is up on lock ' + (lockNo + 1) + ', the cat changed the code.\n' +
+            api.end({ score: score, win: false, text: 'Time is up on lock ' + (lockNo + 1) + ', the ' + PET + ' changed the code.\n' +
                 'It said: "' + puzzle.plain + '"\n' + lockNo + (lockNo === 1 ? ' lock' : ' locks') + ' opened, score ' + score });
         }
 
@@ -566,7 +577,7 @@
             render();
             return {
                 plain: plain,
-                tip: 'The cat wrote the note in rows and then shuffled the columns. <b>Tap two columns to swap them</b> until the rows read right. The dots are spaces.',
+                tip: 'The ' + PET + ' wrote the note in rows and then shuffled the columns. <b>Tap two columns to swap them</b> until the rows read right. The dots are spaces.',
                 canHint: function () { return !done && wrongCount() > 0; },
                 hint: function () {
                     for (var p = 0; p < K; p++) if (order[p] !== p) {
@@ -629,7 +640,7 @@
                 dEls.push(d);
             })(j);
             board.appendChild(dialsEl);
-            board.appendChild(el('p', 'cc-crib', 'The key is a ' + n + '-letter cat word.'));
+            board.appendChild(el('p', 'cc-crib', 'The key is a ' + n + '-letter ' + (DOG ? 'pet' : 'cat') + ' word.'));
             function show(nudged) {
                 note.tiles.forEach(function (t) { t.top.textContent = letter(code(t.ch) - dial[t.li % n]); });
                 var right = 0;

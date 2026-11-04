@@ -7,6 +7,15 @@
    sharper eyes, faster feet, a clock per room and two lives. Shell API: arcade.js. */
 Arcade.register('night-prowl', function (api) {
     'use strict';
+    /* the chosen dog look (data-pet="dog"): the hero is drawn as that dog, in the CSS colours of cat.css */
+    var DOGMODE = document.documentElement.dataset.pet === 'dog';
+    var PET = (function () {
+        var cs = null;
+        try { cs = getComputedStyle(document.documentElement); } catch (e) { /* golden */ }
+        function v(name, dflt) { var s = cs && cs.getPropertyValue('--' + name).trim(); return s || dflt; }
+        return { fur: v('fur-bot', '#dca456'), light: v('fur-top', '#f6d79a'), head: v('head-top', '#f8dda6'), tail: v('tail', '#e0ad66'),
+                 cream: v('cream', '#fcefd6'), ear: v('ear', '#b97a33'), nose: v('nose', '#2b2220') };
+    })();
     api.css(
         '.np { position: absolute; inset: 0; overflow: hidden; background: #1d1a3a; }' +
         '.np-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: pointer; }' +
@@ -510,7 +519,9 @@ Arcade.register('night-prowl', function (api) {
         renderStatic();
         hud();
     }
-    function hintText() { var h = room(level).hint; return touchy && h[1] ? h[1] : h[0]; }
+    function hintText() { var h = room(level).hint; return petText(touchy && h[1] ? h[1] : h[0]); }
+    /* in dog mode the hero is a dog: "the cat" becomes "the dog", and a dog yelps instead of yowling */
+    function petText(t) { return DOGMODE ? t.replace(/the cat/g, 'the dog').replace(/yowl/g, 'yelp') : t; }
     function card(kicker, title, sub, cls) {
         cardEl.className = 'np-card' + (cls ? ' ' + cls : '');
         cardEl.querySelector('b').textContent = kicker;
@@ -672,7 +683,7 @@ Arcade.register('night-prowl', function (api) {
             v.ri = (v.ri - v.dir + len) % len; v.dir = -v.dir;
             m.path = pathTo(m.tx, m.ty, v.route[v.ri][0], v.route[v.ri][1], vacOk);
             cat.path = []; cat.knock = null; cat.stun = 0.7;
-            noise(cat.fx, cat.fy, 5, 'Yowl!', DIN.yowl);
+            noise(cat.fx, cat.fy, 5, DOGMODE ? 'Yelp!' : 'Yowl!', DIN.yowl);
             api.sfx('hit');
             api.cat('wow');
         }
@@ -780,7 +791,7 @@ Arcade.register('night-prowl', function (api) {
     function cleared() {
         phase = 'clear'; phaseT = 0; score += 10;
         api.sfx('point'); api.cat('happy');
-        api.say(pick(['Nom nom!', 'Purrfect sneaking!', 'Treats secured!', 'Sneaky paws!']), 1600);
+        api.say(pick(['Nom nom!', DOGMODE ? 'Pawsome sneaking!' : 'Purrfect sneaking!', 'Treats secured!', 'Sneaky paws!']), 1600);
         var got = fish.filter(function (f) { return f.got; }).length;
         card('Level ' + (level + 1) + ' cleared', 'Treats!', '+10' + (got ? ', fish +' + got * 3 : ''), 'np-good');
         hud();
@@ -1007,6 +1018,7 @@ Arcade.register('night-prowl', function (api) {
     function ell(x, y, rx, ry, col) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); ctx.fillStyle = col; ctx.fill(); }
     var FUR = '#f6a23a', STRIPE = '#cf7419';
     function drawCat(x, y, a, lift, alpha) {
+        if (DOGMODE) return drawHero(x, y, a, lift, alpha);
         var u = k / 36 * (1 + lift * 0.3), still = api.reducedMotion;
         ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y);
         ell(k * 0.04, k * 0.1, k * 0.33 * (1 - lift * 0.25), k * 0.2 * (1 - lift * 0.25), 'rgba(8,6,28,.42)');
@@ -1031,6 +1043,33 @@ Arcade.register('night-prowl', function (api) {
         ctx.moveTo(10, 5); ctx.lineTo(11.8, 8); ctx.lineTo(12.6, 4.6); ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#dcf57c'; ctx.beginPath(); ctx.arc(13.4, -2.5, 1.5, 0, TAU); ctx.arc(13.4, 2.5, 1.5, 0, TAU); ctx.fill();
         ctx.fillStyle = '#f08aa6'; ctx.beginPath(); ctx.arc(16.2, 0, 1.1, 0, TAU); ctx.fill();
+        ctx.restore();
+    }
+    /* the hero in dog mode, the size of the cat, in the colours of the chosen dog look and with a red collar (so it never
+       looks like the house dogs): a wagging tail, floppy ears, a cream snout and a dark nose */
+    function drawHero(x, y, a, lift, alpha) {
+        var u = k / 36 * (1 + lift * 0.3), still = api.reducedMotion;
+        ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y);
+        ell(k * 0.04, k * 0.1, k * 0.33 * (1 - lift * 0.25), k * 0.2 * (1 - lift * 0.25), 'rgba(8,6,28,.42)');
+        if (!lift) ell(0, 0, k * 0.46, k * 0.4, 'rgba(255,214,150,.10)');
+        ctx.scale(u, u); ctx.rotate(a);
+        var wag = still ? 2 : Math.sin(clock * 12) * 4, st = cat.moving && !cat.jump && !still ? Math.sin(cat.t * Math.PI * 2) * 2.4 : 0;
+        ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-9, 0); ctx.quadraticCurveTo(-14, wag * 0.3, -18, wag);
+        ctx.strokeStyle = OL; ctx.lineWidth = 6.4; ctx.stroke(); ctx.strokeStyle = PET.tail; ctx.lineWidth = 4.2; ctx.stroke();
+        ctx.fillStyle = PET.fur; ctx.strokeStyle = OL; ctx.lineWidth = 1.3;
+        [[5 + st, -6.6], [5 - st, 6.6], [-7 - st, -6.4], [-7 + st, 6.4]].forEach(function (p) {
+            ctx.beginPath(); ctx.arc(p[0], p[1], 2.6, 0, TAU); ctx.fill(); ctx.stroke();
+        });
+        ctx.beginPath(); ctx.ellipse(-2, 0, 11, 7.6, 0, 0, TAU); ctx.fill(); ctx.stroke();
+        ell(-3, 0, 6, 3.6, PET.light);
+        ctx.strokeStyle = '#e5484d'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(3, -6.4); ctx.lineTo(3, 6.4); ctx.stroke();
+        ctx.fillStyle = PET.head; ctx.strokeStyle = OL; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(10, 0, 6.6, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = PET.cream; ctx.beginPath(); ctx.ellipse(16, 0, 3.4, 3, 0, 0, TAU); ctx.fill(); ctx.stroke();
+        ell(18.8, 0, 1.5, 1.8, PET.nose);
+        ctx.fillStyle = PET.ear; ctx.beginPath();
+        ctx.ellipse(8.4, -6, 3.9, 2.2, -0.35, 0, TAU); ctx.ellipse(8.4, 6, 3.9, 2.2, 0.35, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#2b2033'; ctx.beginPath(); ctx.arc(11.4, -2.7, 1.3, 0, TAU); ctx.arc(11.4, 2.7, 1.3, 0, TAU); ctx.fill();
         ctx.restore();
     }
     function drawHuman(h, x, y) {
