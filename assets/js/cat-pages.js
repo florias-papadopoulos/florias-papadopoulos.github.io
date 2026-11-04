@@ -5,8 +5,8 @@
    The cat lives in the window, not on the whole page: its ground is the bottom of the window, and it sits on the page
    title, the semester (or year) labels of the rail and the entries that are in view, above their pictures so it does
    not hide titles. When the page scrolls, it rides along on whatever it sits on and drops down when that leaves the
-   window. It never sits on opened entries and moves away soon when one opens under it. On phones it is small and stays
-   in a corner at the bottom, mostly napping. No symbols or reset button here (home page only). */
+   window. It never sits on opened entries and moves away soon when one opens under it. On phones it is a little smaller
+   (66 x 54) and does the same, with longer naps on the ground in a corner. No symbols or reset button here (home page only). */
 (function () {
     'use strict';
     var layer = document.getElementById('cat-layer');
@@ -39,7 +39,6 @@
     }
 
     function perches() {
-        if (phone) return [];
         var list = [], CH = api.size().h;
         function push(sel, kind, extra) {
             Array.prototype.forEach.call(document.querySelectorAll(sel), function (e) {
@@ -62,10 +61,14 @@
     /* Games page: the cat climbs up the side of a game card instead of jumping when the card stands in the same column
        as where it is: from the ground if the column of cards reaches down near it, or from the top of a card below */
     function climbPath(p, at, pos) {
-        if (p.kind !== 'card' || phone) return null;
+        if (p.kind !== 'card') return null;
         var r = rel(p.el), cx = r.x + r.w / 2;
         function sameColumn(e) { var q = rel(e); return Math.abs(q.x + q.w / 2 - cx) < r.w / 2; }
-        var left = pos.x < cx, side = left ? r.x - 2 : r.x + r.w + 2, wall = left ? 1 : -1;
+        /* the side nearer the cat, unless the cat would hang off the screen there (phones: the cards fill the width) */
+        var CHt = api.size().h, roomL = r.x, roomR = layer.clientWidth - (r.x + r.w), left = pos.x < cx;
+        if (left && roomL < CHt * 0.8 && roomR > roomL) left = false;
+        else if (!left && roomR < CHt * 0.8 && roomL > roomR) left = true;
+        var side = left ? r.x - 2 : r.x + r.w + 2, wall = left ? 1 : -1;
         if (at && at.el && at.kind === 'card' && at.el !== p.el && sameColumn(at.el) && rel(at.el).y > r.y + r.h - 4) {
             return { x: side, from: pos.y, to: r.y, side: wall };      /* the card right below: climb from its top */
         }
@@ -88,7 +91,7 @@
     }
     function allow(p, t) {
         if (p.kind !== 'ground' && t.y > ground() - 12) return false;
-        return phone || !covers(t);                /* on phones an opened entry fills the width: the corner is fine */
+        return !covers(t);
     }
     /* somewhere on the bottom edge: on desktop mostly in the margins beside the page, on phones in a corner */
     function wander() {
@@ -102,7 +105,7 @@
         return rnd(40, W - 40);
     }
     function arrive(p, r) {
-        if (phone) {
+        if (phone && p.kind === 'ground') {      /* on phones it rests longer in its corner */
             if (r < 0.45) api.nap(rnd(14000, 24000)); else { if (r > 0.8) api.groom(); api.next(rnd(7000, 13000)); }
             return true;
         }
@@ -136,7 +139,7 @@
             if (s.y < sz.h * 0.75) return api.fall(s.x, s.y + 6);
             api.place(s.x, s.y);
         } else return;
-        if (!phone && covers(s)) {
+        if (covers(s)) {
             if (!moveSoon) moveSoon = setTimeout(function () { moveSoon = null; if (!api.moving() && covers(api.pos())) api.decide(); }, 600);
         }
     }
@@ -151,7 +154,7 @@
         init: function (a) { api = a; },
         size: function () {
             phone = layer.clientWidth < 700;
-            return phone ? { w: 46, h: 38 } : { w: 88, h: 72 };
+            return phone ? { w: 66, h: 54 } : { w: 88, h: 72 };
         },
         ground: ground,
         reach: 520,
