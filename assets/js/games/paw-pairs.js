@@ -1,7 +1,9 @@
 /* Paw Pairs: flip two cards at a time, matching pairs stay open. Easy 12 cards, normal 16, hard 30, with a move
    limit for each. Matches in a row build a combo (100 points times the combo, up to x5); moves left at the end are a
    bonus. Specials: the cat-eye pair reveals every card for a moment; on hard two zoomies kittens hide among the
-   cards and shuffle the face-down ones when flipped. Score = points. Shell API: assets/js/games/arcade.js. */
+   cards and shuffle the face-down ones when flipped. In dog mode the cat things on the cards turn into dog things:
+   a bone for the fish, a tennis ball for the yarn, a water bowl for the milk, a stick for the fish skeleton and a rope
+   toy for the catnip. Score = points. Shell API: assets/js/games/arcade.js. */
 Arcade.register('paw-pairs', function (api) {
     'use strict';
     api.css(
@@ -114,6 +116,24 @@ Arcade.register('paw-pairs', function (api) {
         '<ellipse cx="23" cy="28" rx="2.6" ry="3" fill="#2b2b2b"/><ellipse cx="37" cy="28" rx="2.6" ry="3" fill="#2b2b2b"/>' +
         '<ellipse cx="30" cy="39" rx="9" ry="7" fill="#fcefd6"/><path d="M27.5 43.5q0 5 2.5 5t2.5-5z" fill="#ff7f96"/>' +
         '<ellipse cx="30" cy="35.5" rx="3.6" ry="2.6" fill="#2b2220"/><path d="M30 38v3M25.5 42q4.5 3 9 0" stroke-width="1.6" ' + S + '"#7a3e10"/>'];
+    function dogFace(name, face) { FACES.forEach(function (f, i) { if (f[0] === name) FACES[i] = face; }); }
+    if (DOG) {
+        var BONE = '<rect x="15" y="25" width="30" height="10" rx="2"/><circle cx="15" cy="24" r="6.5"/><circle cx="15" cy="36" r="6.5"/>' +
+            '<circle cx="45" cy="24" r="6.5"/><circle cx="45" cy="36" r="6.5"/>';
+        dogFace('fish', ['dog bone', '#fff4e6', '<g transform="rotate(-30 30 30)"><g fill="#b08a5a" stroke="#b08a5a" stroke-width="4" stroke-linejoin="round">' + BONE + '</g>' +
+            '<g fill="#f6ead0">' + BONE + '</g><path d="M19 28h22" stroke-width="2" ' + S + '"#fff"/></g>']);
+        dogFace('yarn', ['tennis ball', '#f4fce3', '<defs><clipPath id="pptc{id}"><circle cx="30" cy="30" r="17"/></clipPath></defs>' +
+            '<circle cx="30" cy="30" r="17" fill="#d4e85a"/><g clip-path="url(#pptc{id})"><path d="M17 13Q29 30 17 47M43 13Q31 30 43 47" stroke-width="2.6" ' + S + '"#fff"/></g>' +
+            '<circle cx="30" cy="30" r="17" fill="none" stroke="#8aa21c" stroke-width="1.3"/><ellipse cx="23" cy="21.5" rx="4.5" ry="2.4" transform="rotate(-38 23 21.5)" fill="#fff" opacity=".45"/>']);
+        dogFace('milk', ['water bowl', '#e7f5ff', '<path d="M8 32h44l-5 16H13z" fill="#f03e3e"/><ellipse cx="30" cy="32" rx="22" ry="5" fill="#74c0fc" stroke="#c92a2a" stroke-width="2"/>' +
+            '<path d="M24 41h12" stroke-width="2.5" ' + S + '"#ffc9c9"/><path d="M30 9c3 5 5 8 5 11a5 5 0 0 1-10 0c0-3 2-6 5-11z" fill="#a5d8ff" stroke="#4dabf7" stroke-width="1.6"/>']);
+        dogFace('bone', ['stick', '#fff4e6', '<path d="M9 47L51 15" stroke-width="5.5" ' + S + '"#a47148"/><path d="M33 31l3-13" stroke-width="3" ' + S + '"#a47148"/>' +
+            '<path d="M36 18c-1-6 3-10 8-10 0 6-3 9-8 10z" fill="#69db7c"/><path d="M18 38l5-1M27 32l5-1M40 24l4-1" stroke-width="1.4" ' + S + '"#7a4f2a"/>']);
+        dogFace('catnip', ['rope toy', '#fff4e6', '<path d="M15 41C23 25 37 37 45 20" stroke-width="8" ' + S + '"#4dabf7"/>' +
+            '<path d="M15 41C23 25 37 37 45 20" fill="none" stroke="#fff" stroke-width="8" stroke-dasharray="2.5 4.5" opacity=".85"/>' +
+            '<circle cx="14" cy="42" r="6" fill="#1c7ed6"/><circle cx="46" cy="19" r="6" fill="#1c7ed6"/>' +
+            '<path d="M10 47l-4 5M14 48l-1 6M41 14l-2-6M46 13l3-6" stroke-width="2" ' + S + '"#74c0fc"/>']);
+    }
     var PEEK = ['peek', '', '<path d="M5 28Q30 6 55 28Q30 50 5 28z" fill="#fff" stroke="#1e3a8a" stroke-width="2.5"/><circle cx="30" cy="28" r="11" fill="#94d82d"/>' +
         '<ellipse cx="30" cy="28" rx="3" ry="9" fill="#212529"/><circle cx="34" cy="23" r="2.2" fill="#fff"/>', 'PEEK'];
     if (DOG) PEEK[2] = '<path d="M5 28Q30 6 55 28Q30 50 5 28z" fill="#fff" stroke="#1e3a8a" stroke-width="2.5"/><circle cx="30" cy="28" r="11" fill="#8a5a2b"/>' +

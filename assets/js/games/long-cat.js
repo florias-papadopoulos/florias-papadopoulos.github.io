@@ -2,7 +2,9 @@
    a striped furry body behind, back paws and a swishing tail at the end.
    Bumping into its own body, a houseplant or the wall ends the walk. Bonuses: golden fish (+3, gone after a few seconds),
    a mouse that runs away (+5) and catnip (slow motion, walk through yourself). Easy: the walls wrap around and there
-   are no plants; hard: faster, more plants, a quicker mouse. Uses the shell API of assets/js/games/arcade.js. */
+   are no plants; hard: faster, more plants, a quicker mouse. In dog mode the dog eats bones instead (golden bones),
+   chases a squirrel instead of the mouse and finds a squeaky toy instead of catnip, same cells and rules.
+   Uses the shell API of assets/js/games/arcade.js. */
 Arcade.register('long-cat', function (api) {
     'use strict';
     api.css(
@@ -27,6 +29,8 @@ Arcade.register('long-cat', function (api) {
         hard:   { step: 122, min: 60,  ramp: 3.0, wrap: false, plants: 6, every: 6,  max: 15, gold: 4, mouse: 1.3, nip: 4 }
     };
     var L = LV[api.level()] || LV.normal;
+    var DOG = document.documentElement.dataset.pet === 'dog';   /* dog mode: bones, a squirrel and a squeaky toy */
+    var CRITTER = DOG ? 'squirrel' : 'mouse', NIP = DOG ? 'Squeaky toy' : 'Catnip';
     var SLOW = 1.8;                                        /* catnip: the world runs this many times slower */
     var DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];          /* directions: 0 up, 1 right, 2 down, 3 left */
     var KEYS = { ArrowUp: 0, KeyW: 0, ArrowRight: 1, KeyD: 1, ArrowDown: 2, KeyS: 2, ArrowLeft: 3, KeyA: 3 };
@@ -36,10 +40,10 @@ Arcade.register('long-cat', function (api) {
     wrap.innerHTML = '<canvas></canvas><div class="yt-hint"></div>';
     api.el.appendChild(wrap);
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d'), hint = wrap.querySelector('.yt-hint');
-    hint.textContent = (api.touch ? 'Swipe or use the arrows' : 'Arrow keys or WASD') + '\nEat fish to grow, avoid your own tail' +
+    hint.textContent = (api.touch ? 'Swipe or use the arrows' : 'Arrow keys or WASD') + '\nEat ' + (DOG ? 'bones' : 'fish') + ' to grow, avoid your own tail' +
         (L.wrap ? '\nThe walls wrap around' : '\nMind the walls and houseplants') + '\n' + (api.touch ? 'Tap to start' : 'Press a key to start');
     var small = document.createElement('small');
-    small.textContent = 'Gold fish +3, mouse +5, catnip slows time';
+    small.textContent = DOG ? 'Gold bone +3, squirrel +5, squeaky toy slows time' : 'Gold fish +3, mouse +5, catnip slows time';
     hint.appendChild(small);
 
     if (api.touch) {                                       /* on-screen arrows, bottom left (the cat sits bottom right) */
@@ -219,7 +223,7 @@ Arcade.register('long-cat', function (api) {
             if (eaten % 10 === 0) {
                 api.sfx('point');
                 api.cat('happy');
-                api.say(['Yum, ' + eaten + ' fish!', C.dog ? 'Such a long dog!' : 'Such a long cat!', C.dog ? 'Pawsome!' : 'Purrfect!'][(eaten / 10) % 3]);
+                api.say(['Yum, ' + eaten + (DOG ? ' bones!' : ' fish!'), C.dog ? 'Such a long dog!' : 'Such a long cat!', C.dog ? 'Pawsome!' : 'Purrfect!'][(eaten / 10) % 3]);
             } else {
                 api.sfx('pop');
                 if (eaten % 5 === 0) api.cat('wow');
@@ -241,7 +245,7 @@ Arcade.register('long-cat', function (api) {
             add(5, n, '#8b93a7');
             api.sfx('win');
             api.cat('happy');
-            api.say('Got the mouse!');
+            api.say('Got the ' + CRITTER + '!');
         }
         if (nip && n === nip.k) {
             nip = null;
@@ -249,7 +253,7 @@ Arcade.register('long-cat', function (api) {
             burst(cx(n), cy(n), '#5fae74', 14);
             api.sfx('jump');
             api.cat('wow');
-            api.say('Catnip! Slow motion, walk through yourself');
+            api.say(NIP + '! Slow motion, walk through yourself');
         }
     }
     /* new bonuses appear after eating a fish */
@@ -261,7 +265,7 @@ Arcade.register('long-cat', function (api) {
         }
         if (!mouse && eaten >= 5 && (eaten % 7 === 0 || Math.random() < 0.08)) {
             k = freeCell(8);
-            if (k >= 0) { mouse = { k: k, from: k, acc: 0, t: 16, face: 1 }; api.say('A mouse!', 1400); }
+            if (k >= 0) { mouse = { k: k, from: k, acc: 0, t: 16, face: 1 }; api.say('A ' + CRITTER + '!', 1400); }
         }
         if (!nip && nipT <= 0 && eaten >= 8 && Math.random() < 0.13) {
             k = freeCell(5);
@@ -297,7 +301,7 @@ Arcade.register('long-cat', function (api) {
             if (mouse.t <= 0) {
                 burst(cx(mouse.k), cy(mouse.k), '#c7ccd6', 8);
                 mouse = null;
-                api.say('The mouse got away', 1400);
+                api.say('The ' + CRITTER + ' got away', 1400);
                 return;
             }
             var ms = stepMs * L.mouse * slow;
@@ -312,7 +316,7 @@ Arcade.register('long-cat', function (api) {
         burst(cx(body[0]), cy(body[0]), '#f6a23a', 16);
         api.sfx('hit');
         api.say(score ? 'Mrrow!' : 'Oops!');
-        api.end({ score: score, win: false, text: why + '\nScore: ' + score + ', fish: ' + eaten });
+        api.end({ score: score, win: false, text: why + '\nScore: ' + score + ', ' + (DOG ? 'bones' : 'fish') + ': ' + eaten });
     }
     function win() {
         state = 'over';
@@ -399,6 +403,7 @@ Arcade.register('long-cat', function (api) {
         rr(g, x - s * 0.6, y - s * 0.12, s * 1.2, s * 0.28, s * 0.1); g.fill(); g.stroke();
     }
     function drawFish(x, y, fill, edge, size) {
+        if (DOG) return drawBone(x, y, fill, edge, size);
         var s = cell * 0.36 * size;
         shadowAt(x, y + cell * 0.36, s * 0.7);
         g.fillStyle = fill;
@@ -415,6 +420,23 @@ Arcade.register('long-cat', function (api) {
         g.fillStyle = edge;
         g.beginPath(); g.arc(x + s * 0.45, y - s * 0.12, Math.max(1, s * 0.12), 0, TAU); g.fill();
     }
+    /* dog mode: a bone in the fish's place, the same size; outlined first, then filled, so the knobs merge */
+    function drawBone(x, y, fill, edge, size) {
+        var s = cell * 0.36 * size;
+        shadowAt(x, y + cell * 0.36, s * 0.7);
+        if (fill === '#8ec0f0') { fill = '#fbf3e2'; edge = '#9a7b4f'; }   /* the plain bone is cream, the golden one stays gold */
+        g.save(); g.translate(x, y); g.rotate(-0.35);
+        g.beginPath();
+        g.rect(-s * 0.7, -s * 0.2, s * 1.4, s * 0.4);
+        for (var i = -1; i <= 1; i += 2) for (var j = -1; j <= 1; j += 2) {
+            g.moveTo(i * s * 0.78 + s * 0.27, j * s * 0.22); g.arc(i * s * 0.78, j * s * 0.22, s * 0.27, 0, TAU);
+        }
+        g.strokeStyle = edge; g.lineWidth = Math.max(2, cell * 0.1); g.lineJoin = 'round'; g.stroke();
+        g.fillStyle = fill; g.fill();
+        g.strokeStyle = 'rgba(255, 255, 255, .75)'; g.lineWidth = Math.max(1, cell * 0.04); g.lineCap = 'round';
+        g.beginPath(); g.moveTo(-s * 0.45, -s * 0.06); g.lineTo(s * 0.4, -s * 0.06); g.stroke();   /* a shine on top */
+        g.restore();
+    }
     function drawGold(now, bob) {
         var x = cx(gold.k), y = cy(gold.k), part = gold.t / gold.max;
         if (part < 0.3 && !api.reducedMotion && Math.floor(now / 120) % 2) return;   /* blinks before it goes */
@@ -427,6 +449,7 @@ Arcade.register('long-cat', function (api) {
     function drawNip(now, bob) {
         var x = cx(nip.k), y = cy(nip.k) + bob, s = cell * 0.4, part = nip.t / nip.max;
         if (part < 0.25 && !api.reducedMotion && Math.floor(now / 120) % 2) return;
+        if (DOG) return drawDuck(x, y, s, bob, part);
         g.fillStyle = 'rgba(134, 239, 172, .3)';
         g.beginPath(); g.arc(x, y, cell * 0.48, 0, TAU); g.fill();
         g.lineWidth = Math.max(1, cell * 0.05); g.strokeStyle = '#2f6b45';
@@ -441,6 +464,24 @@ Arcade.register('long-cat', function (api) {
         sparkle(x - s * 0.7, y - s * 0.6, cell * 0.1, '#ecfccb');
         timerRing(x, y - bob, part, '#4ade80');
     }
+    /* dog mode: a yellow rubber duck squeaky toy in the catnip's place */
+    function drawDuck(x, y, s, bob, part) {
+        g.fillStyle = 'rgba(253, 230, 138, .35)';
+        g.beginPath(); g.arc(x, y, cell * 0.48, 0, TAU); g.fill();
+        g.lineWidth = Math.max(1, cell * 0.05); g.strokeStyle = '#b45309'; g.lineJoin = 'round';
+        g.fillStyle = '#facc15';
+        g.beginPath(); g.ellipse(x - s * 0.05, y + s * 0.3, s * 0.72, s * 0.42, 0, 0, TAU); g.fill(); g.stroke();   /* body */
+        g.beginPath(); g.moveTo(x - s * 0.6, y + s * 0.1); g.lineTo(x - s * 0.95, y - s * 0.12); g.lineTo(x - s * 0.7, y + s * 0.35); g.fill();   /* tail tip */
+        g.beginPath(); g.arc(x + s * 0.25, y - s * 0.3, s * 0.36, 0, TAU); g.fill(); g.stroke();   /* head */
+        g.fillStyle = '#fb923c';
+        g.beginPath(); g.moveTo(x + s * 0.55, y - s * 0.38); g.lineTo(x + s * 0.92, y - s * 0.24); g.lineTo(x + s * 0.55, y - s * 0.12); g.closePath(); g.fill(); g.stroke();
+        g.fillStyle = '#1f2937';
+        g.beginPath(); g.arc(x + s * 0.32, y - s * 0.38, Math.max(1, s * 0.08), 0, TAU); g.fill();
+        g.strokeStyle = '#eab308';                         /* a wing */
+        g.beginPath(); g.arc(x - s * 0.1, y + s * 0.25, s * 0.28, 0.3, 2.6); g.stroke();
+        sparkle(x - s * 0.7, y - s * 0.6, cell * 0.1, '#fffbeb');
+        timerRing(x, y - bob, part, '#f59e0b');
+    }
     function sparkle(x, y, r, c) {
         g.fillStyle = c;
         g.beginPath();
@@ -453,6 +494,7 @@ Arcade.register('long-cat', function (api) {
         var x = cx(m.from) + v[0] * cell * f, y = cy(m.from) + v[1] * cell * f, s = cell * 0.44, d = m.face;
         if (m.t < 2.5 && !api.reducedMotion && Math.floor(now / 140) % 2) g.globalAlpha = 0.45;
         shadowAt(x, y + s * 0.7, s * 0.9);
+        if (DOG) { drawSquirrel(x, y, s, d, now); g.globalAlpha = 1; return; }
         g.lineWidth = Math.max(1, cell * 0.05); g.strokeStyle = '#4b5263';
         g.beginPath();                                     /* tail */
         g.moveTo(x - d * s * 0.8, y + s * 0.2);
@@ -466,6 +508,24 @@ Arcade.register('long-cat', function (api) {
         g.fillStyle = '#1f2937';
         g.beginPath(); g.arc(x + d * s * 0.5, y - s * 0.05, Math.max(1, s * 0.1), 0, TAU); g.fill();
         g.globalAlpha = 1;
+    }
+    /* dog mode: a squirrel in the mouse's place, the same size: a big bushy tail curled up behind */
+    function drawSquirrel(x, y, s, d, now) {
+        var sw = api.reducedMotion ? 0 : Math.sin(now / 110) * s * 0.12;
+        g.lineWidth = Math.max(1, cell * 0.05); g.strokeStyle = '#7c3f12'; g.lineJoin = 'round';
+        g.fillStyle = '#d9822b';                           /* bushy tail */
+        g.beginPath(); g.ellipse(x - d * s * 0.85, y - s * 0.35 + sw, s * 0.42, s * 0.72, d * 0.35, 0, TAU); g.fill(); g.stroke();
+        g.fillStyle = '#f3b46a';
+        g.beginPath(); g.ellipse(x - d * s * 0.8, y - s * 0.4 + sw, s * 0.18, s * 0.45, d * 0.35, 0, TAU); g.fill();
+        g.fillStyle = '#c96f22';                           /* body */
+        g.beginPath(); g.ellipse(x, y + s * 0.15, s * 0.72, s * 0.55, 0, 0, TAU); g.fill(); g.stroke();
+        g.fillStyle = '#f7d7a8';                           /* cream belly */
+        g.beginPath(); g.ellipse(x + d * s * 0.2, y + s * 0.3, s * 0.32, s * 0.28, 0, 0, TAU); g.fill();
+        g.fillStyle = '#c96f22';                           /* pointy ear */
+        g.beginPath(); g.moveTo(x + d * s * 0.25, y - s * 0.3); g.lineTo(x + d * s * 0.35, y - s * 0.72); g.lineTo(x + d * s * 0.55, y - s * 0.28); g.closePath(); g.fill(); g.stroke();
+        g.fillStyle = '#1f2937';
+        g.beginPath(); g.arc(x + d * s * 0.5, y - s * 0.02, Math.max(1, s * 0.1), 0, TAU); g.fill();
+        g.beginPath(); g.arc(x + d * s * 0.8, y + s * 0.12, Math.max(1, s * 0.08), 0, TAU); g.fill();   /* nose */
     }
     /* ---------- the long cat: head in front, a furry striped body, back paws and a swishing tail at the end ---------- */
     /* colours of the chosen cat look (the CSS variables of cat.css), ginger if they are missing */
@@ -736,11 +796,11 @@ Arcade.register('long-cat', function (api) {
         var w = Math.min(150, cols * cell * 0.5), h = 20, x = ox + (cols * cell - w) / 2, y = oy + 8;
         g.fillStyle = 'rgba(255, 255, 255, .92)';
         rr(g, x, y, w, h, 10); g.fill();
-        g.fillStyle = '#86efac';
+        g.fillStyle = DOG ? '#fde68a' : '#86efac';
         rr(g, x + 3, y + 3, Math.max(6, (w - 6) * nipT / L.nip), h - 6, 7); g.fill();
         g.font = '700 11px system-ui, sans-serif';
-        g.fillStyle = '#166534'; g.textAlign = 'center'; g.textBaseline = 'middle';
-        g.fillText('Catnip', x + w / 2, y + h / 2 + 0.5);
+        g.fillStyle = DOG ? '#92400e' : '#166534'; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(NIP, x + w / 2, y + h / 2 + 0.5);
     }
 
     /* ---------- input ---------- */

@@ -1,7 +1,9 @@
 /* Cucumber Hop: the cat runs and jumps over cucumbers and boxes, ducks under toy birds and catches fish for a score
    multiplier. Double jump in the air, hold for a higher jump. The run crosses four fantasy lands that blend into each
    other, from morning to dusk, night and dawn. Score = distance x multiplier.
-   The runner is a copy of the corner cat (an SVG); the world is a canvas. Uses the shell API of assets/js/games/arcade.js. */
+   The runner is a copy of the corner cat (an SVG); the world is a canvas. In dog mode (a dog look, data-pet="dog") the
+   runner is the corner dog and it catches bones instead of fish (same spots and hitboxes).
+   Uses the shell API of assets/js/games/arcade.js. */
 Arcade.register('cucumber-hop', function (api) {
     'use strict';
     api.css(
@@ -38,6 +40,7 @@ Arcade.register('cucumber-hop', function (api) {
         { w: 42, h: 111, from: 0, tall: true },           /* three boxes: a high (or double) jump */
         { w: 46, h: 26, from: 0, bird: true }             /* a toy bird: duck under the low ones */
     ];
+    var DOG = document.documentElement.dataset.pet === 'dog';   /* dog mode: bones instead of fish */
     var wrap = document.createElement('div');
     wrap.className = 'ch';
     wrap.innerHTML = '<canvas></canvas><div class="ch-hint"></div>';
@@ -45,7 +48,7 @@ Arcade.register('cucumber-hop', function (api) {
     var cv = wrap.querySelector('canvas'), g = cv.getContext('2d'), hint = wrap.querySelector('.ch-hint');
     hint.textContent = api.touch ? 'Tap to jump, twice for a double jump\nSwipe down to duck' : 'Space to jump, twice for a double jump\n↓ to duck';
     var small = document.createElement('small');
-    small.textContent = 'Fish boost your score';
+    small.textContent = DOG ? 'Bones boost your score' : 'Fish boost your score';
     hint.appendChild(small);
 
     /* the runner: a clone of the corner cat, posed with the classes of cat.css */
@@ -1185,6 +1188,17 @@ Arcade.register('cucumber-hop', function (api) {
         var x = f.x, yy = ground - f.alt - 8 + (api.reducedMotion ? 0 : Math.sin(time * 5 + x * 0.05) * 2), s = 12;
         g.fillStyle = 'rgba(253, 230, 138, .45)';
         g.beginPath(); g.arc(x, yy, 15, 0, TAU); g.fill();
+        if (DOG) {   /* a cream bone, the same size as the fish: outlined first, then filled, so the knobs merge */
+            g.save(); g.translate(x, yy); g.rotate(-0.3);
+            g.beginPath(); g.rect(-s * 0.75, -s * 0.2, s * 1.5, s * 0.4);
+            for (var i = -1; i <= 1; i += 2) for (var j = -1; j <= 1; j += 2) { g.moveTo(i * s * 0.82 + s * 0.28, j * s * 0.22); g.arc(i * s * 0.82, j * s * 0.22, s * 0.28, 0, TAU); }
+            g.strokeStyle = '#8a6a3f'; g.lineWidth = 3.2; g.lineJoin = 'round'; g.stroke();
+            g.fillStyle = '#fbf3e2'; g.fill();
+            g.strokeStyle = 'rgba(255, 255, 255, .85)'; g.lineWidth = 1.4; g.lineCap = 'round';
+            g.beginPath(); g.moveTo(-s * 0.5, -s * 0.06); g.lineTo(s * 0.45, -s * 0.06); g.stroke();
+            g.restore();
+            return;
+        }
         g.fillStyle = '#8ec0f0'; g.strokeStyle = '#1e3a8a'; g.lineWidth = 1.6;
         g.beginPath();
         g.moveTo(x - s, yy);
@@ -1212,7 +1226,7 @@ Arcade.register('cucumber-hop', function (api) {
         g.font = '800 14px system-ui, sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'left';
         g.fillStyle = mult > 1 ? '#d6336c' : '#64748b';
         g.fillText('x' + mult, hx - 4, yy + 14.5);
-        for (i = 0; i < 3; i++) {                          /* fish caught towards the next multiplier */
+        for (i = 0; i < 3; i++) {                          /* fish (bones) caught towards the next multiplier */
             g.fillStyle = mult >= L.mult ? '#fcd34d' : i < pips ? '#5b9be0' : 'rgba(148, 163, 184, .4)';
             g.beginPath(); g.arc(hx + 22 + i * 12, yy + 14, 4, 0, TAU); g.fill();
         }

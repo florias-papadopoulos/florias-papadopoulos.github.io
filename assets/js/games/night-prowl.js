@@ -4,7 +4,8 @@
    shown transposed (rows become columns), so the same levels fill a phone. Score: 10 per level, 3 per fish, 5 per life
    left at the end. Difficulty (api.level()): Easy is the gentle eight rooms; Normal has ten tougher rooms with more
    watchers, patrolling dogs, lamps on timers and a noise meter that wakes the dog; Hard is the same ten rooms with
-   sharper eyes, faster feet, a clock per room and two lives. Shell API: arcade.js. */
+   sharper eyes, faster feet, a clock per room and two lives. In dog mode the fish are bones and the treat jar holds
+   dog bones (same tiles and points). Shell API: arcade.js. */
 Arcade.register('night-prowl', function (api) {
     'use strict';
     /* the chosen dog look (data-pet="dog"): the hero is drawn as that dog, in the CSS colours of cat.css */
@@ -335,7 +336,9 @@ Arcade.register('night-prowl', function (api) {
         '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="np-bar"><i></i></span></span>' +
         '<span class="np-pill np-clock np-off" title="Time left"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/>' +
         '<path d="M12 9v4l3 2M9 2h6"/></svg><b class="np-time"></b></span>' +
-        '<span class="np-pill np-fishp"><svg viewBox="0 0 26 16"><path d="M2 8c3-6 10-7 15-3l6-4v14l-6-4C12 15 5 14 2 8z"/></svg><b class="np-fish"></b></span>' +
+        '<span class="np-pill np-fishp">' + (DOGMODE ? '<svg viewBox="0 0 26 16" style="fill:#f3e6c8"><path d="M7 5.5h12v5H7z"/>' +
+            '<circle cx="5.5" cy="5" r="3"/><circle cx="5.5" cy="11" r="3"/><circle cx="20.5" cy="5" r="3"/><circle cx="20.5" cy="11" r="3"/></svg>' :
+            '<svg viewBox="0 0 26 16"><path d="M2 8c3-6 10-7 15-3l6-4v14l-6-4C12 15 5 14 2 8z"/></svg>') + '<b class="np-fish"></b></span>' +
         '<span class="np-pill np-lives"></span></div>' +
         '<div class="np-hint"></div><div class="np-card np-hide"><b></b><strong></strong><span></span></div>';
     api.el.appendChild(wrapEl);
@@ -793,7 +796,7 @@ Arcade.register('night-prowl', function (api) {
         api.sfx('point'); api.cat('happy');
         api.say(pick(['Nom nom!', DOGMODE ? 'Pawsome sneaking!' : 'Purrfect sneaking!', 'Treats secured!', 'Sneaky paws!']), 1600);
         var got = fish.filter(function (f) { return f.got; }).length;
-        card('Level ' + (level + 1) + ' cleared', 'Treats!', '+10' + (got ? ', fish +' + got * 3 : ''), 'np-good');
+        card('Level ' + (level + 1) + ' cleared', 'Treats!', '+10' + (got ? (DOGMODE ? ', bones +' : ', fish +') + got * 3 : ''), 'np-good');
         hud();
     }
     function finish(win) {
@@ -1188,7 +1191,21 @@ Arcade.register('night-prowl', function (api) {
         ctx.fillStyle = col; ctx.font = '900 ' + Math.round(r * 1.5) + 'px system-ui, sans-serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, y + r * 0.08);
     }
+    /* a small bone around (0, 0), about 22 units long: outlined first, then filled, so the knobs merge */
+    function bonePath(w) {
+        ctx.beginPath(); ctx.rect(-w * 0.32, -w * 0.09, w * 0.64, w * 0.18);
+        for (var i = -1; i <= 1; i += 2) for (var j = -1; j <= 1; j += 2) { ctx.moveTo(i * w * 0.36 + w * 0.12, j * w * 0.1); ctx.arc(i * w * 0.36, j * w * 0.1, w * 0.12, 0, TAU); }
+    }
     function drawFish(x, y, s) {
+        if (DOGMODE) {   /* dog mode: a bone in the fish's place, the same size */
+            ctx.save(); ctx.translate(x, y); ctx.scale(s / 30, s / 30);
+            ctx.fillStyle = 'rgba(255,236,190,.18)'; ctx.beginPath(); ctx.arc(0, 0, 13, 0, TAU); ctx.fill();
+            ctx.rotate(-0.4); bonePath(22);
+            ctx.strokeStyle = '#7a5a34'; ctx.lineWidth = 2.6; ctx.lineJoin = 'round'; ctx.stroke();
+            ctx.fillStyle = '#f6ead0'; ctx.fill();
+            ctx.restore();
+            return;
+        }
         ctx.save(); ctx.translate(x, y); ctx.scale(s / 30, s / 30);
         ctx.fillStyle = 'rgba(159,227,255,.18)'; ctx.beginPath(); ctx.arc(0, 0, 13, 0, TAU); ctx.fill();
         ctx.fillStyle = '#8fd8ff'; ctx.strokeStyle = '#2f5d8a'; ctx.lineWidth = 1.4;
@@ -1207,7 +1224,11 @@ Arcade.register('night-prowl', function (api) {
         ctx.fillStyle = 'rgba(214,236,255,.92)'; ctx.strokeStyle = '#4b5a8f'; ctx.lineWidth = 1.5;
         shape(ctx, x0, y0, x0 + w, y0 + h, w * 0.25, w * 0.25, w * 0.25, w * 0.25); ctx.fill(); ctx.stroke();
         var cols = ['#c97b4a', '#e8a15f', '#f08aa6'];
-        for (var i = 0; i < 7; i++) circle(ctx, x0 + w * (0.25 + (i % 3) * 0.25), y0 + h * (0.82 - Math.floor(i / 3) * 0.2), w * 0.11, cols[i % 3]);
+        if (DOGMODE) for (i = 0; i < 4; i++) {   /* dog mode: little bones stacked in the jar */
+            ctx.save(); ctx.translate(x0 + w * (i % 2 ? 0.62 : 0.4), y0 + h * (0.8 - i * 0.15)); ctx.rotate(i % 2 ? 0.35 : -0.35);
+            bonePath(w * 0.5); ctx.fillStyle = i % 2 ? '#e8cf9f' : '#f6ead0'; ctx.fill(); ctx.restore();
+        }
+        else for (var i = 0; i < 7; i++) circle(ctx, x0 + w * (0.25 + (i % 3) * 0.25), y0 + h * (0.82 - Math.floor(i / 3) * 0.2), w * 0.11, cols[i % 3]);
         ctx.fillStyle = '#e86a8e'; shape(ctx, x0 - w * 0.06, y0 - h * 0.14, x0 + w * 1.06, y0 + h * 0.08, 3, 3, 3, 3); ctx.fill(); ctx.stroke();
         ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(x0 + w * 0.16, y0 + h * 0.22, w * 0.1, h * 0.4);
     }

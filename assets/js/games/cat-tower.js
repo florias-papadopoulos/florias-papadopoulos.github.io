@@ -50,7 +50,8 @@ Arcade.register('cat-tower', function (api) {
         { name: 'Ziggy',   fur: '#e8935a', mark: '#fbf8f2', patches: true },
         { name: 'Olive',   fur: '#b8a794', mark: '#968572', tabby: true }
     ];
-    /* dog mode (a dog look, data-pet="dog"): dogs hop on instead of cats, the big paw is the chosen dog's, drops are "pawfect" */
+    /* dog mode (a dog look, data-pet="dog"): dogs hop on instead of cats, the big paw is the chosen dog's, drops are "pawfect",
+       and the lives are little bones instead of fish */
     var DOG = document.documentElement.dataset.pet === 'dog';
     var PAW = (function () {
         var cs = null;
@@ -771,8 +772,17 @@ Arcade.register('cat-tower', function (api) {
         var label = (maxH / 100).toFixed(2) + ' m';
         g.lineWidth = 4; g.strokeStyle = 'rgba(255, 255, 255, .85)'; g.strokeText(label, x, 10);
         g.fillStyle = '#7a3e12'; g.fillText(label, x, 10);
-        for (var i = 0; i < L.lives; i++) {            /* lives as little fish */
+        for (var i = 0; i < L.lives; i++) {            /* lives as little fish (bones for a dog) */
             var fx = x + 6 + i * 20, fy = 46;
+            if (DOG) {
+                g.save(); g.translate(fx + 2, fy); g.rotate(-0.3);
+                g.beginPath(); g.rect(-6, -1.8, 12, 3.6);
+                for (var bi = -1; bi <= 1; bi += 2) for (var bj = -1; bj <= 1; bj += 2) { g.moveTo(bi * 6.5 + 2.6, bj * 2); g.arc(bi * 6.5, bj * 2, 2.6, 0, TAU); }
+                if (i < lives) { g.strokeStyle = '#9a7b4f'; g.lineWidth = 2; g.lineJoin = 'round'; g.stroke(); }
+                g.fillStyle = i < lives ? '#fbf3e2' : 'rgba(120, 120, 130, .3)'; g.fill();
+                g.restore();
+                continue;
+            }
             g.fillStyle = i < lives ? '#5aa9d6' : 'rgba(120, 120, 130, .3)';
             g.beginPath(); g.ellipse(fx, fy, 7, 4.5, 0, 0, TAU); g.fill();
             g.beginPath(); g.moveTo(fx + 5, fy); g.lineTo(fx + 11, fy - 4.5); g.lineTo(fx + 11, fy + 4.5); g.closePath(); g.fill();

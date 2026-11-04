@@ -34,7 +34,8 @@
 
    Cat or dog: the player's colours follow the site's look (CSS variables of cat.css). With data-pet="dog" on <html>
    it is a dog (floppy ears in --ear, a round snout with a --nose, a saddle patch, a fast wagging tail, a tongue
-   while busy), and its treats are Dog biscuit, Zoomies and Bone snack (bones instead of fish). Shell API: arcade.js. */
+   while busy), and its treats are Dog biscuit, Zoomies and Bone snack (bones instead of fish, a lightning bolt instead of
+   the catnip leaf). Shell API: arcade.js. */
 Arcade.register('garden-defender', function (api) {
     'use strict';
     api.css(
@@ -1319,6 +1320,8 @@ Arcade.register('garden-defender', function (api) {
         } else if (k === 'fan') {
             for (var i = -2; i <= 2; i++) { var a = -Math.PI / 2 + i * 0.42; ctx.moveTo(0, 10); ctx.lineTo(Math.cos(a) * 13, 10 + Math.sin(a) * 19); }
             ctx.stroke();
+        } else if (k === 'catnip' && SK.dog) {   /* Zoomies: a lightning bolt */
+            ctx.moveTo(3, -12); ctx.lineTo(-7, 2); ctx.lineTo(-1, 2); ctx.lineTo(-4, 12); ctx.lineTo(7, -3); ctx.lineTo(1, -3); ctx.closePath(); ctx.fill();
         } else if (k === 'catnip') {   /* a leaf */
             ctx.moveTo(-9, 9); ctx.quadraticCurveTo(-10, -9, 10, -10); ctx.quadraticCurveTo(9, 8, -9, 9); ctx.fill();
             ctx.strokeStyle = POW.catnip.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(6, -6); ctx.stroke();

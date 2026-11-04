@@ -7,7 +7,8 @@
    catnip (soft paws for a few seconds: nothing breaks). Treats and close calls (brushing past something fragile) fill
    a streak that raises the score multiplier; a break resets it. Score = distance in cat lengths + bonuses.
    Mouse: the dot follows the pointer. Touch: drag anywhere, the dot moves with the finger but a bit further, so the
-   finger never hides the cat. Keys: arrows or WASD. Everything is drawn on one canvas.
+   finger never hides the cat. Keys: arrows or WASD. Everything is drawn on one canvas. In dog mode the treats are
+   bones (a golden bone for the golden fish) and a squeaky rubber duck stands in for the catnip, same spots and sizes.
    Uses the shell API of assets/js/games/arcade.js. */
 Arcade.register('laser-chase', function (api) {
     'use strict';
@@ -79,7 +80,7 @@ Arcade.register('laser-chase', function (api) {
     hint.textContent = (api.touch ? 'Drag anywhere to move the laser dot' : 'Click, then move the mouse (or use the arrow keys)') +
         '\nThe ' + PET + ' chases the dot. Don\'t let it break things!';
     var small = document.createElement('small');
-    small.textContent = 'Treats and close calls raise your multiplier, catnip gives soft paws';
+    small.textContent = 'Treats and close calls raise your multiplier, ' + (C.dog ? 'the squeaky toy gives' : 'catnip gives') + ' soft paws';
     hint.appendChild(small);
 
     /* state */
@@ -490,7 +491,7 @@ Arcade.register('laser-chase', function (api) {
             if (p.kind === 'nip') {
                 soft = 7; bonus += 5;
                 api.sfx('jump');
-                api.say('Catnip! Soft paws for a bit.', 1400);
+                api.say((C.dog ? 'Squeaky toy!' : 'Catnip!') + ' Soft paws for a bit.', 1400);
                 text(p.x, p.y - 16, 'Soft paws!', '#2f9e5b');
                 sparks(p.x, p.y, '#86efac', 10);
                 continue;
@@ -711,6 +712,30 @@ Arcade.register('laser-chase', function (api) {
             c.strokeStyle = '#15803d'; c.beginPath(); c.moveTo(0, 3); c.lineTo(0, -12); c.moveTo(0, 0); c.lineTo(-7, -7); c.moveTo(0, 0); c.lineTo(7, -7); c.stroke();
         }
     };
+    if (C.dog) {   /* dog mode: bones instead of fish treats, a squeaky rubber duck instead of catnip */
+        DRAW.treat = function (c) { bone(c, 1, '#fbf3e2', '#b08a5a'); };
+        DRAW.gold = function (c) { bone(c, 1.3, '#fcd34d', '#d4a017'); c.fillStyle = '#ffffff'; star(c, 10, -12, 3); star(c, -11, -8, 2.2); };
+        DRAW.nip = function (c) {
+            c.fillStyle = 'rgba(80, 50, 20, .15)'; ell(c, 0, 4, 11, 4); c.fill();
+            c.beginPath(); c.moveTo(-8, -6); c.lineTo(-13, -12); c.lineTo(-10, -2); c.closePath(); fs(c, '#facc15');   /* tail tip */
+            ell(c, -1, -3, 11, 6.5); fs(c, '#facc15');                                                                  /* body */
+            c.beginPath(); c.arc(5, -12, 5.5, 0, TAU); fs(c, '#facc15');                                                 /* head */
+            c.beginPath(); c.moveTo(9.5, -13); c.lineTo(15, -11); c.lineTo(9.5, -9); c.closePath(); fs(c, '#fb923c');   /* beak */
+            c.fillStyle = C.line; c.beginPath(); c.arc(6, -13.5, 1.1, 0, TAU); c.fill();
+            c.strokeStyle = '#eab308'; c.beginPath(); c.arc(-2, -4, 4, 0.3, 2.6); c.stroke(); c.strokeStyle = C.line;   /* wing */
+        };
+    }
+    function bone(c, s, fill, dark) {   /* a bone in the fish treat's place: outlined first, then filled, so the knobs merge */
+        c.fillStyle = 'rgba(80, 50, 20, .15)'; ell(c, 0, 5 * s, 10 * s, 3.5 * s); c.fill();
+        c.save(); c.translate(0, -3 * s); c.rotate(-0.25);
+        c.beginPath(); c.rect(-8 * s, -2.4 * s, 16 * s, 4.8 * s);
+        for (var i = -1; i <= 1; i += 2) for (var j = -1; j <= 1; j += 2) { c.moveTo(i * 9 * s + 3.2 * s, j * 2.6 * s); c.arc(i * 9 * s, j * 2.6 * s, 3.2 * s, 0, TAU); }
+        var lw = c.lineWidth; c.strokeStyle = C.line; c.lineWidth = lw * 2; c.stroke(); c.lineWidth = lw;
+        c.fillStyle = fill; c.fill();
+        c.strokeStyle = 'rgba(255, 255, 255, .8)'; c.beginPath(); c.moveTo(-5 * s, -0.8 * s); c.lineTo(5 * s, -0.8 * s); c.stroke();
+        c.strokeStyle = dark; c.beginPath(); c.moveTo(-5 * s, 1.4 * s); c.lineTo(5 * s, 1.4 * s); c.stroke();
+        c.restore(); c.strokeStyle = C.line;
+    }
     function fish(c, s, fill, dark) {
         c.fillStyle = 'rgba(80, 50, 20, .15)'; ell(c, 0, 5 * s, 10 * s, 3.5 * s); c.fill();
         c.beginPath(); c.moveTo(6 * s, -3 * s); c.lineTo(12 * s, -8 * s); c.lineTo(12 * s, 2 * s); c.closePath(); fs(c, fill);

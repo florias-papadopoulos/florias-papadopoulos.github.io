@@ -11,7 +11,8 @@
    column in the middle of the play area. The world's scene (parallax layers drawn from cells placed by a hash, so
    nothing visibly repeats) fills the whole area; on wide screens the HUD sits on soft panels beside the column, on
    narrow ones in a thin band at the top. Easy, Normal and Hard change the enemy density, the bullet speed, the fire
-   rate and the lives. With a dog look (data-pet "dog") a dog flies the box instead: floppy ears, snout, wagging tail.
+   rate and the lives. With a dog look (data-pet "dog") a dog flies the box instead: floppy ears, snout, wagging tail;
+   it throws tennis balls instead of yarn, catches bone coins instead of fish and has a bone magnet (same hitboxes).
    Shell API: arcade.js. */
 Arcade.register('paw-raiders', function (api) {
     'use strict';
@@ -86,6 +87,8 @@ Arcade.register('paw-raiders', function (api) {
         SK.dog = document.documentElement.getAttribute('data-pet') === 'dog';
         if (SK.dog) { SK.ear = v('--ear', SK.ear); SK.nose = v('--nose', SK.nose); SK.cream = v('--cream', SK.cream); SK.tail = v('--tail', SK.fur); SK.line = '#3b2a1e'; }
     })();
+    if (SK.dog) { PNAME.triple = 'Triple balls'; PNAME.magnet = 'Bone magnet'; }   /* a dog throws tennis balls and catches bones */
+    var AMMO = SK.dog ? 'Tennis balls fire by themselves' : 'Yarn fires by itself', LOOT = SK.dog ? 'bones' : 'fish';
 
     /* ---------- page ---------- */
     var wrapEl = document.createElement('div');
@@ -559,7 +562,7 @@ Arcade.register('paw-raiders', function (api) {
         phase = 'clear'; clearT = 0;
         var extra = lives < D.lives + 2;
         if (extra) lives += 1;
-        show('World cleared!', extra ? '+1 life' : 'Bonus fish', 2);
+        show('World cleared!', extra ? '+1 life' : 'Bonus ' + LOOT, 2);
     }
     function nextWorld() {   /* called in the middle of the cloud bank, when the screen is covered */
         world += 1;
@@ -1267,6 +1270,13 @@ Arcade.register('paw-raiders', function (api) {
         ctx.restore();
     }
     function drawYarn(x, y, r, spin, col) {
+        if (SK.dog) {   /* a tennis ball: yellow-green with two white seams that turn with the spin */
+            ctx.fillStyle = '#d4e85a'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.1;
+            ctx.beginPath(); ctx.arc(x + Math.cos(spin) * r * 1.3, y + Math.sin(spin) * r * 1.3, r * 0.95, spin + Math.PI - 1.1, spin + Math.PI + 1.1); ctx.stroke();
+            ctx.beginPath(); ctx.arc(x - Math.cos(spin) * r * 1.3, y - Math.sin(spin) * r * 1.3, r * 0.95, spin - 1.1, spin + 1.1); ctx.stroke();
+            return;
+        }
         ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
         ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.1;
         ctx.beginPath(); ctx.arc(x, y, r * 0.62, spin, spin + 2.2); ctx.stroke();
@@ -1441,6 +1451,16 @@ Arcade.register('paw-raiders', function (api) {
     }
     function drawItem(it) {
         var x = it.x, y = it.y;
+        if (it.kind === 'fish' && SK.dog) {   /* a golden bone coin for the dog, the same size as the fish */
+            ctx.save(); ctx.translate(x, y); ctx.rotate(-0.4 + Math.sin(it.t * 5) * 0.3);
+            ctx.fillStyle = '#ffc23d'; ctx.strokeStyle = '#a8700a'; ctx.lineWidth = 2.4;
+            ctx.beginPath(); ctx.rect(-5.5, -1.8, 11, 3.6);
+            for (var bi = -1; bi <= 1; bi += 2) for (var bj = -1; bj <= 1; bj += 2) { ctx.moveTo(bi * 6.5 + 2.6, bj * 2); ctx.arc(bi * 6.5, bj * 2, 2.6, 0, TAU); }
+            ctx.stroke(); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-4, -0.6); ctx.lineTo(3.5, -0.6); ctx.stroke();
+            ctx.restore();
+            return;
+        }
         if (it.kind === 'fish') {
             ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(it.t * 5) * 0.3);
             ctx.fillStyle = '#ffc23d'; ctx.strokeStyle = '#a8700a'; ctx.lineWidth = 1.2;
@@ -1531,7 +1551,7 @@ Arcade.register('paw-raiders', function (api) {
         var hy = H - 92;
         if (hy > y + 220) {
             ctx.fillStyle = 'rgba(16,18,42,.45)'; rr(W - OX + 6, hy - 20, pwid + 4, (api.touch ? 2 : 3) * 18 + 12, 12); ctx.fill();
-            var lines = api.touch ? ['Drag to fly', 'Yarn fires by itself'] : ['Arrows or WASD, or drag', 'F: auto fire ' + (auto ? 'on' : 'off') + (auto ? '' : ', Space fires'), 'P: pause'];
+            var lines = api.touch ? ['Drag to fly', AMMO] : ['Arrows or WASD, or drag', 'F: auto fire ' + (auto ? 'on' : 'off') + (auto ? '' : ', Space fires'), 'P: pause'];
             lines.forEach(function (l, j) { txt(l, pr, hy + j * 18, 12, '#8f98c8', 'left', 600); });
         }
     }
@@ -1551,8 +1571,8 @@ Arcade.register('paw-raiders', function (api) {
         }
         if (hintT < 5.5 && phase === 'play' && world === 0 && loop === 0) {
             a = Math.min(1, (5.5 - hintT) * 1.5);
-            var lines = api.touch ? ['Drag anywhere to fly', 'Yarn fires by itself', 'Catch fish and power ups'] :
-                ['Arrows or WASD to fly (or drag the mouse)', 'Yarn fires by itself, F turns it off', 'Catch fish and power ups, P pauses'];
+            var lines = api.touch ? ['Drag anywhere to fly', AMMO, 'Catch ' + LOOT + ' and power ups'] :
+                ['Arrows or WASD to fly (or drag the mouse)', AMMO + ', F turns it off', 'Catch ' + LOOT + ' and power ups, P pauses'];
             var hy = Math.round(H * 0.58), lw = 0;
             ctx.font = '700 14px ' + FONT;
             lines.forEach(function (l) { lw = Math.max(lw, ctx.measureText(l).width); });

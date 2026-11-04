@@ -8,7 +8,9 @@
    sink back before the next one, and everything fades in from the fog. All text sits in a slim band at the top.
    Yarn is the ammo, the game ends at 0. Glass critters hover ahead and take turns to attack after a red wind-up ring;
    rows are spaced by speed, every sixth is a breather, and a short grace after any hit stops hits piling up.
-   With a dog look (data-pet "dog") the paws are a dog's (claws, dark pads, no stripes) and the lines say woof.
+   With a dog look (data-pet "dog") the paws are a dog's (claws, dark pads, no stripes) and the lines say woof;
+   the yarn balls become tennis balls (same sizes and tones, the plain pink one yellow-green) and every text says
+   balls instead of yarn (yt).
    Shell API: arcade.js. */
 Arcade.register('yarn-smash', function (api) {
     'use strict';
@@ -207,8 +209,42 @@ Arcade.register('yarn-smash', function (api) {
         woolCache[key] = { cv: cvs, s: S };
         return woolCache[key];
     }
+    /* dog mode: a tennis ball in the same size and tone (the plain pink one is the classic yellow-green), two white seams */
+    var TENNIS = { base: '#d4e85a', light: '#f4ffb0', dark: '#8aa21c' };
+    function tennisImg(r, tone) {
+        r = r < 10 ? Math.max(2, Math.round(r * 2) / 2) : Math.round(r);
+        var key = 't' + r + tone + dpr;
+        if (woolCache[key]) return woolCache[key];
+        var C = tone === 'pink' ? TENNIS : WOOL[tone], S = Math.ceil(r * 2.4 + 2), o = S / 2, cvs = document.createElement('canvas');
+        cvs.width = cvs.height = Math.ceil(S * dpr);
+        var c = cvs.getContext('2d');
+        c.scale(dpr, dpr);
+        var gr = c.createRadialGradient(o - r * 0.4, o - r * 0.45, r * 0.1, o, o, r * 1.05);
+        gr.addColorStop(0, C.light); gr.addColorStop(0.5, C.base); gr.addColorStop(1, C.dark);
+        c.fillStyle = gr;
+        c.beginPath(); c.arc(o, o, r, 0, TAU); c.fill();
+        c.save();
+        c.beginPath(); c.arc(o, o, r, 0, TAU); c.clip();
+        c.strokeStyle = 'rgba(255, 255, 255, .92)'; c.lineWidth = Math.max(0.9, r * 0.14);
+        c.beginPath(); c.arc(o - r * 1.3, o, r * 0.95, -1.2, 1.2); c.stroke();   /* the two seams */
+        c.beginPath(); c.arc(o + r * 1.3, o, r * 0.95, Math.PI - 1.2, Math.PI + 1.2); c.stroke();
+        c.restore();
+        var hl = c.createRadialGradient(o - r * 0.42, o - r * 0.45, 0, o - r * 0.42, o - r * 0.45, r * 0.42);
+        hl.addColorStop(0, 'rgba(255, 255, 255, .5)'); hl.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        c.fillStyle = hl; c.beginPath(); c.arc(o - r * 0.42, o - r * 0.45, r * 0.42, 0, TAU); c.fill();
+        c.strokeStyle = C.dark; c.lineWidth = Math.max(0.8, r * 0.07);
+        c.beginPath(); c.arc(o, o, r - c.lineWidth / 2, 0, TAU); c.stroke();
+        woolCache[key] = { cv: cvs, s: S };
+        return woolCache[key];
+    }
+    /* dog mode texts: tennis balls instead of yarn */
+    function yt(s) {
+        if (!SK.dog || !s) return s;
+        return s.replace('Triple yarn! Mrrow!', 'Triple balls! Woof!').replace('Catnip!', 'Fetch!').replace(/a ball of yarn/g, 'a tennis ball')
+            .replace(/ball of yarn/g, 'tennis ball').replace(/Giant yarn/g, 'Giant ball').replace(/\byarn\b/g, 'balls').replace(/\bYarn\b/g, 'Balls');
+    }
     function wool(x, y, r, a, tone) {
-        var w = woolImg(r, tone || 'pink');
+        var w = (SK.dog ? tennisImg : woolImg)(r, tone || 'pink');
         ctx.save(); ctx.translate(x, y); if (a) ctx.rotate(a);
         ctx.drawImage(w.cv, -w.s / 2, -w.s / 2, w.s, w.s);
         ctx.restore();
@@ -1703,12 +1739,12 @@ Arcade.register('yarn-smash', function (api) {
         if (yarnTick.t > 0.9 || yarnTick.n < 0) yarnTick.n = 0;
         yarnTick.n += n; yarnTick.t = 0;
     }
-    function say(text, col, delay) { toast.text = text; toast.c = col || '#ffffff'; toast.t = -(delay || 0); }
+    function say(text, col, delay) { toast.text = yt(text); toast.c = col || '#ffffff'; toast.t = -(delay || 0); }
     function chat(text, mood, force) {
         if (!force && clock - lastSay < 5) return;
         lastSay = clock;
         if (mood) api.cat(mood);
-        api.say(text, 1700);
+        api.say(yt(text), 1700);
     }
     function crash(kind) {
         if (zoomT > 0) { bonus += 10; api.sfx('pop'); return; }
@@ -2194,7 +2230,7 @@ Arcade.register('yarn-smash', function (api) {
     }
     function endText(score) {
         var Z = ZONES[curZi % NZ], acc = throwsN ? Math.round(100 * hitsN / throwsN) : 0;
-        return 'Out of yarn!\n' + Math.floor(camZ) + ' m run, world ' + (curZi % NZ + 1) + ': ' + Z.name + (curZi >= NZ ? ', lap ' + (Math.floor(curZi / NZ) + 1) : '') +
+        return yt('Out of yarn!') + '\n' + Math.floor(camZ) + ' m run, world ' + (curZi % NZ + 1) + ': ' + Z.name + (curZi >= NZ ? ', lap ' + (Math.floor(curZi / NZ) + 1) : '') +
                '\n' + acc + '% hits, best combo ' + bestStreak;
     }
 
@@ -2303,7 +2339,7 @@ Arcade.register('yarn-smash', function (api) {
         if (balls <= 3 && balls > 0 && !lowWarned) { lowWarned = true; chat('Low on yarn! Hit the green crystals.', 'think', true); }
         if (balls <= 0 && !flying.length) {
             phase = 'over';
-            api.say('Out of yarn. Nap time.', 2400);
+            api.say(yt('Out of yarn. Nap time.'), 2400);
             var Z = ZONES[curZi % NZ];
             api.end({ score: score, win: false, text: endText(score) });
         }
@@ -2682,12 +2718,12 @@ Arcade.register('yarn-smash', function (api) {
         }
         if (!P(b.x, b.y, b.z)) return;
         var r = Math.min(BR * big * pk * 1.35, PAW * 0.5 * big), bx = px, by = py;
-        ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = b.big ? '#b98cff' : b.heavy || b.rico ? '#ffc94a' : '#e8739f'; ctx.lineWidth = clamp(r * 0.16, 1, 4);
-        ctx.beginPath(); ctx.moveTo(bx, by);  /* the loose thread trailing behind */
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = b.big ? '#b98cff' : b.heavy || b.rico ? '#ffc94a' : SK.dog ? '#c5dc4a' : '#e8739f'; ctx.lineWidth = clamp(r * 0.16, 1, 4);
+        ctx.beginPath(); ctx.moveTo(bx, by);  /* the loose thread trailing behind (a faint streak behind a tennis ball) */
         for (var i = 0; i < b.trail.length; i += 3) {
             if (b.trail[i + 2] - camZ > 0.9 && P(b.trail[i], b.trail[i + 1] + Math.sin(i * 0.9 + b.spin) * 0.03, b.trail[i + 2])) ctx.lineTo(px, py);
         }
-        ctx.globalAlpha = 0.85; ctx.stroke(); ctx.globalAlpha = 1;
+        ctx.globalAlpha = SK.dog ? 0.45 : 0.85; ctx.stroke(); ctx.globalAlpha = 1;
         if (b.big) halo(bx, by, r * 2, [200, 150, 255], 0.45);
         ctx.globalAlpha = 1;
         if (b.heavy || b.rico) halo(bx, by, r * 1.9, [255, 200, 90], b.heavy ? 0.6 : 0.35);
@@ -3149,14 +3185,14 @@ Arcade.register('yarn-smash', function (api) {
             ctx.globalAlpha = clamp((1.2 - yarnTick.t) / 0.4, 0, 1);
             ctx.font = '900 14px ' + FONT; ctx.fillStyle = yarnTick.n > 0 ? '#86f7b6' : '#ff8a9c';
             ctx.strokeStyle = 'rgba(20,14,42,.7)'; ctx.lineWidth = 3;
-            var yt = (yarnTick.n > 0 ? '+' : '') + yarnTick.n + ' yarn', ty = y + h + 12 - Math.min(0.3, yarnTick.t) * 10;
-            ctx.strokeText(yt, x + 6, ty); ctx.fillText(yt, x + 6, ty);
+            var tick = (yarnTick.n > 0 ? '+' : '') + yarnTick.n + (!SK.dog ? ' yarn' : Math.abs(yarnTick.n) === 1 ? ' ball' : ' balls'), ty = y + h + 12 - Math.min(0.3, yarnTick.t) * 10;
+            ctx.strokeText(tick, x + 6, ty); ctx.fillText(tick, x + 6, ty);
             ctx.globalAlpha = 1;
         }
         x += w + 6;
         ctx.font = '800 14px ' + FONT;
         if (multi > 1 || streak > 1) {
-            var t2 = multi > 1 ? 'x' + multi + ' yarn' : 'Streak ' + streak, w2 = ctx.measureText(t2).width + 24;
+            var t2 = multi > 1 ? 'x' + multi + yt(' yarn') : 'Streak ' + streak, w2 = ctx.measureText(t2).width + 24;
             pill(x, y, w2, h, multi > 1 ? 'rgba(214,51,108,.9)' : null);
             ctx.fillStyle = multi > 1 ? '#ffffff' : '#d8d2f0'; ctx.fillText(t2, x + 12, y + h / 2 + 1);
             x += w2 + 6;
@@ -3185,12 +3221,12 @@ Arcade.register('yarn-smash', function (api) {
         var y2 = y + h + 6;  /* the second row: world banner, then short messages, then the how-to */
         if (banner.t < banner.dur) {
             var bt = banner.t, a = Math.min(1, bt / 0.3, (banner.dur - bt) / 0.6), Zb = ZONES[banner.zi % NZ], lap = Math.floor(banner.zi / NZ);
-            var sub = banner.zi === 0 ? (api.touch ? 'Tap to throw yarn at the glass' : 'Click or press Space to throw yarn at the glass') : (lap ? 'Lap ' + (lap + 1) + ': faster now, same tricks' : Zb.sub);
+            var sub = banner.zi === 0 ? yt(api.touch ? 'Tap to throw yarn at the glass' : 'Click or press Space to throw yarn at the glass') : (lap ? 'Lap ' + (lap + 1) + ': faster now, same tricks' : Zb.sub);
             centrePill((lap ? '' : 'World ' + (banner.zi % NZ + 1) + ': ') + Zb.name, sub, y2, Zb.accent, a, true);
         } else if (toast.t < 1.8 && toast.text) {
             centrePill(toast.text, '', y2, toast.c, Math.min(1, toast.t / 0.15, (1.8 - toast.t) / 0.4));
         } else if (!thrown && phase === 'play') {
-            centrePill(api.touch ? 'Tap to throw yarn' : 'Click or press Space to throw yarn', '', y2, '#ffffff', RM ? 0.9 : 0.75 + 0.25 * Math.sin(rt * 3));
+            centrePill(yt(api.touch ? 'Tap to throw yarn' : 'Click or press Space to throw yarn'), '', y2, '#ffffff', RM ? 0.9 : 0.75 + 0.25 * Math.sin(rt * 3));
         }
     }
     function drawOverlay() {

@@ -1,6 +1,7 @@
 /* Brick Paw: a paw bounces a yarn ball into pastel bricks. Six layouts that follow each other when cleared; some bricks
    take 2 or 3 hits, stone ones never break. Bricks drop power-ups (wider paw, three balls, sticky paw, slow ball,
    power ball, an extra life; on hard also a tiny paw). Score = points for bricks and levels.
+   In dog mode the yarn ball is a tennis ball (same size and physics).
    Uses the shell API of assets/js/games/arcade.js. */
 Arcade.register('brick-paw', function (api) {
     'use strict';
@@ -331,12 +332,12 @@ Arcade.register('brick-paw', function (api) {
         shake = api.reducedMotion ? 0 : 0.3;
         if (lives > 0) {
             api.cat('sad');
-            api.say(lives === 1 ? 'Last ball!' : 'Oops, the yarn!');
+            api.say(lives === 1 ? 'Last ball!' : DOG ? 'Oops, the ball!' : 'Oops, the yarn!');
             ready(lives + (lives === 1 ? ' ball left' : ' balls left'));
             return;
         }
         state = 'over';
-        api.end({ score: score, win: false, text: 'Out of yarn!\nScore: ' + score + ', reached level ' + (level + 1) });
+        api.end({ score: score, win: false, text: (DOG ? 'Out of tennis balls!' : 'Out of yarn!') + '\nScore: ' + score + ', reached level ' + (level + 1) });
     }
 
     /* ---------- particles ---------- */
@@ -554,8 +555,38 @@ Arcade.register('brick-paw', function (api) {
         woolCache[key] = { cv: cvs, s: S };
         return woolCache[key];
     }
+    /* dog mode: a tennis ball instead of the wool, same size: a fuzzy yellow-green sphere with two white seams
+       (orange while the power ball is on), cached like the wool */
+    var TENNIS = {
+        pink:   { base: '#d4e85a', light: '#f4ffb0', dark: '#8aa21c' },
+        orange: { base: '#fbb04b', light: '#ffe6bf', dark: '#c2410c' }
+    };
+    function tennisImg(r, tone) {
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        r = Math.max(3, Math.round(r * 2) / 2);
+        var key = 't' + r + tone + dpr;
+        if (woolCache[key]) return woolCache[key];
+        var C = TENNIS[tone], S = Math.ceil(r * 3.8), o = S / 2, cvs = document.createElement('canvas');
+        cvs.width = cvs.height = Math.ceil(S * dpr);
+        var c = cvs.getContext('2d');
+        c.scale(dpr, dpr);
+        var gr = c.createRadialGradient(o - r * 0.4, o - r * 0.45, r * 0.1, o, o, r * 1.05);
+        gr.addColorStop(0, C.light); gr.addColorStop(0.5, C.base); gr.addColorStop(1, C.dark);
+        c.fillStyle = gr;
+        c.beginPath(); c.arc(o, o, r, 0, TAU); c.fill();
+        c.save();
+        c.beginPath(); c.arc(o, o, r, 0, TAU); c.clip();
+        c.strokeStyle = 'rgba(255, 255, 255, .92)'; c.lineWidth = Math.max(1, r * 0.14);
+        c.beginPath(); c.arc(o - r * 1.3, o, r * 0.95, -1.2, 1.2); c.stroke();   /* the two seams */
+        c.beginPath(); c.arc(o + r * 1.3, o, r * 0.95, Math.PI - 1.2, Math.PI + 1.2); c.stroke();
+        c.restore();
+        c.strokeStyle = C.dark; c.lineWidth = Math.max(0.8, r * 0.07);
+        c.beginPath(); c.arc(o, o, r - c.lineWidth / 2, 0, TAU); c.stroke();
+        woolCache[key] = { cv: cvs, s: S };
+        return woolCache[key];
+    }
     function wool(ctx, x, y, r, a, tone) {
-        var w = woolImg(r, tone || 'pink');
+        var w = (DOG ? tennisImg : woolImg)(r, tone || 'pink');
         ctx.save();
         ctx.translate(x, y); if (a) ctx.rotate(a);
         ctx.drawImage(w.cv, -w.s / 2, -w.s / 2, w.s, w.s);
@@ -566,7 +597,7 @@ Arcade.register('brick-paw', function (api) {
         var hot = on.power > 0, t = b.trail;
         if (t.length > 4 && !b.stuck) {                    /* a loose thread behind the ball */
             g.lineCap = 'round'; g.lineJoin = 'round';
-            g.strokeStyle = hot ? '#fb923c' : '#e8739f';
+            g.strokeStyle = hot ? '#fb923c' : DOG ? '#b5cc3a' : '#e8739f';   /* a dog's tennis ball leaves a green streak */
             g.lineWidth = hot ? 3 : 2;
             for (var i = 2; i <= t.length; i += 2) {      /* fading towards the end */
                 g.globalAlpha = 0.5 * i / t.length;
