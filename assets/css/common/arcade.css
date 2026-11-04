@@ -235,14 +235,16 @@ body.arcade-playing { overflow: hidden; }
     .mascot-say { right: 52px; bottom: 54px; }
 }
 
-/* ---------- likes on the cards (arcade.js, /likes on the site's server): the card and its paw below it ---------- */
-.game-cell { display: flex; flex-direction: column; gap: 6px; }
+/* ---------- likes on the cards (arcade.js, /likes on the site's server): the paw sits in the card's top right corner
+   (a button of its own, laid over the card button, which it follows when the card lifts on hover) ---------- */
+.game-cell { position: relative; display: flex; flex-direction: column; }
 .game-cell .game-card { flex: 1; }
-.gc-votes { display: flex; justify-content: center; gap: 8px; }
+.gc-votes { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; transition: transform 0.15s; }
+.game-cell:has(.game-card:hover) .gc-votes { transform: translateY(-3px); }
 .gc-votes[hidden] { display: none; }
 .gc-vote {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 11px; border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px;
     background: #fff; color: var(--muted); font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
     transition: border-color 0.15s, transform 0.15s;
 }
