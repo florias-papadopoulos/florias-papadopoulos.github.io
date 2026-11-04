@@ -9,7 +9,8 @@ layout: arcade
 # script: <file> runs a game from another game's file (assets/js/games/<file>.js registers both ids).
 # restart: false hides the restart button (a two-player race would lose the other player).
 # tracks: the sub-boards of a game's leaderboard (Kitty Kart tracks, Garden Defender gardens): the ids the game passes
-# to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track).
+# to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track;
+# with a single track the picker is not shown and that board is used).
 games:
   - { id: cipher-cat,     title: "Cipher Cat",          emoji: "🔐", desc: "The cat hid a message. Crack the code before the clock runs out.", group: simple, levels: true }
   - { id: cat-tower,      title: "Cat Tower Stack",     emoji: "🗼", desc: "Drop the pieces, build the tallest wobbly cat tower.", group: simple, levels: true }
@@ -34,6 +35,6 @@ games:
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
   - { id: four-in-a-row-2p, title: "Four for Two",        emoji: "🟠", desc: "Two players on one phone or computer, taking turns. Four or five in a row.", group: two, script: four-in-a-row }
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex, levels: true }
-  - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out of six gardens with a water pistol, and grab the power ups they drop.", group: complex, levels: true,
-      trackLabel: Garden, tracks: [{ id: lawn, name: "Front Lawn" }, { id: patch, name: "Vegetable Patch" }, { id: pond, name: "Lily Pond" }, { id: orchard, name: "Apple Orchard" }, { id: court, name: "Hedge Court" }, { id: night, name: "Moonlit Garden" }, { id: tour, name: "Garden Tour" }] }
+  - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out with a water pistol while the garden keeps changing, and grab the power ups they drop.", group: complex, levels: true,
+      tracks: [{ id: tour, name: "Garden Tour" }] }
 ---

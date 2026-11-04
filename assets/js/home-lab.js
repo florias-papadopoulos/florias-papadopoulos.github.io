@@ -386,6 +386,7 @@
     }
 
     window.SiteCat({
+        leaveAfter: 10,
         init: function (a) { api = a; rel = a.rel; clamp = a.clamp; bonk = a.bonk; },
         layout: function () { sizeLayers(); buildTerrain(); },
         ground: groundY,

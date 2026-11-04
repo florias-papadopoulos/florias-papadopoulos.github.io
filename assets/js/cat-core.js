@@ -20,7 +20,11 @@
      reach, climb          furthest drop from a perch to the ground (default 300), and jump up from it (default 280)
      step(x, dir, run)     called on every step on the ground
      arrive(p, r)          true if the world handled what the cat does at p (r: a random number in [0, 1))
-     start()               perch to start on (with .fx), {kind: 'ground', x} or null for the ground in the middle */
+     start()               perch to start on (with .fx), {kind: 'ground', x} or null for the ground in the middle
+     leaveAfter            pets in a row (each within 15 s of the last) after which the cat has had enough and runs off
+                           the page; reset() brings it back (home page: 10)
+
+   With a dog chosen (html[data-pet="dog"]) the same animal is a dog: it says woof instead of purr. */
 (function () {
     'use strict';
     window.SiteCat = function (world) {
@@ -34,7 +38,8 @@
         var pos = { x: 0, y: 0 };                      /* the cat's feet, in layer coordinates */
         var at = null;                                 /* where it is: {kind, el?, fx?} */
         var timer = null, moving = false, token = 0;
-        var pets = 0;
+        var pets = 0, streak = 0, lastPet = 0, away = false;
+        function isDog() { return document.documentElement.dataset.pet === 'dog'; }
         try { pets = +localStorage.getItem('cat-pets') || 0; } catch (e) { /* no storage */ }
 
         /* ---------- helpers ---------- */
@@ -244,6 +249,11 @@
 
         /* ---------- petting and dragging the cat ---------- */
         function pet() {
+            if (away) return;
+            var now = Date.now();
+            streak = now - lastPet < 15000 ? streak + 1 : 1;
+            lastPet = now;
+            if (world.leaveAfter && streak > world.leaveAfter) return leave();
             pets++;
             try { localStorage.setItem('cat-pets', pets); } catch (e) { /* no storage */ }
             var wasAsleep = cat.classList.contains('sleep');
@@ -252,7 +262,8 @@
             cat.classList.add('happy');
             var b = document.createElement('span');
             b.className = 'cat-bubble';
-            b.textContent = wasAsleep ? 'mrrp?' : pets === 1 ? 'purr' : 'purr ×' + pets;
+            var word = isDog() ? 'woof' : 'purr';
+            b.textContent = wasAsleep ? (isDog() ? 'huh?' : 'mrrp?') : pets === 1 ? word : word + ' ×' + pets;
             /* the first time ever: the cat tells the visitor about its games behind the paw in the corner */
             var hint = false;
             try { hint = !localStorage.getItem('cat-games-hint'); localStorage.setItem('cat-games-hint', '1'); } catch (e) { hint = pets === 1; }
@@ -276,6 +287,37 @@
             clearTimeout(cat._petTimer);
             cat._petTimer = setTimeout(function () { cat.classList.remove('happy'); b.remove(); }, hint ? 5000 : 2300);
             if (!moving) next(2900);
+        }
+        /* petted too often: it says so, jumps down and runs off the nearer side of the page, until reset() */
+        function leave() {
+            away = true;
+            token++;
+            clearTimeout(timer);
+            clearTimeout(cat._petTimer);
+            cat.classList.remove('sleep', 'groom', 'happy');
+            Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz, .cat-bubble, .cat-heart'), function (e) { e.remove(); });
+            var b = document.createElement('span');
+            b.className = 'cat-bubble';
+            b.textContent = isDog() ? 'Grrr, enough! Bye.' : 'Hiss! Enough. Bye.';
+            cat.appendChild(b);
+            var id = token;
+            setTimeout(function () {
+                if (id !== token) return;
+                b.remove();
+                var x0 = pos.x, y0 = pos.y, W = layer.clientWidth, dir = x0 < W / 2 ? -1 : 1, x1 = dir < 0 ? -CW : W + CW;
+                var gy0 = ground(x0), drop = Math.max(0, gy0 - y0);
+                moving = true;
+                cat.classList.add('moving');
+                face(dir);
+                /* first down to the ground (if it sits on something), then a run to the edge */
+                animate(reduce ? 1 : Math.sqrt(drop / 1300) * 1000 + 40, function (t) { pose('jump'); place(x0, y0 + drop * t * t); }, function () {
+                    animate(reduce ? 1 : Math.abs(x1 - x0) / 420 * 1000, function (t) {
+                        var x = x0 + (x1 - x0) * t;
+                        pose('run');
+                        place(x, ground(clamp(x, 0, W)));
+                    }, function () { pose(''); moving = false; cat.classList.add('away'); at = null; });
+                });
+            }, 1300);
         }
         /* the first surface below (x, y): a page element or the ground */
         function surfaceBelow(x, y) {
@@ -303,6 +345,7 @@
         }
         draggable(cat, {
             start: function () {
+                if (away) return;
                 token++;
                 clearTimeout(timer);
                 moving = true;
@@ -313,13 +356,15 @@
                 cat.classList.add('jump');
                 tilt(0);
             },
-            move: function (p) { place(p.x, p.y + CH / 2); },
+            move: function (p) { if (!away) place(p.x, p.y + CH / 2); },
             end: function (p) {
+                if (away) return;
                 cat.classList.remove('held');
                 fall(clamp(p.x, 20, layer.clientWidth - 20), p.y + CH / 2);
             },
             click: pet
         });
+
         cat.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pet(); }
         });
@@ -343,7 +388,8 @@
             token++;
             clearTimeout(timer);
             moving = false;
-            cat.classList.remove('moving', 'held', 'sleep', 'groom', 'happy', 'bat', 'left');
+            away = false; streak = 0;
+            cat.classList.remove('moving', 'held', 'sleep', 'groom', 'happy', 'bat', 'left', 'away');
             Array.prototype.forEach.call(cat.querySelectorAll('.cat-zzz, .cat-bubble, .cat-heart'), function (e) { e.remove(); });
             pose(''); tilt(0);
             start();

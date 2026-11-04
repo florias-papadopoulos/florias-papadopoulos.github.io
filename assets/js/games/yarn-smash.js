@@ -8,6 +8,7 @@
    sink back before the next one, and everything fades in from the fog. All text sits in a slim band at the top.
    Yarn is the ammo, the game ends at 0. Glass critters hover ahead and take turns to attack after a red wind-up ring;
    rows are spaced by speed, every sixth is a breather, and a short grace after any hit stops hits piling up.
+   With a dog look (data-pet "dog") the paws are a dog's (claws, dark pads, no stripes) and the lines say woof.
    Shell API: arcade.js. */
 Arcade.register('yarn-smash', function (api) {
     'use strict';
@@ -98,7 +99,7 @@ Arcade.register('yarn-smash', function (api) {
     ZONES.forEach(function (Z, i) { K[Z.key] = Z; Z.i = i; });
 
     /* the cat's colours follow the look picked with the corner mascot (CSS variables of cat.css), ginger if missing */
-    var SK = { fur: FUR, light: '#ffc06e', stripe: STRIPE, toe: FUR, line: OL }, skinT = -9;
+    var SK = { fur: FUR, light: '#ffc06e', stripe: STRIPE, toe: FUR, line: OL, dog: false, ear: '#b97a33', nose: '#2b2220' }, skinT = -9;
     function readSkin() {
         var cs = null;
         try { cs = getComputedStyle(document.documentElement); } catch (e) { /* ginger */ }
@@ -107,6 +108,9 @@ Arcade.register('yarn-smash', function (api) {
         SK.fur = v('--fur-bot', FUR); SK.light = v('--fur-top', '#ffc06e'); SK.stripe = v('--stripe', STRIPE);
         SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;
         SK.line = look === 'tuxedo' || look === 'bat' || look === 'hacker' ? '#17181c' : OL;
+        SK.dog = document.documentElement.getAttribute('data-pet') === 'dog';   /* a dog: --ear and --nose too */
+        SK.ear = v('--ear', '#b97a33'); SK.nose = v('--nose', '#2b2220');
+        if (SK.dog) { SK.toe = SK.fur; SK.line = OL; }
     }
 
     /* ---------- path ---------- */
@@ -1600,7 +1604,7 @@ Arcade.register('yarn-smash', function (api) {
             api.sfx('pop');
             if (e.lockSet) lockHit(e.lockSet);
             if (ball && ball.rico > 0) ricochet(ball, e, hx, hy, hz);
-            if (firstPane) { firstPane = false; chat('Purrfect aim!', 'happy', true); }
+            if (firstPane) { firstPane = false; chat(SK.dog ? 'Pawfect aim!' : 'Purrfect aim!', 'happy', true); }
             return true;
         }
         e.broken = true; smashed++;
@@ -1718,7 +1722,7 @@ Arcade.register('yarn-smash', function (api) {
         yarnTick.n = -lost; yarnTick.t = 0;
         api.sfx('hit');
         api.cat('sad');
-        chat(kind === 'door' ? 'Bonk! My nose!' : (Math.random() < 0.5 ? 'Ouch, my whiskers!' : 'Mrrp! Glass!'), 'sad');
+        chat(kind === 'door' ? 'Bonk! My nose!' : (Math.random() < 0.5 ? (SK.dog ? 'Ouch, my ears!' : 'Ouch, my whiskers!') : (SK.dog ? 'Arf! Glass!' : 'Mrrp! Glass!')), 'sad');
     }
 
 
@@ -1960,7 +1964,7 @@ Arcade.register('yarn-smash', function (api) {
                 e.broken = true;
                 if (Math.abs(SX - camX) < (e.style === 'shard' ? 0.75 : 1.0) && SY < 2.8 && zoomT <= 0) {
                     if (e.style === 'shard') { if (!e.vol.hurt) { e.vol.hurt = true; freezeT = 2.5; guardHurt(1, 'A frozen paw: slower throws for a moment'); } }
-                    else guardHurt(e.style === 'boulder' ? 2 : 1, e.style === 'boulder' ? 'The boulder hit you' : e.style === 'gear' ? 'A gear wheel ran you over' : 'Soap in your whiskers');
+                    else guardHurt(e.style === 'boulder' ? 2 : 1, e.style === 'boulder' ? 'The boulder hit you' : e.style === 'gear' ? 'A gear wheel ran you over' : (SK.dog ? 'Soap in your fur' : 'Soap in your whiskers'));
                 }
             }
         }
@@ -2249,7 +2253,7 @@ Arcade.register('yarn-smash', function (api) {
         if (zi !== curZi) {
             curZi = zi;
             banner.zi = zi; banner.t = 0; banner.dur = zi ? 2.6 : 4.4;
-            if (zi > 0) { chat(ZONES[zi % NZ].chat, 'wow', true); api.sfx('win'); }
+            if (zi > 0) { chat(SK.dog ? ZONES[zi % NZ].chat.replace('Mrrow', 'Awoo') : ZONES[zi % NZ].chat, 'wow', true); api.sfx('win'); }
         }
         if (u > 60 && prepZi !== zi) { prepZi = zi; prepWorld((zi + 1) % NZ, prepQ); }
         if (prepQ.length) prepQ.shift()();
@@ -3078,9 +3082,15 @@ Arcade.register('yarn-smash', function (api) {
         }
         ctx.globalAlpha = 1;
     }
-    function drawPaw(x, y, r, lift) {  /* in the colours of the chosen cat look: tuxedo paws are black with white toes */
+    function drawPaw(x, y, r, lift) {  /* in the colours of the chosen cat look: tuxedo paws are black with white toes; a dog's have claws and dark pads */
         ctx.lineWidth = 2.5; ctx.strokeStyle = SK.line; ctx.fillStyle = SK.toe; ctx.lineJoin = 'round';
-        if (lift <= 0.25) for (var t = 0; t < 3; t++) { ctx.beginPath(); ctx.arc(x + (t - 1) * r * 0.5, y - r * (t === 1 ? 0.68 : 0.58), r * 0.3, 0, TAU); ctx.fill(); ctx.stroke(); }
+        if (lift <= 0.25 && SK.dog) {  /* four chunky toes, each with a small dark claw */
+            for (var d = 0; d < 4; d++) {
+                var tx = x + (d - 1.5) * r * 0.42, ty = y - r * (d === 0 || d === 3 ? 0.5 : 0.66);
+                ctx.fillStyle = SK.nose; ctx.beginPath(); ctx.ellipse(tx, ty - r * 0.3, r * 0.07, r * 0.12, (d - 1.5) * 0.25, 0, TAU); ctx.fill();
+                ctx.fillStyle = SK.toe; ctx.beginPath(); ctx.arc(tx, ty, r * 0.27, 0, TAU); ctx.fill(); ctx.stroke();
+            }
+        } else if (lift <= 0.25) for (var t = 0; t < 3; t++) { ctx.beginPath(); ctx.arc(x + (t - 1) * r * 0.5, y - r * (t === 1 ? 0.68 : 0.58), r * 0.3, 0, TAU); ctx.fill(); ctx.stroke(); }
         ctx.fillStyle = SK.fur;
         ctx.beginPath(); ctx.moveTo(x - r * 0.72, H + 4); ctx.lineTo(x - r * 0.72, y + r * 0.55);
         ctx.quadraticCurveTo(x - r, y + r * 0.35, x - r, y);
@@ -3090,11 +3100,13 @@ Arcade.register('yarn-smash', function (api) {
         var hg = ctx.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r * 1.1);
         hg.addColorStop(0, SK.light); hg.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.globalAlpha = 0.45; ctx.fillStyle = hg; ctx.fill(); ctx.globalAlpha = 1;
-        ctx.strokeStyle = SK.stripe; ctx.lineWidth = Math.max(2, r * 0.1); ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(x - r * 0.5, y + r * 0.6); ctx.quadraticCurveTo(x, y + r * 0.45, x + r * 0.5, y + r * 0.6);
-        ctx.moveTo(x - r * 0.45, y + r * 1.05); ctx.quadraticCurveTo(x, y + r * 0.9, x + r * 0.45, y + r * 1.05); ctx.stroke();
+        if (!SK.dog) {  /* a dog has no stripes */
+            ctx.strokeStyle = SK.stripe; ctx.lineWidth = Math.max(2, r * 0.1); ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(x - r * 0.5, y + r * 0.6); ctx.quadraticCurveTo(x, y + r * 0.45, x + r * 0.5, y + r * 0.6);
+            ctx.moveTo(x - r * 0.45, y + r * 1.05); ctx.quadraticCurveTo(x, y + r * 0.9, x + r * 0.45, y + r * 1.05); ctx.stroke();
+        }
         if (lift > 0.25) {
-            ctx.fillStyle = BEAN;
+            ctx.fillStyle = SK.dog ? '#4a3a38' : BEAN;
             ctx.beginPath(); ctx.ellipse(x, y + r * 0.1, r * 0.36, r * 0.28, 0, 0, TAU); ctx.fill();
             for (t = 0; t < 4; t++) { ctx.beginPath(); ctx.arc(x + (t - 1.5) * r * 0.36, y - r * (t === 0 || t === 3 ? 0.3 : 0.48), r * 0.13, 0, TAU); ctx.fill(); }
         }

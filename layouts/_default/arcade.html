@@ -54,12 +54,21 @@
     {{- $games := where $list "group" (index $g 0) }}
     <div class="arcade-grid" role="tabpanel" id="panel-{{ index $g 0 }}" aria-labelledby="tab-{{ index $g 0 }}"{{ if ne $i 0 }} hidden{{ end }}>
         {{- range $games }}
+        <div class="game-cell" data-id="{{ .id }}">
         <button class="game-card" type="button" data-id="{{ .id }}"{{ if not .src }} disabled{{ end }}>
             <span class="gc-icon" aria-hidden="true">{{ .emoji }}</span>
             <span class="gc-title">{{ .title }}</span>
             <span class="gc-desc">{{ if .src }}{{ .desc }}{{ else }}Coming soon{{ end }}</span>
             <span class="gc-best" data-best="{{ .id }}"></span>
         </button>
+        {{- /* thumbs up and down, totals from /likes on the site's server (arcade.js); hidden until they load */}}
+        {{- if and site.Params.statsEndpoint .src }}
+        <div class="gc-votes" hidden>
+            <button class="gc-vote" type="button" data-v="1" aria-pressed="false" aria-label="I like {{ .title }}"><span aria-hidden="true">👍</span><span class="gc-n">0</span></button>
+            <button class="gc-vote" type="button" data-v="-1" aria-pressed="false" aria-label="I don't like {{ .title }}"><span aria-hidden="true">👎</span><span class="gc-n">0</span></button>
+        </div>
+        {{- end }}
+        </div>
         {{- end }}
     </div>
     {{- end }}

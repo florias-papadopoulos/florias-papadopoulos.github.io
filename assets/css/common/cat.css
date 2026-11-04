@@ -7,7 +7,7 @@
 /* on the Bachelor, Master and Papers tabs the cat lives in the window (assets/js/cat-pages.js) */
 .cat-layer.cat-viewport { position: fixed; inset: 0; width: auto; height: auto; }
 
-/* ---------- The eight looks of the cat, chosen with the cat button in the top right corner (baseof.html) ---------- */
+/* ---------- The eight looks of the cat (the "winter" look is the Santa cat, "bat" the Batcat), chosen with the cat button in the top right corner (baseof.html) ---------- */
 :root, .cat-opt[data-look="ginger"] {
     --fur-top: #ffc06e; --fur-bot: #f0932c; --head-top: #ffc479; --fur-dark: #de8a2c; --stripe: #cf7419;
     --tail: #f5a03c; --cream: #ffe9c9; --iris: #8ed383; --tuft: #fff4e2; --whisker: #9a7a60;
@@ -40,6 +40,38 @@ html[data-cat="astronaut"], .cat-opt[data-look="astronaut"] {
 html[data-cat="winter"], .cat-opt[data-look="winter"] {
     --fur-top: #fbf0de; --fur-bot: #e8cfa9; --head-top: #fdf4e5; --fur-dark: #d8bb92; --stripe: #d2ad7c;
     --tail: #ecd4af; --cream: #fffaf2; --iris: #6fa8dc; --tuft: #ffffff; --whisker: #a08a70;
+}
+/* ---------- The dogs, chosen with the dog button next to the cat button. A dog look sets data-pet="dog" on <html>
+   (assets/js/cat-look.js) and data-cat to its id; the same variables as the cats, plus --ear (the floppy ears) and
+   --nose. The games read these and draw a dog instead of a cat when data-pet is "dog". ---------- */
+html[data-cat="dog-golden"], .cat-opt[data-look="dog-golden"] {
+    --fur-top: #f6d79a; --fur-bot: #dca456; --head-top: #f8dda6; --fur-dark: #c98d40; --stripe: #c98d40;
+    --tail: #e0ad66; --cream: #fcefd6; --iris: #6b4423; --tuft: #fff6e4; --whisker: #8a6a48; --ear: #b97a33; --nose: #2b2220;
+}
+html[data-cat="dog-beagle"], .cat-opt[data-look="dog-beagle"] {
+    --fur-top: #e8b57a; --fur-bot: #c98546; --head-top: #ecbd86; --fur-dark: #b5743a; --stripe: #3a2e28;
+    --tail: #fffaf2; --cream: #fffaf2; --iris: #5a3a1e; --tuft: #ffffff; --whisker: #7a5a3e; --ear: #8a5428; --nose: #2b2220;
+}
+html[data-cat="dog-husky"], .cat-opt[data-look="dog-husky"] {
+    --fur-top: #cdd4dc; --fur-bot: #7f8893; --head-top: #d6dce3; --fur-dark: #6b737d; --stripe: #5e6670;
+    --tail: #8a929c; --cream: #f7f9fb; --iris: #7cc4f0; --tuft: #ffffff; --whisker: #6b737d; --ear: #5e6670; --nose: #22252b;
+}
+html[data-cat="dog-choco"], .cat-opt[data-look="dog-choco"] {
+    --fur-top: #93644a; --fur-bot: #64402a; --head-top: #9c6d52; --fur-dark: #543420; --stripe: #543420;
+    --tail: #6e4730; --cream: #c49a7a; --iris: #e2a93b; --tuft: #d9b89c; --whisker: #3e2617; --ear: #4a2b19; --nose: #1d1411;
+}
+/* with a dog the site turns warm: browns and amber instead of navy and pink */
+html[data-pet="dog"] .glyph, html[data-pet="dog"] .glyph.keyicon { color: rgba(138, 59, 18, 0.55); }
+html[data-pet="dog"] .glyph.pink { color: rgba(194, 124, 14, 0.6); }
+html[data-pet="dog"] .glyph:hover { color: #8a3b12; }
+html[data-pet="dog"] .corner-btn { background: #fffaf3; border-color: #e3d2bd; color: #5a4330; }
+html[data-pet="dog"] .cat-menu { background: #fffaf3; border-color: #e3d2bd; }
+html[data-pet="dog"] { --theme: #fffaf3; --code-bg: #faf3e8; --darkcolor: #8a5a2b; --lightcolor: #e8d6bf; }
+html[data-pet="dog"] .degree .count { background: #f6e7d3; }
+html[data-pet="dog"] .degree { background: #fffaf3; }
+html[data-pet="dog"] .profile.home, html[data-pet="dog"] .arcade, html[data-pet="dog"] .tl-page, html[data-pet="dog"] {
+    --ink: #2b1d12; --muted: #7a6450; --navy: #8a3b12; --pink: #c27c0e; --line: #eadccb;
+    --tl-ink: #2b1d12; --tl-text: #4a3a2c; --tl-muted: #7a6450; --tl-navy: #8a3b12; --tl-line: #eadccb; --tl-rule: #dcc6ab;
 }
 
 /* ---------- Desktop world: glyph platforms (built in home-lab.js) ---------- */
@@ -82,6 +114,8 @@ html[data-cat="winter"], .cat-opt[data-look="winter"] {
     transition: opacity 0.35s;
 }
 .cat.vanish { opacity: 0; }
+/* petted too often on the home page: it ran off (cat-core.js leave), the reset button brings it back */
+.cat.away { visibility: hidden; pointer-events: none; }
 /* while it moves the cat gets a layer of its own, so Safari moves the picture instead of redrawing (and leaving a trail) */
 .cat.moving { will-change: transform; }
 .cat-tilt { width: 100%; height: 100%; transform-origin: 50% 100%; transform: rotate(var(--tilt, 0deg)); }
@@ -110,7 +144,7 @@ html[data-cat="winter"], .cat-opt[data-look="winter"] {
 .cat .cat-head .stripe { stroke-width: 2.2; }
 .cat .cat-head .whisker { stroke: var(--whisker); stroke-width: 0.75; }
 .cat .cat-head .sclera { stroke-width: 1.1; }
-/* the Halloween bat costume: cowl, mask, cape and belt, only in that look */
+/* the Batcat costume: cowl, mask, cape and belt, only in that look */
 .cat .bat-only { display: none; }
 html[data-cat="bat"] .cat .bat-only { display: inline; }
 .cat .cowl, .cat .cape { fill: #1f222a; }
@@ -147,20 +181,24 @@ html[data-cat="calico"] .cat .stripe { display: none; }
 .cat.moving .pack-light { animation: none; }
 .cat .mission { fill: #1e3a8a; stroke-width: 1; }
 .cat .mission-star { fill: #fff; }
-/* winter: a red and white knitted scarf whose ends swing when the cat moves, and fluffy earmuffs */
-.cat .scarf { fill: #d64545; stroke-width: 1.2; }
-.cat .scarf-stripe { fill: none; stroke: #fbf7f0; stroke-width: 2; }
-.cat .scarf-fringe { fill: none; stroke: #d64545; stroke-width: 1.2; stroke-linecap: round; }
-.cat .muff { fill: #fbf7f0; stroke-width: 1.2; }
-.cat .muff-in { fill: #f1e6da; }
-.cat .muff-band-ol { fill: none; stroke: #3b2a1e; stroke-width: 4.4; stroke-linecap: round; }
-.cat .muff-band { fill: none; stroke: #1e3a8a; stroke-width: 2.4; stroke-linecap: round; }
-.cat .scarf-end { transform-box: fill-box; transform-origin: 50% 0; transition: transform 0.2s; }
-.cat.walk .scarf-end { animation: cat-scarf 0.56s ease-in-out infinite; }
-.cat.run .scarf-end { animation: cat-scarf-run 0.34s ease-in-out infinite; }
-.cat .end-b { animation-delay: -0.14s !important; }
-.cat.jump .scarf-end { animation: none; transform: rotate(48deg); }
-.cat.sleep .scarf-end { transform: rotate(78deg); }
+/* Santa (the "winter" look): a red suit with white fluffy trim, a black belt with a gold buckle, a floppy hat */
+.cat .suit { fill: #d23a3a; stroke-width: 1.2; }
+.cat .suit-trim { fill: none; stroke: #fbf7f0; stroke-width: 3.2; stroke-linecap: round; }
+.cat .suit-cuff { fill: none; stroke: #fbf7f0; stroke-width: 3; stroke-linecap: round; }
+.cat .suit-belt { fill: #23201f; }
+.cat .suit-buckle { fill: none; stroke: #f2c94c; stroke-width: 1.6; }
+.cat .suit-fluff, .cat .suit-collar { fill: #fbf7f0; stroke-width: 1.2; }
+/* the dogs: cat parts out, dog parts in */
+.cat .dog-only { display: none; }
+html[data-pet="dog"] .cat .dog-only { display: inline; }
+html[data-pet="dog"] .cat .cat-only, html[data-pet="dog"] .cat .stripe, html[data-pet="dog"] .cat .tail-stripe { display: none; }
+.cat .dog-ear { fill: var(--ear, var(--fur-dark)); stroke-width: 1.2; }
+.cat .dog-nose { fill: var(--nose, #2b2220); }
+.cat .dog-tongue { fill: #f07a8a; stroke-width: 0.9; }
+.cat .tail-ol.dog-tail { stroke-width: 11.5; }
+.cat .tail-fur.dog-tail { stroke-width: 7.6; }
+html[data-pet="dog"] .tail { animation-duration: 0.9s; }
+html[data-pet="dog"] .cat.happy .tail { animation-duration: 0.3s; }
 .cat .toe { fill: none; stroke: #3b2a1e; stroke-width: 1; stroke-linecap: round; }
 .cat .tail-ol { fill: none; stroke: #3b2a1e; stroke-width: 9.6; stroke-linecap: round; }
 .cat .tail-fur { fill: none; stroke: var(--tail); stroke-width: 5.8; stroke-linecap: round; }
@@ -248,8 +286,6 @@ html[data-cat="astronaut"] .cat.moving .cat-head { transform: translate(79px, 36
 @keyframes cat-land { 0% { transform: scaleY(0.82) scaleX(1.1); } 100% { transform: none; } }
 @keyframes cat-bat { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-75deg); } }
 @keyframes cat-lick { 0%, 100% { transform: rotate(-120deg) translate(-2px, 2px); } 50% { transform: rotate(-108deg) translate(-2px, 2px); } }
-@keyframes cat-scarf { 0%, 100% { transform: rotate(10deg); } 50% { transform: rotate(26deg); } }
-@keyframes cat-scarf-run { 0%, 100% { transform: rotate(46deg); } 50% { transform: rotate(64deg); } }
 @keyframes cat-pack-light { 0%, 100% { fill: #4ade80; } 50% { fill: #1f6b3e; } }
 @keyframes cat-zzz { 0% { transform: translate(0, 0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(14px, -24px); opacity: 0; } }
 @keyframes cat-heart { 0% { transform: translate(0, 0) scale(0.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(var(--dx, 0px), -60px) scale(1.2); opacity: 0; } }
@@ -266,21 +302,20 @@ html[data-cat="astronaut"] .cat.moving .cat-head { transform: translate(79px, 36
 }
 
 /* ---------- The picker's little cat face (baseof.html, base styles in paw.css): the parts of the newer looks ---------- */
-.cf-calico, .cf-hood, .cf-glasses, .cf-scarf, .cf-band, .cf-muff, .cf-bubble, .cf-shine { display: none; }
+.cf-calico, .cf-hood, .cf-glasses, .cf-collar, .cf-hat, .cf-fluff, .cf-bubble, .cf-shine { display: none; }
 html[data-cat="calico"] .cat-pick .cf-calico, .cat-opt[data-look="calico"] .cf-calico,
 html[data-cat="hacker"] .cat-pick .cf-hood, .cat-opt[data-look="hacker"] .cf-hood,
 html[data-cat="hacker"] .cat-pick .cf-glasses, .cat-opt[data-look="hacker"] .cf-glasses,
 html[data-cat="astronaut"] .cat-pick .cf-bubble, .cat-opt[data-look="astronaut"] .cf-bubble,
 html[data-cat="astronaut"] .cat-pick .cf-shine, .cat-opt[data-look="astronaut"] .cf-shine,
-html[data-cat="winter"] .cat-pick :is(.cf-scarf, .cf-band, .cf-muff), .cat-opt[data-look="winter"] :is(.cf-scarf, .cf-band, .cf-muff) { display: inline; }
+html[data-cat="winter"] .cat-pick :is(.cf-collar, .cf-hat, .cf-fluff), .cat-opt[data-look="winter"] :is(.cf-collar, .cf-hat, .cf-fluff) { display: inline; }
 .cf-orange { fill: #f39a3c; stroke: #3b2a1e; stroke-width: 1.6; stroke-linejoin: round; }
 .cf-patch-o { fill: #f39a3c; }
 .cf-patch-b { fill: #3d3a3c; }
 .cf-hood { fill: #2f3746; fill-rule: evenodd; stroke: #3b2a1e; stroke-width: 1.4; stroke-linejoin: round; }
 .cf-glasses { fill: rgba(134, 239, 172, 0.25); stroke: #c3cad4; stroke-width: 1.2; }
-.cf-scarf { fill: #d64545; stroke: #3b2a1e; stroke-width: 1.2; stroke-linejoin: round; }
-.cf-band { fill: none; stroke: #1e3a8a; stroke-width: 2.4; stroke-linecap: round; }
-.cf-muff { fill: #fbf7f0; stroke: #3b2a1e; stroke-width: 1.3; }
+.cf-collar, .cf-fluff { fill: #fbf7f0; stroke: #3b2a1e; stroke-width: 1.2; stroke-linejoin: round; }
+.cf-hat { fill: #d23a3a; stroke: #3b2a1e; stroke-width: 1.3; stroke-linejoin: round; }
 .cf-bubble { fill: rgba(214, 234, 252, 0.25); stroke: #7f9fbd; stroke-width: 1.5; }
 .cf-shine { fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; }
 /* the astronaut's face is a little smaller, so that it fits in the helmet */

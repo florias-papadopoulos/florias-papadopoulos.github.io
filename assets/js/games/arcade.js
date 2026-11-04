@@ -37,6 +37,11 @@
    assets/js/games/<file>.js and runs the game registered under its own id. "restart: false" hides the restart button
    (for a game that a restart would break, like one linked to another player).
 
+   Likes: every card has a thumbs up and a thumbs down with the totals of all visitors (GET and POST /likes on the site's
+   server, tools/stats-worker/worker.js). When the page loads, the cards of each tab are ordered by likes (most first,
+   then the better ratio of up to all votes, then the order of content/games/_index.md). A browser's own vote is kept
+   in localStorage 'arcade-votes' ({id: 1 or -1}); pressing it again takes it back.
+
    Sound: short effects generated with the Web Audio API (nothing downloaded). Music: the note button (in the list
    header, and in the top bar while a game runs) picks one of four looping background mixes of 11 to 12 minutes, files
    in static/music (CC0 tracks joined, credits in static/music/credits.txt), listed in the layout. One <audio>, quieter
@@ -490,7 +495,7 @@
         var id = gSel.value, g = byId[id], server = root.dataset.server;
         boards.querySelector('.ab-level-l').hidden = !g.levels;
         var tracks = g.tracks || [];
-        boards.querySelector('.ab-track-l').hidden = !tracks.length;
+        boards.querySelector('.ab-track-l').hidden = tracks.length < 2;   /* one track (Garden Defender's tour): no picker */
         boards.querySelector('.ab-track-n').textContent = g.trackLabel || 'Track';
         if (tSel.dataset.game !== id) {
             tSel.innerHTML = '';
@@ -527,6 +532,66 @@
         }
         boardsLoad();
     }
+
+    /* ---------- likes: thumbs up and down on every card, the most liked first in each tab ---------- */
+    (function () {
+        var server = root.dataset.server;
+        if (!server || !window.fetch) return;
+        var mine = {};
+        try { mine = JSON.parse(localStorage.getItem('arcade-votes') || '{}') || {}; } catch (e) { mine = {}; }
+        var counts = {}, busy = false;
+        function show() {
+            Array.prototype.forEach.call(root.querySelectorAll('.game-cell'), function (cell) {
+                var box = cell.querySelector('.gc-votes');
+                if (!box) return;
+                var id = cell.dataset.id, c = counts[id] || { u: 0, d: 0 };
+                Array.prototype.forEach.call(box.querySelectorAll('.gc-vote'), function (b) {
+                    var v = +b.dataset.v;
+                    b.querySelector('.gc-n').textContent = v === 1 ? c.u : c.d;
+                    b.setAttribute('aria-pressed', mine[id] === v ? 'true' : 'false');
+                });
+                var all = c.u + c.d;
+                box.title = all ? Math.round(c.u / all * 100) + '% of ' + all + (all === 1 ? ' vote' : ' votes') + ' liked it' : 'No votes yet';
+                box.hidden = false;
+            });
+        }
+        function sort() {
+            Array.prototype.forEach.call(root.querySelectorAll('.arcade-grid'), function (grid) {
+                var cells = Array.prototype.slice.call(grid.querySelectorAll('.game-cell'));
+                cells.forEach(function (c, i) { if (c.dataset.order == null) c.dataset.order = i; });
+                function key(c) { var n = counts[c.dataset.id] || { u: 0, d: 0 }; return [n.u, n.u + n.d ? n.u / (n.u + n.d) : 0]; }
+                cells.sort(function (a, b) {
+                    var ka = key(a), kb = key(b);
+                    return kb[0] - ka[0] || kb[1] - ka[1] || a.dataset.order - b.dataset.order;
+                });
+                cells.forEach(function (c) { grid.appendChild(c); });
+            });
+        }
+        function take(d) { counts = d && typeof d === 'object' ? d : {}; }
+        fetch(server + '/likes', { cache: 'no-cache' })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (d) { take(d); sort(); show(); })
+            .catch(function () { /* no server: the cards stay as they are, without votes */ });
+        root.addEventListener('click', function (e) {
+            var b = e.target.closest('.gc-vote');
+            if (!b || busy) return;
+            e.stopPropagation();
+            var id = b.closest('.game-cell').dataset.id, v = +b.dataset.v, from = mine[id] || 0, to = from === v ? 0 : v;
+            /* show it at once, then take the server's totals */
+            var c = counts[id] || (counts[id] = { u: 0, d: 0 });
+            c.u = Math.max(0, c.u + (to === 1) - (from === 1)); c.d = Math.max(0, c.d + (to === -1) - (from === -1));
+            if (to) mine[id] = to; else delete mine[id];
+            try { localStorage.setItem('arcade-votes', JSON.stringify(mine)); } catch (err) { /* kept for this visit only */ }
+            show();
+            if (audio()) SFX[to ? 'pop' : 'tap'](ctx.currentTime + 0.005);
+            busy = true;
+            fetch(server + '/likes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ g: id, f: from, t: to }) })
+                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                .then(function (d) { take(d); show(); })
+                .catch(function () { /* the vote stays shown; it was not counted */ })
+                .then(function () { busy = false; });
+        });
+    })();
 
     /* The Best / 2 Player / More tabs above the cards (and Leaderboards). */
     var tabs = Array.prototype.slice.call(root.querySelectorAll('.arcade-tab'));

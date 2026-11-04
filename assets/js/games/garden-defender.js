@@ -4,16 +4,17 @@
    the Queen Beetle, the Clockwork Rat and the Giant Snail, then again, tougher. After each wave the cat picks one of
    three upgrades (fire rate, spread, splash, speed, extra life, sprinkler turret, water pressure, range).
 
-   Gardens: before the game a picker (HTML buttons over the canvas, small painted previews) offers six gardens and
-   the Garden Tour. Each garden has its own look, layout and twist, built from capsule obstacles (a circle is a
-   capsule of length 0) placed relative to the arena size, so they fit phones and wide screens alike:
+   Gardens: the game is always the Garden Tour (no picker): it starts in a random garden and moves on to another one
+   after every mini boss, with a banner naming it. The order comes from a shuffled bag of all six, so each garden
+   comes once before any repeats, and a fresh bag never starts with the garden just played. Each garden has its own
+   look, layout and twist, built from capsule obstacles (a circle is a capsule of length 0) placed relative to the
+   arena size, so they fit phones and wide screens alike:
      Front Lawn       open grass, critters from every side (the original garden)
      Vegetable Patch  raised beds make four lanes; critters come only from the left and right ends; more snails
      Lily Pond        a pond in the middle: water flies over it, walkers go around, snails climb out of it
      Apple Orchard    trees block water and gears; a charging beetle that hits a tree is dizzy for a moment
      Hedge Court      a hedged courtyard with gaps at the corners; critters come in at the four gates only
      Moonlit Garden   dark: light comes from the cat, the lamps, sprinklers and pickups; eyes shine in the dark
-     Garden Tour      starts on the lawn and moves to the next garden after every mini boss
    Each obstacle kind says what it stops: walking (cat and critters), water (drops, gears, auto aim line of sight)
    and whether ladybugs fly over it. Walkers slide around obstacles, mice and the rat bounce off them.
 
@@ -29,38 +30,18 @@
    two thumb sticks get their own band under the garden, so thumbs never cover the action. Easy, Normal and Hard
    change the hearts, the number and speed of the critters, the mini bosses' health and the power up drops. Score,
    and the best wave per difficulty and garden (localStorage 'garden-defender-wave', keys 'normal' for the lawn and
-   'normal/pond' for the others); the last garden picked is kept in 'garden-defender-map'. Shell API: arcade.js. */
+   'normal/pond' for the old single gardens, now only 'normal/tour' is written); scores go to the 'tour' board.
+
+   Cat or dog: the player's colours follow the site's look (CSS variables of cat.css). With data-pet="dog" on <html>
+   it is a dog (floppy ears in --ear, a round snout with a --nose, a saddle patch, a fast wagging tail, a tongue
+   while busy), and its treats are Dog biscuit, Zoomies and Bone snack (bones instead of fish). Shell API: arcade.js. */
 Arcade.register('garden-defender', function (api) {
     'use strict';
     api.css(
         '.gd, .gd-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }' +
         '.gd { overflow: hidden; background: #5c9e48; }' +
         '.gd-cv { touch-action: none; cursor: crosshair; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }' +
-        '.stage-area.game-garden-defender ~ .mascot { opacity: .45; pointer-events: none; }' +
-        /* the garden picker shown before the game */
-        '.gd-pick { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 12px;' +
-        '  background: rgba(20,40,15,.45); overflow-y: auto; }' +
-        '.gd.gd-picking .gd-pick { display: flex; }' +
-        '.gd-pick-box { width: 100%; max-width: 720px; margin: auto; padding: 14px; border-radius: 14px; background: #fffdf6;' +
-        '  border: 2px solid #cfe0c3; color: #22301e; text-align: center; }' +
-        '.gd-pick-box h3 { margin: 0 0 10px; color: #2f5a2a; font-size: 1.15rem; font-weight: 800; }' +
-        '.gd-maps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }' +
-        '.gd-map { min-width: 0; padding: 6px 6px 8px; border: 2px solid #e3ead9; border-radius: 12px; background: #fff; color: inherit;' +
-        '  font: inherit; font-size: 15px; text-align: center; cursor: pointer; touch-action: manipulation; }' +
-        '.gd-map:hover { border-color: #9cc48a; }' +
-        '.gd-map.gd-sel { border-color: #3f7a33; background: #f4f9ef; }' +
-        '.gd-map:focus-visible { outline: 2px solid #3f7a33; outline-offset: 2px; }' +
-        '.gd-map canvas { display: block; width: 100%; height: auto; border-radius: 8px; }' +
-        '.gd-map b { display: block; margin-top: 5px; font-size: .95rem; font-weight: 800; }' +
-        '.gd-map small { display: block; margin-top: 2px; color: #5a6a52; font-size: .78rem; line-height: 1.25; }' +
-        '.gd-map .gd-mbest { color: #2f5a2a; font-weight: 700; }' +
-        '.gd-pick-tip { margin: 10px 0 0; color: #5a6a52; font-size: .8rem; font-weight: 600; }' +
-        '.gd-narrow .gd-maps { grid-template-columns: 1fr; gap: 6px; }' +
-        '.gd-narrow .gd-map { display: grid; grid-template-columns: 92px 1fr; column-gap: 10px; align-items: center; text-align: left; padding: 5px 8px 5px 5px; }' +
-        '.gd-narrow .gd-map canvas { grid-row: 1 / span 3; }' +
-        '.gd-narrow .gd-map b { margin-top: 0; }' +
-        '.gd-narrow .gd-pick-box { padding: 10px; }' +
-        '@media (pointer: coarse) { .gd-map { font-size: 16px; } }');
+        '.stage-area.game-garden-defender ~ .mascot { opacity: .45; pointer-events: none; }');
 
     /* ---------- constants and small helpers ---------- */
     var TAU = Math.PI * 2, RM = !!api.reducedMotion, MAXP = RM ? 90 : 240;
@@ -116,10 +97,10 @@ Arcade.register('garden-defender', function (api) {
     /* the gardens: build(aw, ah) gives the obstacles in arena units, spawn 'all' (every side), 'lr' (the lanes at the
        left and right ends) or 'gates' (the middle of each side); mix scales the critter kinds of a wave */
     var MAPS = [
-        { id: 'lawn', name: 'Front Lawn', desc: 'Open grass, critters from every side', spawn: 'all', start: [0.5, 0.5],
+        { id: 'lawn', name: 'Front Lawn', spawn: 'all', start: [0.5, 0.5],
             g: { a: '#79bf5c', b: '#6fb553', tuft: 'rgba(40,90,30,.35)', edge: '#3d6b33' },
             build: function () { return []; } },
-        { id: 'patch', name: 'Vegetable Patch', desc: 'Beds make lanes, critters come from the ends, more snails', spawn: 'lr', start: [0.5, 0.5],
+        { id: 'patch', name: 'Vegetable Patch', spawn: 'lr', start: [0.5, 0.5],
             lanes: [0.125, 0.375, 0.625, 0.875], mix: { snail: 1.7 },
             g: { a: '#86c062', b: '#7db85a', tuft: 'rgba(40,90,30,.3)', edge: '#3d6b33' },
             build: function (aw, ah) {
@@ -127,18 +108,18 @@ Arcade.register('garden-defender', function (api) {
                 [0.25, 0.5, 0.75].forEach(function (y) { o.push(ob('bed', aw * 0.15, ah * y, aw * 0.41, ah * y, 13), ob('bed', aw * 0.59, ah * y, aw * 0.85, ah * y, 13)); });
                 return o;
             } },
-        { id: 'pond', name: 'Lily Pond', desc: 'Spray across the pond, snails climb out of it', spawn: 'all', start: [0.5, 0.88], pondSpawn: true, mix: { snail: 1.8 },
+        { id: 'pond', name: 'Lily Pond', spawn: 'all', start: [0.5, 0.88], pondSpawn: true, mix: { snail: 1.8 },
             g: { a: '#7cc35e', b: '#73ba55', tuft: 'rgba(40,90,30,.3)', edge: '#3d6b33' },
             build: function (aw, ah) {
                 var cx = aw / 2, cy = ah * 0.47, r = Math.min(aw, ah) * 0.2, h = Math.abs(aw - ah) * 0.16;
                 return [aw >= ah ? ob('pond', cx - h, cy, cx + h, cy, r) : ob('pond', cx, cy - h, cx, cy + h, r)];
             } },
-        { id: 'orchard', name: 'Apple Orchard', desc: 'Trees stop water, charging beetles bonk into them', spawn: 'all', start: [0.5, 0.5], mix: { beetle: 1.8 },
+        { id: 'orchard', name: 'Apple Orchard', spawn: 'all', start: [0.5, 0.5], mix: { beetle: 1.8 },
             g: { a: '#6aa94f', b: '#62a148', tuft: 'rgba(30,70,25,.35)', edge: '#335c2b' },
             build: function (aw, ah) {
                 return [[0.2, 0.27], [0.5, 0.2], [0.8, 0.27], [0.2, 0.73], [0.5, 0.8], [0.8, 0.73], [0.35, 0.5], [0.65, 0.5]].map(function (p) { return ob('tree', aw * p[0], ah * p[1], undefined, undefined, 19); });
             } },
-        { id: 'court', name: 'Hedge Court', desc: 'Hedges stop water, critters come in at four gates', spawn: 'gates', start: [0.5, 0.5],
+        { id: 'court', name: 'Hedge Court', spawn: 'gates', start: [0.5, 0.5],
             g: { a: '#7fc260', b: '#76b957', tuft: 'rgba(40,90,30,.3)', edge: '#3d6b33' },
             build: function (aw, ah) {
                 var cx = aw / 2, cy = ah / 2, sx = aw * 0.27, sy = ah * 0.27, c = 34, r = 9, qx = (aw / 2 + sx) / 2, qy = (ah / 2 + sy) / 2;
@@ -147,13 +128,13 @@ Arcade.register('garden-defender', function (api) {
                     ob('bush', cx - qx, cy - qy, undefined, undefined, 13), ob('bush', cx + qx, cy - qy, undefined, undefined, 13),
                     ob('bush', cx - qx, cy + qy, undefined, undefined, 13), ob('bush', cx + qx, cy + qy, undefined, undefined, 13)];
             } },
-        { id: 'night', name: 'Moonlit Garden', desc: 'Dark: your lamp, the garden lights and shining eyes', spawn: 'all', start: [0.5, 0.5], dark: true, dens: 0.92, mix: { mouse: 1.5 },
+        { id: 'night', name: 'Moonlit Garden', spawn: 'all', start: [0.5, 0.5], dark: true, dens: 0.92, mix: { mouse: 1.5 },
             g: { a: '#2f5a4a', b: '#2b5444', tuft: 'rgba(10,30,25,.45)', edge: '#16302a', fence: ['#9aa6b8', '#5c6678'] },
             build: function (aw, ah) {
                 return [[0.24, 0.27], [0.76, 0.27], [0.3, 0.76], [0.7, 0.76], [0.5, 0.2]].map(function (p) { return ob('bush', aw * p[0], ah * p[1], undefined, undefined, 15); });
             },
             lamps: function (aw, ah) { return [[0.12, 0.5], [0.88, 0.5], [0.5, 0.9], [0.5, 0.36]].map(function (p) { return { x: aw * p[0], y: ah * p[1] }; }); } }];
-    var TOUR = { id: 'tour', name: 'Garden Tour', desc: 'A new garden after every mini boss' };
+    var TOUR = { id: 'tour', name: 'Garden Tour' };   /* the only mode: its id is the leaderboard and the best wave key */
 
     function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
     function rnd(a, b) { return a + Math.random() * (b - a); }
@@ -168,7 +149,8 @@ Arcade.register('garden-defender', function (api) {
         return Math.max(n, old);
     }
 
-    /* the cat's colours follow the look picked with the corner mascot (CSS variables of cat.css), ginger if missing */
+    /* the cat's colours follow the look picked with the corner mascot (CSS variables of cat.css), ginger if missing;
+       a dog look also gives --ear (the floppy ears) and --nose */
     var SK = { fur: '#f6a23a', light: '#ffc06e', stripe: '#cf7419', line: '#3b2a1e' };
     (function () {
         var cs = null;
@@ -177,23 +159,25 @@ Arcade.register('garden-defender', function (api) {
         var look = document.documentElement.getAttribute('data-cat') || 'ginger';
         SK.fur = v('--fur-bot', SK.fur); SK.light = v('--fur-top', SK.light); SK.stripe = v('--stripe', SK.stripe); SK.tail = v('--tail', SK.fur);
         if (look === 'tuxedo' || look === 'bat' || look === 'hacker') SK.line = '#17181c';
+        SK.dog = document.documentElement.dataset.pet === 'dog';   /* a dog look: floppy ears, a snout with a dark nose */
+        SK.ear = v('--ear', SK.stripe); SK.nose = v('--nose', '#2b2220'); SK.cream = v('--cream', SK.light);
     })();
+    if (SK.dog) {   /* the dog's own treats and snacks (drawn as bones) */
+        UPS.treat.name = 'Dog biscuit'; POW.catnip.name = 'Zoomies'; POW.heart.name = 'Bone snack';
+    }
 
     /* ---------- page ---------- */
     var wrapEl = document.createElement('div');
-    wrapEl.className = 'gd gd-picking';
-    wrapEl.innerHTML = '<canvas class="gd-cv"></canvas>' +
-        '<div class="gd-pick"><div class="gd-pick-box" role="dialog" aria-label="Pick a garden"><h3>Pick a garden</h3><div class="gd-maps"></div>' +
-        '<p class="gd-pick-tip">' + (api.touch ? 'Tap a garden to start' : 'Click a garden, or arrow keys and Enter') + '</p></div></div>';
+    wrapEl.className = 'gd';
+    wrapEl.innerHTML = '<canvas class="gd-cv"></canvas>';
     api.el.appendChild(wrapEl);
-    var cv = wrapEl.querySelector('.gd-cv'), ctx = cv.getContext('2d', { alpha: false }), mapsEl = wrapEl.querySelector('.gd-maps');
+    var cv = wrapEl.querySelector('.gd-cv'), ctx = cv.getContext('2d', { alpha: false });
     var dpr = 1, W = 1, H = 1, SC = 1, AW = 400, AH = 400, AX = 0, AY = TOPH, PADH = 0, touchy = !!api.touch, bg = document.createElement('canvas'), dk = document.createElement('canvas');
 
     /* ---------- state ---------- */
-    var sel = 0, mapI = 0, M = MAPS[0], tour = false, obs = [], lamps = [], solid = false;   /* sel: the picker's choice (MAPS.length is the tour) */
-    try { var lastMap = localStorage.getItem('garden-defender-map'); MAPS.concat([TOUR]).forEach(function (m, i) { if (m.id === lastMap) sel = i; }); } catch (e) { /* fine */ }
+    var mapI = 0, M = MAPS[0], bag = [], obs = [], lamps = [], solid = false;   /* bag: the gardens still to come in this round of the tour */
     var pickups = [], pw = { hose: 0, fan: 0, catnip: 0, bubble: 0, frost: 0, cloud: 0 }, cloud = null, dry = 0, flies = [];
-    var phase = 'map', wave = 0, clock = 0, score = 0, shownScore = -1, hearts = D.hearts, maxHearts = D.hearts, ended = false, paused = false;
+    var phase = 'play', wave = 0, clock = 0, score = 0, shownScore = -1, hearts = D.hearts, maxHearts = D.hearts, ended = false, paused = false;
     var cat = { x: 200, y: 200, ang: -Math.PI / 2, inv: 0, fireT: 0, walk: 0, moving: false, hurt: 0 };
     var lv = { rate: 0, spread: 0, splash: 0, speed: 0, power: 0, range: 0, turret: 0 };
     var foes = [], drops = [], shots = [], slime = [], turrets = [], parts = [], pops = [], warns = [];
@@ -217,7 +201,6 @@ Arcade.register('garden-defender', function (api) {
         AW = aw / SC; AH = ah / SC; AX = 0; AY = TOPH;
         cat.x = clamp(cat.x * AW / ow, 20, AW - 20); cat.y = clamp(cat.y * AH / oh, 20, AH - 20);
         turrets.concat(pickups).forEach(function (t) { t.x = clamp(t.x * AW / ow, 20, AW - 20); t.y = clamp(t.y * AH / oh, 20, AH - 20); });
-        wrapEl.classList.toggle('gd-narrow', W < 560);
         layout();
     }
     function layout() {   /* the garden's obstacles and lamps for this arena size, then its picture */
@@ -230,6 +213,16 @@ Arcade.register('garden-defender', function (api) {
         buildBg();
     }
     function setMap(i) { mapI = i; M = MAPS[i]; slime = []; layout(); }
+    /* the tour's next garden: drawn from a shuffled bag of all six, so every garden comes once before any repeats;
+       a fresh bag never starts with the garden just played */
+    function nextMap() {
+        if (!bag.length) {
+            bag = MAPS.map(function (m, j) { return j; });
+            for (var j = bag.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)), t = bag[j]; bag[j] = bag[r]; bag[r] = t; }
+            if (wave > 0 && bag[0] === mapI) { bag[0] = bag[1]; bag[1] = mapI; }
+        }
+        return bag.shift();
+    }
     function buildBg() {   /* drawn once per size and garden; dk is the night's darkness layer, drawn each frame */
         bg.width = dk.width = cv.width; bg.height = dk.height = cv.height;
         var g = bg.getContext('2d'), y;
@@ -375,25 +368,6 @@ Arcade.register('garden-defender', function (api) {
             for (i = 0; i < 5; i++) { a = r() * TAU; var fd = o.r * (0.2 + r() * 0.6); g.fillStyle = dark ? '#ecebff' : ['#ff5c7a', '#ff8fb1', '#fff'][i % 3]; g.beginPath(); g.arc(o.ax + Math.cos(a) * fd, o.ay + Math.sin(a) * fd, 2.3, 0, TAU); g.fill(); }
         }
     }
-    /* a small picture of a garden (or of all of them, side by side, for the tour) for the picker */
-    function thumb(cnv, i) {
-        var k = 2, tw = 160 * k, th = 100 * k, aw = 640, ah = 400, s = tw / aw, list = i < MAPS.length ? [i] : MAPS.map(function (m, j) { return j; });
-        cnv.width = tw; cnv.height = th;
-        var g = cnv.getContext('2d'), sw = tw / list.length;
-        list.forEach(function (j, n) {
-            var m = MAPS[j], os = m.build(aw, ah), ls = m.lamps ? m.lamps(aw, ah) : [];
-            g.save(); g.beginPath(); g.rect(n * sw, 0, sw + 1, th); g.clip();
-            g.setTransform(s, 0, 0, s, list.length > 1 ? n * sw + sw / 2 - tw / 2 : 0, 0);
-            paintGarden(g, m, aw, ah, os, ls);
-            if (m.dark) {   /* night: the dark, with the lamps' light */
-                g.fillStyle = 'rgba(8,12,34,.45)'; g.fillRect(0, 0, aw, ah);
-                ls.forEach(function (l) { g.fillStyle = 'rgba(255,230,160,.25)'; g.beginPath(); g.arc(l.x, l.y, 40, 0, TAU); g.fill(); });
-            }
-            g.restore();
-        });
-        if (list.length > 1) { g.fillStyle = 'rgba(255,255,255,.7)'; for (var n = 1; n < list.length; n++) g.fillRect(Math.round(n * sw) - 1, 0, 2, th); }
-    }
-
     /* ---------- obstacles: push bodies out, slide walkers around, water and sight lines ---------- */
     function walkCat(o) { return OBK[o.k].walk; }
     function waterOb(o) { return OBK[o.k].water; }
@@ -482,7 +456,7 @@ Arcade.register('garden-defender', function (api) {
             var bk = ['queen', 'rat', 'giant'][(n / 4 - 1) % 3];
             queue.splice(Math.min(3, queue.length), 0, bk);
             show('Wave ' + n, KIND[bk].boss + ' is coming!', 2.6); api.cat('wow');
-        } else show('Wave ' + n, n === 1 || (tour && newGarden) ? M.name : '', 2);
+        } else show('Wave ' + n, n === 1 || newGarden ? M.name : '', 2);
         newGarden = false;
         if (test) test.waves = wave;
     }
@@ -690,7 +664,7 @@ Arcade.register('garden-defender', function (api) {
         var pool = Object.keys(UPS).filter(function (k) { return k === 'treat' ? false : k === 'life' ? maxHearts < D.hearts + 3 || hearts < maxHearts : lv[k] < UPS[k].max; });
         cards = [];
         while (cards.length < 3 && pool.length) cards.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-        while (cards.length < 3) cards.push('treat');   /* everything maxed out: fish treats for points */
+        while (cards.length < 3) cards.push('treat');   /* everything maxed out: fish treats (dog biscuits) for points */
         if (hearts <= 1 && cards.indexOf('life') < 0 && (maxHearts < D.hearts + 3 || hearts < maxHearts)) cards[2] = 'life';
         sfx('point', 0);
         if (test && test.autoPick) choose(test.autoPick(cards.slice(), lv, hearts));
@@ -706,8 +680,8 @@ Arcade.register('garden-defender', function (api) {
         sfx('jump', 0);
         if (test) test.picks.push(k);
         cards = [];
-        if (tour && isBossWave(wave)) {   /* the Garden Tour: on to the next garden after each mini boss */
-            setMap((mapI + 1) % MAPS.length); newGarden = true; warns = []; shots = [];
+        if (isBossWave(wave)) {   /* the Garden Tour: on to a new garden after each mini boss */
+            setMap(nextMap()); newGarden = true; warns = []; shots = [];
             burst(cat.x, cat.y, 12, '#ffd23f');
         }
         startWave();
@@ -716,7 +690,7 @@ Arcade.register('garden-defender', function (api) {
     /* ---------- the update ---------- */
     function update(dt) {
         clock += dt;
-        if (paused || phase === 'map') return;
+        if (paused) return;
         shake = Math.max(0, shake - dt * 30); redFlash = Math.max(0, redFlash - dt * 2.5);
         banner.t += dt; hintT += dt;
         if (test) test.time += dt;
@@ -997,8 +971,8 @@ Arcade.register('garden-defender', function (api) {
 
     function finish() {
         ended = true;
-        var id = tour ? 'tour' : M.id, bw = saveWave(wave, id);
-        api.end({ score: score, win: false, board: tour ? TOUR.id : M.id, text: 'Game over\n' + (tour ? TOUR.name + ', ' + M.name : M.name) + '\nWave ' + wave + ' (best wave ' + bw + ')\nScore ' + score });
+        var bw = saveWave(wave, TOUR.id);
+        api.end({ score: score, win: false, board: TOUR.id, text: 'Game over\n' + TOUR.name + ', ' + M.name + '\nWave ' + wave + ' (best wave ' + bw + ')\nScore ' + score });
     }
 
     /* ---------- drawing ---------- */
@@ -1016,6 +990,11 @@ Arcade.register('garden-defender', function (api) {
         ctx.bezierCurveTo(x - s * 1.4, y, x - s * 0.7, y - s * 1, x, y - s * 0.35);
         ctx.bezierCurveTo(x + s * 0.7, y - s * 1, x + s * 1.4, y, x, y + s * 0.9); ctx.fill();
     }
+    function bone(x, y, s) {   /* a little bone in the current fill colour */
+        ctx.beginPath(); ctx.fillRect(x - 7 * s, y - 2.2 * s, 14 * s, 4.4 * s);
+        for (var i = -1; i <= 1; i += 2) for (var j = -1; j <= 1; j += 2) { ctx.moveTo(x + i * 8 * s + 3 * s, y + j * 2.6 * s); ctx.arc(x + i * 8 * s, y + j * 2.6 * s, 3 * s, 0, TAU); }
+        ctx.fill();
+    }
     function drawCat() {
         if (phase === 'over') return;
         if (cat.inv > 0 && !RM && Math.floor(clock * 14) % 2) ctx.globalAlpha = 0.45;
@@ -1025,25 +1004,40 @@ Arcade.register('garden-defender', function (api) {
         ctx.strokeStyle = SK.line; ctx.lineWidth = 1.3; ctx.lineJoin = 'round';
         ctx.strokeStyle = SK.tail || SK.fur; ctx.lineWidth = 4; ctx.lineCap = 'round';   /* tail */
         var tw = RM ? 0 : Math.sin(clock * 3) * 5;
-        ctx.beginPath(); ctx.moveTo(0, 9); ctx.quadraticCurveTo(tw, 18, tw * 1.6 + 4, 22); ctx.stroke();
+        if (SK.dog) {   /* a shorter, thicker tail that wags fast */
+            tw = RM ? 0 : Math.sin(clock * 11) * 6; ctx.lineWidth = 4.6;
+            ctx.beginPath(); ctx.moveTo(0, 10); ctx.quadraticCurveTo(tw * 0.5, 16, tw, 19); ctx.stroke();
+        } else { ctx.beginPath(); ctx.moveTo(0, 9); ctx.quadraticCurveTo(tw, 18, tw * 1.6 + 4, 22); ctx.stroke(); }
         ctx.fillStyle = SK.fur; ctx.strokeStyle = SK.line; ctx.lineWidth = 1.3;
         for (i = -1; i <= 1; i += 2) {   /* paws */
             ctx.beginPath(); ctx.arc(i * 8, -2 + sw * i * 3, 3.2, 0, TAU); ctx.fill(); ctx.stroke();
             ctx.beginPath(); ctx.arc(i * 7, 8 - sw * i * 3, 3.2, 0, TAU); ctx.fill(); ctx.stroke();
         }
         ctx.beginPath(); ctx.ellipse(0, 3, 9, 11, 0, 0, TAU); ctx.fill(); ctx.stroke();   /* body */
-        ctx.fillStyle = SK.stripe; ctx.fillRect(-5, 3, 10, 2); ctx.fillRect(-5, 8, 10, 2);
+        ctx.fillStyle = SK.stripe;
+        if (SK.dog) { ctx.beginPath(); ctx.ellipse(0, 5, 5.5, 6, 0, 0, TAU); ctx.fill(); }   /* a saddle patch on the back */
+        else { ctx.fillRect(-5, 3, 10, 2); ctx.fillRect(-5, 8, 10, 2); }
         ctx.fillStyle = '#3d9cff'; ctx.strokeStyle = '#1f4f9a';   /* the water pistol */
         rr(3, -19, 6, 13, 2); ctx.fill(); ctx.stroke();
         ctx.fillStyle = '#ffcf3d'; ctx.beginPath(); ctx.arc(6, -10, 3.2, 0, TAU); ctx.fill(); ctx.stroke();
         ctx.fillStyle = SK.fur; ctx.strokeStyle = SK.line;
-        ctx.beginPath(); ctx.moveTo(-8, -9); ctx.lineTo(-7, -19); ctx.lineTo(-2, -13); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(8, -9); ctx.lineTo(7, -19); ctx.lineTo(2, -13); ctx.closePath(); ctx.fill(); ctx.stroke();
+        if (!SK.dog) {   /* pointed cat ears */
+            ctx.beginPath(); ctx.moveTo(-8, -9); ctx.lineTo(-7, -19); ctx.lineTo(-2, -13); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(8, -9); ctx.lineTo(7, -19); ctx.lineTo(2, -13); ctx.closePath(); ctx.fill(); ctx.stroke();
+        }
         ctx.beginPath(); ctx.arc(0, -10, 8, 0, TAU); ctx.fill(); ctx.stroke();   /* head */
+        if (SK.dog) {   /* floppy ears hanging down the sides of the head, swinging a little on the run */
+            ctx.fillStyle = SK.ear;
+            for (i = -1; i <= 1; i += 2) { ctx.beginPath(); ctx.ellipse(i * 7.3, -8.5 + sw * i * 0.6, 3.1, 5.8, i * (0.22 + sw * 0.08), 0, TAU); ctx.fill(); ctx.stroke(); }
+            ctx.fillStyle = SK.cream; ctx.strokeStyle = SK.line;   /* the round snout */
+            ctx.beginPath(); ctx.ellipse(0, -16.2, 4.6, 3.8, 0, 0, TAU); ctx.fill(); ctx.stroke();
+            if (cat.firing || cat.moving) { ctx.fillStyle = '#ff7f9a'; ctx.beginPath(); ctx.ellipse(1.6, -20.6, 1.5, 2, 0.3, 0, TAU); ctx.fill(); }   /* the tongue, when busy */
+        }
         ctx.fillStyle = '#1b1530';
         if (cat.hurt > 0) { ctx.strokeStyle = '#1b1530'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-5, -12); ctx.lineTo(-2, -11); ctx.moveTo(5, -12); ctx.lineTo(2, -11); ctx.stroke(); }
-        else { ctx.beginPath(); ctx.arc(-3.2, -12, 1.5, 0, TAU); ctx.arc(3.2, -12, 1.5, 0, TAU); ctx.fill(); }
-        ctx.fillStyle = '#ff8fab'; ctx.beginPath(); ctx.moveTo(-1.4, -15.5); ctx.lineTo(1.4, -15.5); ctx.lineTo(0, -14); ctx.fill();
+        else { ctx.beginPath(); var ey = SK.dog ? -10 : -12; ctx.arc(-3.2, ey, 1.5, 0, TAU); ctx.arc(3.2, ey, 1.5, 0, TAU); ctx.fill(); }
+        if (SK.dog) { ctx.fillStyle = SK.nose; ctx.beginPath(); ctx.ellipse(0, -18.6, 2.3, 1.6, 0, 0, TAU); ctx.fill(); }   /* the dark nose */
+        else { ctx.fillStyle = '#ff8fab'; ctx.beginPath(); ctx.moveTo(-1.4, -15.5); ctx.lineTo(1.4, -15.5); ctx.lineTo(0, -14); ctx.fill(); }
         ctx.restore(); ctx.lineCap = 'butt';
         ctx.globalAlpha = 1;
         if (pw.bubble > 0 && !(pw.bubble < 2 && !RM && Math.floor(clock * 8) % 2)) {   /* the bubble around the cat, blinking when it is about to go */
@@ -1139,7 +1133,6 @@ Arcade.register('garden-defender', function (api) {
     function draw() {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(bg, 0, 0);
-        if (phase === 'map') return;   /* the picker is on top */
         var sx = 0, sy = 0, i, dark = !!M.dark;
         if (shake > 0 && !RM) { sx = rnd(-shake, shake) * 0.5; sy = rnd(-shake, shake) * 0.5; }
         ctx.setTransform(SC * dpr, 0, 0, SC * dpr, (AX + sx) * dpr, (AY + sy) * dpr);
@@ -1344,7 +1337,8 @@ Arcade.register('garden-defender', function (api) {
             ctx.ellipse(0, -3, 8, 9.5, 0, 0, TAU); ctx.fill();
             ctx.beginPath(); ctx.moveTo(-2, 7); ctx.lineTo(2, 7); ctx.lineTo(0, 9); ctx.closePath(); ctx.fill();
             ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 9); ctx.quadraticCurveTo(-3, 11, 0, 13); ctx.stroke();
-        } else {   /* a fish snack for a heart */
+        } else if (SK.dog) bone(0, 0, 1);   /* a bone snack for a heart (the dog) */
+        else {   /* a fish snack for a heart */
             ctx.ellipse(-2, 0, 8, 5.5, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(11, -6); ctx.lineTo(11, 6); ctx.closePath(); ctx.fill();
             ctx.fillStyle = POW.heart.col; ctx.beginPath(); ctx.arc(-5, -1.5, 1.6, 0, TAU); ctx.fill();
         }
@@ -1454,6 +1448,7 @@ Arcade.register('garden-defender', function (api) {
         else if (k === 'splash') { ctx.arc(x, y, 4, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.arc(x, y, 10, 0, TAU); ctx.stroke(); }
         else if (k === 'speed') { ctx.moveTo(x - 10, y - 6); ctx.lineTo(x + 2, y - 6); ctx.moveTo(x - 6, y); ctx.lineTo(x + 8, y); ctx.moveTo(x - 10, y + 6); ctx.lineTo(x + 2, y + 6); ctx.stroke(); }
         else if (k === 'life') { ctx.lineCap = 'butt'; heart(x, y, 10, true, '#fff'); }
+        else if (k === 'treat' && SK.dog) bone(x, y, 1.1);
         else if (k === 'treat') { ctx.beginPath(); ctx.ellipse(x - 2, y, 9, 6, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.moveTo(x + 6, y); ctx.lineTo(x + 12, y - 6); ctx.lineTo(x + 12, y + 6); ctx.fill(); }
         else if (k === 'turret') { ctx.arc(x, y + 2, 7, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y + 2); ctx.lineTo(x + 11, y - 8); ctx.stroke(); }
         else if (k === 'power') { ctx.moveTo(x - 6, y - 9); ctx.lineTo(x + 6, y - 9); ctx.lineTo(x + 2, y + 10); ctx.lineTo(x - 2, y + 10); ctx.closePath(); ctx.fill(); }
@@ -1477,13 +1472,6 @@ Arcade.register('garden-defender', function (api) {
     api.on(window, 'keydown', function (e) {
         var k = (e.key || '').toLowerCase();
         if (k === 'escape' || phase === 'over') return;
-        if (phase === 'map') {   /* the garden picker */
-            var step = { arrowleft: -1, arrowright: 1, arrowup: W < 560 ? -1 : -4, arrowdown: W < 560 ? 1 : 4 }[k];
-            if (step) { preview(clamp(sel + step, 0, mapBtns.length - 1)); e.preventDefault(); }
-            else if (k === 'enter' || k === ' ') { go(sel); e.preventDefault(); }
-            else if (/^[1-7]$/.test(k)) go(+k - 1);
-            return;
-        }
         if (paused && k !== 'p') { resume(); e.preventDefault(); return; }
         if (KEYS[k]) { keys[KEYS[k]] = true; e.preventDefault(); return; }
         if (k === ' ' || k === 'spacebar') { autoKey = true; e.preventDefault(); return; }
@@ -1544,41 +1532,6 @@ Arcade.register('garden-defender', function (api) {
     api.on(cv, 'pointercancel', lift);
     api.on(cv, 'contextmenu', function (e) { e.preventDefault(); });
 
-    /* ---------- the garden picker: a button per garden with a small painted preview and the best wave ---------- */
-    var mapBtns = [];
-    function buildPicker() {
-        MAPS.concat([TOUR]).forEach(function (m, i) {
-            var b = document.createElement('button'), c = document.createElement('canvas'), best = bestWave(m.id);
-            b.type = 'button'; b.className = 'gd-map';
-            thumb(c, i);
-            b.appendChild(c);
-            b.insertAdjacentHTML('beforeend', '<b></b><small></small><small class="gd-mbest"></small>');
-            b.querySelector('b').textContent = m.name;
-            b.querySelectorAll('small')[0].textContent = m.desc;
-            b.querySelectorAll('small')[1].textContent = best ? 'Best: wave ' + best : 'Not played yet';
-            api.on(b, 'click', function () { go(i); });
-            mapsEl.appendChild(b); mapBtns.push(b);
-        });
-        mark();
-    }
-    function mark() { mapBtns.forEach(function (b, i) { b.classList.toggle('gd-sel', i === sel); b.setAttribute('aria-pressed', i === sel ? 'true' : 'false'); }); }
-    function preview(i) {   /* shows the chosen garden behind the picker */
-        sel = clamp(i, 0, MAPS.length);
-        mark();
-        if ((sel < MAPS.length ? sel : 0) !== mapI) setMap(sel < MAPS.length ? sel : 0);
-    }
-    function go(i) {
-        if (phase !== 'map') return;
-        preview(i);
-        tour = sel === MAPS.length;
-        try { localStorage.setItem('garden-defender-map', (tour ? TOUR : M).id); } catch (e) { /* private mode */ }
-        wrapEl.classList.remove('gd-picking');
-        if (document.activeElement && wrapEl.contains(document.activeElement)) document.activeElement.blur();
-        cat.x = AW * M.start[0]; cat.y = AH * M.start[1]; pushOut(cat, CR, walkCat);
-        hintT = 0; api.sfx('tap');
-        startWave();
-    }
-
     /* ---------- a hook for the test pages only (they define window.__errors) ---------- */
     if (window.__errors) {
         test = window.__gd = {
@@ -1588,11 +1541,10 @@ Arcade.register('garden-defender', function (api) {
                     boss: boss ? { type: boss.type, hp: boss.hp, max: boss.max, x: boss.x, y: boss.y } : null, cat: { x: cat.x, y: cat.y, ang: cat.ang, firing: cat.firing },
                     AW: AW, AH: AH, SC: SC, AX: AX, AY: AY, PADH: PADH, touchy: touchy, paused: paused, lv: lv, turrets: turrets.length, cards: cards.slice(), cardBoxes: cardBoxes,
                     time: test.time, kills: test.kills, bossKills: test.bossKills, hits: test.hits, deadAt: test.deadAt, picks: test.picks, fps: test.fps, parts: parts.length,
-                    sticks: { L: !!sticks.L, R: !!sticks.R }, map: M.id, tour: tour, obs: obs.length, pickups: pickups.map(function (p) { return p.k; }), pw: pw, drops2: test.drops, got: test.got,
+                    sticks: { L: !!sticks.L, R: !!sticks.R }, map: M.id, obs: obs.length, pickups: pickups.map(function (p) { return p.k; }), pw: pw, drops2: test.drops, got: test.got,
                     cloud: !!cloud, catXY: [Math.round(cat.x), Math.round(cat.y)] };
             },
-            start: function (i) { go(i); },
-            pick: function (i) { preview(i); },
+            garden: function (i) { setMap(i); },
             drop: function (k, x, y) { dropAt(x === undefined ? cat.x + 40 : x, y === undefined ? cat.y : y, k); },
             give: function (k) { collect({ k: k }); },
             toWave: function (n) { foes.length = 0; queue.length = 0; warns.length = 0; wave = n - 1; startWave(); },
@@ -1604,9 +1556,11 @@ Arcade.register('garden-defender', function (api) {
             dims: function () { return { AW: AW, AH: AH }; } };
     }
 
-    M = MAPS[sel < MAPS.length ? sel : 0]; mapI = MAPS.indexOf(M);
+    /* straight into the tour (a restart runs all of this again, so it starts a fresh tour with a fresh bag) */
+    mapI = nextMap(); M = MAPS[mapI];
     fit(api.size());
-    buildPicker();
+    cat.x = AW * M.start[0]; cat.y = AH * M.start[1]; pushOut(cat, CR, walkCat);
+    startWave();
     api.onResize(fit);
     return { destroy: function () { if (window.__gd === test) delete window.__gd; } };
 });

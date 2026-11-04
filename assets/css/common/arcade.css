@@ -208,3 +208,19 @@ body.arcade-playing { overflow: hidden; }
     .arcade .mascot { width: 66px; height: 54px; }
     .mascot-say { right: 52px; bottom: 54px; }
 }
+
+/* ---------- likes on the cards (arcade.js, /likes on the site's server): the card and its thumbs below it ---------- */
+.game-cell { display: flex; flex-direction: column; gap: 6px; }
+.game-cell .game-card { flex: 1; }
+.gc-votes { display: flex; justify-content: center; gap: 8px; }
+.gc-votes[hidden] { display: none; }
+.gc-vote {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 11px; border: 1px solid var(--line); border-radius: 999px;
+    background: #fff; color: var(--muted); font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+}
+.gc-vote:hover { border-color: var(--navy); }
+.gc-vote:active { transform: scale(0.94); }
+.gc-vote[aria-pressed="true"] { border-color: var(--navy); color: var(--navy); background: #f8fafc; }
+html[data-pet="dog"] .gc-vote[aria-pressed="true"] { background: #fdf3e6; }

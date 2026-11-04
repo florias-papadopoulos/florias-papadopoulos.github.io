@@ -19,10 +19,16 @@
 //   POST /scores {"g": "long-cat", "l": "normal", "b": "", "n": "Milo", "s": 420}   adds a score, answers like GET;
 //                400 for a bad game or score, 422 {"error": "name"} for a nickname that is not allowed
 // To remove a nickname: DELETE FROM scores WHERE name = 'Bad Name'; in the D1 console.
+// Likes (Games page): every game has a thumbs up and a thumbs down count, shown on its card; the cards of each tab are
+// ordered by them. A browser remembers its own vote (localStorage), the server only keeps the two totals per game.
+//   GET  /likes                                 {"long-cat": {"u": 12, "d": 1}, ...}
+//   POST /likes {"g": "long-cat", "f": 0, "t": 1}   moves one vote from f to t (1 up, -1 down, 0 none), answers like GET;
+//                400 for an unknown game or vote, 503 past LIKE_CAP changes a day
 // Tables (schema.sql): counts(day, kind, key, n), kind is total, page, ref, device, browser, country (or scores: the
-//                      scores added that day, for SCORE_CAP);
+//                      scores added that day, for SCORE_CAP; likes: the vote changes that day, for LIKE_CAP);
 //                      rooms(code, offer, answer, at), at = when the room was opened (ms);
-//                      scores(id, board, name, score, week, at), board = game/level(/track), week = its Monday.
+//                      scores(id, board, name, score, week, at), board = game/level(/track), week = its Monday;
+//                      likes(game, up, down), made by the worker itself when it is missing.
 const SITE = 'https://florias-papadopoulos.github.io';
 const BROWSERS = ['Firefox', 'Chrome', 'Safari', 'Edge', 'Opera', 'Other'];
 const TOP = 40;   // /stats lists at most this many pages, referrers, countries... (keeps the answer small whatever is sent)
@@ -48,6 +54,9 @@ const BOARDS = {
     'kitty-kart': { lower: true, min: 10, max: 3600, dec: 1 }
 };
 const LEVELS = ['easy', 'normal', 'hard'];
+/* Games that can be liked: all of the leaderboard ones and the two-player games */
+const LIKES = Object.keys(BOARDS).concat(['kitty-kart-duo', 'kitty-kart-split', 'tic-tac-paw-2p', 'four-in-a-row-2p']);
+const LIKE_CAP = 3000;     // vote changes a day across all games; past it new ones are refused
 const KEEP = 100;          // scores kept per board (all time), and again per board this week
 const SCORE_CAP = 2000;    // scores added a day across all games; past it new ones are refused
 /* Nicknames: 2 to 12 letters, digits, spaces and . _ ' -, and none of these words inside (checked after lower case,
@@ -74,6 +83,7 @@ export default {
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
             if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
             if (url.pathname === '/scores') return await scores(req, url, env);
+            if (url.pathname === '/likes') return await likes(req, env);
             if (url.pathname === '/whoami' && req.method === 'GET') {
                 return new Response(JSON.stringify({ country: (req.cf && req.cf.country) || 'XX' }),
                     { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) });
@@ -276,4 +286,36 @@ async function scores(req, url, env) {
         ]);
     }
     return json(200, { all: await top(env, board, lower), week: await top(env, board, lower, week) }, post ? 'no-store' : 'public, max-age=15');
+}
+
+/* ---------- likes of the games ---------- */
+let likesTable = false;   // the likes table is made once per worker instance, so no D1 console step is needed
+async function likesAll(env) {
+    const rows = await env.DB.prepare('SELECT game, up, down FROM likes').all();
+    const out = {};
+    (rows.results || []).forEach(function (r) { if (LIKES.indexOf(r.game) >= 0) out[r.game] = { u: r.up, d: r.down }; });
+    return out;
+}
+async function likes(req, env) {
+    const post = req.method === 'POST';
+    if (!post && req.method !== 'GET') return json(404);
+    if (!likesTable) {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS likes (game TEXT PRIMARY KEY, up INTEGER NOT NULL DEFAULT 0, down INTEGER NOT NULL DEFAULT 0)').run();
+        likesTable = true;
+    }
+    if (post) {
+        if (req.headers.get('Origin') !== SITE) return json(403);
+        const d = await body(req, MAX_BODY);
+        const ok = function (v) { return v === 1 || v === -1 || v === 0; };
+        if (!d || LIKES.indexOf(d.g) < 0 || !ok(d.f) || !ok(d.t) || d.f === d.t) return json(400);
+        const day = new Date().toISOString().slice(0, 10);
+        const used = await env.DB.prepare("SELECT n FROM counts WHERE day = ?1 AND kind = 'likes' AND key = 'all'").bind(day).first();
+        if (used && used.n >= LIKE_CAP) return json(503);
+        const du = (d.t === 1 ? 1 : 0) - (d.f === 1 ? 1 : 0), dd = (d.t === -1 ? 1 : 0) - (d.f === -1 ? 1 : 0);
+        await env.DB.batch([
+            env.DB.prepare('INSERT INTO likes (game, up, down) VALUES (?1, MAX(?2, 0), MAX(?3, 0)) ON CONFLICT(game) DO UPDATE SET up = MAX(up + ?2, 0), down = MAX(down + ?3, 0)').bind(d.g, du, dd),
+            env.DB.prepare("INSERT INTO counts (day, kind, key, n) VALUES (?1, 'likes', 'all', 1) ON CONFLICT(day, kind, key) DO UPDATE SET n = n + 1").bind(day)
+        ]);
+    }
+    return json(200, await likesAll(env), post ? 'no-store' : 'public, max-age=15');
 }

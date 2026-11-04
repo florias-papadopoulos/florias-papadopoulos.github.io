@@ -10,7 +10,8 @@
    screen allows, so a phone in portrait sees the whole height. The physics (stepBody) is plain code at the top of the
    file, shared with a test solver (module.exports at the end of this block, unused in the browser) that checks every
    level and egg can be reached. Everything is drawn on one canvas; HUD, cards and touch buttons are DOM.
-   Shell API: arcade.js. */
+   With a dog look (data-pet "dog") a dog rides instead of the cat (floppy ears, snout, wagging tail, barks instead of
+   hissing). Shell API: arcade.js. */
 (function () {
     'use strict';
     var T = 32;                                    /* tile size in world px */
@@ -458,7 +459,7 @@ Arcade.register('dino-valley', function (api) {
     var roarBtn = pad.querySelector('.dv-roarb');
 
     /* the cat's colours follow the look picked with the corner mascot (CSS variables of cat.css), ginger if missing */
-    var SK = { fur: '#f2a03d', light: '#ffc06e', stripe: '#d9822b', toe: '#f2a03d', line: '#5a3a1a' };
+    var SK = { fur: '#f2a03d', light: '#ffc06e', stripe: '#d9822b', toe: '#f2a03d', line: '#5a3a1a', dog: false, ear: '#b97a33', nose: '#2b2220', cream: '#fcefd6' };
     (function () {
         var cs = null;
         try { cs = getComputedStyle(document.documentElement); } catch (e) { /* ginger */ }
@@ -468,7 +469,10 @@ Arcade.register('dino-valley', function (api) {
         SK.calico = look === 'calico';
         SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;
         SK.line = look === 'tuxedo' || look === 'bat' || look === 'hacker' ? '#17181c' : SK.line;
+        SK.dog = document.documentElement.getAttribute('data-pet') === 'dog';   /* a dog rides instead, with --ear and --nose */
+        if (SK.dog) { SK.ear = v('--ear', SK.ear); SK.nose = v('--nose', SK.nose); SK.cream = v('--cream', SK.cream); SK.toe = SK.fur; }
     })();
+    var PET = SK.dog ? 'dog' : 'cat';
 
     /* ---------- state ---------- */
     var W = null, P = null, lvIdx = 0, firstLv = 0, state = 'title', stateT = 0, time = 0, score = 0, eggsGot = 0, eggsAll = 0;
@@ -559,12 +563,12 @@ Arcade.register('dino-valley', function (api) {
     function resume() { state = pausedFrom || 'play'; hideCard(); }
     function controlsText() {
         return touchUI ? 'Arrows walk, Jump jumps (again in the air to glide, later).\nTail swipes, Stomp in the air, Roar scares big ones.'
-            : 'Arrows or A D walk, Up, W or Space jump. Down in the air: stomp.\nJ or X: tail swipe.  K or C: roar (the cat hisses too).';
+            : 'Arrows or A D walk, Up, W or Space jump. Down in the air: stomp.\nJ or X: tail swipe.  K or C: roar (the ' + PET + (SK.dog ? ' barks' : ' hisses') + ' too).';
     }
     function titleCard() {
         state = 'title';
         var h = '<b>Dino Valley</b><strong>Ride home before the volcano blows</strong>' +
-            '<p>You are a baby dinosaur, the cat rides on your back. Five regions to cross, eggs to find.</p><p>' + esc(controlsText()) + '</p>' +
+            '<p>You are a baby dinosaur, the ' + PET + ' rides on your back. Five regions to cross, eggs to find.</p><p>' + esc(controlsText()) + '</p>' +
             '<button type="button" data-go="0">Start</button>';
         if (furthest[diff] > 0) {
             h += '<p style="margin-top:8px">Or start at</p>';
@@ -590,7 +594,7 @@ Arcade.register('dino-valley', function (api) {
             ['Grab a vine in the air, jump to let go. A trike blocks the tunnel: roar with K or C!', 'Grab a vine in the air, Jump to let go. A trike blocks the tunnel: Roar!'],
             ['Tar slows you down. Stand on a geyser and wait for it to blow.', 'Tar slows you down. Stand on a geyser and wait for it to blow.'],
             ['Geysers carry you over thorns. Roar at the trike in the bog.', 'Geysers carry you over thorns. Roar at the trike in the bog.'],
-            ['The cat found a big leaf: press jump again in the air to glide. Stomp crabs (Down in the air).', 'The cat found a big leaf: Jump again in the air to glide. Stomp crabs from the air.'],
+            ['The ' + PET + ' found a big leaf: press jump again in the air to glide. Stomp crabs (Down in the air).', 'The ' + PET + ' found a big leaf: Jump again in the air to glide. Stomp crabs from the air.'],
             ['Ride the logs. A roar sends the pterosaur away.', 'Ride the logs. A roar sends the pterosaur away.'],
             ['Ice is slippery. Watch out for icicles, swipe cracked ice with J or X.', 'Ice is slippery. Watch out for icicles, Tail breaks cracked ice.'],
             ['A woolly trike guards the hall: roar, then hurry past.', 'A woolly trike guards the hall: Roar, then hurry past.'],
@@ -1517,7 +1521,7 @@ Arcade.register('dino-valley', function (api) {
         drawRider(face, air);
         g.restore();
     }
-    /* the cat on the dino's back: holds on in jumps, ducks under ceilings, cheers, wobbles, hisses, glides, waves */
+    /* the cat (or dog) on the dino's back: holds on in jumps, ducks under ceilings, cheers, wobbles, hisses (barks), glides, waves */
     function drawRider(face, air) {
         var duck = solidAt(W, Math.floor((P.x + P.w / 2) / T), Math.floor((P.y - 12) / T)) && !air;
         var hold = air && P.vy < 0 && !P.gliding;
@@ -1526,15 +1530,16 @@ Arcade.register('dino-valley', function (api) {
         g.translate(0, -bob);
         if (wobT > 0) g.rotate(Math.sin(wobT * 26) * 0.35);
         if (duck || hold) g.scale(1.1, 0.75);
-        var hiss = hissT > 0, puffUp = hiss ? 1.25 : 1;
+        var hiss = hissT > 0, puffUp = hiss && !SK.dog ? 1.25 : 1;
         g.lineWidth = 1.2; g.strokeStyle = SK.line;
-        /* tail */
-        g.strokeStyle = SK.fur; g.lineWidth = 3; g.lineCap = 'round';
-        g.beginPath(); g.moveTo(-5, -3); g.quadraticCurveTo(-12, hiss ? -16 : -4, -10, hiss ? -20 : -10); g.stroke();
+        /* tail (a dog's is thicker and wags) */
+        g.strokeStyle = SK.fur; g.lineWidth = SK.dog ? 3.8 : 3; g.lineCap = 'round';
+        if (SK.dog) { var wag = RM ? 0 : Math.sin(time * (hiss || cheerT > 0 ? 26 : 12)) * 4; g.beginPath(); g.moveTo(-5, -4); g.quadraticCurveTo(-10, -7, -10 + wag, -13); g.stroke(); }
+        else { g.beginPath(); g.moveTo(-5, -3); g.quadraticCurveTo(-12, hiss ? -16 : -4, -10, hiss ? -20 : -10); g.stroke(); }
         /* body */
         g.fillStyle = SK.fur; g.beginPath(); g.ellipse(0, -4, 6 * puffUp, 5 * puffUp, 0, 0, TAU); g.fill();
         if (SK.calico) { g.fillStyle = SK.stripe; g.beginPath(); g.ellipse(-2, -6, 3, 2.4, 0.4, 0, TAU); g.fill(); }   /* a calico patch */
-        if (hiss) { g.strokeStyle = SK.fur; g.lineWidth = 1.5; for (var i = 0; i < 5; i++) { var a = Math.PI + 0.3 + i * 0.6; g.beginPath(); g.moveTo(Math.cos(a) * 6, -4 + Math.sin(a) * 6); g.lineTo(Math.cos(a) * 10, -4 + Math.sin(a) * 9); g.stroke(); } }
+        if (hiss && !SK.dog) { g.strokeStyle = SK.fur; g.lineWidth = 1.5; for (var i = 0; i < 5; i++) { var a = Math.PI + 0.3 + i * 0.6; g.beginPath(); g.moveTo(Math.cos(a) * 6, -4 + Math.sin(a) * 6); g.lineTo(Math.cos(a) * 10, -4 + Math.sin(a) * 9); g.stroke(); } }
         /* paws: hold on, cheer (both up), wave (one up) */
         g.fillStyle = SK.toe;
         if (cheerT > 0 && !duck) { g.fillRect(2, -16, 2.5, 8); g.fillRect(-3, -16, 2.5, 8); }
@@ -1542,16 +1547,19 @@ Arcade.register('dino-valley', function (api) {
         else { g.beginPath(); g.arc(4, 0, 2, 0, TAU); g.arc(-2, 0.5, 2, 0, TAU); g.fill(); }
         /* head */
         var hx = 4, hy = duck ? -8 : -12;
-        g.fillStyle = SK.light; g.beginPath(); g.arc(hx, hy, 5.5 * puffUp, 0, TAU); g.fill();
-        g.fillStyle = SK.fur;
-        g.beginPath(); g.moveTo(hx - 5, hy - 2); g.lineTo(hx - 4, hy - 9); g.lineTo(hx - 1, hy - 4); g.fill();
-        g.beginPath(); g.moveTo(hx + 1, hy - 4); g.lineTo(hx + 4, hy - 9); g.lineTo(hx + 5, hy - 2); g.fill();
-        if (SK.calico) { g.fillStyle = SK.stripe; g.beginPath(); g.arc(hx - 3, hy - 3, 2.6, 0, TAU); g.fill(); }
-        g.strokeStyle = SK.stripe; g.lineWidth = 1; g.beginPath(); g.moveTo(hx - 1, hy - 5); g.lineTo(hx - 1, hy - 3); g.moveTo(hx + 1.5, hy - 5); g.lineTo(hx + 1.5, hy - 3); g.stroke();
-        g.fillStyle = '#2b2233';
-        if (cheerT > 0 || (state === 'ending')) { g.strokeStyle = '#2b2233'; g.beginPath(); g.arc(hx + 1, hy - 0.5, 1.2, Math.PI, TAU); g.arc(hx + 4, hy - 0.5, 1.2, Math.PI, TAU); g.stroke(); }
-        else { g.beginPath(); g.arc(hx + 1.2, hy - 0.8, 1, 0, TAU); g.arc(hx + 4, hy - 0.8, 1, 0, TAU); g.fill(); }
-        if (hiss) { g.fillStyle = '#c92a2a'; g.beginPath(); g.moveTo(hx + 2, hy + 2); g.lineTo(hx + 6, hy + 1.5); g.lineTo(hx + 4, hy + 4.5); g.fill(); }
+        if (SK.dog) drawDogHead(hx, hy, hiss);
+        else {
+            g.fillStyle = SK.light; g.beginPath(); g.arc(hx, hy, 5.5 * puffUp, 0, TAU); g.fill();
+            g.fillStyle = SK.fur;
+            g.beginPath(); g.moveTo(hx - 5, hy - 2); g.lineTo(hx - 4, hy - 9); g.lineTo(hx - 1, hy - 4); g.fill();
+            g.beginPath(); g.moveTo(hx + 1, hy - 4); g.lineTo(hx + 4, hy - 9); g.lineTo(hx + 5, hy - 2); g.fill();
+            if (SK.calico) { g.fillStyle = SK.stripe; g.beginPath(); g.arc(hx - 3, hy - 3, 2.6, 0, TAU); g.fill(); }
+            g.strokeStyle = SK.stripe; g.lineWidth = 1; g.beginPath(); g.moveTo(hx - 1, hy - 5); g.lineTo(hx - 1, hy - 3); g.moveTo(hx + 1.5, hy - 5); g.lineTo(hx + 1.5, hy - 3); g.stroke();
+            g.fillStyle = '#2b2233';
+            if (cheerT > 0 || (state === 'ending')) { g.strokeStyle = '#2b2233'; g.beginPath(); g.arc(hx + 1, hy - 0.5, 1.2, Math.PI, TAU); g.arc(hx + 4, hy - 0.5, 1.2, Math.PI, TAU); g.stroke(); }
+            else { g.beginPath(); g.arc(hx + 1.2, hy - 0.8, 1, 0, TAU); g.arc(hx + 4, hy - 0.8, 1, 0, TAU); g.fill(); }
+            if (hiss) { g.fillStyle = '#c92a2a'; g.beginPath(); g.moveTo(hx + 2, hy + 2); g.lineTo(hx + 6, hy + 1.5); g.lineTo(hx + 4, hy + 4.5); g.fill(); }
+        }
         /* the leaf umbrella while gliding */
         if (P.gliding) {
             g.strokeStyle = '#2f9e44'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(hx + 3, hy + 2); g.lineTo(hx + 2, hy - 22); g.stroke();
@@ -1559,6 +1567,18 @@ Arcade.register('dino-valley', function (api) {
             g.strokeStyle = '#2f9e44'; g.beginPath(); g.moveTo(hx - 18, hy - 24); g.lineTo(hx + 22, hy - 24); g.stroke();
         }
         g.restore();
+    }
+    /* the dog's head, facing +x: round head, a snout with a dark nose in front, a floppy ear hanging at the back */
+    function drawDogHead(hx, hy, bark) {
+        g.fillStyle = SK.light; g.beginPath(); g.arc(hx, hy, 5.3, 0, TAU); g.fill();
+        g.fillStyle = SK.cream; g.beginPath(); g.ellipse(hx + 5, hy + 1.3, 3.6, 2.7, 0, 0, TAU); g.fill();   /* snout */
+        g.fillStyle = SK.nose; g.beginPath(); g.ellipse(hx + 8, hy + 0.2, 1.5, 1.2, 0, 0, TAU); g.fill();
+        g.fillStyle = SK.ear; g.beginPath(); g.ellipse(hx - 2.4, hy + 0.6, 2.2, 4.6, 0.3, 0, TAU); g.fill();   /* the floppy ear */
+        g.fillStyle = '#2b2233';
+        if (cheerT > 0 || (state === 'ending')) { g.strokeStyle = '#2b2233'; g.lineWidth = 1; g.beginPath(); g.arc(hx + 2.2, hy - 1.6, 1.2, Math.PI, TAU); g.stroke(); }
+        else { g.beginPath(); g.arc(hx + 2.4, hy - 1.8, 1.05, 0, TAU); g.fill(); }
+        if (bark) { g.fillStyle = '#c92a2a'; g.beginPath(); g.moveTo(hx + 3.5, hy + 3); g.lineTo(hx + 8.5, hy + 2.6); g.lineTo(hx + 5.5, hy + 6); g.fill(); }
+        else { g.fillStyle = '#ff8fab'; g.beginPath(); g.ellipse(hx + 6, hy + 4.3, 1.1, 1.4, 0, 0, TAU); g.fill(); }   /* tongue */
     }
     function drawFx() {
         parts.forEach(function (p) {

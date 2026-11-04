@@ -23,9 +23,10 @@
 .paw-link.wiggle { animation: paw-wiggle 0.5s ease-in-out 4; }
 .cat-pick { right: 52px; }
 .cat-pick svg { width: 22px; height: 20px; }
-.you-link { right: 94px; }
+.dog-pick { right: 94px; }
+.you-link { right: 136px; }
 .you-link svg { width: 19px; height: 19px; fill: currentColor; }
-.home-reset { right: 136px; }
+.home-reset { right: 178px; }
 .home-reset svg { width: 17px; height: 17px; }
 
 /* the little cat face, in the colours of the current look (variables in cat.css) */
@@ -34,6 +35,20 @@
 .cf-eye { fill: var(--iris); stroke: #3b2a1e; stroke-width: 1.2; }
 .cf-bat { display: none; fill: #1f222a; stroke: #3b2a1e; stroke-width: 1.4; stroke-linejoin: round; }
 html[data-cat="bat"] .cat-pick .cf-bat, .cat-opt[data-look="bat"] .cf-bat { display: inline; }
+/* the little dog face: the cat button keeps the ginger cat while a dog is chosen, the dog button shows the golden dog
+   while a cat is chosen */
+.cf-ear { fill: var(--ear); stroke: #3b2a1e; stroke-width: 1.4; stroke-linejoin: round; }
+.cf-nose { fill: var(--nose); }
+.cf-tongue { fill: #f07a8a; }
+.cf-dog-eye { fill: #3b2a1e; }
+html[data-pet="dog"] .cat-pick:not(.dog-pick) {
+    --fur-bot: #f0932c; --cream: #ffe9c9; --iris: #8ed383;
+}
+html:not([data-pet="dog"]) .dog-pick, .cat-opt[data-look="dog-golden"] {
+    --fur-bot: #dca456; --cream: #fcefd6; --ear: #b97a33; --nose: #2b2220;
+}
+/* the button of the pet that is chosen now gets a coloured ring */
+html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-pick { border-color: var(--darkcolor, #6a7ba2); }
 
 .cat-menu {
     position: fixed;
@@ -68,16 +83,17 @@ html[data-cat="bat"] .cat-pick .cf-bat, .cat-opt[data-look="bat"] .cf-bat { disp
 .cat-opt:hover { background: #f1f5f9; }
 .cat-opt[aria-checked="true"] { border-color: #cbd5e1; background: #f8fafc; font-weight: 700; }
 
-/* leave room for the three buttons at the right end of the menu */
-.nav { padding-inline-end: 134px; }
-body:has(.home-reset) .nav { padding-inline-end: 176px; }
+/* leave room for the four buttons at the right end of the menu */
+.nav { padding-inline-end: 176px; }
+body:has(.home-reset) .nav { padding-inline-end: 218px; }
 @keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
 @media (max-width: 600px) {
     .nav { padding-inline-end: 0; }
     .corner-btn { top: 5px; }
     .paw-link { right: 8px; }
     .cat-pick { right: 48px; }
-    .you-link { right: 88px; }
-    .home-reset { right: 128px; }
+    .dog-pick { right: 88px; }
+    .you-link { right: 128px; }
+    .home-reset { right: 168px; }
     body:has(.home-reset) .nav { padding-inline-end: 0; }
 }

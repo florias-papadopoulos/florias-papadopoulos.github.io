@@ -11,7 +11,8 @@
    column in the middle of the play area. The world's scene (parallax layers drawn from cells placed by a hash, so
    nothing visibly repeats) fills the whole area; on wide screens the HUD sits on soft panels beside the column, on
    narrow ones in a thin band at the top. Easy, Normal and Hard change the enemy density, the bullet speed, the fire
-   rate and the lives. Shell API: arcade.js. */
+   rate and the lives. With a dog look (data-pet "dog") a dog flies the box instead: floppy ears, snout, wagging tail.
+   Shell API: arcade.js. */
 Arcade.register('paw-raiders', function (api) {
     'use strict';
     api.css(
@@ -72,8 +73,9 @@ Arcade.register('paw-raiders', function (api) {
     function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
     function seeded(n) { var s = n; return function () { s = (s * 16807) % 2147483647; return s / 2147483647; }; }
 
-    /* the cat's colours follow the look picked with the corner mascot (CSS variables of cat.css), ginger if missing */
-    var SK = { fur: '#f6a23a', light: '#ffc06e', stripe: '#cf7419', line: '#3b2a1e' };
+    /* the cat's colours follow the look picked with the corner mascot (CSS variables of cat.css), ginger if missing;
+       with a dog look (data-pet "dog") the pilot is a dog, with --ear and --nose */
+    var SK = { fur: '#f6a23a', light: '#ffc06e', stripe: '#cf7419', line: '#3b2a1e', dog: false, ear: '#b97a33', nose: '#2b2220', cream: '#fcefd6', tail: '#e0ad66' };
     (function () {
         var cs = null;
         try { cs = getComputedStyle(document.documentElement); } catch (e) { /* ginger */ }
@@ -81,6 +83,8 @@ Arcade.register('paw-raiders', function (api) {
         var look = document.documentElement.getAttribute('data-cat') || 'ginger';
         SK.fur = v('--fur-bot', SK.fur); SK.light = v('--fur-top', SK.light); SK.stripe = v('--stripe', SK.stripe);
         if (look === 'tuxedo' || look === 'bat' || look === 'hacker') SK.line = '#17181c';
+        SK.dog = document.documentElement.getAttribute('data-pet') === 'dog';
+        if (SK.dog) { SK.ear = v('--ear', SK.ear); SK.nose = v('--nose', SK.nose); SK.cream = v('--cream', SK.cream); SK.tail = v('--tail', SK.fur); SK.line = '#3b2a1e'; }
     })();
 
     /* ---------- page ---------- */
@@ -547,7 +551,7 @@ Arcade.register('paw-raiders', function (api) {
                 if (items.length < 80) items.push({ kind: 'fish', x: q.x, y: q.y, vx: 0, vy: -40, t: 0 });
             });
             beams.length = 0;
-            kick(14); sfx('win'); say('Purrfect!', 'happy');
+            kick(14); sfx('win'); say(SK.dog ? 'Pawsome!' : 'Purrfect!', 'happy');
             if (test) test.beaten += 1;
         }
     }
@@ -1204,7 +1208,14 @@ Arcade.register('paw-raiders', function (api) {
         ctx.fillStyle = '#b07a42';   /* open flaps */
         ctx.beginPath(); ctx.moveTo(-17, -6); ctx.lineTo(-26, -15); ctx.lineTo(-13, -15); ctx.lineTo(-9, -6); ctx.closePath(); ctx.fill(); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(17, -6); ctx.lineTo(26, -15); ctx.lineTo(13, -15); ctx.lineTo(9, -6); ctx.closePath(); ctx.fill(); ctx.stroke();
-        drawCatHead(0, -12, 1);
+        if (SK.dog) {   /* a wagging tail over the back rim */
+            var wg = RM ? 0 : Math.sin(clock * 14) * 0.45;
+            ctx.save(); ctx.translate(12, -5); ctx.rotate(0.35 + wg);
+            ctx.fillStyle = SK.tail; ctx.strokeStyle = SK.line; ctx.lineWidth = 1.3;
+            ctx.beginPath(); ctx.moveTo(-3.5, 0); ctx.quadraticCurveTo(-5, -10, 3, -16); ctx.quadraticCurveTo(5.5, -14, 3.5, -11); ctx.quadraticCurveTo(1, -6, 3.5, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.restore(); ctx.strokeStyle = '#6b4520'; ctx.lineWidth = 1.6;
+        }
+        (SK.dog ? drawDogHead : drawCatHead)(0, -12, 1);
         ctx.fillStyle = '#c8955b'; ctx.beginPath(); ctx.rect(-17, -6, 34, 20); ctx.fill(); ctx.stroke();   /* the box */
         ctx.fillStyle = '#e8d6a8'; ctx.fillRect(-3, -6, 6, 20);                                          /* tape */
         ctx.fillStyle = SK.fur; ctx.strokeStyle = SK.line; ctx.lineWidth = 1.2;                          /* paws on the rim */
@@ -1234,6 +1245,25 @@ Arcade.register('paw-raiders', function (api) {
         ctx.beginPath(); ctx.arc(u * 0.4, -u * 0.1, u * 0.3, 0, TAU); ctx.fill(); ctx.stroke();
         ctx.fillStyle = '#1b1530'; ctx.beginPath(); ctx.arc(-u * 0.4, -u * 0.08, u * 0.13, 0, TAU); ctx.arc(u * 0.4, -u * 0.08, u * 0.13, 0, TAU); ctx.fill();
         ctx.fillStyle = '#ff8fab'; ctx.beginPath(); ctx.moveTo(-u * 0.12, u * 0.3); ctx.lineTo(u * 0.12, u * 0.3); ctx.lineTo(0, u * 0.45); ctx.fill();
+        ctx.restore();
+    }
+    function drawDogHead(x, y, k) {   /* same size as the cat head, features a bit higher so the snout clears the rim */
+        var u = 9 * k;
+        ctx.save(); ctx.translate(x, y);
+        ctx.fillStyle = SK.fur; ctx.strokeStyle = SK.line; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.ellipse(0, -u * 0.1, u * 0.95, u * 0.9, 0, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = SK.ear;   /* floppy ears hang down the sides */
+        ctx.beginPath(); ctx.ellipse(-u * 0.95, -u * 0.08, u * 0.32, u * 0.7, 0.35, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(u * 0.95, -u * 0.08, u * 0.32, u * 0.7, -0.35, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#9fe3ff'; ctx.strokeStyle = '#3a3a4a'; ctx.lineWidth = 1.2;   /* goggles */
+        ctx.beginPath(); ctx.arc(-u * 0.38, -u * 0.48, u * 0.28, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(u * 0.38, -u * 0.48, u * 0.28, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#1b1530'; ctx.beginPath(); ctx.arc(-u * 0.38, -u * 0.46, u * 0.12, 0, TAU); ctx.arc(u * 0.38, -u * 0.46, u * 0.12, 0, TAU); ctx.fill();
+        ctx.fillStyle = SK.cream; ctx.strokeStyle = SK.line; ctx.lineWidth = 1.1;   /* snout */
+        ctx.beginPath(); ctx.ellipse(0, u * 0.08, u * 0.45, u * 0.32, 0, 0, TAU); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = SK.nose; ctx.beginPath(); ctx.ellipse(0, -u * 0.06, u * 0.2, u * 0.14, 0, 0, TAU); ctx.fill();
+        ctx.strokeStyle = SK.nose; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, u * 0.05); ctx.lineTo(0, u * 0.18); ctx.stroke();
+        ctx.fillStyle = '#ff8fab'; ctx.beginPath(); ctx.ellipse(u * 0.05, u * 0.36, u * 0.11, u * 0.14, 0, 0, TAU); ctx.fill();   /* tongue */
         ctx.restore();
     }
     function drawYarn(x, y, r, spin, col) {
