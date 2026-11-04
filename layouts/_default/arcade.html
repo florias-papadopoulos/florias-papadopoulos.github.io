@@ -75,6 +75,14 @@
            opens; the scores come from /scores on the site's server. */}}
     {{- if site.Params.statsEndpoint }}
     <div class="arcade-boards" role="tabpanel" id="panel-boards" aria-labelledby="tab-boards" hidden>
+        {{- /* two views: an overview of the games that have scores (top 3 each, from /scores/summary) and the full
+               leaderboards with all the pickers */}}
+        <div class="ab-views" role="group" aria-label="Leaderboard view">
+            <button class="ab-view" type="button" data-view="over" aria-pressed="true">Overview</button>
+            <button class="ab-view" type="button" data-view="full" aria-pressed="false">Full leaderboards</button>
+        </div>
+        <div class="ab-over"></div>
+        <div class="ab-full" hidden>
         <div class="ab-pick">
             <label>Game <select class="ab-game"></select></label>
             <label class="ab-level-l">Difficulty <select class="ab-level"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></label>
@@ -83,6 +91,7 @@
         <div class="ab-cols">
             <section><h3>This week</h3><div class="ab-list" data-k="week"></div></section>
             <section><h3>All time</h3><div class="ab-list" data-k="all"></div></section>
+        </div>
         </div>
     </div>
     {{- end }}

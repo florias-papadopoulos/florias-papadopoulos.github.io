@@ -28,6 +28,24 @@
 /* the Leaderboards tab */
 .arcade-boards { max-width: 640px; margin: 0 auto 40px; }
 .arcade-boards[hidden] { display: none; }
+/* the two views of the Leaderboards tab, and the overview's cards */
+.ab-views { display: flex; justify-content: center; gap: 8px; margin-bottom: 18px; }
+.ab-view { padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font: inherit; font-size: 0.88rem; cursor: pointer; }
+.ab-view[aria-pressed="true"] { border-color: var(--navy); color: var(--navy); font-weight: 700; }
+.ab-over[hidden], .ab-full[hidden] { display: none; }
+.arcade-boards:has(.ab-over:not([hidden])) { max-width: 940px; }
+.ab-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.ab-card { display: flex; flex-direction: column; padding: 14px 16px 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); }
+.ab-card-h { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1rem; }
+.ab-card-i { font-size: 1.3rem; }
+.ab-card-sub { margin: 2px 0 6px; color: var(--muted); font-size: 0.78rem; }
+.ab-podium { flex: 1; list-style: none; padding: 0; counter-reset: pod; }
+.ab-podium li { counter-increment: pod; }
+.ab-podium li::before { display: inline-block; width: 1.6em; }
+.ab-podium li:nth-child(1)::before { content: "🥇"; }
+.ab-podium li:nth-child(2)::before { content: "🥈"; }
+.ab-podium li:nth-child(3)::before { content: "🥉"; }
+.ab-more { align-self: center; margin-top: 10px; font-size: 0.8rem; }
 .ab-pick { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 18px; margin-bottom: 18px; font-size: 0.9rem; color: var(--muted); }
 .ab-pick label { display: flex; align-items: center; gap: 8px; }
 .ab-pick label[hidden] { display: none; }

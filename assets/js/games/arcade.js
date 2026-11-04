@@ -490,7 +490,10 @@
         document.body.classList.remove('arcade-playing');
         if (musicBox && musicBox.parentNode === stage.querySelector('.stage-bar')) { musicBox.close(); root.querySelector('.arcade-head').appendChild(musicBox); }
     }
-    /* The Leaderboards tab: pick a game, a difficulty (and a Kitty Kart track), see both top 10s. Filled when first opened. */
+    /* The Leaderboards tab, filled when first opened. Overview: one card per game that has scores (top 3 all time of its
+       busiest board: Normal if it has players, and for track games the track with the most players), the games with
+       the most players first, each with a button to its full leaderboard. Full leaderboards: pick a game, a difficulty
+       (and a Kitty Kart track), see both top 10s. Without /scores/summary on the server, the full view opens. */
     var boards = document.getElementById('panel-boards'), boardsReady = false, boardsSeq = 0;
     function boardsLoad() {
         var gSel = boards.querySelector('.ab-game'), lSel = boards.querySelector('.ab-level'), tSel = boards.querySelector('.ab-track');
@@ -519,10 +522,71 @@
                 Array.prototype.forEach.call(lists, function (l) { l.innerHTML = ''; l.appendChild(el('p', 'sb-load', 'Not reachable right now.')); });
             });
     }
+    function boardsView(v) {
+        Array.prototype.forEach.call(boards.querySelectorAll('.ab-view'), function (b) { b.setAttribute('aria-pressed', b.dataset.view === v ? 'true' : 'false'); });
+        boards.querySelector('.ab-over').hidden = v !== 'over';
+        boards.querySelector('.ab-full').hidden = v !== 'full';
+        if (v === 'full') boardsLoad();
+    }
+    function trackName(g, id) { var t = (g.tracks || []).filter(function (x) { return x.id === id; })[0]; return t ? t.name : id; }
+    function boardsOverview() {
+        var over = boards.querySelector('.ab-over');
+        over.innerHTML = '';
+        over.appendChild(el('p', 'sb-load', 'Loading...'));
+        fetch(root.dataset.server + '/scores/summary', { cache: 'no-cache' })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (d) {
+                var games = {}, mine = store('arcade-name');
+                (d.boards || []).forEach(function (b) {
+                    var p = b.b.split('/'), g = byId[p[0]];
+                    if (!g || !b.top || !b.top.length) return;
+                    var e = games[g.id] || (games[g.id] = { g: g, players: 0, boards: [] });
+                    e.players += b.p;
+                    e.boards.push({ level: p[1], track: p[2] || '', p: b.p, top: b.top });
+                });
+                var list = Object.keys(games).map(function (k) { return games[k]; });
+                list.sort(function (a, b) { return b.players - a.players; });
+                over.innerHTML = '';
+                if (!list.length) { over.appendChild(el('p', 'sb-empty', 'No scores yet. Play a game and be the first!')); return; }
+                var grid = el('div', 'ab-cards');
+                list.forEach(function (e) {
+                    var normal = e.boards.filter(function (b) { return b.level === 'normal'; });
+                    var pick = (normal.length ? normal : e.boards).slice().sort(function (a, b) { return b.p - a.p; })[0];
+                    var card = el('section', 'ab-card');
+                    var head = el('h3', 'ab-card-h');
+                    head.appendChild(el('span', 'ab-card-i', e.g.emoji));
+                    head.appendChild(el('span', null, nameOf(e.g)));
+                    card.appendChild(head);
+                    var sub = [];
+                    if (e.g.levels) sub.push(LEVEL_NAME[pick.level] || pick.level);
+                    if (pick.track && (e.g.tracks || []).length > 1) sub.push(trackName(e.g, pick.track));
+                    sub.push(e.players + (e.players === 1 ? ' player' : ' players'));
+                    card.appendChild(el('p', 'ab-card-sub', sub.join(' · ')));
+                    var ol = topList(pick.top, scoreFmt(e.g.id), mine, '');
+                    ol.classList.add('ab-podium');
+                    card.appendChild(ol);
+                    var more = el('button', 'arcade-btn ab-more', 'Full leaderboard');
+                    more.type = 'button';
+                    more.addEventListener('click', function () {
+                        boards.querySelector('.ab-game').value = e.g.id;
+                        boards.querySelector('.ab-level').value = pick.level;
+                        boards.querySelector('.ab-track').dataset.game = '';
+                        boardsLoad();
+                        if (pick.track) boards.querySelector('.ab-track').value = pick.track;
+                        boardsView('full');
+                    });
+                    card.appendChild(more);
+                    grid.appendChild(card);
+                });
+                over.appendChild(grid);
+            })
+            .catch(function () { boardsView('full'); });
+    }
     function boardsOpen() {
         if (!boards || !root.dataset.server) return;
         if (!boardsReady) {
             boardsReady = true;
+            Array.prototype.forEach.call(boards.querySelectorAll('.ab-view'), function (b) { b.addEventListener('click', function () { boardsView(b.dataset.view); }); });
             var gSel = boards.querySelector('.ab-game');
             Array.prototype.forEach.call(root.querySelectorAll('.arcade-grid .game-card'), function (c) {   /* page order: Best, then More */
                 var g = byId[c.dataset.id];
@@ -532,7 +596,7 @@
             boards.querySelector('.ab-level').value = 'normal';
             Array.prototype.forEach.call(boards.querySelectorAll('select'), function (sel) { sel.addEventListener('change', boardsLoad); });
         }
-        boardsLoad();
+        if (!boards.querySelector('.ab-over').hidden) boardsOverview(); else boardsLoad();
     }
 
     /* ---------- likes: a paw print on every card, the most liked first in each tab ---------- */

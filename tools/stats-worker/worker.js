@@ -18,6 +18,9 @@
 //                one line per nickname, all time and since Monday (UTC)
 //   POST /scores {"g": "long-cat", "l": "normal", "b": "", "n": "Milo", "s": 420}   adds a score, answers like GET;
 //                400 for a bad game or score, 422 {"error": "name"} for a nickname that is not allowed
+//   GET  /scores/summary   {"boards": [{"b": "long-cat/normal", "p": 14, "top": [{"n": "Milo", "s": 420}, ...]}, ...]}: every
+//                board that has scores, with its number of players (nicknames) and its all time top 3 (the Leaderboards
+//                tab's overview)
 // To remove a nickname: DELETE FROM scores WHERE name = 'Bad Name'; in the D1 console.
 // Likes (Games page): every game has a thumbs up and a thumbs down count, shown on its card; the cards of each tab are
 // ordered by them. A browser remembers its own vote (localStorage), the server only keeps the two totals per game.
@@ -82,6 +85,7 @@ export default {
             if (ctx && ctx.waitUntil) ctx.waitUntil(Promise.resolve().then(function () { return sweep(env); }).catch(function () {}));
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
             if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
+            if (url.pathname === '/scores/summary' && req.method === 'GET') return await summary(env);
             if (url.pathname === '/scores') return await scores(req, url, env);
             if (url.pathname === '/likes') return await likes(req, env);
             if (url.pathname === '/whoami' && req.method === 'GET') {
@@ -286,6 +290,28 @@ async function scores(req, url, env) {
         ]);
     }
     return json(200, { all: await top(env, board, lower), week: await top(env, board, lower, week) }, post ? 'no-store' : 'public, max-age=15');
+}
+
+/* The overview of all boards: each running copy of the worker keeps it for 30 seconds. */
+let summaryMemo = null;
+async function summary(env) {
+    if (summaryMemo && Date.now() - summaryMemo.at < 30000) return json(200, summaryMemo.d, 'public, max-age=30');
+    const rows = (await env.DB.prepare('SELECT board, name, score, at FROM scores').all()).results || [];
+    const by = {};
+    for (const r of rows) {
+        const game = BOARDS[r.board.split('/')[0]];
+        if (!game) continue;
+        const lower = !!game.lower, b = by[r.board] || (by[r.board] = { lower: lower, best: {} }), k = r.name.toLowerCase(), cur = b.best[k];
+        /* one line per nickname: its best score, the earlier one on a tie */
+        if (!cur || (lower ? r.score < cur.s : r.score > cur.s) || (r.score === cur.s && r.at < cur.at)) b.best[k] = { n: r.name, s: r.score, at: r.at };
+    }
+    const d = { boards: Object.keys(by).map(function (board) {
+        const b = by[board], list = Object.values(b.best);
+        list.sort(function (x, y) { return (b.lower ? x.s - y.s : y.s - x.s) || x.at - y.at; });
+        return { b: board, p: list.length, top: list.slice(0, 3).map(function (r) { return { n: r.n, s: r.s }; }) };
+    }) };
+    summaryMemo = { at: Date.now(), d: d };
+    return json(200, d, 'public, max-age=30');
 }
 
 /* ---------- likes of the games ---------- */

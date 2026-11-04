@@ -19,12 +19,6 @@
                 {{- with .kicker }}<p class="kicker">{{ . }}</p>{{ end }}
                 <h1>{{ .title | default site.Title }}</h1>
                 {{- with .nativeName }}<p class="native-name" lang="el">{{ . }}</p>{{ end }}
-                <p class="whereabouts">
-                    {{- with .location }}
-                    <span class="loc"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.6" fill="currentColor"/></svg>{{ . }}</span>
-                    {{- end }}
-                    {{- with .badge }}{{ with site.Params.profileMode.badgeUrl }}<a class="badge" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ site.Params.profileMode.badge }}</a>{{ else }}<span class="badge">{{ . }}</span>{{ end }}{{ end }}
-                </p>
             </div>
         </header>
 
@@ -45,7 +39,9 @@
                     <span class="flag" aria-hidden="true">{{ .flag }}</span>
                     <div>
                         <h2 class="stop-place">{{ .place }}</h2>
-                        <p class="stop-school">{{ .school }}</p>
+                        <p class="stop-school">{{ .school }}
+                            {{- /* the fellowship that funds the PhD, on the current stop */}}
+                            {{- if eq .when "now" }}{{ with site.Params.profileMode.badge }}{{ with site.Params.profileMode.badgeUrl }} <a class="badge" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ site.Params.profileMode.badge }}</a>{{ else }} <span class="badge">{{ . }}</span>{{ end }}{{ end }}{{ end }}</p>
                     </div>
                     {{- with .when }}<span class="when">{{ . }}</span>{{ end }}
                 </div>
