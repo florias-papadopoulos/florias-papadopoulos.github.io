@@ -1,5 +1,5 @@
 {{- /* Games page: a grid of small games played with the cat. The list is in content/games/_index.md; each game is
-       assets/js/games/<id>.js (or <script>.js when the entry names one), loaded only when opened, run by the shell
+       assets/js/games/<id>.js (or <script>.js when the entry names one; a big game is a folder of parts, see below), loaded only when opened, run by the shell
        assets/js/games/arcade.js (styles: assets/css/common/arcade.css). data-server: the site's small server
        (params.statsEndpoint), which two-player games use to find each other. */ -}}
 {{- define "main" }}
@@ -7,7 +7,13 @@
 {{- range .Params.games }}
 {{- $g := . }}
 {{- $src := "" }}{{ $sri := "" }}
-{{- with resources.Get (printf "js/games/%s.js" ($g.script | default $g.id)) }}{{ $js := . | minify | fingerprint }}{{ $src = $js.RelPermalink }}{{ $sri = $js.Data.Integrity }}{{ end }}
+{{- /* a game is one file js/games/<name>.js, or a big one a folder js/games/<name>/ of numbered parts (00-..., 10-...)
+       that are joined in name order into that same file (README.md there says what is in which part) */}}
+{{- $name := $g.script | default $g.id }}
+{{- $res := resources.Get (printf "js/games/%s.js" $name) }}
+{{- $parts := resources.Match (printf "js/games/%s/*.js" $name) }}
+{{- if and (not $res) $parts }}{{ $res = sort $parts "Name" | resources.Concat (printf "js/games/%s.js" $name) }}{{ end }}
+{{- with $res }}{{ $js := . | minify | fingerprint }}{{ $src = $js.RelPermalink }}{{ $sri = $js.Data.Integrity }}{{ end }}
 {{- $list = $list | append (dict "id" $g.id "title" $g.title "dogTitle" ($g.dogTitle | default $g.title) "dogDesc" ($g.dogDesc | default $g.desc) "dogEmoji" ($g.dogEmoji | default $g.emoji) "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "tracks" ($g.tracks | default slice) "trackLabel" ($g.trackLabel | default "Track") "src" $src "integrity" $sri) }}
 {{- end }}
 <div class="arcade" id="arcade" data-games="{{ $list | jsonify }}"{{ with site.Params.statsEndpoint }} data-server="{{ . }}"{{ end }}>
