@@ -4,7 +4,7 @@
    other page is the normal site. Turning the key on a normal page runs a short animation (the menu items flip over like
    cards, the play navigation flips in, the colours warm up) and then opens the playful side: the last playful page
    visited in this tab, or the Games. Turning it back (or "Back to the normal site") runs it backwards and returns to the
-   last normal page, or the home page. With prefers-reduced-motion the page fades instead. No sound. Bundled after
+   home page. With prefers-reduced-motion the page fades instead. No sound. Bundled after
    assets/js/cat-picker.js. */
 (function () {
     'use strict';
@@ -21,11 +21,12 @@
     }
     /* where each side was left, in this tab: the door opens back onto it */
     var here = location.pathname + location.search + location.hash;
-    function remember() { try { sessionStorage.setItem(isOn() ? 'side-play' : 'side-normal', here); localStorage.removeItem('site-mode'); } catch (e) { /* no storage */ } }
+    function remember() { try { if (isOn()) sessionStorage.setItem('side-play', here); localStorage.removeItem('site-mode'); } catch (e) { /* no storage */ } }
     function destination(on) {
         var d = null;
-        try { d = sessionStorage.getItem(on ? 'side-play' : 'side-normal'); } catch (e) { /* no storage */ }
-        return d && d.charAt(0) === '/' && d.charAt(1) !== '/' ? d : (on ? key.getAttribute('data-play') : key.getAttribute('data-home'));
+        try { d = sessionStorage.getItem('side-play'); } catch (e) { /* no storage */ }
+        if (!on) return key.getAttribute('data-home');   /* leaving the lab always goes to the home page */
+        return d && d.charAt(0) === '/' && d.charAt(1) !== '/' ? d : key.getAttribute('data-play');
     }
     function go(on) { location.href = destination(on); }
     /* the pet and its world (cat-pages.js, home-lab.js) only start in play mode: they wait for "playmode-on";

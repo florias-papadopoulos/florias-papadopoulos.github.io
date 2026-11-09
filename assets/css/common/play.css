@@ -22,6 +22,20 @@ html[data-mode="play"]:not(.pm-turn-off) .key-btn svg, html.pm-turn-on .key-btn 
 html[data-mode="play"]:not(.pm-turn-off) .key-btn, html.pm-turn-on .key-btn { background: #1e3a8a; border-color: #1e3a8a; color: #fff; }
 html[data-pet="dog"][data-mode="play"]:not(.pm-turn-off) .key-btn, html[data-pet="dog"].pm-turn-on .key-btn { background: #8a5a2b; border-color: #8a5a2b; color: #fff; }
 
+/* the key with its name: a wider button than the others, "The Lab" on the normal site and "Normal site" in the lab
+   (only the key on phones in the lab, where the corner also holds the pet pickers); --key-w is its width, which the
+   other corner buttons (paw.css) keep clear of */
+:root { --key-w: 104px; }
+html[data-mode="play"] { --key-w: 122px; }
+.key-btn { width: var(--key-w); grid-auto-flow: column; gap: 6px; padding: 0 12px 0 9px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 650; white-space: nowrap; }
+.key-btn:hover { transform: translateY(-1px); }
+.key-btn .key-label { line-height: 1; }
+@media (max-width: 899px) {
+    html[data-mode="play"] { --key-w: 34px; }
+    html[data-mode="play"] .key-btn { padding: 0; border-radius: 50%; }
+    html[data-mode="play"] .key-btn .key-label { display: none; }
+}
+
 /* ---------- play mode's colours: a little warmer ---------- */
 html[data-mode="play"]:not([data-pet="dog"]) { --theme: #fffdf9; --code-bg: #f7f3ec; --pn-line: #e8e0d3; }
 html[data-pet="dog"] { --pn-ink: #4a3a2c; --pn-on: #8a3b12; --pn-line: #eadccb; }
@@ -112,8 +126,8 @@ html[data-mode="play"] body > .world-layer, html[data-mode="play"] .cat-layer:no
     html[data-mode="play"] .cat-pick { top: auto; right: auto; bottom: 77px; left: 24px; }
     html[data-mode="play"] .dog-pick { left: 66px; }
     html[data-mode="play"] .cat-menu { top: auto; right: auto; bottom: 14px; left: calc(var(--pn-w) + 8px); }
-    html[data-mode="play"] .you-link { right: 52px; }
-    html[data-mode="play"] .nav { padding-inline-end: 92px; }
+    html[data-mode="play"] .you-link { right: calc(18px + var(--key-w)); }
+    html[data-mode="play"] .nav { padding-inline-end: calc(60px + var(--key-w)); }
     /* on the home page the eye and the reset button sit top left: next to the sidebar now */
     html[data-mode="play"] body:has(.home-reset) .you-link { left: calc(var(--pn-w) + 10px); }
     html[data-mode="play"] .home-reset { left: calc(var(--pn-w) + 52px); }
