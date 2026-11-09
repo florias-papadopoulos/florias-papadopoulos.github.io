@@ -1,5 +1,7 @@
-{{- /* The Toolbox tab (/toolbox/): a search box and the tools by category, from data/toolbox/*.yaml (one file per
-       category, sorted by its "order"). Search: assets/js/calc/index.js. Styles: assets/css/common/toolbox.css. */ -}}
+{{- /* The Toolbox tab (/toolbox/), three ways in: one box that searches the tools and also recognises what is pasted
+       into it (a number, Base64, a ciphertext... with links that open the right tool already filled in), the "What do
+       you want to do?" tiles (data/toolbox_tasks.yaml), and the tools by category (data/toolbox/*.yaml, one file per
+       category, sorted by its "order"). Behaviour: assets/js/calc/index.js. Styles: assets/css/common/toolbox.css. */ -}}
 {{- define "main" }}
 {{- $cats := slice }}
 {{- range $k, $v := site.Data.toolbox }}{{ $cats = $cats | append (merge $v (dict "key" $k)) }}{{ end }}
@@ -10,9 +12,17 @@
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
         <div class="tb-lede">{{ .Content }}</div>
         <div class="tb-search">
-            <label class="tb-sr" for="tb-search">Search the tools</label>
-            <input type="search" id="tb-search" placeholder="Search {{ $n }} tools, e.g. inverse, Vigenère, base64" autocomplete="off" spellcheck="false">
+            <label class="tb-sr" for="tb-search">Search the tools, or paste what you have</label>
+            <input type="search" id="tb-search" placeholder="Search {{ $n }} tools, or paste a number, a code or a ciphertext" autocomplete="off" spellcheck="false">
         </div>
+        <div class="tb-guess" id="tb-guess" aria-live="polite" hidden></div>
+        <h2 class="tb-tasks-h">What do you want to do?</h2>
+        <div class="tb-tasks" role="group" aria-label="What do you want to do?">
+            {{- range site.Data.toolbox_tasks }}
+            <button type="button" class="tb-task" data-task="{{ .id }}" aria-pressed="false"><b>{{ .title }}</b><span>{{ .sub }}</span><i>{{ len .tools }} tools</i></button>
+            {{- end }}
+        </div>
+        <p class="tb-taskbar" id="tb-taskbar" hidden><span id="tb-tasktext"></span> <button type="button" class="tb-more" id="tb-taskall">Show all tools</button></p>
         <nav class="tb-jump" aria-label="Categories">
             {{- range $cats }}<a href="#{{ .key }}">{{ .name }} <span>{{ len .tools }}</span></a>{{ end }}
         </nav>
@@ -24,7 +34,8 @@
         {{- with .intro }}<p class="tb-cat-intro">{{ . }}</p>{{ end }}
         <ul class="tb-tools">
             {{- range .tools }}
-            <li class="tb-tool" data-q="{{ lower (printf "%s %s %s" .title .short (delimit (.keywords | default slice) " ")) }}">
+            {{- $id := .id }}{{ $tasks := slice }}{{ range site.Data.toolbox_tasks }}{{ if in .tools $id }}{{ $tasks = $tasks | append .id }}{{ end }}{{ end }}
+            <li class="tb-tool" data-id="{{ .id }}" data-tasks="{{ delimit $tasks " " }}" data-q="{{ lower (printf "%s %s %s" .title .short (delimit (.keywords | default slice) " ")) }}">
                 <a href="{{ printf "toolbox/%s/" .id | relURL }}">{{ .title }}</a>
                 <span>{{ .short }}</span>
             </li>

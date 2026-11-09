@@ -1,0 +1,26 @@
+# The "What do you want to do?" tiles on /toolbox/ (layouts/toolbox/list.html): each task lists tool ids from
+# data/toolbox/*.yaml. A tool may be in several tasks. Checked by assets/js/calc/test/run.js.
+- id: encrypt
+  title: Encrypt or decrypt
+  sub: Caesar, Vigenère, Playfair, Hill, XOR, RSA...
+  tools: [caesar, vigenere, affine, keyword-substitution, playfair, hill, rail-fence, columnar-transposition, one-time-pad, xor, atbash, rot13, autokey, beaufort, bifid, polybius, adfgvx, bacon, scytale, rsa, elgamal]
+- id: break
+  title: Break a cipher
+  sub: Identify it, count letters, crack the key
+  tools: [cipher-identifier, decoder-guesser, frequency-analysis, caesar-breaker, affine-breaker, vigenere-breaker, substitution-solver, transposition-breaker, index-of-coincidence, kasiski]
+- id: modular
+  title: Calculate modulo n
+  sub: Remainders, inverses, powers, congruences
+  tools: [modulo, modular-calculator, modular-exponentiation, modular-inverse, gcd, extended-euclid, linear-congruence, chinese-remainder, euclidean-division, zn-tables, modular-square-root, discrete-logarithm, legendre-jacobi, multiplicative-order]
+- id: convert
+  title: Convert or encode
+  sub: Base64, hex, binary, Morse, hashes, bases
+  tools: [base64, hex, binary, character-codes, base32, base58, url-encoding, utf8, morse, base-conversion, number-text, twos-complement, ieee754, gray-code, hash, hamming-distance, bitwise]
+- id: learn
+  title: See how crypto works
+  sub: RSA, Diffie-Hellman, elliptic curves, lattices, step by step
+  tools: [rsa, rsa-signature, diffie-hellman, elgamal, schnorr-signature, elliptic-curve, elliptic-curve-points, ecdh, shamir-secret-sharing, gf256, paillier, lattice-reduction, lwe, birthday-bound]
+- id: maths
+  title: Primes and more maths
+  sub: Factoring, primes, matrices, fractions, counting
+  tools: [prime-factorization, primality-test, prime-sieve, euler-totient, divisors, carmichael-function, primitive-root, continued-fraction, matrix, linear-system, fractions, binomial, combinatorics, polynomial-division, polynomial-mod-p, big-number, bits-and-sizes]

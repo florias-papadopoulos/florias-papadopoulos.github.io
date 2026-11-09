@@ -116,6 +116,7 @@ var T = global.T = {
     eq: function (name, got, want) { if (filter && name.indexOf(filter) < 0) return; pending.push(function () { return String(got) === String(want) ? pass() : fail(name, 'expected ' + want + ', got ' + got); }); }
 };
 
+if (!CAT) load(path.join(ROOT, 'index.js'), true);   /* the Toolbox tab's paste recognition, tested in index.test.js */
 fs.readdirSync(__dirname).filter(function (f) { return /\.test\.js$/.test(f) && (!CAT || f === CAT + '.test.js'); }).sort().forEach(function (f) { load(path.join(__dirname, f), true); });
 
 /* ---------- every tool's examples ---------- */
@@ -159,6 +160,12 @@ pending.push(function () {
     toolFiles.forEach(function (f) { var id = f.replace(/\.js$/, ''); if (!listed[id]) fail('tools/' + f, 'is not listed in any data/toolbox/*.yaml'); if (!Calc.tools[id]) fail('tools/' + f, 'does not register the id ' + id); });
     Object.keys(all).forEach(function (id) { if (!allIds[id]) fail('data/toolbox/' + all[id], 'related tool ' + id + ' does not exist'); });
     toolFiles.forEach(function (f) { var s = fs.readFileSync(path.join(ROOT, 'tools', f), 'utf8'); if (/[–—]/.test(s)) fail('tools/' + f, 'contains an em or en dash'); });
+    var tf = path.join(SITE, 'data/toolbox_tasks.yaml');
+    if (!CAT && fs.existsSync(tf)) {
+        var ts = fs.readFileSync(tf, 'utf8');
+        if (/[\u2013\u2014]/.test(ts)) fail('data/toolbox_tasks.yaml', 'contains an em or en dash');
+        (ts.match(/tools: *\[([^\]]*)\]/g) || []).forEach(function (r) { r.replace(/.*\[|\]/g, '').split(',').map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (id) { if (!allIds[id]) fail('data/toolbox_tasks.yaml', 'unknown tool ' + id); }); });
+    }
     pass();
 });
 
