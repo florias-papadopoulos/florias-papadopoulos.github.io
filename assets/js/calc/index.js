@@ -114,7 +114,7 @@
         }
         if ((id === 'vigenere' || id === 'caesar') && /^Encrypt/.test(label)) q.push('do=enc');
         var a = document.createElement('a');
-        a.href = t.href + (q.length ? '?' + q.join('&') : '');
+        a.href = t.href + (q.length ? '#' + q.join('&') : '');   /* after the #: never sent to a server */
         a.className = 'tb-guess-link';
         var b = document.createElement('b');
         b.textContent = label;
@@ -164,8 +164,8 @@
     tiles.forEach(function (b) { b.addEventListener('click', function () { setTask(b.getAttribute('data-task')); }); });
     document.getElementById('tb-taskall').addEventListener('click', function () { setTask(task); });
     box.addEventListener('input', apply);
-    /* /toolbox/?q=... fills the box (links can point to a search or a pasted value) */
-    var q = /[?&]q=([^&]*)/.exec(location.search);
+    /* /toolbox/#q=... fills the box (links can point to a search or a pasted value; ?q= works too) */
+    var q = /[#?&]q=([^&]*)/.exec(location.hash + '&' + location.search);
     if (q) { try { box.value = decodeURIComponent(q[1].replace(/\+/g, ' ')); } catch (e) { /* bad escape: ignore */ } }
     if (box.value) apply();
 })();

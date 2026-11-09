@@ -1,7 +1,8 @@
 # florias-papadopoulos.github.io
 
-Personal website of Florias Papadopoulos, built with [Hugo](https://gohugo.io) and the
-[hugo-website](https://github.com/pmichaillat/hugo-website) template (PaperMod based, vendored in `themes/`).
+Personal website of Florias Papadopoulos, built with [Hugo](https://gohugo.io). It started from the
+[hugo-website](https://github.com/pmichaillat/hugo-website) template and its PaperMod theme; since 10 November 2026 there
+is no theme: every template and style is in `layouts/` and `assets/` (see LICENSE.md for the parts derived from them).
 Live at https://florias-papadopoulos.github.io/.
 
 ## Where things are

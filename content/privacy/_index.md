@@ -2,7 +2,7 @@
 title: "Privacy"
 description: "How this site handles your data: who runs it, where it is hosted, what the visit counter records, and your rights."
 layout: privacy
-updated: "3 November 2026"
+updated: "10 November 2026"
 # linked from the footer (layouts/partials/footer.html), /you/ and /stats/; kept out of lists and search
 build:
   list: never
@@ -14,7 +14,8 @@ short:
   - "A visit counter keeps **daily totals** of five things (page, referring site, device type, browser family, country). No IP addresses, nothing about any one visitor."
   - "If your browser sends Do Not Track or Global Privacy Control, your visits are not counted at all."
   - "Your settings and game scores stay in your browser, unless you choose to add a score to a game's leaderboard: then the nickname you type and the score are public."
-  - "The two-player game passes two devices' connection details (with their IP addresses) on between them and deletes them within two minutes. The race itself runs directly between the two devices."
+  - "The two-player game passes two devices' connection details (with their IP addresses) on between them and deletes them within about two minutes. The race itself runs directly between the two devices."
+  - "The Toolbox calculates in your browser: what you type is never sent anywhere."
 ---
 
 ## Who runs this site
@@ -35,21 +36,27 @@ To know how many people visit, each page view sends one small request to a count
 - your browser's family name (Firefox, Chrome, Safari and so on),
 - your country, which Cloudflare works out from your connection.
 
-Only these daily totals are kept. There are no cookies, no IP addresses are stored, and nothing links one page view to another or to you. Cloudflare processes the request to run the counter, under the [Cloudflare Privacy Policy](https://www.cloudflare.com/privacypolicy/).
+Only these daily totals are kept. There are no cookies, no IP addresses are stored, and nothing links one page view to another or to you. Cloudflare processes the request to run the counter, under the [Cloudflare Privacy Policy](https://www.cloudflare.com/privacypolicy/). Like most databases, Cloudflare's keeps an automatic backup of the last seven days, so data deleted on the counter (an old leaderboard score, a finished game connection) can remain in that backup for up to seven days before it is gone for good.
 
-**How to opt out:** turn on Do Not Track or Global Privacy Control in your browser, and the counter receives nothing from your visits.
+**How to opt out:** turn on Do Not Track or Global Privacy Control in your browser, and the counter receives nothing from your visits. The [Games](/games/) page still asks the same server for the leaderboards and the number of likes, to show them to you; those requests are not counted and store nothing about you.
 
 ## Game leaderboards
 
 When a game ends with a score that makes its top 10, you can add it to the leaderboard under a nickname you type. Only then is anything sent: the game, the difficulty, your nickname and your score go to the same counter on Cloudflare, which stores them with the date and shows them to everyone on the [Games](/games/) page. No IP address or anything else about you is stored with them. Each leaderboard keeps at most a few hundred scores; older ones that are no longer near the top are deleted. Pick a nickname that does not identify you if you prefer to stay anonymous. To have a score removed, write to me.
 
+**Likes:** every game card has a paw print you can tap to like the game. Your browser remembers your own like; the server only keeps the number of likes per game, nothing about who liked it.
+
 ## Racing a friend: Kitty Kart Duo
 
-In Kitty Kart Duo on the [Games](/games/) page, two people race each other from their own phones or computers. To find each other, each of the two devices sends one short connection message, which contains its network addresses, including its IP address. The counter on Cloudflare holds the two messages under a four letter code only to pass them on: it deletes them as soon as the host's device has picked up the answer, and at the latest after two minutes. It stores nothing else and logs nothing. To learn its own public address, each device also asks Cloudflare's STUN service, which sees that request like any other connection.
+In Kitty Kart Duo on the [Games](/games/) page, two people race each other from their own phones or computers. To find each other, each of the two devices sends one short connection message, which contains its network addresses, including its IP address. The counter on Cloudflare holds the two messages under a four letter code only to pass them on. It deletes them as soon as the host's device has picked up the answer; otherwise a room expires after two minutes and is deleted by the next clean-up, which runs within moments whenever the counter is in use. It stores nothing else and logs nothing. To learn its own public address, each device also asks Cloudflare's STUN service, which sees that request like any other connection.
 
 After that the two devices talk directly, and nothing about the race goes through a server. As with any direct connection, each of the two devices sees the other's IP address, so race with people you are happy to share that with.
 
 Kitty Kart Duo works with both devices on the same home wifi, while Kitty Kart Split Screen (two players on one keyboard) sends nothing anywhere.
+
+## The Toolbox
+
+The calculators, ciphers and decoders of the [Toolbox](/toolbox/) run entirely in your browser: nothing you type or paste is sent anywhere. A tool keeps your inputs in its own address, after a `#`, so that you can bookmark a calculation or send it to someone. That part of an address is never sent to any server, also not when the page is reloaded; it is only kept in your browser's history, like any address you visit.
 
 ## The page "What this site knows about you"
 
@@ -57,7 +64,7 @@ The page [What this site knows about you](/you/) shows you what the counter reco
 
 ## Storage in your browser
 
-The site sets no cookies. A few things are kept in your browser's local storage so the site remembers them for you: the look of the cat you chose, how often you petted it, the hints you have seen, game best scores, chosen levels and game settings, the last nickname you used on a leaderboard, and the "don't count my visits" choice. They never leave your browser, and clearing this site's data removes them.
+The site sets no cookies. A few things are kept in your browser's local storage so the site remembers them for you: the look of the pet you chose, how often you petted it, the hints you have seen, game best scores, chosen levels, sound, music and other game settings (also for Kitty Kart Duo), the games you liked, the last nickname you used on a leaderboard, and the "don't count my visits" choice. In the tab you are using (session storage, gone when you close it) the site remembers the last page of the lab you opened, so the key can take you back there. They never leave your browser, and clearing this site's data removes them.
 
 ## No other third parties
 

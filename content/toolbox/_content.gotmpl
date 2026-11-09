@@ -1,6 +1,6 @@
 {{- /* One page per tool, made from the category files in data/toolbox/*.yaml (see assets/js/calc/README.md).
        A tool's page is /toolbox/<id>/; its "about" text (Markdown, $math$ allowed) becomes the page's content. */ -}}
-{{- range $file, $cat := .Site.Data.toolbox }}
+{{- range $file, $cat := hugo.Data.toolbox }}
 {{- range $cat.tools }}
 {{- $content := dict "mediaType" "text/markdown" "value" (.about | default "") }}
 {{- $params := dict "tool" .id "category" $cat.name "catid" $file "short" .short "related" (.related | default slice) "math" true "description" .short "needs" (.needs | default slice) }}

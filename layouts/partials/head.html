@@ -41,39 +41,18 @@
 
 {{- /* Styles */}}
 
-{{- /* includes */}}
-{{- $includes := slice }}
-{{- $includes = $includes | append (" " | resources.FromString "assets/css/includes-blank.css")}}
-
-{{- if not (eq site.Params.assets.disableScrollBarStyle true) }}
-    {{- $ScrollStyle := (resources.Get "css/includes/scroll-bar.css") }}
-    {{- $includes = (append $ScrollStyle $includes) }}
-{{- end }}
-
-{{- $includes_all := $includes | resources.Concat "assets/css/includes.css" }}
-
-{{- $theme_vars := (resources.Get "css/core/theme-vars.css") }}
-{{- $reset := (resources.Get "css/core/reset.css") }}
-{{- $media := (resources.Get "css/core/zmedia.css") }}
-{{- $license_css := (resources.Get "css/core/license.css") }}
-{{- /* without the theme's styles for pages this site does not have (archive, search, single posts) */}}
+{{- /* One stylesheet for every page: the colour variables, the reset, the site's styles (assets/css/common, without
+       live.css which audience mode loads on its own pages), then the screen size rules. All of it is this site's own
+       code; reset.css and zmedia.css came from the PaperMod theme (MIT, see LICENSE.md). */}}
+{{- $theme_vars := resources.Get "css/core/theme-vars.css" }}
+{{- $reset := resources.Get "css/core/reset.css" }}
+{{- $media := resources.Get "css/core/zmedia.css" }}
 {{- $common := slice }}
 {{- range resources.Match "css/common/*.css" }}
-{{- if not (in (slice "css/common/archive.css" "css/common/search.css" "css/common/post-single.css") .Name) }}{{ $common = $common | append . }}{{ end }}
+{{- if not (in (slice "css/common/archive.css" "css/common/search.css" "css/common/post-single.css" "css/common/live.css") .Name) }}{{ $common = $common | append . }}{{ end }}
 {{- end }}
 {{- $common = $common | resources.Concat "assets/css/common.css" }}
-
-{{- /* markup.highlight.noClasses should be set to `false` */}}
-{{- $chroma_styles := (resources.Get "css/includes/chroma-styles.css") }}
-{{- $chroma_mod := (resources.Get "css/includes/chroma-mod.css") }}
-
-{{- /* order is important */}}
-{{- $core := (slice $theme_vars $reset $common $chroma_styles $chroma_mod $includes_all $media) | resources.Concat "assets/css/core.css" | resources.Minify }}
-{{- $extended := (resources.Match "css/extended/*.css") | resources.Concat "assets/css/extended.css" | resources.Minify }}
-
-{{- /* bundle all required css */}}
-{{- /* Add extended css after theme style */ -}}
-{{- $stylesheet := (slice $license_css $core $extended) | resources.Concat "assets/css/stylesheet.css"  }}
+{{- $stylesheet := slice $theme_vars $reset $common $media | resources.Concat "assets/css/stylesheet.css" | resources.Minify }}
 
 {{- if not site.Params.assets.disableFingerprinting }}
 {{- $stylesheet := $stylesheet | fingerprint }}

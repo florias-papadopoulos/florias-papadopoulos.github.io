@@ -1,0 +1,16 @@
+# The few words the templates take from translations (they came with the PaperMod theme, removed on 2026-11-10)
+- id: prev_page
+  translation: "Prev"
+
+- id: next_page
+  translation: "Next"
+
+- id: read_time
+  translation:
+    one : "1 min"
+    other: "{{ .Count }} min"
+
+- id: words
+  translation:
+    one : "word"
+    other: "{{ .Count }} words"

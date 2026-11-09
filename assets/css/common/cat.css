@@ -255,6 +255,8 @@ html[data-cat="astronaut"] .cat.moving .cat-head { transform: translate(79px, 36
 
 /* tail */
 .tail { transform-box: view-box; animation: cat-tail 2.4s ease-in-out infinite; }
+/* resting (cat-core.js): off screen or a minute without the visitor touching the page; no endless redraws */
+.cat.still .eye-open, .cat.still .tail { animation-play-state: paused; }
 .p-sit .tail { transform-origin: 40px 82px; }
 .p-stand .tail { transform-origin: 26px 52px; }
 .cat.happy .tail { animation-duration: 0.6s; }

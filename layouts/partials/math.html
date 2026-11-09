@@ -1,7 +1,11 @@
-{{- /* KaTeX 0.16.10, served from static/katex (no third-party request); the integrity hashes are those of the npm release.
+{{- /* KaTeX 0.16.47, served from static/katex (no third-party request); the integrity hashes are computed from the files of the npm release (whose own sha512 was checked).
        assets/js/math-render.js renders the math once, after auto-render (deferred scripts run in order). */ -}}
-<link rel="stylesheet" href="{{ "katex/katex.min.css" | relURL }}" integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww">
-<script defer src="{{ "katex/katex.min.js" | relURL }}" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"></script>
-<script defer src="{{ "katex/contrib/auto-render.min.js" | relURL }}" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"></script>
+{{- /* the two fonts almost every formula needs, asked for at once instead of after KaTeX has run (math stays invisible
+       until its fonts arrive) */}}
+<link rel="preload" href="{{ "katex/fonts/KaTeX_Main-Regular.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ "katex/fonts/KaTeX_Math-Italic.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ "katex/katex.min.css" | relURL }}" integrity="sha384-nH0MfJ44wi1dd7w6jinlyBgljjS8EJAh2JBoRad8a3VDw2K69vfaaqm4WnR+gXtA">
+<script defer src="{{ "katex/katex.min.js" | relURL }}" integrity="sha384-CwjPRVHTvLiMBFjEoij+QZViMV5rhTOIp7CJzl24JEqpRDA1sJFHVXXLURktbYYp"></script>
+<script defer src="{{ "katex/contrib/auto-render.min.js" | relURL }}" integrity="sha384-bjyGPfbij8/NDKJhSGZNP/khQVgtHUE5exjm4Ydllo42FwIgYsdLO2lXGmRBf5Mz"></script>
 {{- $render := resources.Get "js/math-render.js" | minify | fingerprint }}
 <script defer src="{{ $render.RelPermalink }}" integrity="{{ $render.Data.Integrity }}"></script>

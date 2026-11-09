@@ -513,10 +513,12 @@
         document.body.classList.remove('arcade-playing');
         if (musicBox && musicBox.parentNode === stage.querySelector('.stage-bar')) { musicBox.close(); root.querySelector('.arcade-head').appendChild(musicBox); }
     }
-    /* The Leaderboards tab, filled when first opened. Overview: one card per game that has scores (top 3 all time of its
-       busiest board: Normal if it has players, and for track games the track with the most players), the games with
-       the most players first, each with a button to its full leaderboard. Full leaderboards: pick a game, a difficulty
-       (and a Kitty Kart track), see both top 10s. Without /scores/summary on the server, the full view opens. */
+    /* The Leaderboards tab, filled when first opened. Champions (the first view): one table, one row per game with a
+       leaderboard and one column per difficulty, each cell the board's leader (from /scores/summary, which has the top
+       3 of every board); a click opens that board in the full view. Games with tracks or gardens show the leader of
+       their busiest track in each cell and a link to a table of their tracks. Empty boards say "be the first" and
+       start the game. On phones every row becomes a small card (arcade.css). Full leaderboards: pick a game, a
+       difficulty (and a track), see both top 10s. Without /scores/summary on the server, the full view opens. */
     var boards = document.getElementById('panel-boards'), boardsReady = false, boardsSeq = 0;
     function boardsLoad() {
         var gSel = boards.querySelector('.ab-game'), lSel = boards.querySelector('.ab-level'), tSel = boards.querySelector('.ab-track');
@@ -552,6 +554,119 @@
         if (v === 'full') boardsLoad();
     }
     function trackName(g, id) { var t = (g.tracks || []).filter(function (x) { return x.id === id; })[0]; return t ? t.name : id; }
+    var LEVELS = ['easy', 'normal', 'hard'], champData = null;
+    function openBoard(gid, level, track) {
+        boards.querySelector('.ab-game').value = gid;
+        boards.querySelector('.ab-level').value = level;
+        boards.querySelector('.ab-track').dataset.game = '';
+        boardsLoad();
+        if (track) boards.querySelector('.ab-track').value = track;
+        boardsView('full');
+    }
+    /* the games that have leaderboards, in the order of the page (Best, then More) */
+    function boardGames() {
+        var out = [];
+        Array.prototype.forEach.call(root.querySelectorAll('.arcade-grid .game-card'), function (c) {
+            var g = byId[c.dataset.id];
+            if (g && g.group !== 'two' && g.src && out.indexOf(g) < 0) out.push(g);
+        });
+        return out;
+    }
+    /* one cell: the leader of a board (a button that opens it), or "be the first" (starts the game) */
+    function champCell(g, level, b, mine, sub) {
+        var td = el('td', 'ab-cell');
+        td.setAttribute('data-level', LEVEL_NAME[level] || level);
+        if (!b) {
+            var a = el('a', 'ab-first', 'be the first');
+            a.href = '#play/' + g.id;
+            td.appendChild(a);
+            return td;
+        }
+        var top = b.top[0], btn = el('button', 'ab-champ' + (mine && top.n.toLowerCase() === mine.toLowerCase() ? ' is-me' : ''));
+        btn.type = 'button';
+        btn.title = 'Open this leaderboard';
+        btn.appendChild(el('span', 'ab-champ-n', top.n));
+        btn.appendChild(el('span', 'ab-champ-s', scoreFmt(g.id)(top.s) + (sub ? ' · ' + sub : '') + ' · ' + b.p + (b.p === 1 ? ' player' : ' players')));
+        btn.addEventListener('click', function () { openBoard(g.id, level, b.track); });
+        td.appendChild(btn);
+        return td;
+    }
+    function champHead(first, cols) {
+        var tr = el('tr');
+        tr.appendChild(el('th', null, first));
+        cols.forEach(function (c) { tr.appendChild(el('th', null, c)); });
+        var th = el('thead');
+        th.appendChild(tr);
+        return th;
+    }
+    /* the table of all games */
+    function champTable() {
+        var over = boards.querySelector('.ab-over'), mine = store('arcade-name'), by = champData;
+        over.innerHTML = '';
+        var games = boardGames().map(function (g, i) {
+            var players = 0;
+            Object.keys(by).forEach(function (k) { if (k.split('/')[0] === g.id) players += by[k].p; });
+            return { g: g, i: i, players: players };
+        });
+        /* games with scores first (most players first), then the others in page order */
+        games.sort(function (a, b) { return (b.players > 0) - (a.players > 0) || b.players - a.players || a.i - b.i; });
+        var table = el('table', 'ab-table'), body = el('tbody');
+        table.appendChild(champHead('Game', LEVELS.map(function (l) { return LEVEL_NAME[l]; })));
+        games.forEach(function (e) {
+            var g = e.g, tr = el('tr'), name = el('th', 'ab-game-n');
+            name.scope = 'row';
+            name.appendChild(el('span', 'ab-card-i', g.emoji));
+            name.appendChild(el('span', null, nameOf(g)));
+            var tracks = (g.tracks || []).length > 1;
+            if (tracks) {
+                var tl = el('button', 'ab-tracks', (g.tracks.length) + ' ' + (g.trackLabel || 'Track').toLowerCase() + 's');
+                tl.type = 'button';
+                tl.addEventListener('click', function () { trackTable(g); });
+                name.appendChild(tl);
+            }
+            tr.appendChild(name);
+            LEVELS.forEach(function (l) {
+                if (!g.levels && l !== 'normal') { var na = el('td', 'ab-cell ab-na'); na.setAttribute('data-level', LEVEL_NAME[l]); tr.appendChild(na); return; }
+                var b = null;
+                if (tracks || (g.tracks || []).length === 1) {
+                    /* the busiest track of this difficulty */
+                    Object.keys(by).forEach(function (k) {
+                        var p = k.split('/');
+                        if (p[0] === g.id && p[1] === l && (!b || by[k].p > b.p)) b = { p: by[k].p, top: by[k].top, track: p[2] || '' };
+                    });
+                } else if (by[g.id + '/' + l]) b = { p: by[g.id + '/' + l].p, top: by[g.id + '/' + l].top, track: '' };
+                tr.appendChild(champCell(g, l, b, mine, b && tracks && b.track ? trackName(g, b.track) : ''));
+            });
+            body.appendChild(tr);
+        });
+        table.appendChild(body);
+        over.appendChild(table);
+    }
+    /* the table of one game's tracks (Kitty Kart's tracks, Garden Defender's gardens) */
+    function trackTable(g) {
+        var over = boards.querySelector('.ab-over'), mine = store('arcade-name'), by = champData;
+        over.innerHTML = '';
+        var back = el('button', 'ab-back', 'All games');
+        back.type = 'button';
+        back.addEventListener('click', champTable);
+        over.appendChild(back);
+        over.appendChild(el('h3', 'ab-sub-h', g.emoji + ' ' + nameOf(g) + ': ' + (g.trackLabel || 'Track').toLowerCase() + 's'));
+        var levels = g.levels ? LEVELS : ['normal'];
+        var table = el('table', 'ab-table'), body = el('tbody');
+        table.appendChild(champHead(g.trackLabel || 'Track', levels.map(function (l) { return LEVEL_NAME[l]; })));
+        g.tracks.forEach(function (t) {
+            var tr = el('tr'), name = el('th', 'ab-game-n', t.name);
+            name.scope = 'row';
+            tr.appendChild(name);
+            levels.forEach(function (l) {
+                var d = by[g.id + '/' + l + '/' + t.id];
+                tr.appendChild(champCell(g, l, d ? { p: d.p, top: d.top, track: t.id } : null, mine, ''));
+            });
+            body.appendChild(tr);
+        });
+        table.appendChild(body);
+        over.appendChild(table);
+    }
     function boardsOverview() {
         var over = boards.querySelector('.ab-over');
         over.innerHTML = '';
@@ -559,49 +674,11 @@
         fetch(root.dataset.server + '/scores/summary', { cache: 'no-cache' })
             .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(function (d) {
-                var games = {}, mine = store('arcade-name');
+                champData = {};
                 (d.boards || []).forEach(function (b) {
-                    var p = b.b.split('/'), g = byId[p[0]];
-                    if (!g || !b.top || !b.top.length) return;
-                    var e = games[g.id] || (games[g.id] = { g: g, players: 0, boards: [] });
-                    e.players += b.p;
-                    e.boards.push({ level: p[1], track: p[2] || '', p: b.p, top: b.top });
+                    if (typeof b.b === 'string' && b.top && b.top.length && Object.prototype.hasOwnProperty.call(byId, b.b.split('/')[0])) champData[b.b] = { p: b.p, top: b.top };
                 });
-                var list = Object.keys(games).map(function (k) { return games[k]; });
-                list.sort(function (a, b) { return b.players - a.players; });
-                over.innerHTML = '';
-                if (!list.length) { over.appendChild(el('p', 'sb-empty', 'No scores yet. Play a game and be the first!')); return; }
-                var grid = el('div', 'ab-cards');
-                list.forEach(function (e) {
-                    var normal = e.boards.filter(function (b) { return b.level === 'normal'; });
-                    var pick = (normal.length ? normal : e.boards).slice().sort(function (a, b) { return b.p - a.p; })[0];
-                    var card = el('section', 'ab-card');
-                    var head = el('h3', 'ab-card-h');
-                    head.appendChild(el('span', 'ab-card-i', e.g.emoji));
-                    head.appendChild(el('span', null, nameOf(e.g)));
-                    card.appendChild(head);
-                    var sub = [];
-                    if (e.g.levels) sub.push(LEVEL_NAME[pick.level] || pick.level);
-                    if (pick.track && (e.g.tracks || []).length > 1) sub.push(trackName(e.g, pick.track));
-                    sub.push(e.players + (e.players === 1 ? ' player' : ' players'));
-                    card.appendChild(el('p', 'ab-card-sub', sub.join(' · ')));
-                    var ol = topList(pick.top, scoreFmt(e.g.id), mine, '');
-                    ol.classList.add('ab-podium');
-                    card.appendChild(ol);
-                    var more = el('button', 'arcade-btn ab-more', 'Full leaderboard');
-                    more.type = 'button';
-                    more.addEventListener('click', function () {
-                        boards.querySelector('.ab-game').value = e.g.id;
-                        boards.querySelector('.ab-level').value = pick.level;
-                        boards.querySelector('.ab-track').dataset.game = '';
-                        boardsLoad();
-                        if (pick.track) boards.querySelector('.ab-track').value = pick.track;
-                        boardsView('full');
-                    });
-                    card.appendChild(more);
-                    grid.appendChild(card);
-                });
-                over.appendChild(grid);
+                champTable();
             })
             .catch(function () { boardsView('full'); });
     }

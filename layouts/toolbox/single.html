@@ -1,17 +1,22 @@
 {{- /* One Toolbox tool (pages made by content/toolbox/_content.gotmpl from data/toolbox/*.yaml). The form, result
-       and procedure are built by the tool's script: assets/js/calc/core.js + lib/*.js + tools/<id>.js + boot.js,
-       joined into one file per tool. "How it works" is the tool's about text. Styles: assets/css/common/toolbox.css.
+       and procedure are built by the tool's scripts: assets/js/calc/core.js + lib/*.js (one shared file),
+       data/*.js when needed, then tools/<id>.js + boot.js. "How it works" is the tool's about text. Styles: assets/css/common/toolbox.css.
        The class tl-page lets the pet of the tabs (assets/js/cat-pages.js) live here too. */ -}}
 {{- define "main" }}
 {{- $id := .Params.tool }}
-{{- $parts := slice (resources.Get "js/calc/core.js") }}
-{{- /* shared libraries first (nt, text), then the categories' own libraries, which may use them */}}
-{{- $parts = $parts | append (resources.Get "js/calc/lib/nt.js") (resources.Get "js/calc/lib/text.js") }}
-{{- range resources.Match "js/calc/lib/*.js" }}{{ if not (in (slice "js/calc/lib/nt.js" "js/calc/lib/text.js") .Name) }}{{ $parts = $parts | append . }}{{ end }}{{ end }}
-{{- range .Params.needs }}{{ with resources.Get (printf "js/calc/data/%s.js" .) }}{{ $parts = $parts | append . }}{{ end }}{{ end }}
-{{- with resources.Get (printf "js/calc/tools/%s.js" $id) }}{{ $parts = $parts | append . }}{{ end }}
-{{- $parts = $parts | append (resources.Get "js/calc/boot.js") }}
-{{- $js := $parts | resources.Concat (printf "js/calc/%s.bundle.js" $id) | minify | fingerprint }}
+{{- /* Three files, so the browser keeps what tools share: (1) the engine and every library, the same file on every
+       tool page (cached after the first tool); (2) bulky data a few tools need (needs:, e.g. the English quadgrams),
+       one file each; (3) the tool itself and boot.js. Deferred scripts run in this order. Libraries: nt and text
+       first, then the categories' own libraries, which may use them. */}}
+{{- $shared := slice (resources.Get "js/calc/core.js") (resources.Get "js/calc/lib/nt.js") (resources.Get "js/calc/lib/text.js") }}
+{{- range resources.Match "js/calc/lib/*.js" }}{{ if not (in (slice "js/calc/lib/nt.js" "js/calc/lib/text.js") .Name) }}{{ $shared = $shared | append . }}{{ end }}{{ end }}
+{{- $sharedJs := $shared | resources.Concat "js/calc/shared.js" | minify | fingerprint }}
+{{- $dataJs := slice }}
+{{- range .Params.needs }}{{ with resources.Get (printf "js/calc/data/%s.js" .) }}{{ $dataJs = $dataJs | append (. | minify | fingerprint) }}{{ end }}{{ end }}
+{{- $own := slice }}
+{{- with resources.Get (printf "js/calc/tools/%s.js" $id) }}{{ $own = $own | append . }}{{ end }}
+{{- $own = $own | append (resources.Get "js/calc/boot.js") }}
+{{- $js := $own | resources.Concat (printf "js/calc/%s.bundle.js" $id) | minify | fingerprint }}
 <div class="tl-page tb-page" id="tb-tool" data-tool="{{ $id }}">
     <nav class="tb-crumbs" aria-label="Breadcrumb"><a href="{{ "toolbox/" | relURL }}">Toolbox</a><span aria-hidden="true">/</span><a href="{{ "toolbox/" | relURL }}#{{ .Params.catid }}">{{ .Params.category }}</a></nav>
     <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
@@ -43,6 +48,10 @@
     {{- end }}
     <p class="tb-private">Everything is calculated in your browser. Nothing you type leaves your device.</p>
 </div>
+<script src="{{ $sharedJs.RelPermalink }}" integrity="{{ $sharedJs.Data.Integrity }}" defer></script>
+{{- range $dataJs }}
+<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{- end }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{ partial "cat.html" (dict "world" "pages") }}
 {{- end }}

@@ -9,10 +9,13 @@
 
         <header class="hero">
             {{- with resources.Get .imageUrl }}
-            {{- /* Square crop at 3x the display size, so the photo stays sharp on high-density screens */ -}}
+            {{- /* Square crops at 2x the display size (most screens) and 3x (very sharp phone screens, picked by the browser
+                   through srcset): about 15 KB instead of 38 KB for most visitors. It is the page's main picture, so it
+                   is fetched with high priority. */ -}}
             {{- $w := site.Params.profileMode.imageWidth | default 160 }}
-            {{- $img := .Fill (printf "%dx%d Center q88" (mul $w 3) (mul $w 3)) }}
-            <img class="profile-photo" draggable="false" src="{{ $img.RelPermalink }}" alt="{{ site.Params.profileMode.imageTitle | default "profile image" }}"
+            {{- $img2 := .Fill (printf "%dx%d Center q80" (mul $w 2) (mul $w 2)) }}
+            {{- $img3 := .Fill (printf "%dx%d Center q78" (mul $w 3) (mul $w 3)) }}
+            <img class="profile-photo" draggable="false" src="{{ $img2.RelPermalink }}" srcset="{{ $img2.RelPermalink }} 2x, {{ $img3.RelPermalink }} 3x" fetchpriority="high" alt="{{ site.Params.profileMode.imageTitle | default "profile image" }}"
                 width="{{ $w }}" height="{{ $w }}" />
             {{- end }}
             <div class="name-block">

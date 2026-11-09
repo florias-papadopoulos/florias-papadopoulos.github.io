@@ -1,8 +1,9 @@
 # Licence
 
 **What the MIT License below covers:** the code that comes from the [hugo-website](https://github.com/pmichaillat/hugo-website)
-template and the [PaperMod](https://github.com/adityatelange/hugo-PaperMod) theme it is based on (the theme in
-`themes/`, and the templates, styles and scripts in `layouts/` and `assets/` derived from them).
+template and the [PaperMod](https://github.com/adityatelange/hugo-PaperMod) theme it is based on (the templates,
+styles and scripts in `layouts/`, `assets/` and `i18n/` derived from them; the theme itself was removed from `themes/`
+on 10 November 2026).
 
 **What it does not cover:** everything else in this repository is © Florias Papadopoulos, all rights reserved, in
 particular the texts, papers, theses, slides, notebooks, photos and pictures, and the games and other code written for

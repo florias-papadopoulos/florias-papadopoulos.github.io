@@ -621,7 +621,9 @@
                 if (v !== '' && v != null) q.push(encodeURIComponent(f.id) + '=' + encodeURIComponent(v));
             });
             if (actions.length > 1) q.push('do=' + encodeURIComponent(action));
-            var url = location.pathname + (q.length ? '?' + q.join('&') : '') + location.hash;
+            /* after the #: browsers never send that part to any server, so what was typed stays on the device even
+               when the page is reloaded or the link is shared (it is only in the browser's history) */
+            var url = location.pathname + (q.length ? '#' + q.join('&') : '');
             if (url.length < 3000) history.replaceState(null, '', url);
         }
         function go(action, user) {
@@ -671,9 +673,13 @@
 
         /* start: the inputs of the address if there are any, else the first example, so the procedure shows at once */
         var q = {}, any = false;
-        location.search.slice(1).split('&').forEach(function (kv) {
+        /* the inputs after the # (older links had them after a ?, which still works) */
+        var src = location.hash.length > 1 ? location.hash.slice(1) : location.search.slice(1);
+        function dec(x) { try { return decodeURIComponent(x.replace(/\+/g, ' ')); } catch (e) { return null; } }   /* a broken % escape is ignored, not fatal */
+        src.split('&').forEach(function (kv) {
             if (!kv) return;
-            var i = kv.indexOf('='), k = decodeURIComponent((i < 0 ? kv : kv.slice(0, i)).replace(/\+/g, ' ')), v = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
+            var i = kv.indexOf('='), k = dec(i < 0 ? kv : kv.slice(0, i)), v = i < 0 ? '' : dec(kv.slice(i + 1));
+            if (k === null || v === null) return;
             q[k] = v;
             if (fields[k]) any = true;
         });

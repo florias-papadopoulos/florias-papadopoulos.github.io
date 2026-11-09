@@ -34,6 +34,38 @@
 .ab-view[aria-pressed="true"] { border-color: var(--navy); color: var(--navy); font-weight: 700; }
 .ab-over[hidden], .ab-full[hidden] { display: none; }
 .arcade-boards:has(.ab-over:not([hidden])) { max-width: 940px; }
+/* Champions: one row per game, one column per difficulty (on phones every row is a small card, see below) */
+.ab-table { display: table; width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 0.9rem; }
+.ab-table th, .ab-table td { padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.ab-table thead th { color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #fbfaf7; }
+.ab-table tbody tr:last-child th, .ab-table tbody tr:last-child td { border-bottom: 0; }
+.ab-game-n { width: 28%; color: var(--ink); font-weight: 700; }
+.ab-table thead th:first-child { width: 28%; }
+.ab-game-n .ab-card-i { margin-right: 6px; font-size: 1.1rem; }
+.ab-tracks { display: block; margin: 2px 0 0 1.9em; padding: 0; border: 0; background: none; color: var(--navy); font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+.ab-tracks::after { content: " \25B8"; }
+.ab-tracks:hover, .ab-champ:hover .ab-champ-n, .ab-first:hover { text-decoration: underline; }
+.ab-champ { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.ab-champ-n { font-weight: 600; }
+.ab-champ-n::before { content: ""; display: inline-block; width: 0.8em; height: 0.8em; margin-right: 6px; border-radius: 50%; background: #e9c46a; border: 1px solid #c9a227; vertical-align: -0.05em; }
+.ab-champ.is-me .ab-champ-n { color: var(--navy); }
+.ab-champ-s { color: var(--muted); font-size: 0.76rem; font-variant-numeric: tabular-nums; }
+.ab-first { color: #a8a29e; font-size: 0.82rem; text-decoration: none; }
+.ab-na { background: #fbfaf7; }
+.ab-back { margin: 0 0 10px; padding: 0; border: 0; background: none; color: var(--navy); font: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+.ab-back::before { content: "\25C2  "; }
+.ab-sub-h { margin: 0 0 10px; font-size: 1.05rem; }
+@media (max-width: 640px) {
+    .ab-table, .ab-table tbody { display: block; border: 0; background: none; }
+    .ab-table thead { display: none; }
+    .ab-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 8px; margin-bottom: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .ab-table th, .ab-table td { padding: 0; border: 0; }
+    .ab-game-n { grid-column: 1 / -1; width: auto; }
+    .ab-tracks { display: inline; margin: 0 0 0 8px; }
+    .ab-cell::before { content: attr(data-level); display: block; color: var(--muted); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .ab-na { background: none; }
+    .ab-champ-s { font-size: 0.7rem; }
+}
 .ab-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .ab-card { display: flex; flex-direction: column; padding: 14px 16px 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); }
 .ab-card-h { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1rem; }

@@ -495,6 +495,19 @@
         if (world.init) world.init(api);
         var resizeTimer;
         window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(layout, 150); });
+        /* the blinking and the tail are endless CSS animations, which the browser redraws every frame: they rest
+           (class "still", cat.css) while the pet is off screen or nobody has touched the page for a minute, and
+           start again with the next scroll, key, tap or mouse move (saves battery on phones) */
+        var offscreen = false, idle = false, idleTimer = null;
+        function still() { cat.classList.toggle('still', offscreen || idle); }
+        function awake() {
+            if (idle) { idle = false; still(); }
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(function () { idle = true; still(); }, 60000);
+        }
+        ['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'].forEach(function (t) { window.addEventListener(t, awake, { passive: true }); });
+        awake();
+        if (window.IntersectionObserver) new IntersectionObserver(function (es) { offscreen = !es[es.length - 1].isIntersecting; still(); }).observe(cat);
         if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
         return api;
     };
