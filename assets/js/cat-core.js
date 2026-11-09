@@ -293,14 +293,16 @@
             b.className = 'cat-bubble';
             var word = isDog() ? 'woof' : 'purr';
             b.textContent = wasAsleep ? (isDog() ? 'huh?' : 'mrrp?') : pets === 1 ? word : word + ' ×' + pets;
-            /* the first time ever: the cat tells the visitor about its games behind the paw in the corner */
+            /* the first time ever: the cat tells the visitor about the key in the corner that turns the site into play
+               mode (assets/js/play.js); not needed when play mode is on already */
             var hint = false;
-            try { hint = !localStorage.getItem('cat-games-hint'); localStorage.setItem('cat-games-hint', '1'); } catch (e) { hint = pets === 1; }
-            var paw = document.getElementById('paw-link');
-            if (hint && paw) {
-                b.textContent = 'Psst! Press the 🐾 at the top right to play games with me.';
+            try { hint = !localStorage.getItem('cat-key-hint'); localStorage.setItem('cat-key-hint', '1'); } catch (e) { hint = pets === 1; }
+            var key = document.getElementById('key-btn');
+            if (!key || document.documentElement.dataset.mode === 'play') hint = false;
+            if (hint) {
+                b.textContent = 'Psst! Turn the key at the top right to see my hidden side.';
                 b.classList.add('long');
-                bonk(paw, 'wiggle', 2100);
+                bonk(key, 'wiggle', 2100);
             }
             cat.appendChild(b);
             for (var i = 0; i < 3; i++) {

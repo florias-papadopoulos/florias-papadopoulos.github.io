@@ -1,0 +1,171 @@
+/* Play mode: html[data-mode="play"], set by the key in the top right corner (assets/js/play.js, applied before the
+   first paint by assets/js/play-look.js). The academic menu gives way to the play navigation
+   (layouts/partials/play-nav.html): a tab bar at the bottom below 900 px, a slim sidebar on the left from 900 px.
+   The colours turn slightly warmer (a dog's warm colours, cat.css, stay as they are). Corner positions: paw.css. */
+
+:root { --pn-w: 0px; --pn-tab: 0px; --pn-ink: #334155; --pn-on: #1e3a8a; --pn-line: #e5ded2; }
+
+/* ---------- the key ---------- */
+.key-btn { transition: transform 0.15s, color 0.3s, background-color 0.3s, border-color 0.3s; }
+.key-btn svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 5.5;
+    stroke-linecap: round;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* turned half way round its shaft, like a key in a lock (the bit now points up), and lit like the site's icon while
+   play mode is on */
+html[data-mode="play"]:not(.pm-turn-off) .key-btn svg, html.pm-turn-on .key-btn svg { transform: rotateX(180deg); }
+html[data-mode="play"]:not(.pm-turn-off) .key-btn, html.pm-turn-on .key-btn { background: #1e3a8a; border-color: #1e3a8a; color: #fff; }
+html[data-pet="dog"][data-mode="play"]:not(.pm-turn-off) .key-btn, html[data-pet="dog"].pm-turn-on .key-btn { background: #8a5a2b; border-color: #8a5a2b; color: #fff; }
+
+/* ---------- play mode's colours: a little warmer ---------- */
+html[data-mode="play"]:not([data-pet="dog"]) { --theme: #fffdf9; --code-bg: #f7f3ec; --pn-line: #e8e0d3; }
+html[data-pet="dog"] { --pn-ink: #4a3a2c; --pn-on: #8a3b12; --pn-line: #eadccb; }
+
+/* ---------- the play navigation ---------- */
+.play-nav { display: none; }
+html[data-mode="play"] .play-nav { display: flex; }
+html[data-mode="play"] #menu { display: none; }
+body.arcade-playing .play-nav { display: none; }       /* a running game has the whole screen */
+.play-nav {
+    z-index: 85;                                        /* above the page and the pet, below the corner buttons and games */
+    background: var(--code-bg);
+    color: var(--pn-ink);
+    font-size: 15px;
+    line-height: 1.3;
+}
+.play-nav svg { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.play-nav .pn-dot { fill: currentColor; stroke-width: 1.2; }
+.play-nav .pn-key { stroke-width: 5.5; }
+.pn-tabs { margin: 0; padding: 0; list-style: none; }
+.pn-tab { display: flex; align-items: center; color: inherit; text-decoration: none; }
+.pn-tab svg { flex: none; width: 24px; height: 24px; }
+.pn-tab[aria-current="page"] { color: var(--pn-on); font-weight: 700; }
+.pn-head { margin: 0; }
+
+/* the pet keeps out of the navigation: on the tabs its world is the window (cat-pages.js), on the home page the
+   page beside the sidebar (home-lab.js, which measures both layers) */
+html[data-mode="play"] .cat-layer.cat-viewport { left: var(--pn-w); bottom: var(--pn-tab); }
+html[data-mode="play"] body > .world-layer, html[data-mode="play"] .cat-layer:not(.cat-viewport) { left: var(--pn-w); width: calc(100% - var(--pn-w)); }
+
+/* ---------- below 900 px: a tab bar at the bottom ---------- */
+@media (max-width: 899px) {
+    html[data-mode="play"] { --pn-tab: calc(58px + env(safe-area-inset-bottom, 0px)); }
+    html[data-mode="play"] body { padding-bottom: var(--pn-tab); }
+    .play-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--pn-tab);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        border-top: 1px solid var(--pn-line);
+    }
+    .pn-head, .pn-pets, .pn-back { display: none; }
+    .pn-tabs { display: flex; width: 100%; max-width: 560px; margin: 0 auto; }
+    .pn-tabs li { flex: 1; }
+    .pn-tab { flex-direction: column; justify-content: center; gap: 3px; height: 58px; font-size: 12px; letter-spacing: 0.01em; }
+    .pn-tab[aria-current="page"] { box-shadow: inset 0 2px 0 var(--pn-on); }
+    /* the home page's small footer (bottom right) stays above the bar */
+    html[data-mode="play"] body:has(.profile.home) .footer { bottom: calc(var(--pn-tab) + 6px); }
+}
+
+/* ---------- from 900 px: a slim sidebar on the left ---------- */
+@media (min-width: 900px) {
+    html[data-mode="play"] { --pn-w: 184px; }
+    html[data-mode="play"] body { padding-left: var(--pn-w); }
+    .play-nav {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--pn-w);
+        flex-direction: column;
+        padding: 0 12px 14px;
+        border-right: 1px solid var(--pn-line);
+    }
+    .pn-head {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        height: var(--header-height, 60px);
+        padding: 0 8px;
+        color: var(--pn-on);
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+    }
+    .pn-head svg { width: 22px; height: 22px; padding: 3px; border-radius: 6px; background: var(--pn-on); color: #fff; box-sizing: content-box; }
+    .pn-tabs { margin-top: 10px; }
+    .pn-tabs li + li { margin-top: 2px; }
+    .pn-tab { gap: 12px; padding: 9px 10px; border-left: 3px solid transparent; border-radius: 0 6px 6px 0; }
+    .pn-tab:hover { background: rgba(15, 23, 42, 0.05); }
+    .pn-tab[aria-current="page"] { border-left-color: var(--pn-on); background: rgba(15, 23, 42, 0.04); }
+    /* the pickers: their buttons are the corner buttons, placed over the two slots here */
+    .pn-pets { margin-top: auto; padding: 0 10px 12px; }
+    .pn-label { margin: 0 0 8px; color: #6b7280; font-size: 13px; }
+    .pn-slots { height: 34px; }
+    html[data-mode="play"] .cat-pick { top: auto; right: auto; bottom: 77px; left: 24px; }
+    html[data-mode="play"] .dog-pick { left: 66px; }
+    html[data-mode="play"] .cat-menu { top: auto; right: auto; bottom: 14px; left: calc(var(--pn-w) + 8px); }
+    html[data-mode="play"] .you-link { right: 52px; }
+    html[data-mode="play"] .nav { padding-inline-end: 92px; }
+    /* on the home page the eye and the reset button sit top left: next to the sidebar now */
+    html[data-mode="play"] body:has(.home-reset) .you-link { left: calc(var(--pn-w) + 10px); }
+    html[data-mode="play"] .home-reset { left: calc(var(--pn-w) + 52px); }
+    .pn-back {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        height: 50px;
+        padding: 0 10px;
+        border: 0;
+        border-top: 1px solid var(--pn-line);
+        background: none;
+        color: inherit;
+        font: inherit;
+        font-size: 13.5px;
+        line-height: 1.25;
+        text-align: left;
+        cursor: pointer;
+    }
+    .pn-back svg { flex: none; width: 20px; height: 20px; }
+    .pn-back:hover { color: var(--pn-on); }
+}
+
+/* ---------- the switch (assets/js/play.js): cards flip, colours change, the content makes room ---------- */
+html.pm-switching #menu { overflow: visible; }
+html.pm-switching #menu > li, html.pm-switching .play-nav .pm-card {
+    transform: perspective(600px) rotateY(0deg);
+    transition: transform 0.26s ease, opacity 0.26s ease;
+    transition-delay: calc(var(--i, 0) * 55ms);
+}
+html.pm-hide-menu #menu > li { transform: perspective(600px) rotateY(90deg); opacity: 0; }
+html.pm-hide-nav .play-nav .pm-card { transform: perspective(600px) rotateY(-90deg); opacity: 0; }
+/* the pickers come and go with the play navigation */
+html.pm-switching .cat-pick { transition: transform 0.15s, opacity 0.3s ease 0.2s; }
+html.pm-hide-nav .cat-pick { opacity: 0; }
+html.pm-switching body, html.pm-switching .nav, html.pm-switching .footer, html.pm-switching .play-nav {
+    transition: background-color 0.6s ease, padding 0.45s ease;
+}
+/* reduced motion: a plain fade */
+html.pm-fading body { transition: opacity 0.2s ease; }
+html.pm-faded body { opacity: 0; }
+
+/* the pet perks up: a little hop (on the whole drawing, not inside it: see the Safari note in cat.css) */
+.cat.perk .cat-flip svg { transform-origin: 50% 100%; animation: cat-perk 0.6s ease-out; }
+@keyframes cat-perk {
+    0% { transform: none; }
+    35% { transform: translateY(-16px) scaleY(1.04); }
+    70% { transform: scaleX(1.08) scaleY(0.9); }
+    100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .key-btn svg { transition: none; }
+    .cat.perk .cat-flip svg { animation: none; }
+}

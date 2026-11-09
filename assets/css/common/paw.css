@@ -1,6 +1,7 @@
-/* Corner buttons, on every page (layouts/_default/baseof.html): top right the paw that leads to the cat games and the
-   cat and dog pickers; the eye that leads to what this site knows about you next to them; on the home page the eye
-   sits top left instead, next to the reset button */
+/* Corner buttons, on every page (layouts/_default/baseof.html): top right the key that turns the site into play mode
+   (assets/css/common/play.css) and the eye that leads to what this site knows about you; in play mode also the cat and
+   dog pickers between them (on wide screens they sit in play mode's sidebar instead, see play.css); on the home page
+   the eye sits top left instead, next to the reset button */
 .corner-btn {
     position: fixed;
     top: 6px;
@@ -19,13 +20,16 @@
     transition: transform 0.15s, color 0.15s;
 }
 .corner-btn:hover { transform: rotate(-12deg) scale(1.08); color: #0f172a; }
-.paw-link { right: 10px; }
-.paw-link svg { width: 18px; height: 18px; fill: currentColor; }
-.paw-link.wiggle { animation: paw-wiggle 0.5s ease-in-out 4; }
+.key-btn { right: 10px; }
+.key-btn.wiggle { animation: paw-wiggle 0.5s ease-in-out 4; }
 .cat-pick { right: 52px; }
 .cat-pick svg { width: 22px; height: 20px; }
 .dog-pick { right: 94px; }
-.you-link { right: 136px; }
+.you-link { right: 52px; }
+/* the pickers only in play mode, and the eye moves along to make room for them */
+.cat-picker { display: none; }
+html[data-mode="play"] .cat-picker { display: block; }
+html[data-mode="play"] .you-link { right: 136px; }
 /* on the home page the eye sits top left, next to the reset button */
 body:has(.home-reset) .you-link { left: 10px; right: auto; }
 .you-link svg { width: 19px; height: 19px; fill: currentColor; }
@@ -96,16 +100,18 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
 .cat-opt:hover { background: #f1f5f9; }
 .cat-opt[aria-checked="true"] { border-color: #cbd5e1; background: #f8fafc; font-weight: 700; }
 
-/* leave room for the four buttons at the right end of the menu */
-.nav { padding-inline-end: 176px; }
+/* leave room for the corner buttons at the right end of the menu (two, four in play mode) */
+.nav { padding-inline-end: 92px; }
+html[data-mode="play"] .nav { padding-inline-end: 176px; }
 @keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
 @media (max-width: 600px) {
-    .nav { padding-inline-end: 0; }
+    .nav, html[data-mode="play"] .nav { padding-inline-end: 0; }
     .corner-btn { top: 5px; }
-    .paw-link { right: 8px; }
+    .key-btn { right: 8px; }
     .cat-pick { right: 48px; }
     .dog-pick { right: 88px; }
-    .you-link { right: 128px; }
+    .you-link { right: 48px; }
+    html[data-mode="play"] .you-link { right: 128px; }
     body:has(.home-reset) .you-link { left: 8px; right: auto; }
     .home-reset { left: 48px; }
 }
