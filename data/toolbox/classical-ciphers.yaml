@@ -1,0 +1,207 @@
+# Toolbox category (assets/js/calc/README.md): one page per tool at /toolbox/<id>/, code in assets/js/calc/tools/<id>.js
+name: Classical ciphers
+order: 4
+intro: Pen and paper ciphers from Caesar to the First World War, each worked through letter by letter, both ways.
+tools:
+  - id: caesar
+    title: Caesar cipher
+    short: Shift every letter by a fixed number of places, any shift, encrypt and decrypt, with the letter table.
+    keywords: [shift cipher, rot, rotn, caesar shift, julius caesar, decoder]
+    related: [rot13, affine, vigenere, modulo]
+    about: |
+      Suetonius reports that Julius Caesar wrote confidential letters with every letter moved three places along the alphabet, so that A became D. Any shift $k$ works the same way: number the letters A = 0 to Z = 25, then
+
+      $$E(x) = (x + k) \bmod 26, \qquad D(y) = (y - k) \bmod 26.$$
+
+      Decrypting with shift $k$ is the same as encrypting with shift $26 - k$, and a shift of 13 (ROT13) undoes itself.
+
+      There are only 25 useful keys, so trying them all breaks the cipher in seconds; the right one is the only shift that gives readable text. Even without trying, the most frequent cipher letter usually stands for E. The Caesar cipher is still the first example in every course because each later cipher repairs one of its weaknesses.
+  - id: rot13
+    title: ROT13 and ROT47
+    short: The self-inverse rotations ROT13 (letters), ROT5 (digits), ROT18 and ROT47 (all visible ASCII characters).
+    keywords: [rot5, rot18, rot47, rotate, usenet, spoiler]
+    related: [caesar, atbash]
+    about: |
+      ROT13 is the Caesar shift by 13. Since $13 + 13 = 26$, doing it twice brings every letter back, so one operation both hides and reveals a text. It became the custom on Usenet in the 1980s for spoilers and punch lines: not secret, just not readable by accident.
+
+      ROT5 does the same for digits (shift 5 out of 10), and ROT18 combines the two. ROT47 extends the idea to the 94 visible ASCII characters from ! (code 33) to ~ (code 126): each moves 47 places in that range, $x \mapsto (x + 47) \bmod 94$, so letters, digits and punctuation all change.
+
+      None of these has a key, so they offer no security at all: anybody who knows the name of the trick reads the text.
+  - id: atbash
+    title: Atbash cipher
+    short: "The alphabet read backwards: A and Z swap, B and Y, and so on. Encrypting and decrypting are the same."
+    keywords: [hebrew, reverse alphabet, mirror, substitution]
+    related: [caesar, affine, keyword-substitution]
+    about: |
+      Atbash comes from the Hebrew alphabet: the first letter (aleph) is swapped with the last (taw), the second (beth) with the second to last (shin), and the name spells out these pairs. A few words in the Book of Jeremiah are written this way.
+
+      In the Latin alphabet letter $x$ becomes $25 - x$, so A and Z trade places, B and Y, C and X. Applying it twice gives the letter back, so the same table encrypts and decrypts. It is the affine cipher $E(x) = 25x + 25 \bmod 26$.
+
+      There is no key at all, so it hides nothing from anyone who knows the trick. It survives in puzzles and in the study of old texts.
+  - id: affine
+    title: Affine cipher
+    short: Encrypt with a times x plus b modulo 26; decryption with the inverse of a computed step by step.
+    keywords: [linear, multiplicative cipher, a x + b, mod 26, inverse]
+    related: [modular-inverse, caesar, atbash, hill]
+    about: |
+      The affine cipher maps each letter $x$ (A = 0, ..., Z = 25) to $E(x) = (a x + b) \bmod 26$. With $a = 1$ it is the Caesar cipher, with $a = b = 25$ it is Atbash.
+
+      Not every $a$ works. If $a$ shares a factor with 26 (it is even, or 13), two letters get the same image and the text cannot be decrypted: with $a = 2$, both A and N become $b$. So $a$ must be coprime to 26, which leaves 1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23 and 25. Then $a$ has an inverse modulo 26, found with the extended Euclidean algorithm, and $D(y) = a^{-1} (y - b) \bmod 26$.
+
+      With $12 \cdot 26 = 312$ keys, trying all of them is instant. Two known letters are enough as well: they give two linear congruences in $a$ and $b$. Like every cipher that uses one fixed substitution alphabet, it also falls to letter frequencies.
+  - id: keyword-substitution
+    title: Keyword substitution cipher
+    short: A monoalphabetic substitution with a keyed alphabet (keyword first, then the other letters) or any 26 letter alphabet.
+    keywords: [monoalphabetic, substitution, keyed alphabet, mixed alphabet, simple substitution, cryptogram]
+    related: [atbash, caesar, vigenere, playfair]
+    about: |
+      A simple substitution cipher replaces each letter by its partner in a scrambled alphabet. Since $26!$ (about $4 \cdot 10^{26}$) alphabets are possible, a convenient way to agree on one is a keyword: write it without repeated letters and append the rest of the alphabet. ZEBRAS gives ZEBRASCDFGHIJKLMNOPQTUVWXY, so A becomes Z, B becomes E, and so on.
+
+      Decryption reads the same table from the bottom row to the top. Some variants continue the alphabet after the last letter of the keyword instead of starting from A; this tool offers both.
+
+      The huge number of keys does not help, because every plain letter always becomes the same cipher letter and the letter frequencies of the language shine through. Al Kindi described frequency analysis in the ninth century, and newspaper cryptograms are solved with it by hand every day.
+  - id: vigenere
+    title: Vigenère cipher
+    short: A repeated keyword shifts each letter by a different amount, with the tabula recta rows and the sums modulo 26.
+    keywords: [vigenere, polyalphabetic, tabula recta, le chiffre indechiffrable, bellaso, key]
+    related: [beaufort, autokey, caesar, one-time-pad]
+    about: |
+      Described by Giovan Battista Bellaso in 1553 and later credited to Blaise de Vigenère, this cipher was called "le chiffre indéchiffrable" for three centuries. It uses a keyword as a sequence of Caesar shifts: with A = 0, ..., Z = 25,
+
+      $$c_i = (p_i + k_{i \bmod m}) \bmod 26, \qquad p_i = (c_i - k_{i \bmod m}) \bmod 26,$$
+
+      where $m$ is the length of the key. By hand one uses the tabula recta, a square of 26 shifted alphabets: the row of the key letter and the column of the plain letter meet at the cipher letter. ATTACKATDAWN with key LEMON gives LXFOPVEFRNHR.
+
+      Because the same plain letter becomes different cipher letters, simple frequency counts fail. But the key repeats: Charles Babbage and Friedrich Kasiski (1863) found its length from repeated fragments, and the index of coincidence does the same statistically. Once the length $m$ is known, every $m$-th letter is a Caesar cipher, broken by frequencies.
+  - id: beaufort
+    title: Beaufort cipher
+    short: Like Vigenère, but the letter is subtracted from the key letter, so encrypting and decrypting are one operation.
+    keywords: [beaufort, variant beaufort, reciprocal, polyalphabetic, francis beaufort]
+    related: [vigenere, autokey, atbash]
+    about: |
+      Named after Admiral Francis Beaufort (of the wind scale), this cipher uses a repeated key like Vigenère but computes $c_i = (k_i - p_i) \bmod 26$. Solving for the plaintext gives $p_i = (k_i - c_i) \bmod 26$, the same formula: the cipher is reciprocal, and the Hagelin M-209 machine of the US Army used it for that reason.
+
+      The variant Beaufort, $c_i = (p_i - k_i) \bmod 26$, is simply Vigenère decryption used to encrypt. Both are polyalphabetic ciphers with a repeating key.
+
+      They are broken exactly like Vigenère: the key length shows up in repeated fragments (Kasiski) and in the index of coincidence, and each column of letters is then a reversed Caesar alphabet, solved by frequencies.
+  - id: autokey
+    title: Autokey cipher
+    short: "Vigenère's autokey: a short primer followed by the plaintext itself as the key, so the key never repeats."
+    keywords: [autoclave, running key, vigenere autokey, primer]
+    related: [vigenere, beaufort, one-time-pad]
+    about: |
+      Vigenère himself proposed this stronger form in 1586. The key starts with a short primer and then continues with the message: with primer QUEENLY, the key for ATTACKATDAWN is QUEENLYATTAC, and adding the letters modulo 26 gives QNXEPVYTWTWP.
+
+      To decrypt, the receiver uses the primer for the first letters; every plain letter found becomes a key letter a little later. Since the key never repeats, the Kasiski method and the index of coincidence have no period to find.
+
+      It is still weak: the key is the plaintext itself, so it has the statistics of English. Guessing a probable word somewhere in the message reveals plain letters a primer length further on, and the whole text unravels from there.
+  - id: playfair
+    title: Playfair cipher
+    short: Pairs of letters in a 5x5 keyword square, with the same row, same column and rectangle rules shown for every pair.
+    keywords: [wheatstone, playfair square, digraph, digram, 5x5, polygraphic]
+    related: [polybius, bifid, keyword-substitution, hill]
+    about: |
+      Invented by Charles Wheatstone in 1854 and promoted by Lord Playfair, it was used by the British in the Boer War and the First World War. A keyword without repeated letters, followed by the rest of the alphabet (I and J together), fills a 5 by 5 square.
+
+      The message is split into pairs; a filler (usually X) separates doubled letters and completes the last pair. Each pair is then replaced: in the same row, by the letters to their right; in the same column, by the letters below; otherwise the two letters are corners of a rectangle and each takes the corner in its own row. Decryption goes left and up instead. HIDE THE GOLD IN THE TREE STUMP with key PLAYFAIR EXAMPLE gives BMODZBXDNABEKUDMUIXMMOUVIF.
+
+      Working on pairs hides single letter frequencies, but there are only 600 possible pairs and their frequencies are just as typical of a language. A pair and its reverse encrypt to reversed pairs, and no letter ever encrypts to itself, which helps a solver with a few known words. Long messages fall to pair frequencies and hill climbing.
+  - id: hill
+    title: Hill cipher
+    short: Blocks of 2 or 3 letters multiplied by a key matrix modulo 26, with the determinant and the inverse matrix.
+    keywords: [matrix, linear algebra, lester hill, 2x2, 3x3, determinant, inverse matrix, mod 26]
+    related: [affine, modular-inverse, playfair, gcd]
+    about: |
+      Lester S. Hill published this cipher in 1929, the first that used linear algebra. The letters are cut into blocks of $n$, each block becomes a vector $p$ of numbers (A = 0, ..., Z = 25) and is multiplied by an $n \times n$ key matrix: $c = K p \bmod 26$. With $K$ given by GYBNQKURP, ACT becomes POH.
+
+      Decryption needs the inverse matrix modulo 26, $K^{-1} = (\det K)^{-1} \operatorname{adj} K$. It exists exactly when $\gcd(\det K, 26) = 1$, that is, when the determinant is odd and not a multiple of 13; other keys lose information and are refused. Some books use row vectors, $c = p K$, which is the same cipher with the transposed matrix.
+
+      One block depends on all its letters, so single letter frequencies are mixed up. But the cipher is linear: $n$ blocks of known plaintext with their ciphertext give a matrix equation $C = K P$, and $K = C P^{-1}$ falls out at once (choosing blocks for which $P$ is invertible modulo 26). A known plaintext attack breaks it completely.
+  - id: rail-fence
+    title: Rail fence cipher
+    short: Write the text in a zigzag over several rails and read it rail by rail; the zigzag is drawn out.
+    keywords: [zigzag, transposition, rails, railfence]
+    related: [scytale, columnar-transposition]
+    about: |
+      The rail fence is a transposition: the letters stay the same, only their order changes. Write the message diagonally down and up over $r$ rails, then read each rail from left to right. With 3 rails, WE ARE DISCOVERED RUN AT ONCE becomes WECRUOERDSOEERNTNEAIVDAC.
+
+      The zigzag repeats every $2(r - 1)$ characters. An offset starts the text somewhere inside the first period. To decrypt, count how many characters fall on each rail, cut the ciphertext into pieces of these lengths and follow the zigzag again.
+
+      The key is just the number of rails (and the offset), so all keys can be tried by hand. The letter frequencies are those of the plaintext, which immediately shows that a transposition was used.
+  - id: columnar-transposition
+    title: Columnar transposition
+    short: Write the text in rows under a keyword and read the columns in alphabetical order of the key letters.
+    keywords: [transposition, column, keyword, double transposition, irregular, ubchi]
+    related: [adfgvx, rail-fence, scytale]
+    about: |
+      Write the message in rows as long as the keyword, then read the columns one after the other, in the alphabetical order of the key letters (equal letters from left to right). With ZEBRAS the column under A is read first, then B, E, R, S and Z. The last row can stay short (an irregular transposition) or be completed with filler letters.
+
+      To decrypt, the receiver works out the column lengths from the length of the message: when the last row is short, only its leftmost columns are one letter longer. The ciphertext is cut into columns of these lengths in key order, and the grid is read row by row.
+
+      A single transposition keeps the letter frequencies of the language and can be solved by trying column arrangements so that the rows read well (anagramming). Applying it twice with two keys, the double transposition, was a serious field cipher until the Second World War.
+  - id: scytale
+    title: Scytale
+    short: "The Spartan rod: write along the rod, unwind the strip and read it turn by turn; decryption winds it back."
+    keywords: [skytale, sparta, rod, transposition, staff]
+    related: [rail-fence, columnar-transposition]
+    about: |
+      The scytale is described in Greek sources as a tool of Spartan commanders: a strip of leather or parchment wound around a rod of agreed thickness, with the message written along the rod. Unwound, the strip shows a jumble of letters; wound around a rod of the same thickness, the message reappears.
+
+      If one turn of the strip holds $d$ letters, the message is written in $d$ rows along the rod, each $\lceil n / d \rceil$ letters long, and the strip carries the letters column by column. So the scytale is a columnar transposition with the columns read in their natural order.
+
+      The only key is the thickness of the rod. Trying every value of $d$ breaks it at once, so the scytale was a way of writing more than a cipher.
+  - id: polybius
+    title: Polybius square
+    short: Every letter becomes two coordinates in a 5x5 or 6x6 square, plain or keyed, with digits or letters as labels.
+    keywords: [polybius checkerboard, tap code, coordinates, 5x5, 6x6, nihilist]
+    related: [bifid, adfgvx, playfair]
+    about: |
+      The Greek historian Polybius described a square of letters for signalling with torches, each letter sent as its row and its column. In the 5 by 5 square I and J share a cell; the 6 by 6 square holds the 26 letters and the 10 digits. A keyword can scramble the square: its letters first, then the rest.
+
+      Each letter becomes two symbols, so the alphabet needs only five (or six) of them: digits, torches, or knocks on a prison wall in the tap code. HELLO becomes 23 15 31 31 34.
+
+      On its own the square is just a substitution with pairs of digits and is broken by frequencies. Its value is as a building block: the Nihilist cipher, Bifid and ADFGVX all start from Polybius coordinates.
+  - id: bifid
+    title: Bifid cipher
+    short: "Delastelle's cipher: Polybius coordinates written in two lines, read across and paired up again, with a period."
+    keywords: [delastelle, fractionation, polybius, trifid, period]
+    related: [polybius, playfair, adfgvx]
+    about: |
+      Félix Delastelle described Bifid in 1895. Under each letter of the message write its row and column in a keyed 5 by 5 square, giving two lines of digits. Read the row line and then the column line as one sequence, cut it into pairs again and turn each pair back into a letter. With a period, this is done block by block.
+
+      Decryption writes the coordinates of the cipher letters in one line; its first half is the row line of the plaintext and its second half the column line.
+
+      Splitting letters into coordinates and mixing them (fractionation) means that each cipher letter depends on two different plain letters, so plain frequencies disappear. But within a block the structure is regular, and with the period known, statistical attacks on coordinate pairs recover the square from a few hundred letters.
+  - id: adfgvx
+    title: ADFGVX cipher
+    short: "The German cipher of 1918: a keyed 6x6 square with the labels A D F G V X, then a columnar transposition."
+    keywords: [adfgx, fritz nebel, painvin, ww1, first world war, fractionation, transposition]
+    related: [polybius, columnar-transposition, bifid]
+    about: |
+      Fritz Nebel's cipher was introduced by the German army in March 1918, first as ADFGX (5 by 5) and from June as ADFGVX (6 by 6, with digits). The labels were chosen because their Morse codes are hard to confuse.
+
+      Each character becomes its row and column label in a keyed square, doubling the length of the text. These letters are then written in rows under a second keyword and the columns are read in alphabetical order of the key letters. ATTACK AT 1200 AM with the classic square and key PRIVACY gives DGDD DAGD DGAF ADDF DADV DVFA ADVX.
+
+      The transposition separates the two halves of every letter, so it is a strong pencil and paper cipher. Still, the French cryptanalyst Georges Painvin broke it by hand in the spring of 1918, exploiting messages sent with the same keys on the same day; one of his decryptions in June warned of an attack near Compiègne.
+  - id: bacon
+    title: Bacon's cipher
+    short: Every letter as five binary symbols (24 or 26 letter alphabet), written with two symbols or hidden in letter case.
+    keywords: [baconian cipher, biliteral, steganography, binary, francis bacon, aaaaa]
+    related: [polybius, atbash]
+    about: |
+      Francis Bacon described his biliteral alphabet in 1605 and 1623. Each letter is written as five symbols, each a or b: with I and J, and U and V, sharing a code, the 24 letters are the numbers 0 to 23 in five binary digits (A = aaaaa, B = aaaab, C = aaaba). A 26 letter version gives every letter its own code.
+
+      Bacon's point was steganography: the a and b need not be visible as such. Any two kinds of anything work, two typefaces, two sizes, upper and lower case. A harmless cover text five times longer than the secret can carry it in the case of its letters.
+
+      As a cipher it is a fixed code with no key, so it protects nothing once it is spotted. What it hides well is the existence of a message.
+  - id: one-time-pad
+    title: One-time pad
+    short: "Each letter shifted by its own random key letter, mod 26: perfect secrecy, as long as the key is never reused."
+    keywords: [vernam, otp, perfect secrecy, shannon, random key, venona]
+    related: [vigenere, autokey, caesar]
+    about: |
+      The one-time pad adds a random key letter to every message letter: $c_i = (p_i + k_i) \bmod 26$. Gilbert Vernam built the same idea with XOR on teleprinter tape in 1917, and Joseph Mauborgne added the rule that makes it work: the key is truly random, as long as the message, and used only once.
+
+      Then it cannot be broken, even with unlimited computing power. Claude Shannon proved in 1949 that the ciphertext gives no information about the message besides its length: for every possible plaintext of that length there is exactly one key that produces the ciphertext, and all keys are equally likely.
+
+      The price is the key: as much secret random material as there will ever be messages, delivered safely in advance. Reusing it is fatal, because $c_i - c'_i \equiv p_i - p'_i$ cancels the key; the Venona project read thousands of Soviet messages for exactly this reason.

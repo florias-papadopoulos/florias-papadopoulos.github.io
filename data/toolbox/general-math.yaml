@@ -1,0 +1,93 @@
+# Toolbox category (assets/js/calc/README.md): one page per tool at /toolbox/<id>/, code in assets/js/calc/tools/<id>.js
+name: General maths
+order: 7
+intro: Exact calculators for the algebra and counting underneath cryptography (matrices, equations, fractions, binomials, huge numbers), every step written out.
+tools:
+  - id: matrix
+    title: Matrix calculator
+    short: Determinant, inverse, product, transpose, rank and echelon forms, over the fractions or modulo n, with every row operation shown.
+    keywords: [determinant, inverse matrix, gauss jordan, gaussian elimination, rref, row echelon, rank, transpose, matrix product, hill cipher, modulo, cofactor]
+    related: [linear-system, modular-inverse, fractions]
+    about: |
+      A matrix is a table of numbers, and most questions about it are answered by **row operations**: swap two rows, multiply a row by a number that can be undone, or subtract a multiple of one row from another. Gaussian elimination uses them to clear the entries below each pivot, which gives a row echelon form; continuing upwards and scaling every pivot to 1 gives the reduced row echelon form, which is unique. The rank is the number of pivots.
+
+      For the **determinant**, subtracting a multiple of a row changes nothing and a swap changes the sign, so after elimination $\det A$ is the product of the diagonal, with one minus sign per swap. For matrices up to 3 by 3 the cofactor expansion is shown as well, for example $\det \begin{pmatrix} a & b \\ c & d \end{pmatrix} = ad - bc$. For the **inverse**, Gauss-Jordan elimination is run on $[A \mid I]$: when the left half has become $I$, the right half is $A^{-1}$.
+
+      Modulo $n$, dividing by a pivot $a$ means multiplying by $a^{-1} \bmod n$, which exists only when $\gcd(a, n) = 1$. When $n$ is composite, a column can have non-zero entries none of which is invertible; the calculator then runs Euclid's algorithm on that column with whole multiples of rows, which needs no division. A matrix is invertible modulo $n$ exactly when $\gcd(\det A, n) = 1$. This is the arithmetic of the Hill cipher, whose key is a matrix modulo 26.
+  - id: linear-system
+    title: System of linear equations solver
+    short: Solve A x = b by Gaussian elimination over the fractions or modulo a prime, with one, none or infinitely many solutions.
+    keywords: [linear equations, gaussian elimination, gauss jordan, augmented matrix, back substitution, parametric solution, simultaneous equations, modulo p]
+    related: [matrix, fractions, modular-inverse]
+    about: |
+      A system of linear equations is written as an augmented matrix $[A \mid b]$: one row per equation, the coefficients of the variables, then the right side. Row operations do not change the set of solutions, so Gaussian elimination can bring the matrix to echelon form, where the answer can be read off.
+
+      Three things can happen. A row $0 = c$ with $c \ne 0$ is a contradiction: **no solution**. Otherwise, if every variable has a pivot, there is **exactly one solution**, found by back substitution (here done on the matrix, by clearing the columns above the pivots). If some columns have no pivot, their variables are **free**: they can take any value, the others are expressed in terms of them, and the solutions form a line, a plane or a higher dimensional family. The number of free variables is the number of variables minus the rank.
+
+      Modulo a prime $p$ the same method works, because every non-zero number has an inverse; a family with $f$ free variables then has exactly $p^f$ solutions. Linear systems over $\mathbb{Z}_p$ appear in cryptanalysis everywhere, from breaking the Hill cipher with known plaintext to the linear algebra step of factoring algorithms.
+  - id: fractions
+    title: Fraction calculator
+    short: Add, subtract, multiply and divide fractions and mixed numbers, with the common denominator, the simplification and the decimal expansion.
+    keywords: [fraction, mixed number, common denominator, lcm, simplify, lowest terms, repeating decimal, recurring decimal, long division, reciprocal]
+    related: [gcd, big-number, polynomial-division]
+    about: |
+      To add or subtract fractions, first give them a common denominator. The smallest one is the least common multiple of the denominators: for $\frac{5}{12} + \frac{7}{18}$ it is $\operatorname{lcm}(12, 18) = 36$, so the sum is $\frac{15}{36} + \frac{14}{36} = \frac{29}{36}$. To multiply, multiply the numerators and the denominators (cancelling common factors across first keeps the numbers small); to divide, multiply by the reciprocal. Every result is brought to lowest terms by dividing numerator and denominator by their gcd.
+
+      A mixed number like $2\tfrac{1}{3}$ means $2 + \frac{1}{3} = \frac{7}{3}$. In the expression, type it with a space: `2 1/3`. A decimal with $k$ digits after the point is a fraction over $10^k$, so $0.125 = \frac{125}{1000} = \frac{1}{8}$.
+
+      The decimal expansion comes from long division. Each step multiplies the remainder by 10 and divides by the denominator; since there are only finitely many possible remainders, one comes back and from then on the digits repeat: $\frac{1}{7} = 0.\overline{142857}$. The expansion stops exactly when the denominator, in lowest terms, has no prime factors other than 2 and 5.
+  - id: binomial
+    title: Binomial coefficient calculator
+    short: C(n, k), n choose k, by the product formula with the factors cancelled, Pascal's triangle, and modulo a prime with Lucas' theorem.
+    keywords: [n choose k, binomial coefficient, combinations, pascal triangle, lucas theorem, factorial, nCr, kummer]
+    related: [combinatorics, big-number, modulo]
+    about: |
+      The binomial coefficient $\binom{n}{k}$ ("$n$ choose $k$") counts the subsets of size $k$ of a set of $n$ elements, and it is the coefficient of $x^k$ in $(1 + x)^n$. The product formula $\binom{n}{k} = \frac{n (n-1) \cdots (n-k+1)}{k!}$ needs only $k$ factors, and by the symmetry $\binom{n}{k} = \binom{n}{n-k}$ the smaller of $k$ and $n - k$ is enough. The result is a whole number, so every factor of $k!$ cancels against the numerator.
+
+      Pascal's triangle builds all of them by addition: each entry is the sum of the two above it, $\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$, because a subset of size $k$ either contains the last element or it does not.
+
+      Modulo a prime $p$, Lucas' theorem reduces a huge binomial to small ones: write $n$ and $k$ in base $p$, then $\binom{n}{k} \equiv \prod_i \binom{n_i}{k_i} \pmod p$. For example $\binom{10}{3} = 120 \equiv 1 \pmod 7$, and indeed $10 = 13_7$, $3 = 03_7$, $\binom{1}{0} \binom{3}{3} = 1$. In particular $p$ divides $\binom{n}{k}$ exactly when some digit of $k$ is larger than the digit of $n$ in the same place.
+  - id: combinatorics
+    title: Permutations and combinations calculator
+    short: Count arrangements and choices with or without repetition, multinomials, circular orders and derangements, with the formula and what it counts.
+    keywords: [permutation, combination, arrangement, nPr, nCr, with repetition, stars and bars, multinomial, anagram, derangement, factorial, counting]
+    related: [binomial, bits-and-sizes, big-number]
+    about: |
+      Most counting questions come down to two choices: does the **order** matter, and may an object be **repeated**? Choosing $k$ things from $n$ gives four answers. With order and without repetition there are $P(n, k) = n (n-1) \cdots (n-k+1)$ arrangements; with order and repetition there are $n^k$ sequences; without order and without repetition there are $\binom{n}{k}$ combinations; without order but with repetition there are $\binom{n+k-1}{k}$ multisets, by the stars and bars argument.
+
+      Arranging all $n$ objects gives $n!$ permutations. When some objects are alike, orders that only swap alike objects are the same, which gives the multinomial coefficient $\frac{n!}{k_1! \, k_2! \cdots}$: the word MISSISSIPPI has $\frac{11!}{1! \, 4! \, 4! \, 2!} = 34650$ distinct anagrams. Around a round table, rotations are the same seating, which leaves $(n-1)!$. A derangement is an order where nothing is in its original place; there are about $n!/e$ of them.
+
+      In cryptography these numbers measure key spaces: a simple substitution cipher has $26! \approx 2^{88}$ keys, far too many to try one by one, which is why it is broken by frequency analysis instead.
+  - id: polynomial-division
+    title: Polynomial long division calculator
+    short: Divide one polynomial by another with exact fractions, in the long division layout, with synthetic division for x - c and a check.
+    keywords: [polynomial division, long division, synthetic division, horner, quotient, remainder, remainder theorem, factor theorem, polynomial]
+    related: [fractions, linear-system, gcd]
+    about: |
+      Dividing a polynomial $p(x)$ by $d(x)$ gives a quotient $q(x)$ and a remainder $r(x)$ with $p = q \cdot d + r$ and $\deg r < \deg d$, just like whole number division. Long division finds them one term at a time: divide the leading term of what is left by the leading term of $d$, write the result in the quotient, multiply it by $d$ and subtract. Each round lowers the degree, and the work stops when the degree of what is left is smaller than that of $d$.
+
+      When the divisor is $x - c$, synthetic division (Horner's scheme) does the same on the coefficients alone: bring down the first one, then repeatedly multiply by $c$ and add the next. The last number is the remainder, and it equals $p(c)$; so $x - c$ divides $p$ exactly when $c$ is a root.
+
+      Polynomial division over the fractions is the base of the Euclidean algorithm for polynomials. In cryptography the same division runs over finite fields: AES computes in $\mathbb{F}_{2^8}$ modulo $x^8 + x^4 + x^3 + x + 1$, and CRC checksums are remainders of polynomial division over $\mathbb{F}_2$.
+  - id: big-number
+    title: Big number calculator
+    short: Exact arithmetic on whole numbers of any size, with the order of evaluation, the digits, the bits and the scientific form.
+    keywords: [big integer, bignum, arbitrary precision, large numbers, factorial, power, exact, digits, digit sum, scientific notation, powmod]
+    related: [bits-and-sizes, modulo, gcd]
+    about: |
+      Ordinary calculators and spreadsheets work with floating point numbers of about 16 significant digits, so $2^{64} + 1$ or $30!$ come out rounded. This calculator works with exact whole numbers of any size (up to 200000 bits), the way cryptographic software does with keys of thousands of bits.
+
+      The expression is evaluated in the usual order: brackets and functions, then factorials, then powers (from the right, so $2^{3^2} = 2^9$), then multiplication, division and $\bmod$ from left to right, then addition and subtraction. Division of whole numbers gives the quotient rounded down and notes the remainder; `mod` (or `%`) gives the remainder, never negative. `powmod(a, e, n)` computes $a^e \bmod n$ by square and multiply, without ever writing out the huge power.
+
+      For the result the calculator counts the decimal digits and the bits ($b$ bits means $2^{b-1} \le |x| < 2^b$), writes it in scientific form and adds up its digits. The digit sum has the same remainder modulo 9 as the number itself, the old trick of casting out nines.
+  - id: bits-and-sizes
+    title: Number of bits and security level
+    short: How many bits and digits a number has, the rule 2^k = 10^(0.301 k), and what key sizes like 2^128 or RSA-2048 mean.
+    keywords: [bits, bit length, digits, log2, log10, key size, security level, brute force, aes, rsa 2048, 128 bit, bytes]
+    related: [big-number, combinatorics, modulo]
+    about: |
+      A whole number $x \ge 1$ has $b = \lfloor \log_2 x \rfloor + 1$ bits and $d = \lfloor \log_{10} x \rfloor + 1$ decimal digits. The two are linked by $\log_{10} x = \log_2 x \cdot \log_{10} 2$ with $\log_{10} 2 \approx 0.30103$, so $2^k \approx 10^{0.301 k}$: 10 bits are about 3 digits ($2^{10} = 1024$), and a 2048-bit RSA modulus has 617 digits.
+
+      Cryptographers measure strength in bits: a scheme has $k$-bit security when the best known attack needs about $2^k$ operations. Every extra bit doubles the work. A 56-bit DES key was found by brute force in 1998; $2^{128}$ keys, the size of AES-128, would take a billion computers each trying a billion keys per second about $10^{13}$ years, a thousand times the age of the universe.
+
+      Key length and security level are not the same thing. For AES the security is the key length, but for RSA the best attacks factor the modulus much faster than by trying, so RSA-2048 gives about 112-bit security and RSA-3072 about 128 bits; elliptic curves need about twice the security level in key size (256-bit curves for 128-bit security), and a 256-bit hash gives 128-bit security against collisions because of the birthday paradox.

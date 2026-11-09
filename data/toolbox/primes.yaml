@@ -1,0 +1,137 @@
+# Toolbox category (assets/js/calc/README.md): one page per tool at /toolbox/<id>/, code in assets/js/calc/tools/<id>.js
+name: Primes and number theory
+order: 2
+intro: Factoring, primality, orders, roots and logarithms modulo n, the number theory that public key cryptography is built on.
+tools:
+  - id: prime-factorization
+    title: Prime factorization calculator
+    short: Split a number into prime powers, by trial division and then Pollard's rho, every step shown.
+    keywords: [factor, factorise, factorize, prime factors, trial division, pollard, rho, rsa, semiprime]
+    related: [primality-test, divisors, euler-totient, gcd]
+    about: |
+      Every whole number $n \ge 2$ is a product of primes in exactly one way, up to the order of the factors (the fundamental theorem of arithmetic): $360 = 2^3 \cdot 3^2 \cdot 5$. Finding these primes is easy for small numbers and, as far as anyone knows, extremely hard for large ones.
+
+      The calculator first divides by the primes $2, 3, 5, \dots$ up to $10^4$, as long as $p^2$ does not exceed what is left: once no prime up to the square root divides, the rest is prime. Larger parts go through a Miller-Rabin test; a composite part is checked for being a perfect power and then split with Pollard's rho method. Rho iterates $x \mapsto x^2 + c \bmod m$; modulo an unknown prime factor $p$ this sequence repeats after roughly $\sqrt p$ steps (the birthday paradox), and a gcd with $m$ exposes $p$. That finds factors up to about 12 digits within a few seconds, whatever the size of $n$.
+
+      RSA rests on the gap between multiplying and factoring: a 2048-bit modulus $N = pq$ is built in milliseconds, while the best known method (the general number field sieve) is far from factoring it. The largest RSA challenge numbers factored so far have 829 bits.
+  - id: primality-test
+    title: Primality test
+    short: Is n prime? Trial division, Fermat's test and Miller-Rabin with every base and every squaring shown.
+    keywords: [prime, is prime, miller rabin, fermat, probable prime, pseudoprime, carmichael, witness, mersenne]
+    related: [prime-factorization, prime-sieve, carmichael-function, legendre-jacobi]
+    about: |
+      Deciding whether $n$ is prime is much easier than factoring it. Trial division by every prime up to $\sqrt n$ is a proof, but it is only practical up to about $10^{12}$. Fermat's little theorem gives a fast test: for a prime $n$, $a^{n-1} \equiv 1 \pmod n$. A result other than 1 proves $n$ composite without finding a factor. Unfortunately some composites pass for every base coprime to them, the Carmichael numbers $561, 1105, 1729, \dots$
+
+      Miller-Rabin repairs this. Write $n - 1 = 2^s d$ with $d$ odd and look at $a^d, a^{2d}, \dots, a^{2^s d}$. For a prime the only square roots of 1 are $\pm 1$, so the chain starts with 1 or reaches $-1$ before the first 1. For every odd composite, at least three quarters of the bases break this rule, Carmichael numbers included. A base that breaks it is a witness; a square root of 1 other than $\pm 1$ even gives a factor through a gcd.
+
+      Exhaustive searches have shown which fixed bases suffice below given bounds: base 2 alone below 2047, the primes up to 41 below $3.3 \cdot 10^{24}$. Above that the answer is "probable prime", with an error chance that can be made as small as one likes. This is how key generation for RSA finds its primes.
+  - id: euler-totient
+    title: Euler's totient calculator
+    short: Euler's phi of n, how many numbers up to n are coprime to n, from the prime factorization.
+    keywords: [phi, totient, euler, coprime, rsa, order of the group]
+    related: [carmichael-function, prime-factorization, divisors, modular-inverse]
+    about: |
+      Euler's totient $\varphi(n)$ counts the numbers $1 \le k \le n$ with $\gcd(k, n) = 1$, which is the number of elements of the group $\mathbb Z_n^*$ of invertible residues. For a prime, $\varphi(p) = p - 1$.
+
+      $\varphi$ is multiplicative ($\varphi(mn) = \varphi(m)\varphi(n)$ when $\gcd(m, n) = 1$), and for a prime power $\varphi(p^e) = p^{e-1}(p - 1)$, since exactly the multiples of $p$ are lost. So from the factorization $\varphi(n) = n \prod_{p \mid n} (1 - 1/p)$. Without the factorization no efficient method is known.
+
+      Euler's theorem says $a^{\varphi(n)} \equiv 1 \pmod n$ for every $a$ coprime to $n$. This is why RSA works: with $N = pq$ and $e d \equiv 1 \pmod{\varphi(N)}$, where $\varphi(N) = (p-1)(q-1)$, raising to $e$ and then to $d$ gives back the message.
+  - id: divisors
+    title: Divisors calculator
+    short: All divisors of n, their number and their sum, and whether n is perfect, abundant or deficient.
+    keywords: [divisor, factors, tau, sigma, number of divisors, sum of divisors, perfect number, abundant, deficient]
+    related: [prime-factorization, euler-totient, gcd]
+    about: |
+      Once $n = p_1^{e_1} \cdots p_k^{e_k}$ is known, its divisors are exactly the products $p_1^{j_1} \cdots p_k^{j_k}$ with $0 \le j_i \le e_i$. Counting the choices gives the number of divisors $\tau(n) = (e_1 + 1) \cdots (e_k + 1)$, and multiplying out $\prod_i (1 + p_i + \dots + p_i^{e_i})$ gives their sum $\sigma(n) = \prod_i \frac{p_i^{e_i + 1} - 1}{p_i - 1}$.
+
+      A number is perfect when it is the sum of its proper divisors, $\sigma(n) = 2n$, like $6 = 1 + 2 + 3$ and $28$. Euclid showed that $2^{p-1}(2^p - 1)$ is perfect whenever $2^p - 1$ is prime, and Euler that every even perfect number is of this form. Whether an odd perfect number exists is still open. When the proper divisors add up to more than $n$, it is abundant ($12$); when less, deficient (every prime).
+
+      Divisors come in pairs $d$ and $n/d$, one of them at most $\sqrt n$, so $\tau(n)$ is odd exactly when $n$ is a perfect square.
+  - id: multiplicative-order
+    title: Multiplicative order calculator
+    short: The smallest k with a to the k congruent to 1 mod n, testing only the divisors of the group exponent.
+    keywords: [order, ord, period, exponent, lagrange, cyclic subgroup, generator]
+    related: [primitive-root, carmichael-function, discrete-logarithm, euler-totient]
+    about: |
+      For $a$ coprime to $n$, the powers $a, a^2, a^3, \dots$ modulo $n$ must eventually come back to 1. The smallest $k \ge 1$ with $a^k \equiv 1 \pmod n$ is the order $\operatorname{ord}_n(a)$, the size of the subgroup that $a$ generates. If $\gcd(a, n) > 1$ no power is ever 1.
+
+      By Lagrange's theorem the order divides the group size $\varphi(n)$, and in fact the group exponent $\lambda(n)$ (the Carmichael function). So instead of trying every $k$ one only tests divisors of $\lambda(n)$: either all of them in increasing order, or starting from $\lambda(n)$ and dividing out each prime factor $q$ as long as $a^{t/q} \equiv 1$ stays true. Both need the factorization of $\lambda(n)$.
+
+      Orders matter throughout cryptography: Diffie-Hellman and DSA use an element of large prime order $q$, and the order of $10$ modulo a prime $p \ne 2, 5$ is the length of the repeating block in the decimal expansion of $1/p$.
+  - id: primitive-root
+    title: Primitive root calculator
+    short: Whether n has a primitive root, the smallest one with the standard test, and the list of all of them.
+    keywords: [primitive root, generator, cyclic group, order, diffie hellman, gauss]
+    related: [multiplicative-order, discrete-logarithm, carmichael-function, euler-totient]
+    about: |
+      A primitive root modulo $n$ is a number $g$ whose powers produce every residue coprime to $n$; its order is $\varphi(n)$ and $\mathbb Z_n^*$ is cyclic. Gauss proved that primitive roots exist exactly for $n = 1, 2, 4$, $p^k$ and $2p^k$ with $p$ an odd prime. For other $n$, such as $8$ or $15$, the largest order is $\lambda(n) < \varphi(n)$.
+
+      To test a candidate $g$ one does not compute all its powers. If the order of $g$ were a proper divisor of $\varphi(n)$, it would divide $\varphi(n)/q$ for some prime $q \mid \varphi(n)$. So $g$ is a primitive root exactly when $g^{\varphi(n)/q} \not\equiv 1$ for every such $q$. Primitive roots are common (there are $\varphi(\varphi(n))$ of them), so trying $2, 3, 5, \dots$ succeeds quickly; the hard part is factoring $\varphi(n)$.
+
+      Diffie and Hellman's original key exchange uses a primitive root $g$ modulo a large prime $p$. Once one generator $g$ is known, all others are the powers $g^k$ with $\gcd(k, \varphi(n)) = 1$.
+  - id: legendre-jacobi
+    title: Legendre and Jacobi symbol calculator
+    short: The symbol (a/n) by reduction, the rule for 2 and quadratic reciprocity, with Euler's criterion as a check.
+    keywords: [legendre, jacobi, kronecker, quadratic residue, reciprocity, euler criterion, solovay strassen]
+    related: [modular-square-root, primality-test, modulo]
+    about: |
+      For an odd prime $p$, the Legendre symbol $\left(\frac ap\right)$ is $1$ when $a$ is a nonzero square modulo $p$, $-1$ when it is not, and $0$ when $p$ divides $a$. Euler's criterion computes it as $a^{(p-1)/2} \bmod p$. The Jacobi symbol extends it to odd $n = p_1 p_2 \cdots$ as the product $\left(\frac{a}{p_1}\right)\left(\frac{a}{p_2}\right)\cdots$.
+
+      The Jacobi symbol can be computed without knowing the factors of $n$, much like Euclid's algorithm: reduce $a$ modulo $n$; take out factors 2 using $\left(\frac 2n\right) = 1$ for $n \equiv \pm 1 \pmod 8$ and $-1$ for $n \equiv \pm 3 \pmod 8$; then swap top and bottom with quadratic reciprocity, which changes the sign only when both are $\equiv 3 \pmod 4$.
+
+      Beware: for composite $n$, $\left(\frac an\right) = 1$ does not mean that $a$ is a square ($\left(\frac{2}{15}\right) = 1$, yet $2$ is not a square modulo $15$). This gap is used by the Goldwasser-Micali encryption scheme, and comparing the symbol with $a^{(n-1)/2}$ is the Solovay-Strassen primality test.
+  - id: modular-square-root
+    title: Modular square root calculator
+    short: Solve x squared congruent to a mod n, with Tonelli-Shanks for primes and the CRT for composite n.
+    keywords: [square root, quadratic residue, tonelli shanks, cipolla, hensel, rabin, crt]
+    related: [legendre-jacobi, prime-factorization, modular-inverse, multiplicative-order]
+    about: |
+      Modulo an odd prime $p$, a nonzero $a$ has either two square roots $\pm x$ or none, and Euler's criterion tells which. When $p \equiv 3 \pmod 4$ the root is simply $a^{(p+1)/4}$. In general the Tonelli-Shanks algorithm writes $p - 1 = Q \cdot 2^S$ and uses a non-square $z$ to correct a first guess $a^{(Q+1)/2}$ step by step, halving the order of the error term $t$ each round.
+
+      For composite $n$ one solves modulo each prime power separately: a root modulo $p$ is lifted to $p^k$ by Hensel's lemma (a Newton step), powers of 2 follow their own rules, and the Chinese remainder theorem glues the pieces together. With $k$ distinct odd prime factors there are $2^k$ roots, so modulo $n = pq$ a square has four.
+
+      Without the factorization this is as hard as factoring: from two roots $x, y$ with $x \not\equiv \pm y$ one gets the factor $\gcd(x - y, n)$. Rabin's cryptosystem is built on exactly this, and square roots modulo primes are used to find points on elliptic curves.
+  - id: discrete-logarithm
+    title: Discrete logarithm calculator
+    short: Solve g to the x congruent to h mod p by baby-step giant-step, with both tables shown.
+    keywords: [discrete log, dlog, baby step giant step, bsgs, shanks, diffie hellman, elgamal, index]
+    related: [multiplicative-order, primitive-root, modular-inverse]
+    about: |
+      Given $g$, $h$ and a modulus $p$, the discrete logarithm is an exponent $x$ with $g^x \equiv h \pmod p$. Computing $g^x$ from $x$ takes a few hundred multiplications by square and multiply; going back is believed to be hard. This one-way property is what Diffie-Hellman, ElGamal and DSA rely on.
+
+      Trying $x = 0, 1, 2, \dots$ needs up to $\operatorname{ord}(g)$ steps. Shanks' baby-step giant-step method trades memory for time: with $m = \lceil \sqrt{\operatorname{ord}(g)} \rceil$, write $x = im + j$, store the baby steps $g^j$ for $j < m$, then compute the giant steps $h \cdot g^{-im}$ until one of them appears in the store. That costs about $2\sqrt{\operatorname{ord}(g)}$ multiplications.
+
+      Even so, a group of order $2^{256}$ needs $2^{128}$ steps. Modulo a prime, index calculus methods are faster, which is why such groups need primes of 2048 bits or more; if the order of $g$ has only small prime factors, the Pohlig-Hellman reduction makes the problem easy, so real systems use a subgroup of large prime order.
+  - id: continued-fraction
+    title: Continued fraction calculator
+    short: The continued fraction of a fraction, a decimal or a square root, with the convergents and Pell's equation.
+    keywords: [continued fraction, convergent, best approximation, pell equation, euclid, quadratic irrational, wiener]
+    related: [gcd, modular-inverse, prime-factorization]
+    about: |
+      A continued fraction writes a number as $a_0 + \cfrac{1}{a_1 + \cfrac{1}{a_2 + \dotsb}}$, shortened to $[a_0; a_1, a_2, \dots]$. For a fraction the terms are the quotients of Euclid's algorithm, so the expansion ends: $\frac{415}{93} = [4; 2, 6, 7]$. Cutting it off early gives the convergents $\frac{h_i}{k_i}$, the best approximations with denominators of their size, such as $\frac{22}{7}$ and $\frac{355}{113}$ for $\pi$.
+
+      A square root $\sqrt n$ of a non-square has an infinite but periodic expansion, found with whole numbers only: $\sqrt{23} = [4; \overline{1, 3, 1, 8}]$. The convergent just before the end of the first period solves Pell's equation $x^2 - n y^2 = \pm 1$, for example $24^2 - 23 \cdot 5^2 = 1$.
+
+      In cryptography, continued fractions break RSA with a small private exponent: Wiener's attack finds $d$ among the convergents of $e/N$ when $d < N^{1/4}/3$. They also appear in the classical post-processing of Shor's quantum factoring algorithm.
+  - id: prime-sieve
+    title: Prime sieve and next prime
+    short: The sieve of Eratosthenes up to N as a grid of crossed-out numbers, and the next and previous prime of any n.
+    keywords: [sieve, eratosthenes, list of primes, prime numbers, next prime, previous prime, prime gap, pi(x)]
+    related: [primality-test, prime-factorization]
+    about: |
+      The sieve of Eratosthenes lists all primes up to $N$ without a single division. Write down $2, 3, \dots, N$; the first number, 2, is prime, so cross out its multiples. The next number not crossed out, 3, is prime: cross out its multiples, and so on. Crossing out for $p$ can start at $p^2$, and one can stop once $p^2 > N$: every composite up to $N$ has a prime factor at most $\sqrt N$.
+
+      The primes thin out slowly. The prime number theorem says that there are about $N / \ln N$ primes up to $N$ (25 up to 100, 168 up to 1000), so near $n$ about one number in $\ln n$ is prime. That is why finding a 1024-bit prime for RSA is quick: test random odd numbers of that size, and about one in 355 is prime.
+
+      For the next or previous prime of a large number, the calculator does just that: it walks through the odd numbers, discards those with a small factor, and checks the survivors with Miller-Rabin.
+  - id: carmichael-function
+    title: Carmichael function calculator
+    short: Lambda of n, the smallest exponent that sends every unit mod n to 1, compared with Euler's phi.
+    keywords: [carmichael, lambda, exponent, reduced totient, rsa, carmichael number, korselt]
+    related: [euler-totient, multiplicative-order, primitive-root, primality-test]
+    about: |
+      The Carmichael function $\lambda(n)$ is the smallest $m \ge 1$ such that $a^m \equiv 1 \pmod n$ for every $a$ coprime to $n$, the exponent of the group $\mathbb Z_n^*$. It always divides $\varphi(n)$ and equals the largest order of an element.
+
+      It follows from the factorization: $\lambda(p^e) = p^{e-1}(p - 1)$ for odd primes, $\lambda(2) = 1$, $\lambda(4) = 2$, $\lambda(2^e) = 2^{e-2}$ for $e \ge 3$, and for coprime parts $\lambda(mn) = \operatorname{lcm}(\lambda(m), \lambda(n))$. So $\lambda(n) = \varphi(n)$ exactly when primitive roots exist.
+
+      In RSA one may use $\lambda(N) = \operatorname{lcm}(p - 1, q - 1)$ instead of $\varphi(N)$ to compute the private exponent, giving a smaller $d$ (the FIPS 186 standard for RSA keys prescribes $\lambda$). A composite $n$ with $\lambda(n) \mid n - 1$ passes Fermat's test for every base coprime to it: these are the Carmichael numbers, such as $561 = 3 \cdot 11 \cdot 17$ with $\lambda(561) = 80$.

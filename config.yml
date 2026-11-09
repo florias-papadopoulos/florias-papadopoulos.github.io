@@ -36,6 +36,9 @@ menu:
     - name: Papers
       url: /papers/
       weight: 2
+    - name: Toolbox
+      url: /toolbox/
+      weight: 3
     - name: CV
       url: /files/resume.pdf
       weight: 4

@@ -1,0 +1,122 @@
+# Toolbox category (assets/js/calc/README.md): one page per tool at /toolbox/<id>/, code in assets/js/calc/tools/<id>.js
+name: Code breaking
+order: 5
+intro: Breaking classical ciphers without the key, by counting letters and measuring how English a text looks.
+tools:
+  - id: frequency-analysis
+    title: Frequency analysis
+    short: Letter counts and shares next to English, the commonest bigrams and trigrams, doubled letters and the index of coincidence.
+    keywords: [letter frequency, etaoin, bigram, trigram, histogram, cryptanalysis, monoalphabetic]
+    related: [index-of-coincidence, substitution-solver, cipher-identifier, caesar-breaker]
+    about: |
+      In any long English text the letters turn up with steady shares: E about 12.7 percent, T about 9 percent, A, O, I and N close behind, while J, Q, X and Z together make well under 1 percent. A cipher that replaces each letter by one fixed other letter keeps these counts; it only relabels them. Counting the ciphertext therefore tells you which symbols probably stand for E, T and A.
+
+      Single letters are only the start. Pairs and triples are just as regular (TH, HE, IN, ER; THE, AND, ING), and so are doubled letters such as LL, EE and SS. Matching these patterns usually unlocks the rest of a substitution, one word at a time.
+
+      The index of coincidence $\mathrm{IC} = \sum_i n_i (n_i - 1) / (N (N - 1))$ sums the whole picture up in one number: about $0.066$ for English and $1/26 \approx 0.0385$ for random letters. The Arab scholar al-Kindi described frequency analysis in the ninth century, and it broke monoalphabetic ciphers for a thousand years.
+  - id: index-of-coincidence
+    title: Index of coincidence calculator
+    short: The IC of a text with the counts written out, Friedman's estimate, and the average IC of the columns for every period, to find a Vigenère key length.
+    keywords: [ic, kappa, friedman, key length, period, vigenere, coincidence]
+    related: [kasiski, vigenere-breaker, frequency-analysis]
+    about: |
+      The index of coincidence is the probability that two letters taken from two different positions of a text are equal. Counting $n_i$ letters of each kind among $N$, it is $\mathrm{IC} = \sum_i n_i (n_i - 1) / (N (N - 1))$. For English it is close to $\kappa_p = \sum_i p_i^2 \approx 0.066$; for letters chosen uniformly at random it is $\kappa_r = 1/26 \approx 0.0385$.
+
+      Relabelling the letters, as a substitution does, leaves the IC unchanged. A Vigenère cipher, however, uses $L$ alphabets in turn, and its IC falls toward $\kappa_r$. William Friedman turned this into an estimate of $L$ in the 1920s.
+
+      The more reliable test splits the ciphertext into $p$ columns (every $p$-th letter) and averages the IC of the columns. When $p$ equals the key length, each column was enciphered with a single Caesar shift, so its IC jumps back to the English value. Multiples of the key length score high as well, so the smallest high period is the answer.
+  - id: kasiski
+    title: Kasiski examination
+    short: Repeated sequences in a Vigenère ciphertext, the distances between them and their factors, to find the key length.
+    keywords: [kasiski, babbage, repeats, key length, vigenere, distance, factors]
+    related: [index-of-coincidence, vigenere-breaker, gcd]
+    about: |
+      In a Vigenère ciphertext, a word that appears twice in the plaintext is enciphered the same way whenever the two copies sit at the same position of the key, that is, when their distance is a multiple of the key length $L$. So repeated sequences of three or more letters in the ciphertext tend to lie a multiple of $L$ apart.
+
+      The examination lists every repeat, measures the distances between the copies and factors them. The true key length divides most of the distances. Some repeats happen by chance and add noise, and small numbers such as 2 and 3 divide many distances anyway, so the tool looks for the largest length that divides nearly as many distances as the best one.
+
+      Friedrich Kasiski published the method in 1863 (Charles Babbage had found it earlier but never published), and it ended the reputation of the Vigenère cipher as "le chiffre indéchiffrable". Cross-check it with the index of coincidence of the columns.
+  - id: caesar-breaker
+    title: Caesar cipher breaker
+    short: All 26 shifts tried and ranked by how English the result looks, with quadgram scores, chi-squared and the best decryption.
+    keywords: [caesar, shift, rot13, brute force, decrypt without key, chi-squared, quadgram]
+    related: [affine-breaker, frequency-analysis, cipher-identifier, modulo]
+    needs: [english-quadgrams]
+    about: |
+      A Caesar cipher shifts every letter by the same amount $k$: $y = (x + k) \bmod 26$. With only 26 possible shifts the key cannot hide: decrypt with each one and pick the decryption that reads as English.
+
+      To let the computer pick, each candidate gets a score. The chi-squared statistic $\chi^2 = \sum_i (n_i - E_i)^2 / E_i$ compares the letter counts with those expected in English (smaller is better). The quadgram fitness adds up $\log_{10}$ of the English probability of every group of four consecutive letters, so it also rewards the right letter order; it works even on short texts where the counts say little.
+
+      The quadgram table behind the score was counted on about five million letters of public-domain English novels. A score of about $-4.3$ per quadgram means English, about $-5.9$ means random letters.
+  - id: affine-breaker
+    title: Affine cipher breaker
+    short: All 312 affine keys tried and ranked by English fitness, with the E and T shortcut and the decryption table.
+    keywords: [affine, brute force, atbash, linear, decrypt without key, known plaintext]
+    related: [caesar-breaker, modular-inverse, substitution-solver]
+    needs: [english-quadgrams]
+    about: |
+      The affine cipher enciphers a letter $x$ (A = 0, ..., Z = 25) as $y = (a x + b) \bmod 26$. To decrypt, $x = a^{-1} (y - b) \bmod 26$, which needs $\gcd(a, 26) = 1$: that leaves 12 values for $a$ and 26 for $b$, so only 312 keys, few enough to try all of them and rank the results by quadgram fitness.
+
+      There is also a shortcut that shows why the affine cipher falls to two guesses. If the two most frequent ciphertext letters stand for E and T, then $y_1 \equiv 4a + b$ and $y_2 \equiv 19a + b \pmod{26}$; subtracting gives $15 a \equiv y_2 - y_1$, solved with $15^{-1} \equiv 7 \pmod{26}$. Two known plaintext letters are always enough when their difference is invertible.
+
+      The Caesar cipher is the case $a = 1$, and Atbash (A and Z swapped, B and Y, and so on) is $a = b = 25$.
+  - id: vigenere-breaker
+    title: Vigenère cipher breaker
+    short: Finds the key length with the IC and Kasiski, solves every column as a Caesar shift by chi-squared, and gives the key and the plaintext.
+    keywords: [vigenere, polyalphabetic, key length, chi-squared, decrypt without key, kasiski, friedman]
+    related: [index-of-coincidence, kasiski, caesar-breaker, frequency-analysis]
+    needs: [english-quadgrams]
+    about: |
+      The Vigenère cipher adds a repeating key to the plaintext: $y_i = (x_i + k_{i \bmod L}) \bmod 26$. It flattens the letter counts, which defeats plain frequency analysis, but it has a weakness: every $L$-th letter is enciphered with the same shift.
+
+      So the attack has two steps. First the key length $L$: the average index of coincidence of the $L$ columns becomes English-like at the right length, and Kasiski's repeated sequences lie a multiple of $L$ apart. Then each column is a Caesar cipher on its own: try all 26 shifts and keep the one whose letter counts are closest to English by $\chi^2$.
+
+      Short columns can mislead $\chi^2$ by a letter or two, so the breaker finally polishes the key with quadgram fitness on the whole plaintext, one key letter at a time. Several key lengths are tried and the one whose plaintext reads best wins; you can also force the length. A few hundred letters are usually enough for keys up to 10 or so.
+  - id: substitution-solver
+    title: Substitution cipher solver
+    short: Solves a monoalphabetic substitution by hill climbing on English quadgram fitness, with restarts and letters you fix by hand.
+    keywords: [substitution, cryptogram, aristocrat, patristocrat, hill climbing, mixed alphabet, monoalphabetic, keyword cipher]
+    related: [frequency-analysis, affine-breaker, cipher-identifier]
+    needs: [english-quadgrams]
+    about: |
+      A simple substitution replaces each letter by another through a fixed mixed alphabet. There are $26! \approx 4 \cdot 10^{26}$ keys, so trying them all is out of the question, yet the cipher is weak: the letter counts and, better still, the patterns of letter groups survive.
+
+      The solver starts from a key guessed from the letter frequencies and improves it by hill climbing: swap the plaintext letters of two ciphertext letters, keep the swap when the quadgram fitness of the decryption goes up, and repeat until no swap helps. Such a climb can stop on a lesser hilltop, so it restarts from random keys and keeps the best result; when the same best key comes out of several restarts, it is very likely the right one.
+
+      With 200 letters or more the answer is usually exact, apart from rare letters that occur once or never. If a few letters stay wrong, fix the ones you can read (for example Q=T) and solve again: the solver keeps them.
+  - id: transposition-breaker
+    title: Transposition cipher breaker
+    short: Tries every rail fence and every columnar transposition order up to 8 columns (hill climbing beyond) and ranks them by English fitness.
+    keywords: [transposition, rail fence, zigzag, columnar, permutation, anagram, hill climbing]
+    related: [frequency-analysis, cipher-identifier, substitution-solver]
+    needs: [english-quadgrams]
+    about: |
+      A transposition cipher keeps the letters and changes their order. Its fingerprint is clear: the letter counts are exactly those of English (low $\chi^2$, IC about $0.066$), but the text does not read. The quadgram fitness, which looks at the order of the letters, is the right score to unscramble it.
+
+      In a rail fence the text is written in a zigzag over $r$ rails and the rails are read one after another; with all rail counts and starting offsets there are only a few hundred settings. In a columnar transposition the text is written in rows under a key of $k$ columns and the columns are read in the key's order. Up to 8 columns all $k!$ orders are scored ($8! = 40\,320$); above that the breaker swaps and moves columns while the fitness improves.
+
+      Only the letters are used: spaces and punctuation are removed first, as most transposition ciphertexts are written. The key is shown as the number above each column, 1 for the column read first.
+  - id: cipher-identifier
+    title: Cipher identifier
+    short: Guesses which cipher or encoding produced a text from its characters and statistics, with the reasons and the tool to try next.
+    keywords: [identify, which cipher, detect, recognise, analysis, playfair, bacon, polybius, adfgvx, base64]
+    related: [decoder-guesser, frequency-analysis, index-of-coincidence]
+    needs: [english-quadgrams]
+    about: |
+      Before breaking a cipher you need to know which one it is. The character set is the first clue: only 0 and 1 means binary, dots and dashes mean Morse, the digits 1 to 5 in pairs suggest a Polybius square, two letters in groups of five a Baconian cipher, the letters A D F G V X the ADFGVX cipher, and a mix of cases and digits with = at the end Base64.
+
+      For letter ciphers the statistics decide. If some Caesar or affine key makes the text English, that is the answer. Otherwise the index of coincidence tells one alphabet (about 0.066) from several (lower): with English letter counts but no English order it is a transposition; with an English IC but foreign counts a substitution; with a low IC and English-like columns at some period a Vigenère cipher. Playfair leaves its own marks: an even number of letters, no J, and never two equal letters in a pair.
+
+      The confidence numbers are rules of thumb, not probabilities, and short texts can fool any rule. The tool to try next is named for each candidate.
+  - id: decoder-guesser
+    title: Decoder guesser
+    short: Tries Base64, Base32, hex, binary, decimal codes, Morse, URL encoding, ROT13, Atbash and reversing, also two in a row, and ranks what reads best.
+    keywords: [decode, base64, base32, hex, binary, ascii, morse, url, rot13, atbash, reverse, magic, auto decode]
+    related: [cipher-identifier, frequency-analysis, caesar-breaker]
+    needs: [english-quadgrams]
+    about: |
+      Encodings are not ciphers: there is no key, only a public rule for writing bytes or letters in another alphabet. They are easy to undo once you know which one was used, and the alphabet usually gives it away. This tool simply tries them all.
+
+      Each decoder first checks that the input fits its alphabet (Base64 uses A to Z, a to z, 0 to 9, + and /; hex the digits 0 to 9 and A to F; Morse dots and dashes), then decodes. The outputs are ranked by a readability score: the share of printable characters, how English the letters look by quadgram fitness, and the share of letters.
+
+      Puzzles often stack encodings, for example hex written in Base64, so the tool can also try every pair of decoders. If nothing reads, the text is probably enciphered with a key: ask the cipher identifier.

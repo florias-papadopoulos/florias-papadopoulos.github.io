@@ -1,0 +1,48 @@
+{{- /* One Toolbox tool (pages made by content/toolbox/_content.gotmpl from data/toolbox/*.yaml). The form, result
+       and procedure are built by the tool's script: assets/js/calc/core.js + lib/*.js + tools/<id>.js + boot.js,
+       joined into one file per tool. "How it works" is the tool's about text. Styles: assets/css/common/toolbox.css.
+       The class tl-page lets the pet of the tabs (assets/js/cat-pages.js) live here too. */ -}}
+{{- define "main" }}
+{{- $id := .Params.tool }}
+{{- $parts := slice (resources.Get "js/calc/core.js") }}
+{{- /* shared libraries first (nt, text), then the categories' own libraries, which may use them */}}
+{{- $parts = $parts | append (resources.Get "js/calc/lib/nt.js") (resources.Get "js/calc/lib/text.js") }}
+{{- range resources.Match "js/calc/lib/*.js" }}{{ if not (in (slice "js/calc/lib/nt.js" "js/calc/lib/text.js") .Name) }}{{ $parts = $parts | append . }}{{ end }}{{ end }}
+{{- range .Params.needs }}{{ with resources.Get (printf "js/calc/data/%s.js" .) }}{{ $parts = $parts | append . }}{{ end }}{{ end }}
+{{- with resources.Get (printf "js/calc/tools/%s.js" $id) }}{{ $parts = $parts | append . }}{{ end }}
+{{- $parts = $parts | append (resources.Get "js/calc/boot.js") }}
+{{- $js := $parts | resources.Concat (printf "js/calc/%s.bundle.js" $id) | minify | fingerprint }}
+<div class="tl-page tb-page" id="tb-tool" data-tool="{{ $id }}">
+    <nav class="tb-crumbs" aria-label="Breadcrumb"><a href="{{ "toolbox/" | relURL }}">Toolbox</a><span aria-hidden="true">/</span><a href="{{ "toolbox/" | relURL }}#{{ .Params.catid }}">{{ .Params.category }}</a></nav>
+    <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+    <p class="tb-lede">{{ .Params.short }}</p>
+
+    <form class="tb-form" id="tb-form" novalidate autocomplete="off"></form>
+    <noscript><p class="tb-error">This calculator runs in your browser with JavaScript, which is off.</p></noscript>
+    <div class="tb-out" id="tb-result" aria-live="polite"></div>
+    <section class="tb-proc" id="tb-proc" hidden aria-labelledby="tb-h-proc">
+        <h2 class="tb-h2" id="tb-h-proc">Procedure</h2>
+        <div id="tb-steps"></div>
+    </section>
+
+    {{- with .Content }}
+    <section class="tb-about" aria-labelledby="tb-h-about">
+        <h2 class="tb-h2" id="tb-h-about">How it works</h2>
+        {{ . }}
+    </section>
+    {{- end }}
+    {{- with .Params.related }}
+    <section class="tb-related" aria-labelledby="tb-h-rel">
+        <h2 class="tb-h2" id="tb-h-rel">Related tools</h2>
+        <ul>
+            {{- range . }}{{ with site.GetPage (printf "/toolbox/%s" .) }}
+            <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+            {{- end }}{{ end }}
+        </ul>
+    </section>
+    {{- end }}
+    <p class="tb-private">Everything is calculated in your browser. Nothing you type leaves your device.</p>
+</div>
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}

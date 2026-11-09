@@ -1,0 +1,192 @@
+# Toolbox category (assets/js/calc/README.md): one page per tool at /toolbox/<id>/, code in assets/js/calc/tools/<id>.js
+name: Encodings and converters
+order: 3
+intro: How text and numbers become bytes and bits, and back. Nothing here is secret, but every cipher and hash works on these representations.
+tools:
+  - id: character-codes
+    title: Text to character codes
+    short: Every character with its Unicode code point in decimal, hex and binary, and codes back to text.
+    keywords: [unicode, ascii, code point, ord, chr, decimal, char code, html entity]
+    related: [utf8, hex, binary]
+    about: |
+      Computers store characters as numbers. ASCII, from 1963, numbers 128 characters: the capital A is 65, a space 32, the digit 0 is 48. Unicode extends this to more than a million code points, written U+ followed by at least four hex digits, so that every script and every emoji has its own number: é is U+00E9 (233), the euro sign U+20AC, 😀 U+1F600.
+
+      This tool shows each character's code point in several bases. Going from decimal to binary or hex is the usual change of base: write the number as a sum of powers of 2 or of 16. Going back, it reads codes in the chosen base, or with a prefix such as U+, 0x or the HTML entity form &#233;.
+
+      A code point is not yet a byte sequence: to store or send text it has to be encoded, most often in UTF-8, where a code point takes 1 to 4 bytes. Code points U+D800 to U+DFFF are reserved for the surrogates of UTF-16 and are never characters by themselves.
+  - id: hex
+    title: Text to hex converter
+    short: Text to hexadecimal bytes (UTF-8) and hex back to text, with each byte split into two nibbles.
+    keywords: [hexadecimal, base16, bytes, hexdump, ascii to hex, hex to ascii]
+    related: [binary, base64, utf8]
+    about: |
+      Hexadecimal is base 16, with the digits 0 to 9 and A to F (10 to 15). One hex digit holds exactly 4 bits, so one byte, 8 bits, is always two hex digits: from 00 to FF. That is why hex is the standard way to write bytes, keys and hashes.
+
+      To convert text, it is first encoded as bytes (here in UTF-8), then every byte is split into its high and low 4 bits, and each half becomes one digit. For H, code 72 = 0100 1000 in binary, the halves are 4 and 8: H is 48 in hex. Going back, every pair of digits is $16 \cdot \text{first} + \text{second}$.
+
+      RFC 4648 calls this encoding Base16. It doubles the size of the data, but it is the easiest to read and to compare by eye.
+  - id: binary
+    title: Text to binary converter
+    short: Text to groups of 8 bits (the UTF-8 bytes) and binary back to text, with the place values.
+    keywords: [bits, base2, 01, ascii to binary, binary to text, byte]
+    related: [hex, character-codes, utf8]
+    about: |
+      In binary every digit is a bit, and the places are worth 1, 2, 4, 8, and so on, doubling to the left. A byte is 8 bits with place values from 128 down to 1, so it holds a number from 0 to 255: 01001000 is $64 + 8 = 72$, the letter H.
+
+      To write text in binary, the text is encoded as bytes (UTF-8 here; for plain ASCII each character is one byte) and every byte is written with exactly 8 bits, leading zeros included. To read binary, it is cut into groups of 8 and each group is added up by its place values.
+
+      Some texts write ASCII with 7 bits per character, since the top bit of an ASCII byte is always 0. With spaces between the groups this tool accepts shorter groups as well.
+  - id: base64
+    title: Base64 encoder and decoder
+    short: Base64 step by step, 3 bytes into 4 characters of 6 bits, with padding and the URL-safe alphabet.
+    keywords: [base64url, rfc 4648, mime, data uri, pem, atob, btoa, encode, decode]
+    related: [base32, base58, hex]
+    about: |
+      Base64 writes any bytes with 64 harmless characters: A to Z, a to z, 0 to 9, + and /. Since $64 = 2^6$, each character carries 6 bits, and 3 bytes (24 bits) become exactly 4 characters. The classic example: Man is 4D 61 6E, that is 010011 010110 000101 101110, the values 19, 22, 5, 46, and so TWFu.
+
+      When the length is not a multiple of 3, the last block is filled with zero bits up to a whole number of characters, and = signs fill the block of 4: one byte gives two characters and ==, two bytes give three characters and =. The URL-safe variant (base64url) replaces + and / by - and _ and often drops the padding, so the result can go into a web address or a file name.
+
+      Base64 is everywhere binary data must travel as text: e-mail attachments (MIME), data: URLs in web pages, PEM files of keys and certificates, JSON Web Tokens. It is an encoding, not encryption: anyone can decode it.
+  - id: base32
+    title: Base32 encoder and decoder
+    short: Base32 (RFC 4648) step by step, 5 bytes into 8 characters of 5 bits, with padding.
+    keywords: [rfc 4648, base32hex, totp, 2fa secret, onion, encode, decode]
+    related: [base64, base58, hex]
+    about: |
+      Base32 uses 32 characters, the capital letters A to Z and the digits 2 to 7 (0, 1, 8 and 9 are left out since they look like O, I and B). Each character carries 5 bits; since 5 bytes are 40 bits, a block of 5 bytes becomes exactly 8 characters.
+
+      A last block that is shorter needs 2, 4, 5 or 7 characters, filled with zero bits, and is padded with = signs up to 8. For example foobar becomes MZXW6YTBOI======. RFC 4648 also defines base32hex, with the alphabet 0 to 9 then A to V, which keeps the sort order of the data.
+
+      Base32 is 60% longer than the data, more than Base64, but it does not care about upper or lower case and has no signs that need escaping. It is used for the secrets of authenticator apps (TOTP), for Tor onion addresses and in DNSSEC.
+  - id: base58
+    title: Base58 encoder and decoder
+    short: Base58 with the Bitcoin alphabet, as repeated division of one big number by 58, with leading zero bytes.
+    keywords: [bitcoin, address, base58check, ipfs, encode, decode]
+    related: [base64, number-text, modulo]
+    about: |
+      Base58 writes bytes with 58 characters: the digits and letters without 0, O, I and l, which are easy to confuse, and without + and /, so that a double click selects the whole string. It was made for Bitcoin addresses, which people copy by hand.
+
+      Since 58 is not a power of 2, the bits cannot simply be cut into groups. Instead all the bytes are read as one big number $N$ (big-endian, base 256) and written in base 58, by dividing by 58 again and again: the remainders are the digits, last digit first. Each leading zero byte would vanish in the number, so it is written as the character 1 (the digit for 0).
+
+      Decoding goes the other way, with Horner's rule $N \leftarrow 58N + d$. The repeated division makes Base58 slow for long data, but addresses and keys are short. Bitcoin adds a 4-byte checksum (Base58Check, the first bytes of a double SHA-256) before encoding.
+  - id: url-encoding
+    title: URL encoder and decoder
+    short: Percent-encoding of each UTF-8 byte (%20, %C3%A9) and decoding, for URL parts, whole URLs and form data.
+    keywords: [percent encoding, urlencode, urldecode, encodeuricomponent, query string, rfc 3986, "%20"]
+    related: [utf8, hex, base64]
+    about: |
+      A web address may only contain a few characters: letters, digits and some signs. Others, and signs that have a meaning in the URL (such as ?, & and = in a query), are written as a % followed by the two hex digits of a byte: a space is %20, & is %26. A character outside ASCII is first encoded in UTF-8 and every byte gets its own %: é is C3 A9, so %C3%A9.
+
+      Which characters may stay depends on where the text goes. RFC 3986 keeps only letters, digits and - . _ ~ (the unreserved characters). JavaScript's encodeURIComponent also keeps ! ' ( ) *, and encodeURI, meant for a whole address, keeps the separators : / ? # & = too. HTML forms (application/x-www-form-urlencoded) write a space as +.
+
+      Decoding replaces every %XX by its byte and reads the bytes as UTF-8. A % that is not followed by two hex digits is an error, and so are bytes that are not valid UTF-8.
+  - id: utf8
+    title: UTF-8 encoder and decoder
+    short: The UTF-8 bytes of each character with the bit layout filled in, and bytes back to text with every error explained.
+    keywords: [unicode, encoding, bytes, code point, mojibake, overlong, surrogate, utf8 decoder]
+    related: [character-codes, hex, url-encoding]
+    about: |
+      UTF-8 stores each Unicode code point in 1 to 4 bytes. Code points below 128 (ASCII) are one byte 0xxxxxxx, so plain English text is the same in ASCII and UTF-8. Larger code points use a lead byte that tells the length, 110xxxxx, 1110xxxx or 11110xxx, followed by continuation bytes 10xxxxxx; the bits of the code point fill the x places from left to right. For é = U+00E9 = 00011 101001 that gives 11000011 10101001, the bytes C3 A9.
+
+      The design has useful properties: a continuation byte can never be mistaken for the start of a character, so a decoder can resynchronize after an error, and sorting the bytes sorts the code points. An ASCII byte never appears inside a multibyte character, so searching for / or a quote in UTF-8 is safe.
+
+      Not every byte sequence is valid: a continuation byte without a lead, a sequence cut short, an overlong form (like C0 AF for /, which once let attackers sneak paths past filters), the surrogates U+D800 to U+DFFF, or anything above U+10FFFF. This decoder replaces each invalid sequence by U+FFFD, exactly as browsers do.
+  - id: morse
+    title: Morse code translator
+    short: Text to Morse code and back (letters, digits and punctuation), with the timing in units.
+    keywords: [morse, sos, telegraph, dit dah, cw, ham radio, translator]
+    related: [binary, character-codes]
+    about: |
+      Morse code, developed for the electric telegraph around 1840, writes each character as a sequence of short and long signals, dots (dit) and dashes (dah). Frequent letters get short codes: E is a single dot and T a single dash, while Q is dash dash dot dash. This tool uses the international (ITU) code, with letters, digits and the usual punctuation.
+
+      Morse is a rhythm more than an alphabet. With a dot as one unit, a dash lasts 3 units, the gap inside a letter 1 unit, between letters 3 and between words 7. Speeds are measured in words per minute with the word PARIS, which is exactly 50 units long.
+
+      Written down, letters are separated by spaces and words by a slash. Morse is a variable-length prefix-free code only thanks to the pauses: without them, ... could be S, or EEE, or IE. Accented letters are sent here as the plain letter.
+  - id: xor
+    title: XOR calculator (repeating key)
+    short: Text or hex XOR a repeating key, byte by byte with all the bits, and XOR again to get the data back.
+    keywords: [xor cipher, exclusive or, one time pad, repeating key, vernam, bitwise]
+    related: [bitwise, hex, hamming-distance]
+    about: |
+      Exclusive or, written $\oplus$, gives 1 when two bits differ and 0 when they agree. On bytes it works on all 8 bits in parallel: $\mathtt{48} \oplus \mathtt{6B} = \mathtt{23}$, because 01001000 and 01101011 differ in three places. The key property is that XOR undoes itself: $(d \oplus k) \oplus k = d$, so the same operation encrypts and decrypts.
+
+      With a key as long as the message, truly random and never reused, XOR is the one-time pad (Vernam cipher), which is perfectly secure: every plaintext of the same length is equally likely. Stream ciphers such as ChaCha20 and AES in counter mode produce a long pseudo-random key stream and XOR it with the data.
+
+      A short key repeated over the data is a different story. It is a Vigenère cipher on bytes, broken by finding the key length (for instance with the Hamming distance between blocks) and then each key byte on its own by frequency analysis.
+  - id: bitwise
+    title: Bitwise calculator
+    short: AND, OR, XOR, NOT, NAND, NOR and shifts on whole numbers of any size, with the bits aligned in a grid.
+    keywords: [and, or, xor, not, shift, bit mask, bit manipulation, logical, arithmetic shift]
+    related: [twos-complement, xor, binary]
+    about: |
+      Bitwise operations work on each bit position separately, with no carries: AND keeps a 1 only where both numbers have one (useful for masks: $x \mathbin{\&} 255$ keeps the lowest byte), OR sets bits, XOR flips the bits where the other number has a 1. NOT flips every bit, which only makes sense with a fixed width: in 8 bits, NOT 01011010 is 10100101.
+
+      A shift moves all bits. Shifting left by $k$ multiplies by $2^k$ (bits that leave a fixed width are lost); shifting right divides by $2^k$ rounding down. For negative numbers in two's complement there are two right shifts: the arithmetic shift copies the sign bit and keeps the number negative, the logical shift brings in zeros.
+
+      These operations are the building blocks of ciphers and hash functions (SHA-256 is nothing but additions, rotations, AND, XOR and NOT on 32-bit words), and of fast code everywhere. Here the numbers may be as large as you like; give a width to work modulo $2^n$.
+  - id: twos-complement
+    title: Two's complement converter
+    short: A signed integer to n-bit two's complement and back, with invert and add one, and the range check.
+    keywords: [signed integer, negative binary, ones complement, int8, int32, sign bit, overflow]
+    related: [bitwise, binary, modulo]
+    about: |
+      Two's complement is how computers store negative integers. With $n$ bits, a number $x$ that is not negative is written in plain binary, and a negative $x$ is written as $2^n + x$. In 8 bits, $-42$ becomes $256 - 42 = 214$, that is 11010110. Equivalently, the top bit is worth $-2^{n-1}$ instead of $+2^{n-1}$, so 8 bits cover $-128$ to $127$.
+
+      The quick way to negate: invert every bit and add one. That works because inverting $x$ gives $(2^n - 1) - x$. Reading a pattern back is the same: if the top bit is 1, invert and add one to get the absolute value.
+
+      The point is that the hardware needs no special case for signs: addition, subtraction and multiplication are simply done modulo $2^n$, the same circuits as for unsigned numbers. Overflow is what happens when the true result leaves the range, as when $127 + 1$ wraps around to $-128$.
+  - id: ieee754
+    title: IEEE 754 floating point converter
+    short: A decimal number to single or double precision bits (sign, biased exponent, mantissa) with the exact stored value and the rounding error, and back.
+    keywords: [float, double, binary32, binary64, floating point, mantissa, exponent, bias, nan, subnormal, 0.1]
+    related: [twos-complement, binary, hex]
+    about: |
+      Floating point numbers store $x = (-1)^s \cdot 1.f \cdot 2^{e}$ in three fields: a sign bit, an exponent with a bias added (127 in single precision, 1023 in double) and the fraction $f$, the bits after the point. The leading 1 is not stored, it is always there (the hidden bit). Single precision has 8 exponent and 23 fraction bits, double precision 11 and 52.
+
+      To convert a decimal number, write it in binary (the fractional part by repeated doubling), move the point behind the first 1, and round to the available bits: to nearest, and on an exact tie to the even neighbour. Most decimal fractions never end in binary: 0.1 is $0.000110011001100\ldots_2$, so the stored value is a little off, 0.100000001490116... in single precision. This tool computes the conversion exactly with big integers, so the stored value and the rounding error are shown to the last digit.
+
+      Some patterns are special. An exponent field of all zeros means zero or a subnormal number (no hidden 1, for gradual underflow down to $2^{-149}$, about 1.4e-45, in single precision); all ones means infinity (fraction 0) or NaN, not a number. And there are two zeros, +0 and -0.
+  - id: gray-code
+    title: Gray code converter
+    short: Binary to Gray code (b XOR b shifted right) and back with a prefix XOR, and the table of all n-bit codes.
+    keywords: [reflected binary code, gray, rotary encoder, karnaugh, one bit change]
+    related: [bitwise, binary, hamming-distance]
+    about: |
+      In the Gray code (the reflected binary code, patented by Frank Gray in 1953) two consecutive numbers always differ in exactly one bit: 0, 1, 3, 2, 6, 7, 5, 4 in 3 bits is 000, 001, 011, 010, 110, 111, 101, 100. Ordinary binary does not have this property: going from 3 to 4 (011 to 100) flips all three bits.
+
+      The conversion is one XOR: $g = b \oplus (b \gg 1)$, so each Gray bit says whether a binary bit differs from its left neighbour. Going back, the top bit stays, and each further binary bit is the XOR of all Gray bits above and including it, a prefix XOR.
+
+      Gray codes are used where a reading may be taken while bits are changing, as in rotary and position encoders: a misread can only be off by one step. They also order the cells of Karnaugh maps and appear in genetic algorithms and error correction.
+  - id: hamming-distance
+    title: Hamming distance calculator
+    short: The number of positions where two strings, bit strings or hex values differ, with the differences marked.
+    keywords: [hamming, distance, bits, popcount, weight, error correcting code, xor]
+    related: [xor, gray-code, binary]
+    about: |
+      The Hamming distance between two strings of the same length is the number of positions where they differ. Between karolin and kathrin it is 3. For bit strings it equals the number of ones in $a \oplus b$, the weight (popcount) of the XOR.
+
+      Richard Hamming introduced it in 1950 for error-correcting codes: if every two codewords are at distance at least $d$, then up to $d - 1$ flipped bits are detected and up to $\lfloor (d-1)/2 \rfloor$ corrected, by choosing the nearest codeword.
+
+      In cryptanalysis the bit-wise distance helps to find the key length of a repeating-key XOR (blocks encrypted with the same key byte are closer), and the avalanche effect of a good hash or cipher means that flipping one input bit changes about half the output bits.
+  - id: hash
+    title: SHA-256, SHA-1 and MD5 step by step
+    short: The hash of a text or bytes with the padding, the message schedule and every round of the compression in a table.
+    keywords: [sha256, sha-2, sha1, md5, hash function, digest, compression function, merkle damgard, checksum]
+    related: [hex, bitwise, xor]
+    about: |
+      A cryptographic hash function turns a message of any length into a short fixed-size digest, so that it is infeasible to find a message for a given digest, or two messages with the same digest. SHA-256, standardized by NIST in FIPS 180-4, gives 256 bits; SHA-1 gives 160 and MD5 128, and both of those are broken (collisions can be computed), so they should no longer be used for security.
+
+      All three follow the Merkle-Damgård construction. The message is padded with a 1 bit, zeros and its length to a multiple of 512 bits, and cut into blocks. A compression function mixes each block into a running hash value, starting from fixed initial words. In SHA-256 the 16 words of a block are expanded into 64 words (the message schedule), and 64 rounds update eight working variables with additions modulo $2^{32}$, rotations, XOR and the bit functions Ch and Maj. At the end of a block the working variables are added to the hash value.
+
+      The constants are nothing-up-my-sleeve numbers: SHA-256 uses the fractional parts of the square and cube roots of the first primes, MD5 the sines of $1, 2, \ldots, 64$. This tool shows every round of the first block and the hash value after each further block. Check: SHA-256 of abc begins with ba7816bf.
+  - id: number-text
+    title: Text to number converter
+    short: Text to one big integer through its UTF-8 bytes (big-endian), as in textbook RSA examples, and a number back to text.
+    keywords: [rsa, message to integer, bytes to integer, os2ip, i2osp, big integer, bigint]
+    related: [base58, hex, modular-inverse]
+    about: |
+      Public-key schemes such as RSA compute with numbers, not with text. The usual way to turn a message into a number is to take its bytes and read them as the digits of one number in base 256, the first byte being the most significant: Hi is 48 69 in hex, so $m = 72 \cdot 256 + 105 = 18537$. The PKCS #1 standard calls this OS2IP, and the reverse I2OSP.
+
+      Back from a number, divide by 256 repeatedly; the remainders are the bytes, from the last one to the first. In hex it is simpler still: each pair of hex digits is one byte.
+
+      In textbook RSA the ciphertext is $c = m^e \bmod N$, which requires $m < N$. Real RSA never encrypts the bare message: it adds randomized padding (OAEP) first, otherwise equal messages give equal ciphertexts and small messages can be recovered.

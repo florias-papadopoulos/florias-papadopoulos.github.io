@@ -58,7 +58,7 @@ const BOARDS = {
     'cucumber-hop': {}, 'yarn-smash': {}, 'night-prowl': {}, 'orbit-paws': {}, 'paw-raiders': {}, 'garden-defender': {},
     'dino-valley': {}, 'cipher-cat': { max: 2500 }, 'cat-tower': { max: 20000 }, 'laser-chase': { max: 30000 },
     'sliding-kitten': { lower: true, min: 1 }, 'mouse-sweeper': { lower: true, min: 1 },
-    'kitty-kart': { lower: true, min: 10, max: 3600, dec: 1 }, 'crypto-heist': { max: 6000 }
+    'kitty-kart': { lower: true, min: 10, max: 3600, dec: 1 }, 'crypto-heist': { max: 6000 }, 'zero-knowledge': { max: 2500 }
 };
 const LEVELS = ['easy', 'normal', 'hard'];
 /* Games that can be liked: all of the leaderboard ones and the two-player games */

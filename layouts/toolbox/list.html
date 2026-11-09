@@ -1,0 +1,39 @@
+{{- /* The Toolbox tab (/toolbox/): a search box and the tools by category, from data/toolbox/*.yaml (one file per
+       category, sorted by its "order"). Search: assets/js/calc/index.js. Styles: assets/css/common/toolbox.css. */ -}}
+{{- define "main" }}
+{{- $cats := slice }}
+{{- range $k, $v := site.Data.toolbox }}{{ $cats = $cats | append (merge $v (dict "key" $k)) }}{{ end }}
+{{- $cats = sort $cats "order" }}
+{{- $n := 0 }}{{ range $cats }}{{ $n = add $n (len .tools) }}{{ end }}
+<div class="tl-page tb-page tb-index">
+    <header class="tb-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        <div class="tb-lede">{{ .Content }}</div>
+        <div class="tb-search">
+            <label class="tb-sr" for="tb-search">Search the tools</label>
+            <input type="search" id="tb-search" placeholder="Search {{ $n }} tools, e.g. inverse, Vigenère, base64" autocomplete="off" spellcheck="false">
+        </div>
+        <nav class="tb-jump" aria-label="Categories">
+            {{- range $cats }}<a href="#{{ .key }}">{{ .name }} <span>{{ len .tools }}</span></a>{{ end }}
+        </nav>
+        <p class="tb-nores" id="tb-nores" hidden>No tool matches that. Try a shorter word.</p>
+    </header>
+    {{- range $cats }}
+    <section class="tb-cat" id="{{ .key }}" aria-labelledby="tb-c-{{ .key }}">
+        <h2 class="tb-cat-h" id="tb-c-{{ .key }}">{{ .name }}</h2>
+        {{- with .intro }}<p class="tb-cat-intro">{{ . }}</p>{{ end }}
+        <ul class="tb-tools">
+            {{- range .tools }}
+            <li class="tb-tool" data-q="{{ lower (printf "%s %s %s" .title .short (delimit (.keywords | default slice) " ")) }}">
+                <a href="{{ printf "toolbox/%s/" .id | relURL }}">{{ .title }}</a>
+                <span>{{ .short }}</span>
+            </li>
+            {{- end }}
+        </ul>
+    </section>
+    {{- end }}
+</div>
+{{- $js := resources.Get "js/calc/index.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}

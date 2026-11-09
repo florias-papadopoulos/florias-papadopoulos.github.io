@@ -1,0 +1,170 @@
+# Toolbox category (assets/js/calc/README.md): one page per tool at /toolbox/<id>/, code in assets/js/calc/tools/<id>.js
+name: Modern cryptography
+order: 6
+intro: Public key encryption, signatures, key exchange, elliptic curves, secret sharing and lattices, worked through with small numbers so that every step can be checked by hand.
+tools:
+  - id: rsa
+    title: RSA encryption and decryption
+    short: RSA keys from two primes, encryption and decryption by square and multiply, and the faster decryption with the Chinese remainder theorem.
+    keywords: [rsa, public key, private key, encryption, decryption, totient, crt, garner, textbook rsa, modular exponentiation]
+    related: [rsa-signature, modular-inverse, paillier, gcd]
+    about: |
+      RSA works in the integers modulo $N = pq$, a product of two large primes. The public exponent $e$ must be coprime to $\varphi(N) = (p-1)(q-1)$, and the private exponent is its inverse, $d \equiv e^{-1} \pmod{\varphi(N)}$, found with the extended Euclidean algorithm. Encryption is $c = m^e \bmod N$ and decryption is $m = c^d \bmod N$: since $ed = 1 + k\varphi(N)$, Euler's theorem gives $m^{ed} \equiv m$ (and this holds for every $m$, also those sharing a factor with $N$).
+
+      Both exponentiations use square and multiply, so they take a number of steps proportional to the bit length of the exponent, not to its size. Decryption is usually done modulo $p$ and $q$ separately with the reduced exponents $d_p = d \bmod (p-1)$ and $d_q = d \bmod (q-1)$, and the two halves are recombined with $q^{-1} \bmod p$ (Garner's form of the Chinese remainder theorem). This is about four times faster.
+
+      Anyone who can factor $N$ can compute $\varphi(N)$ and then $d$, so the security rests on the hardness of factoring (more precisely, of taking $e$-th roots modulo $N$). Textbook RSA as shown here is deterministic and malleable ($c_1 c_2$ decrypts to $m_1 m_2$), so it is not secure on its own: real systems pad the message randomly (RSA-OAEP) and use $N$ of at least 2048 bits.
+  - id: rsa-signature
+    title: RSA signatures
+    short: Sign with the private exponent and verify with the public one, on a number or on a SHA-256 hash, with the textbook pitfalls explained.
+    keywords: [rsa, signature, sign, verify, hash, sha-256, pss, pkcs, forgery]
+    related: [rsa, schnorr-signature, modular-inverse]
+    about: |
+      An RSA signature uses the key pair the other way round: the signer computes $s = h^d \bmod N$ with the private exponent, and anyone can check $s^e \equiv h \pmod N$ with the public key $(N, e)$. Only the holder of $d$ can produce an $s$ that passes, as long as taking $e$-th roots modulo $N$ is hard.
+
+      Signing the message itself as a number is insecure. Anyone can choose $s$ and publish the pair $(s^e \bmod N, s)$, a valid signature on a message they do not control (an existential forgery), and two signatures multiply into a signature on the product of the messages. That is why $h$ is a hash of the message.
+
+      Real schemes go further and pad the hash before exponentiation: RSA-PSS (randomized, with a security proof in the random oracle model) or the older PKCS #1 v1.5. In this tool the SHA-256 digest is reduced modulo the toy $N$ so that it fits; with a 2048-bit key the padded hash fits without reduction.
+  - id: diffie-hellman
+    title: Diffie-Hellman key exchange
+    short: Two parties agree on a shared key over an open channel, with the group parameters checked (order of g, safe prime) and both sides computed.
+    keywords: [diffie-hellman, dh, key exchange, key agreement, discrete logarithm, safe prime, generator, subgroup, pohlig-hellman]
+    related: [ecdh, elgamal, schnorr-signature, modulo]
+    about: |
+      In Diffie-Hellman key exchange both parties know a prime $p$ and a base $g$. Alice picks a secret $a$ and sends $A = g^a \bmod p$; Bob picks $b$ and sends $B = g^b \bmod p$. Alice computes $B^a$ and Bob $A^b$, and both get $K = g^{ab} \bmod p$. An eavesdropper sees $p$, $g$, $A$ and $B$; computing $K$ from them is the computational Diffie-Hellman problem, which is believed to be as hard as computing discrete logarithms in a well chosen group.
+
+      The choice of the group matters. The order of $g$ divides $p - 1$, and by the Pohlig-Hellman algorithm a discrete logarithm is only as hard as the largest prime factor of that order. The usual choice is a safe prime $p = 2q + 1$ with $q$ prime, and $g$ of order $q$ (a square), so that the keys live in a subgroup of large prime order. A generator of all of $\mathbb{Z}_p^*$ leaks the parity of the secret through the Legendre symbol.
+
+      Plain Diffie-Hellman gives no authentication: a man in the middle can run one exchange with each side. Protocols such as TLS 1.3 therefore sign the exchanged values. Today most deployments use the elliptic curve version (ECDH), and post-quantum key exchange uses lattice-based KEMs instead.
+  - id: elgamal
+    title: ElGamal encryption
+    short: ElGamal public key encryption step by step, with a fresh random nonce, and decryption through the inverse of the shared value.
+    keywords: [elgamal, public key, encryption, nonce, discrete logarithm, ddh, homomorphic]
+    related: [diffie-hellman, modular-inverse, schnorr-signature, paillier]
+    about: |
+      ElGamal encryption turns a Diffie-Hellman exchange into public key encryption. The private key is $x$ and the public key $h = g^x \bmod p$. To encrypt $m$, choose a fresh random nonce $k$ and send $c_1 = g^k$ and $c_2 = m \cdot h^k \bmod p$. The value $s = h^k = g^{xk}$ acts as a one-time mask; the receiver recomputes it as $s = c_1^x$ and divides it out: $m = c_2 \cdot s^{-1} \bmod p$.
+
+      The scheme is randomized, so encrypting the same message twice gives different ciphertexts. Its security (IND-CPA) rests on the decisional Diffie-Hellman assumption, which fails in all of $\mathbb{Z}_p^*$ (the Legendre symbol leaks information), so in practice messages are encoded in a subgroup of prime order, or an elliptic curve group is used.
+
+      The nonce must never be reused: two ciphertexts with the same $k$ share the mask $s$, and one known plaintext reveals the other. ElGamal is also multiplicatively homomorphic: multiplying two ciphertexts componentwise gives an encryption of $m_1 m_2$.
+  - id: schnorr-signature
+    title: Schnorr signatures
+    short: Schnorr signing and verification in a subgroup of prime order, with SHA-256 or a simple toy hash, every exponentiation shown.
+    keywords: [schnorr, signature, sign, verify, nonce, fiat-shamir, sha-256, eddsa, discrete logarithm]
+    related: [rsa-signature, diffie-hellman, elgamal]
+    about: |
+      Schnorr signatures work in a subgroup of prime order $q$ of $\mathbb{Z}_p^*$, generated by $g$. The private key is $x$ and the public key $y = g^x \bmod p$. To sign a message $m$, pick a secret nonce $k$, compute the commitment $r = g^k$, the challenge $e = H(r \| m) \bmod q$ and the response $s = k - xe \bmod q$. The signature is $(e, s)$. The verifier recomputes $r_v = g^s y^e$, which equals $g^{k - xe} g^{xe} = g^k = r$ for a genuine signature, and checks that $H(r_v \| m) = e$.
+
+      This is the Fiat-Shamir transform of Schnorr's identification protocol: the hash plays the role of the verifier's random challenge. In the random oracle model the scheme is unforgeable if discrete logarithms in the group are hard. Here the hash input is $r$ as a fixed number of bytes followed by the UTF-8 bytes of the message; the toy hash simply reads those bytes as a number modulo $q$, which is easy to recompute by hand but offers no security.
+
+      The nonce is critical: reusing $k$ for two messages reveals $x = (s_1 - s_2)(e_2 - e_1)^{-1} \bmod q$, and even a slightly biased nonce can leak the key through lattice attacks. EdDSA (Ed25519), the elliptic curve form of Schnorr signatures, therefore derives $k$ deterministically from the key and the message.
+  - id: elliptic-curve
+    title: Elliptic curve point arithmetic
+    short: Add and double points on y^2 = x^3 + ax + b over a prime field with the slope formulas, and multiply by a scalar with double and add.
+    keywords: [elliptic curve, ecc, point addition, point doubling, scalar multiplication, double and add, weierstrass, point at infinity, secp256k1]
+    related: [elliptic-curve-points, ecdh, modular-inverse]
+    about: |
+      An elliptic curve over a prime field $\mathbb{F}_p$ ($p > 3$) is the set of solutions of $y^2 = x^3 + ax + b$, together with a point at infinity $\mathcal{O}$, where the discriminant condition $4a^3 + 27b^2 \not\equiv 0 \pmod p$ rules out singular curves. The points form an abelian group with $\mathcal{O}$ as neutral element and $-(x, y) = (x, -y)$.
+
+      To add two points, draw the line through them; it meets the curve in a third point, and the sum is that point reflected in the $x$-axis. With the slope $\lambda = (y_2 - y_1)/(x_2 - x_1)$ (or $\lambda = (3x_1^2 + a)/(2y_1)$ for the tangent when doubling), the sum is $x_3 = \lambda^2 - x_1 - x_2$ and $y_3 = \lambda(x_1 - x_3) - y_1$. Over $\mathbb{F}_p$ every division is a multiplication by a modular inverse. A vertical line ($P + (-P)$, or doubling a point with $y = 0$) gives $\mathcal{O}$.
+
+      Scalar multiplication $kP$ uses double and add over the bits of $k$, the analogue of square and multiply. Going back from $kP$ to $k$ is the elliptic curve discrete logarithm problem, the basis of ECDH, ECDSA and EdDSA. On well chosen curves the best known attacks take about $\sqrt{n}$ steps for a group of order $n$, so a 256-bit curve gives about 128 bits of security.
+  - id: elliptic-curve-points
+    title: Points of an elliptic curve
+    short: Every point of a curve over a small prime field, the group order and the Hasse bound, the order of each point, the group structure and a generator.
+    keywords: [elliptic curve, points, group order, hasse, cardinality, trace, cyclic, generator, order of a point, supersingular]
+    related: [elliptic-curve, ecdh, gcd]
+    about: |
+      For a small prime $p$ all points of $y^2 = x^3 + ax + b$ over $\mathbb{F}_p$ can be listed: for every $x$, compute $f(x) = x^3 + ax + b$ and check with Euler's criterion whether it is a square modulo $p$. A non-zero square gives two points $(x, \pm y)$, a zero gives one point $(x, 0)$, and a non-square none. With the point at infinity, this counts $\#E(\mathbb{F}_p)$.
+
+      Hasse's theorem says that the count is close to $p + 1$: $|\#E - (p + 1)| \le 2\sqrt{p}$. The difference $t = p + 1 - \#E$ is the trace of Frobenius. For cryptographic sizes points are not listed one by one; the count is computed with Schoof's algorithm and its improvements.
+
+      By Lagrange's theorem the order of every point divides $\#E$. The group is always isomorphic to $\mathbb{Z}_{n_1} \times \mathbb{Z}_{n_2}$ with $n_1 \mid n_2$, and it is cyclic when some point has order $\#E$. Cryptography wants a point of large prime order; curves with $\#E = p$ (anomalous) or $t \equiv 0 \pmod p$ (supersingular) must be avoided for discrete logarithm based schemes, because special attacks apply.
+  - id: ecdh
+    title: Elliptic curve Diffie-Hellman (ECDH)
+    short: Key agreement on an elliptic curve, from small toy curves to secp256k1, with both public keys and the shared point computed on both sides.
+    keywords: [ecdh, elliptic curve, diffie-hellman, key exchange, key agreement, secp256k1, x25519, shared secret]
+    related: [diffie-hellman, elliptic-curve, elliptic-curve-points]
+    about: |
+      ECDH is Diffie-Hellman in the group of points of an elliptic curve. The public parameters are the curve, a base point $G$ and its order $n$. Alice picks a secret $d_A$ and publishes $Q_A = d_A G$; Bob picks $d_B$ and publishes $Q_B = d_B G$. Both compute the same point $d_A Q_B = d_A d_B G = d_B Q_A$, and its $x$-coordinate, passed through a key derivation function, becomes the shared key.
+
+      The advantage over Diffie-Hellman modulo a prime is size: no subexponential discrete logarithm algorithm is known for good elliptic curves, so a 256-bit curve gives about 128 bits of security, where a prime field needs about 3072 bits. X25519 (on Curve25519) is the most widely used form today, for example in TLS 1.3 and Signal.
+
+      Each side must check that the point it receives lies on the curve (and in the right subgroup), otherwise an attacker can send points of small order on other curves and learn the secret piece by piece (invalid curve attacks). As with Diffie-Hellman, the exchange itself is not authenticated, and Shor's algorithm would break it on a large quantum computer.
+  - id: shamir-secret-sharing
+    title: Shamir secret sharing
+    short: Split a secret into n shares so that any t of them recover it, and reconstruct it with Lagrange interpolation, every coefficient shown.
+    keywords: [shamir, secret sharing, threshold, lagrange interpolation, polynomial, shares, mpc]
+    related: [polynomial-mod-p, modular-inverse, modulo]
+    about: |
+      Shamir's scheme hides a secret $s \in \mathbb{F}_p$ as the constant term of a random polynomial $f(x) = s + a_1 x + \cdots + a_{t-1} x^{t-1}$ of degree $t - 1$. Share $i$ is the point $(i, f(i))$. Any $t$ points determine a polynomial of degree $t - 1$ uniquely, so $t$ shares recover $f$ and hence $s = f(0)$.
+
+      Reconstruction uses Lagrange interpolation, evaluated directly at 0: $s = \sum_i y_i \lambda_i$ with $\lambda_i = \prod_{j \ne i} x_j / (x_j - x_i) \bmod p$. The coefficients $\lambda_i$ depend only on which shares are used, not on their values.
+
+      With $t - 1$ shares or fewer nothing is learned: for every candidate secret there is exactly one polynomial of degree $t - 1$ through those shares and that secret, so all secrets remain equally likely. This is information-theoretic security, independent of any computational assumption. Shamir sharing is linear (shares of $s_1 + s_2$ are the sums of shares), which makes it a building block of threshold cryptography and secure multiparty computation.
+  - id: gf256
+    title: GF(2^8) arithmetic (AES field)
+    short: Add, multiply and invert bytes in the AES field with xtime, polynomial long division and the extended Euclidean algorithm, plus the S-box value.
+    keywords: [gf(2^8), galois field, finite field, aes, rijndael, xtime, byte multiplication, inverse, s-box, mixcolumns]
+    related: [polynomial-mod-p, modular-inverse]
+    about: |
+      AES computes with bytes as elements of the finite field $\mathrm{GF}(2^8)$. A byte $b_7 \ldots b_0$ stands for the polynomial $b_7 x^7 + \cdots + b_0$ with coefficients in $\mathbb{F}_2$, and products are reduced modulo the irreducible polynomial $m(x) = x^8 + x^4 + x^3 + x + 1$, written $\{\texttt{11B}\}$. Addition is the bitwise XOR, since $1 + 1 = 0$.
+
+      Multiplication by $x$ is a left shift, followed by an XOR with $\{\texttt{1B}\}$ when a bit falls off the top, because $x^8 \equiv x^4 + x^3 + x + 1$. This is called xtime. Any product follows by adding up the shifted copies selected by the bits of the second factor, as in the classic example $\{\texttt{57}\} \cdot \{\texttt{83}\} = \{\texttt{C1}\}$ from the AES standard (FIPS 197). MixColumns multiplies by the small constants 2 and 3 in exactly this way.
+
+      Every non-zero byte has an inverse, found with the extended Euclidean algorithm on polynomials or as $a^{254}$. The AES S-box is the inverse followed by a fixed affine map over $\mathbb{F}_2$; for example $\{\texttt{53}\}^{-1} = \{\texttt{CA}\}$ and $S(\{\texttt{53}\}) = \{\texttt{ED}\}$. The inversion gives the S-box its strong nonlinearity.
+  - id: polynomial-mod-p
+    title: Polynomials over a prime field
+    short: Add, multiply and divide polynomials with coefficients modulo p, with long division, Euclid's gcd and the inverse modulo another polynomial.
+    keywords: [polynomial, finite field, f_p, long division, polynomial gcd, inverse, extension field, irreducible, euclid]
+    related: [gf256, shamir-secret-sharing, gcd, modular-inverse]
+    about: |
+      Polynomials with coefficients in $\mathbb{F}_p$ behave much like whole numbers. They can be added and multiplied coefficientwise modulo $p$, and divided with remainder: for $g \ne 0$ there are unique $q$ and $r$ with $f = qg + r$ and $\deg r < \deg g$. Long division finds them by repeatedly cancelling the leading term, which needs only the inverse of the leading coefficient of $g$, so $p$ must be prime.
+
+      With division comes Euclid's algorithm, and the greatest common divisor, normalized to be monic. The extended algorithm also gives $u$ and $v$ with $uf + vg = \gcd(f, g)$; when the gcd is 1, $u$ is the inverse of $f$ modulo $g$.
+
+      If $g$ is irreducible of degree $n$, the residues modulo $g$ form the finite field $\mathbb{F}_{p^n}$, and every non-zero element has such an inverse. This is how $\mathrm{GF}(2^8)$ in AES and the binary fields of some elliptic curves are built, and polynomial rings modulo $x^n + 1$ are the setting of lattice schemes such as Kyber.
+  - id: paillier
+    title: Paillier encryption
+    short: "Paillier keys, encryption and decryption, and the additive homomorphism: multiplying two ciphertexts gives an encryption of the sum."
+    keywords: [paillier, homomorphic encryption, additive, composite residuosity, e-voting, carmichael]
+    related: [rsa, elgamal, modular-inverse]
+    about: |
+      Paillier encryption works modulo $n^2$ for an RSA modulus $n = pq$. With the common choice $g = n + 1$, a message $m \in \mathbb{Z}_n$ with randomness $r$ coprime to $n$ is encrypted as $c = g^m r^n \bmod n^2$. Because $(1 + n)^m \equiv 1 + mn \pmod{n^2}$, the first factor is easy to compute and to read back.
+
+      To decrypt, raise $c$ to $\lambda = \operatorname{lcm}(p - 1, q - 1)$: the random factor disappears, $c^\lambda \equiv 1 + m\lambda n \pmod{n^2}$, and the function $L(u) = (u - 1)/n$ followed by multiplication with $\mu = \lambda^{-1} \bmod n$ leaves $m$.
+
+      The point of the scheme is its additive homomorphism: $E(m_1) \cdot E(m_2) \bmod n^2$ is an encryption of $m_1 + m_2 \bmod n$, and $E(m)^k$ one of $km$, computed without the private key. This is used in electronic voting, private aggregation and many secure computation protocols. Security (IND-CPA) rests on the decisional composite residuosity assumption; the scheme is malleable by design.
+  - id: lattice-reduction
+    title: Lattice reduction (LLL and Lagrange-Gauss)
+    short: Reduce a lattice basis with exact fractions, Lagrange-Gauss in dimension 2 and LLL with Gram-Schmidt, size reduction and the Lovász condition at every step.
+    keywords: [lattice, lll, lenstra, lovasz, gram-schmidt, gauss reduction, shortest vector, svp, basis reduction, cryptanalysis]
+    related: [lwe, gcd]
+    about: |
+      A lattice is the set of integer combinations of linearly independent basis vectors. The same lattice has many bases, and reduction looks for one with short, nearly orthogonal vectors. In dimension 2 the Lagrange-Gauss algorithm solves this exactly: keep the shorter vector first and subtract from the other the rounded multiple $\lfloor v_1 \cdot v_2 / |v_1|^2 \rceil$, until nothing changes. The result contains a shortest non-zero vector of the lattice.
+
+      LLL (Lenstra, Lenstra and Lovász, 1982) generalizes this to any dimension in polynomial time. It works with the Gram-Schmidt vectors $b_i^*$ and coefficients $\mu_{i,j}$: size reduction makes every $|\mu_{i,j}| \le 1/2$, and the Lovász condition $|b_k^*|^2 \ge (\delta - \mu_{k,k-1}^2) |b_{k-1}^*|^2$ decides whether to move on or to swap two vectors. The output satisfies $|b_1| \le \alpha^{(n-1)/2} \lambda_1$ with $\alpha = 1/(\delta - 1/4)$, so for $\delta = 3/4$ the first vector is at most $2^{(n-1)/2}$ times longer than a shortest vector. This tool keeps all values as exact fractions.
+
+      LLL is a basic tool of cryptanalysis: it breaks knapsack cryptosystems, small RSA exponents (Coppersmith's method) and biased signature nonces. In high dimension, however, finding short vectors is believed to be hard even for quantum computers, which is the foundation of lattice-based schemes such as Kyber and Dilithium.
+  - id: lwe
+    title: Learning with errors (toy LWE encryption)
+    short: Regev-style encryption of one bit under learning with errors, with small parameters, showing why decryption works and when the error breaks it.
+    keywords: [lwe, learning with errors, regev, lattice, post-quantum, kyber, ml-kem, noise, encryption]
+    related: [lattice-reduction, elgamal, paillier]
+    about: |
+      Learning with errors (LWE) asks to recover a secret $s \in \mathbb{Z}_q^n$ from many noisy inner products $b_i = a_i \cdot s + e_i \bmod q$, where the $a_i$ are uniform and the errors $e_i$ small. Without the errors Gaussian elimination would solve it; with them, Regev showed that it is as hard as worst-case lattice problems, which are believed to resist quantum computers.
+
+      Regev's encryption of one bit $\mu$ uses $(A, b)$ as public key. The sender adds up a random subset $S$ of the samples, $u = \sum_{i \in S} a_i$ and $v = \sum_{i \in S} b_i + \mu \lfloor q/2 \rfloor$. The receiver computes $v - u \cdot s = \sum_{i \in S} e_i + \mu \lfloor q/2 \rfloor \bmod q$ and rounds: near 0 means 0, near $q/2$ means 1.
+
+      Decryption is correct as long as the accumulated noise $\sum_{i \in S} e_i$ stays below $q/4$ in absolute value. Larger errors make the scheme fail, smaller ones make it insecure, and parameters balance the two. The toy sizes here offer no security; Kyber (ML-KEM), standardized by NIST in 2024, uses module LWE in dimension 512 to 1024 with $q = 3329$ and packs a whole key into one ciphertext.
+  - id: birthday-bound
+    title: Birthday bound and brute force
+    short: The chance of a collision among k random values out of N, the number needed for 50%, and how long a brute force search of a key takes.
+    keywords: [birthday paradox, birthday attack, collision, hash, brute force, key size, bits of security, grover, exhaustive search]
+    related: [lattice-reduction, rsa]
+    about: |
+      Among $k$ values drawn uniformly from $N$ possibilities, the probability that two are equal is $1 - \prod_{i=1}^{k-1} (1 - i/N)$. Since $1 - x \approx e^{-x}$, it is about $1 - e^{-k(k-1)/(2N)}$, and it reaches 50% near $k \approx 1.1774 \sqrt{N}$. With $N = 365$ birthdays, 23 people suffice.
+
+      This square root is the birthday bound of cryptography: a generic collision attack on an $n$-bit hash needs only about $2^{n/2}$ evaluations, so SHA-256 offers 128 bits of collision resistance. The same bound limits block cipher modes: with a 64-bit block size, as in 3DES, ciphertext blocks start to repeat after about $2^{32}$ blocks (the Sweet32 attack).
+
+      Brute force search for a $b$-bit key tries up to $2^b$ keys, $2^{b-1}$ on average. A 56-bit DES key falls in days with dedicated hardware, while $2^{128}$ is far out of reach for any classical computer. Grover's algorithm would reduce key search to about $2^{b/2}$ quantum steps, which is why 256-bit keys are recommended for long-term protection; public key schemes based on factoring or discrete logarithms would be broken outright by Shor's algorithm.

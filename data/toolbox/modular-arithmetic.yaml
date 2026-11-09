@@ -1,0 +1,123 @@
+# Toolbox category (assets/js/calc/README.md): one page per tool at /toolbox/<id>/, code in assets/js/calc/tools/<id>.js
+name: Modular arithmetic
+order: 1
+intro: Remainders, divisibility and congruences, the arithmetic underneath most of cryptography.
+tools:
+  - id: modulo
+    title: Modulo calculator
+    short: The remainder of a divided by n, also for negative and huge numbers, with every convention.
+    related: [gcd, modular-inverse, euclidean-division, modular-calculator]
+    about: |
+      Dividing a whole number $a$ by $n$ gives a quotient $q$ and a remainder $r$ with $a = q \cdot n + r$. The remainder is $a \bmod n$. For positive numbers everyone agrees: $123 = 30 \cdot 4 + 3$, so $123 \bmod 4 = 3$.
+
+      With negative numbers the quotient can be rounded in different ways, and so the remainder differs. Mathematics (and cryptography) keeps the remainder between $0$ and $n - 1$: $-17 \bmod 5 = 3$, because $-17 = -4 \cdot 5 + 3$. Many programming languages round toward zero instead and give $-2$; Python rounds down and gives the sign of $n$.
+
+      Two numbers with the same remainder are *congruent* modulo $n$, written $a \equiv b \pmod n$: their difference is a multiple of $n$. Clock arithmetic is arithmetic modulo 12.
+  - id: gcd
+    title: GCD and LCM calculator
+    short: Greatest common divisor with Euclid's algorithm step by step, and the least common multiple.
+    related: [modular-inverse, modulo, extended-euclid]
+    about: |
+      The greatest common divisor $\gcd(a, b)$ is the largest number that divides both $a$ and $b$. Euclid's algorithm finds it without factoring: replace the pair $(a, b)$ by $(b, a \bmod b)$ until the remainder is 0. The gcd never changes along the way, because any common divisor of $a$ and $b$ also divides $a - q \cdot b$.
+
+      The algorithm is fast even for numbers with hundreds of digits: the remainders at least halve every two steps.
+
+      The least common multiple is the smallest positive number that both divide, and $\operatorname{lcm}(a, b) \cdot \gcd(a, b) = a \cdot b$. Numbers with $\gcd = 1$ are called coprime.
+  - id: modular-inverse
+    title: Modular inverse calculator
+    short: The number x with a times x congruent to 1 mod n, with the extended Euclidean algorithm in a table.
+    related: [gcd, modulo, extended-euclid, linear-congruence]
+    about: |
+      The inverse of $a$ modulo $n$ is the number $x$ with $a \cdot x \equiv 1 \pmod n$. It plays the role of division in modular arithmetic: dividing by $a$ means multiplying by $a^{-1}$.
+
+      It exists exactly when $\gcd(a, n) = 1$. The extended Euclidean algorithm finds it: besides the gcd it keeps track of numbers $s, t$ with $s \cdot n + t \cdot a = \gcd(a, n)$ (Bézout's identity). When the gcd is 1, reducing this modulo $n$ leaves $t \cdot a \equiv 1$, so $t$ is the inverse.
+
+      In RSA, the private exponent $d$ is the inverse of the public exponent $e$ modulo $\varphi(N)$: the classic small example is $17^{-1} \equiv 2753 \pmod{3120}$.
+  - id: euclidean-division
+    title: Euclidean division calculator
+    short: Quotient and remainder with a = q times b + r, long division written out, and the sign conventions for negative numbers.
+    keywords: [division, quotient, remainder, long division, divide, floor, truncate, divmod]
+    related: [modulo, gcd, base-conversion]
+    about: |
+      Euclidean division splits a whole number $a$ by a non-zero $b$ into a quotient $q$ and a remainder $r$ with $a = q \cdot b + r$ and $0 \le r < |b|$. These two conditions fix $q$ and $r$ uniquely: $1234 = 176 \cdot 7 + 2$.
+
+      For small numbers the quotient comes from long division as taught at school: take digits from the left until $b$ fits, write down how often it fits, subtract, bring down the next digit, and repeat. The last difference is the remainder.
+
+      With negative numbers the quotient must be rounded, and there are several habits. The Euclidean convention keeps $r \ge 0$, so $-17 = -4 \cdot 5 + 3$. C and Java round toward zero and get $-17 = -3 \cdot 5 - 2$; Python rounds down, which gives the remainder the sign of $b$. The nearest convention gives the smallest remainder in absolute value, between $-|b|/2$ and $|b|/2$; lattice cryptography uses it to round coefficients to the centre.
+  - id: extended-euclid
+    title: Extended Euclidean algorithm
+    short: Bezout coefficients s and t with s times a plus t times b equal to the gcd, from the table and by back-substitution.
+    keywords: [bezout, bezout identity, egcd, xgcd, coefficients, extended gcd, diophantine]
+    related: [gcd, modular-inverse, linear-congruence, chinese-remainder]
+    about: |
+      Euclid's algorithm finds $g = \gcd(a, b)$ by repeated division. Its extended form also finds integers $s$ and $t$ with $s \cdot a + t \cdot b = g$, Bézout's identity. For $240$ and $46$: $\gcd = 2 = -9 \cdot 240 + 47 \cdot 46$.
+
+      There are two ways to get them. The table carries two extra columns along with the remainders, so that every row satisfies $r_i = s_i a + t_i b$; each new row is the row two above minus the quotient times the row above. Back-substitution goes the other way: it starts from the last division, which expresses $g$ through the two previous remainders, and replaces remainders by their own divisions until only $a$ and $b$ are left. Both give the same pair.
+
+      The pair is not unique: $(s + k b / g,\ t - k a / g)$ works for every integer $k$. When $g = 1$, reducing the identity modulo $b$ gives $s \cdot a \equiv 1$, so $s$ is the inverse of $a$ modulo $b$. This is how RSA computes its private exponent, and it is the core of solving linear congruences and the Chinese remainder theorem.
+  - id: modular-exponentiation
+    title: Modular exponentiation calculator
+    short: The power a to the e modulo n by square and multiply, bit by bit, also for negative and huge exponents.
+    keywords: [power, powmod, modpow, square and multiply, binary exponentiation, fast exponentiation, fermat, euler, rsa, diffie hellman]
+    related: [modular-inverse, modular-calculator, euler-totient, zn-tables, rsa, diffie-hellman]
+    about: |
+      Computing $a^e \bmod n$ by multiplying $a$ by itself $e - 1$ times is hopeless when $e$ has hundreds of digits, and the power itself would be far too large to write down. Square and multiply needs only about two operations per bit of $e$, and reducing modulo $n$ after each one keeps every number below $n^2$.
+
+      From the left: write $e$ in binary and start with $a$ for the leading 1. For each next bit, square (which doubles the exponent reached so far), and if the bit is 1, multiply by $a$ (which adds 1). For $e = 117 = (1110101)_2$ the exponents reached are $1, 3, 7, 14, 29, 58, 117$. From the right: keep the powers $a, a^2, a^4, \dots$ by squaring, and multiply into the result those whose bit is 1. A negative exponent means a power of the inverse, $a^{-k} = (a^{-1})^k$, which needs $\gcd(a, n) = 1$.
+
+      When $\gcd(a, n) = 1$, Euler's theorem $a^{\varphi(n)} \equiv 1 \pmod n$ (Fermat's little theorem $a^{p-1} \equiv 1$ for a prime $p$) allows reducing the exponent modulo $\varphi(n)$ first. Modular powers are the basic operation of RSA, Diffie-Hellman and many primality tests; in real implementations the sequence of squarings and multiplications must not depend on secret bits, or the timing leaks them.
+  - id: modular-calculator
+    title: Modular arithmetic calculator
+    short: Evaluate an expression with plus, minus, times, division and powers modulo n, every operation shown and reduced.
+    keywords: [calculator, expression, modular arithmetic, mod, congruence, division mod n, fraction mod n, clock arithmetic]
+    related: [modular-inverse, modular-exponentiation, modulo, zn-tables]
+    about: |
+      Modulo $n$ you can add, subtract and multiply as usual and reduce the result at any moment: if $a \equiv a'$ and $b \equiv b' \pmod n$, then $a + b \equiv a' + b'$ and $a b \equiv a' b'$. So an expression is evaluated from the inside out, and every intermediate value is replaced by its remainder, which keeps the numbers small.
+
+      Division is different: $x / y$ means $x \cdot y^{-1}$, where $y^{-1}$ is the number with $y \cdot y^{-1} \equiv 1$. It exists only when $\gcd(y, n) = 1$. Modulo $11$, $1/2 + 1/3 \equiv 6 + 4 = 10$. The ordinary sum of fractions is $5/6$, and indeed $5/6 \equiv 5 \cdot 2 = 10$, since $6^{-1} \equiv 2$: fractions with denominators coprime to $n$ behave modulo $n$ exactly as they should.
+
+      Exponents are the exception to reducing: they count multiplications, so they are whole numbers and are not reduced modulo $n$ (with $\gcd(a, n) = 1$ they could be reduced modulo $\varphi(n)$ instead). A negative exponent is a power of the inverse.
+  - id: linear-congruence
+    title: Linear congruence solver
+    short: All solutions x of a times x congruent to b modulo n, with the gcd condition and the inverse.
+    keywords: [congruence, linear equation, solve, a x = b mod n, modular equation, ax+by]
+    related: [extended-euclid, modular-inverse, chinese-remainder, gcd]
+    about: |
+      The congruence $a x \equiv b \pmod n$ asks for the $x$ for which $a x - b$ is a multiple of $n$. Let $g = \gcd(a, n)$. Every number of the form $a x - k n$ is a multiple of $g$, so there is a solution only if $g$ divides $b$.
+
+      If it does, divide everything by $g$: $(a/g)\, x \equiv b/g \pmod{n/g}$. Now $a/g$ and $n/g$ are coprime, so $a/g$ has an inverse modulo $n/g$ (extended Euclidean algorithm), and multiplying by it gives the unique solution $x_0$ modulo $n/g$. Modulo the original $n$ this is $g$ solutions: $x_0, x_0 + n/g, \dots, x_0 + (g-1)\, n/g$.
+
+      Example: $14 x \equiv 30 \pmod{100}$. Here $g = 2$ divides $30$, the reduced congruence is $7 x \equiv 15 \pmod{50}$, $7^{-1} \equiv 43$, so $x \equiv 45 \pmod{50}$: the solutions modulo 100 are $45$ and $95$. The same method solves the equation $a x + n y = b$ in integers.
+  - id: chinese-remainder
+    title: Chinese remainder theorem calculator
+    short: Solve a system of congruences x congruent to r modulo m, coprime or not, with every step and a check.
+    keywords: [crt, chinese remainder, system of congruences, simultaneous congruences, sunzi, gauss, rsa crt]
+    related: [extended-euclid, linear-congruence, modular-inverse, gcd, rsa]
+    about: |
+      A system $x \equiv r_1 \pmod{m_1}, \dots, x \equiv r_k \pmod{m_k}$ asks for a number with given remainders. The classic puzzle: a number leaves $2$ when divided by $3$, $3$ by $5$ and $2$ by $7$; the answer is $23$, and every $23 + 105 j$.
+
+      When the moduli are pairwise coprime, the Chinese remainder theorem says there is exactly one solution modulo $M = m_1 \cdots m_k$, and Gauss's formula builds it: with $M_i = M / m_i$ and $y_i \equiv M_i^{-1} \pmod{m_i}$, the sum $x = \sum r_i M_i y_i$ works, since each term is $r_i$ modulo its own $m_i$ and $0$ modulo all the others.
+
+      When moduli share factors, merge the congruences one at a time: put $x = r_1 + m_1 k$ into the next one, solve the linear congruence for $k$, and get a single congruence modulo $\operatorname{lcm}(m_1, m_2)$. This fails exactly when two remainders disagree modulo the gcd of their moduli (as $x \equiv 1 \pmod 4$ and $x \equiv 2 \pmod 6$ do modulo 2). RSA uses the theorem to decrypt about four times faster, by working modulo $p$ and $q$ separately.
+  - id: base-conversion
+    title: Base converter
+    short: Whole numbers between any bases (binary, octal, decimal, hex, base 36, Base64 digits, base 60), with Horner's scheme and repeated division.
+    keywords: [base, radix, binary, octal, decimal, hexadecimal, hex, base 36, base 64, sexagesimal, number system, positional notation]
+    related: [euclidean-division, modulo, twos-complement]
+    about: |
+      In base $b$, the digits $d_{k-1} \dots d_1 d_0$ stand for $d_{k-1} b^{k-1} + \dots + d_1 b + d_0$, with each digit between $0$ and $b - 1$. Bases up to 36 use the digits $0$ to $9$ and then the letters $A$ to $Z$ (so $F = 15$ in hexadecimal); here base 64 uses the Base64 alphabet $A$ to $Z$, $a$ to $z$, $0$ to $9$, $+$ and $/$, and any other base takes its digits as a list of values, like $1\ 23\ 45$ for 1 hour 23 minutes 45 seconds in base 60.
+
+      Reading a number from base $b$ is best done with Horner's scheme: $((d_{k-1} \cdot b + d_{k-2}) \cdot b + \dots) \cdot b + d_0$, one multiplication and one addition per digit. Writing a value in base $c$ goes the other way: divide by $c$, the remainder is the last digit, and repeat with the quotient until it is $0$.
+
+      Negative numbers keep their sign in front. Computers store them differently (two's complement, where the top bit counts negatively), but that depends on a fixed word size and is a separate encoding. The Base64 used for e-mail attachments reads bytes in groups of three; for whole groups it agrees with these digits, as in $(\text{TWFu})_{64}$, the bytes of "Man".
+  - id: zn-tables
+    title: Tables of Z/nZ
+    short: Addition, multiplication and power tables modulo n, with units, inverses, zero divisors and the group of units.
+    keywords: [zn, z_n, cayley table, multiplication table, addition table, ring, group of units, units, zero divisor, multiplicative group, order, primitive root, z mod n]
+    related: [modular-inverse, modular-exponentiation, euler-totient, multiplicative-order, primitive-root, modular-calculator]
+    about: |
+      $\mathbb{Z}_n = \{0, 1, \dots, n - 1\}$ with addition and multiplication modulo $n$ is a ring. Its tables show the structure at a glance: in the addition table every row is a shift of the previous one, and the zeros pair each element with its negative.
+
+      In the multiplication table, the row of $a$ contains a $1$ exactly when $a$ has an inverse, that is when $\gcd(a, n) = 1$. These units form the group $\mathbb{Z}_n^{\times}$ with $\varphi(n)$ elements. Every other non-zero element is a zero divisor: $4 \cdot 3 \equiv 0 \pmod{12}$ although neither factor is $0$. When $n$ is prime there are no zero divisors, and $\mathbb{Z}_n$ is a field.
+
+      The power table shows the order of each unit, the first exponent $k$ with $a^k \equiv 1$. By Lagrange's theorem it divides $\varphi(n)$, which proves Euler's theorem $a^{\varphi(n)} \equiv 1$. If some unit has order exactly $\varphi(n)$, it is a primitive root and its powers run through all units; this happens only for $n = 2, 4, p^k$ and $2 p^k$. Diffie-Hellman and ElGamal work in such cyclic groups, with a large prime $p$.
