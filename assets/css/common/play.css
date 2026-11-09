@@ -1,5 +1,5 @@
 /* Play mode: html[data-mode="play"], set by the key in the top right corner (assets/js/play.js, applied before the
-   first paint by assets/js/play-look.js). The academic menu gives way to the play navigation
+   first paint: baseof.html sets html[data-mode="play"] on the Games and Toolbox pages). The academic menu gives way to the play navigation
    (layouts/partials/play-nav.html): a tab bar at the bottom below 900 px, a slim sidebar on the left from 900 px.
    The colours turn slightly warmer (a dog's warm colours, cat.css, stay as they are). Corner positions: paw.css. */
 
@@ -169,3 +169,9 @@ html.pm-faded body { opacity: 0; }
     .key-btn svg { transition: none; }
     .cat.perk .cat-flip svg { animation: none; }
 }
+
+/* the academic site is plain: the pet, the home page's floating symbols and its reset button only exist in play mode
+   (their scripts do not even start before the key is turned; this also hides them when it is turned back) */
+html:not([data-mode="play"]) .cat-layer,
+html:not([data-mode="play"]) body > .world-layer,
+html:not([data-mode="play"]) .home-reset { display: none !important; }

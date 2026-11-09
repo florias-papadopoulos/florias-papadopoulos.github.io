@@ -4,6 +4,7 @@
    On desktop, numbers, letters and field symbols float in the margins as platforms (nothing on phones). The cat knocks letters of the name and symbols loose: they fly, fall, land, and
    the cat (or the visitor, by dragging) moves them around. The reset button puts everything back. */
 (function () {
+    function boot() {
     'use strict';
     var layer = document.getElementById('cat-layer');
     var world = document.getElementById('world-layer');
@@ -407,4 +408,10 @@
     }
     var resetBtn = document.getElementById('home-reset');
     if (resetBtn) { document.body.appendChild(resetBtn); resetBtn.addEventListener('click', reset); }
+
+        document.addEventListener('playmode-off', reset);
+    }
+    /* the pet and its world only come out in play mode, after the key (assets/js/play.js); the academic site is plain */
+    if (document.documentElement.dataset.mode === 'play') boot();
+    else document.addEventListener('playmode-on', boot, { once: true });
 })();

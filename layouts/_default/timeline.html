@@ -155,5 +155,4 @@
 {{- if $math }}{{ partial "math.html" . }}{{ end }}
 {{- $tl := resources.Get "js/timeline.js" | minify | fingerprint }}
 <script src="{{ $tl.RelPermalink }}" integrity="{{ $tl.Data.Integrity }}" defer></script>
-{{ partial "cat.html" (dict "world" "pages") }}
 {{- end }}

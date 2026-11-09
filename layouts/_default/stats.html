@@ -76,5 +76,4 @@
 {{- $js := resources.Get "js/stats.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{- end }}
-{{ partial "cat.html" (dict "world" "pages") }}
 {{- end }}

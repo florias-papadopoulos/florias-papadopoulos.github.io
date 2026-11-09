@@ -8,6 +8,7 @@
    window. It never sits on opened entries and moves away soon when one opens under it. On phones it is a little smaller
    (66 x 54) and does the same, with longer naps on the ground in a corner. No symbols or reset button here (home page only). */
 (function () {
+    function boot() {
     'use strict';
     var layer = document.getElementById('cat-layer');
     var page = document.querySelector('.tl-page') || document.querySelector('.arcade');
@@ -170,4 +171,9 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('tl-change', onScroll);
     if (window.ResizeObserver) new ResizeObserver(onScroll).observe(page);
+
+    }
+    /* the pet and its world only come out in play mode, after the key (assets/js/play.js); the academic site is plain */
+    if (document.documentElement.dataset.mode === 'play') boot();
+    else document.addEventListener('playmode-on', boot, { once: true });
 })();

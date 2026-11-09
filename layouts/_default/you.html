@@ -78,7 +78,6 @@
 {{- $js := slice (resources.Get "js/stats-detect.js") (resources.Get "js/you.js") | resources.Concat "js/you.bundle.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{- end }}
-{{ partial "cat.html" (dict "world" "pages") }}
 {{- end }}
 
 {{- define "_partials/inline/you-items.html" }}
