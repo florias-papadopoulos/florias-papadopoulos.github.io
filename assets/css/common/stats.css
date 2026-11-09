@@ -96,7 +96,17 @@
 .st-none { color: var(--tl-muted); font-size: 14px; }
 
 /* "don't count my visits" */
-.st-ignore[hidden] { display: none; }
+/* the owner's key (shown on /stats/?me until it is entered) and the button that forgets it */
+.st-key[hidden], .st-owner[hidden], .st-lede[hidden] { display: none; }
+.st-key { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 4px 0 24px; }
+.st-key label { color: var(--tl-ink); font-size: 15px; font-weight: 600; }
+.st-key input { flex: 1 1 220px; max-width: 360px; padding: 7px 10px; border: 1px solid #c7d2e8; border-radius: 8px; background: #fff; color: var(--tl-ink); font: inherit; font-size: 15px; }
+.st-key input:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: 1px; }
+.st-key button { padding: 7px 16px; border: 0; border-radius: 8px; background: var(--tl-navy); color: #fff; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.st-key-why { flex-basis: 100%; color: var(--tl-muted); font-size: 13px; }
+.st-key-why.is-bad { color: #9f1239; }
+.st-forget { display: block; margin-top: 10px; padding: 0; border: 0; background: none; color: var(--tl-muted); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }
+.st-forget:hover { color: var(--tl-navy); }
 .st-ignore { margin: 8px 0 24px; color: var(--tl-text); font-size: 14px; line-height: 1.5; }
 .st-ignore label { display: inline-flex; align-items: center; gap: 8px; color: var(--tl-ink); cursor: pointer; }
 .st-ignore input { width: 16px; height: 16px; margin: 0; accent-color: var(--tl-navy); }
@@ -117,6 +127,7 @@
 }
 @media (pointer: coarse) {
     .st-range-btn { font-size: 16px; }
+    .st-key input, .st-key button { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .st-page.is-loading .st-body { transition: none; }

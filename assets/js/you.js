@@ -93,7 +93,7 @@
             if (nav.doNotTrack === '1' || window.doNotTrack === '1') sig.push('Do Not Track');
             if (nav.globalPrivacyControl === true) sig.push('Global Privacy Control');
             sub = 'Your browser sends ' + (sig.join(' and ') || 'Do Not Track') + ', and the counter respects that.';
-        } else if (why === 'ignored') sub = 'You switched counting off on this browser, on Site stats.';
+        } else if (why === 'ignored') sub = 'You switched counting off on this browser.';
         else sub = 'This is a preview copy of the site, which the counter leaves out.';
         set('counted', 'Not counted', sub, true);
         document.getElementById('you-rec-intro').textContent = 'Nothing about this visit is recorded. If it were counted, these five things would be all of it.';

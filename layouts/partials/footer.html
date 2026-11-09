@@ -13,9 +13,7 @@
     {{ . | markdownify }}
     {{- print " · "}}
     {{- end }}
-    {{- /* the public visit totals (layouts/_default/stats.html) and the privacy notice (layouts/_default/privacy.html) */}}
-    <a class="footer-stats" href="{{ "stats/" | relURL }}">Site stats</a>
-    {{- print " · "}}
+    {{- /* the privacy notice (layouts/_default/privacy.html). The visit totals page (/stats/) is not linked anywhere */}}
     <a class="footer-privacy" href="{{ "privacy/" | relURL }}">Privacy</a>
     {{- print " · "}}
     <span>

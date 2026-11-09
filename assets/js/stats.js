@@ -1,7 +1,9 @@
 /* "Site stats" (layouts/_default/stats.html): reads the totals of the visit counter (GET <endpoint>/stats?days=N, see
    tools/stats-worker/worker.js; it covers the days up to yesterday and groups small numbers as "(other)") and draws them: two numbers, a bar chart of views per day (inline SVG) and ranked lists
-   of pages, referring sites, countries, devices and browsers. The 7/30/90 day buttons fetch that period. Also the
-   "Don't count my visits on this browser" box (shown only on /stats/?me), which sets localStorage 'stats-ignore' (read by assets/js/stats-hit.js). */
+   of pages, referring sites, countries, devices and browsers. The 7/30/90 day buttons fetch that period. Owner only:
+   the worker answers only with the owner's key (Authorization: Bearer, its STATS_KEY secret), kept in localStorage
+   'stats-key'. Without a key the page just says it is private; /stats/?me shows the box to enter it. Also the
+   "Don't count my visits on this browser" box, which sets localStorage 'stats-ignore' (read by assets/js/stats-hit.js). */
 (function () {
     'use strict';
     var root = document.getElementById('stats');
@@ -12,8 +14,6 @@
 
     /* ---------- the "don't count me" box ---------- */
     var ign = $('st-ignore');
-    /* the owner's switch only shows on /stats/?me */
-    if (ign && /(^|&)me(=|&|$)/.test(location.search.slice(1))) ign.closest('.st-ignore').hidden = false;
     if (ign) {
         try { ign.checked = localStorage.getItem('stats-ignore') === '1'; } catch (e) { ign.disabled = true; }
         ign.addEventListener('change', function () {
@@ -21,6 +21,35 @@
         });
     }
     if (!end) return;
+
+    /* ---------- the owner's key ---------- */
+    var me = /(^|&)me(=|&|$)/.test(location.search.slice(1));
+    var form = $('st-key'), input = $('st-key-in'), why = $('st-key-why'), owner = $('st-owner'), key = '';
+    try { key = localStorage.getItem('stats-key') || ''; } catch (e) { /* blocked: enter it each visit */ }
+    function lock(msg) {
+        key = '';
+        try { localStorage.removeItem('stats-key'); } catch (e) { /* blocked */ }
+        owner.hidden = true;
+        $('st-private').hidden = false;
+        if (me) { form.hidden = false; if (msg) { why.textContent = msg; why.classList.add('is-bad'); } }
+    }
+    function unlock() {
+        form.hidden = true;
+        $('st-private').hidden = true;
+        owner.hidden = false;
+    }
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var k = input.value.trim();
+        if (k.length < 24) { why.textContent = 'The key has at least 24 characters.'; why.classList.add('is-bad'); return; }
+        key = k;
+        input.value = '';
+        try { localStorage.setItem('stats-key', k); } catch (e2) { /* blocked: works until the page is left */ }
+        cache = {};
+        unlock();
+        load(days);
+    });
+    $('st-forget').addEventListener('click', function () { cache = {}; lock(); });
 
     /* ---------- names ---------- */
     var pageNames = {};
@@ -76,15 +105,19 @@
         say('Loading the numbers…');
         root.classList.add('is-loading');
         var ctl = window.AbortController ? new AbortController() : null, timer = setTimeout(function () { if (ctl) ctl.abort(); }, 10000);
-        fetch(end + '/stats?days=' + n, { credentials: 'omit', signal: ctl ? ctl.signal : undefined })
-            .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        fetch(end + '/stats?days=' + n, { credentials: 'omit', headers: { Authorization: 'Bearer ' + key }, cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+            .then(function (r) {
+                if (r.status === 401) { lock('That key was not accepted.'); throw new Error('key'); }
+                if (!r.ok) throw new Error('http ' + r.status);
+                return r.json();
+            })
             .then(function (d) {
                 if (!d || typeof d.daily !== 'object' || typeof d.totals !== 'object') throw new Error('shape');
                 cache[n] = d;
                 if (my === req) show(d);
             })
-            .catch(function () {
-                if (my !== req) return;
+            .catch(function (err) {
+                if (my !== req || (err && err.message === 'key')) return;
                 body.hidden = true;
                 say('The numbers could not be loaded right now. Please try again later.', true);
             })
@@ -240,5 +273,5 @@
     Array.prototype.forEach.call(root.querySelectorAll('.st-range-btn'), function (b) {
         b.addEventListener('click', function () { load(+b.getAttribute('data-days')); });
     });
-    load(30);
+    if (key) { unlock(); load(30); } else lock();
 })();

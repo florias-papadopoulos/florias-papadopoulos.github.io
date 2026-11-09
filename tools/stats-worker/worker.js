@@ -3,6 +3,9 @@
 //   POST /hit    one page view, sent by the site: {"p": "/games/", "r": "google.com", "d": "phone", "b": "Firefox"}
 //   GET  /stats  the totals of the ?days=7, 30 or 90 days up to yesterday (UTC), read by the site's /stats/ page. Today is
 //                left out and anything under MIN views is grouped as "(other)", so no single visit can be read off it.
+//                Owner only: the request must carry "Authorization: Bearer <key>" with the key set as the Worker secret
+//                STATS_KEY (Settings, Variables and Secrets, type Secret), at least 24 characters with lower case, upper case
+//                and digits. Without such a secret nobody can read the totals.
 //   GET  /whoami the country this request would be counted under (for the /you/ page; nothing is stored)
 // Two-player games (Kitty Kart Duo on /games/): the two devices pass each other one "how to reach me" message (WebRTC
 // SDP, which holds their network addresses), then race directly. A room keeps them for at most ROOM_TTL, then is deleted.
@@ -39,7 +42,7 @@ const TOP = 40;   // /stats lists at most this many pages, referrers, countries.
 const MIN = 3;    // /stats groups pages, referrers, countries... with fewer views than this as "(other)"
 const RANGES = [7, 30, 90];
 /* The site's pages. Anything else that is sent (a page added later, or made up) is counted as "(other)", so nobody can
-   put words on the public /stats/ page. Add new pages here. */
+   put words on the /stats/ page. Add new pages here. */
 const PAGES = ['/', '/bachelor/', '/master/', '/papers/', '/games/', '/projects/', '/you/', '/stats/', '/privacy/', '/404/'];
 const MAX_REFS = 50;      // distinct referring sites a day; later new ones are counted as "(other site)"
 const DAY_CAP = 5000;     // page views counted a day; past it nothing is written, so fake hits cannot use up the database quota
@@ -78,14 +81,14 @@ export default {
     async fetch(req, env, ctx) {
         const url = new URL(req.url);
         if (req.method === 'OPTIONS') {
-            return new Response(null, { headers: headers({ 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type' }) });
+            return new Response(null, { headers: headers({ 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' }) });
         }
         try {
             if (url.pathname === '/room' || url.pathname.indexOf('/room/') === 0) return await room(req, url, env);
             /* old rooms go on every other request too, after the answer (and never in its way) */
             if (ctx && ctx.waitUntil) ctx.waitUntil(Promise.resolve().then(function () { return sweep(env); }).catch(function () {}));
             if (url.pathname === '/hit' && req.method === 'POST') return await hit(req, env);
-            if (url.pathname === '/stats' && req.method === 'GET') return await stats(url, env);
+            if (url.pathname === '/stats' && req.method === 'GET') return owner(req, env) ? await stats(url, env) : reply(401);
             if (url.pathname === '/scores/summary' && req.method === 'GET') return await summary(env);
             if (url.pathname === '/scores') return await scores(req, url, env);
             if (url.pathname === '/likes') return await likes(req, env);
@@ -205,6 +208,20 @@ async function body(req, max) {
     } catch (e) { return null; }
 }
 
+/* Is this the owner? The key in the Authorization header must equal the STATS_KEY secret, compared in constant time so
+   its letters cannot be guessed from how long the answer takes. A weak secret (under 24 characters, or without lower
+   case, upper case and digits) opens nothing, so a short key set by mistake keeps the totals locked. */
+function strong(k) { return typeof k === 'string' && k.length >= 24 && /[a-z]/.test(k) && /[A-Z]/.test(k) && /[0-9]/.test(k); }
+function owner(req, env) {
+    const want = env.STATS_KEY, m = /^Bearer (.{24,200})$/.exec(req.headers.get('Authorization') || '');
+    if (!strong(want) || !m) return false;
+    const enc = new TextEncoder(), a = enc.encode(m[1]), b = enc.encode(want);
+    if (crypto.subtle.timingSafeEqual) return a.length === b.length && crypto.subtle.timingSafeEqual(a, b);
+    let d = a.length ^ b.length;
+    for (let i = 0; i < Math.min(a.length, b.length); i++) d |= a[i] ^ b[i];
+    return d === 0;
+}
+
 /* The answer only changes at midnight (UTC), so each running copy of the worker keeps it for 10 minutes. */
 const memo = {};
 
@@ -232,7 +249,7 @@ async function stats(url, env) {
         text = JSON.stringify(out);
         memo[key] = { at: Date.now(), text: text };
     }
-    return new Response(text, { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' }) });
+    return new Response(text, { headers: headers({ 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store' }) });
 }
 
 /* ---------- leaderboards ---------- */

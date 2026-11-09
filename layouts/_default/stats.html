@@ -1,5 +1,7 @@
-{{- /* "Site stats" (content/stats/_index.md), reached from the footer link: the totals kept by the visit counter
-       (tools/stats-worker, fed by assets/js/stats-hit.js on every page), read and drawn by assets/js/stats.js.
+{{- /* "Site stats" (content/stats/_index.md), owner only and linked from nowhere: the totals kept by the visit counter
+       (tools/stats-worker, fed by assets/js/stats-hit.js on every page), read and drawn by assets/js/stats.js. The
+       worker gives them only for the owner's key (its STATS_KEY secret): /stats/?me shows a box to enter it once per
+       browser, everyone else sees only "This page is private".
        While params.statsEndpoint is empty the counter is off and the page says so, without any script.
        Styles: assets/css/common/stats.css. The wrapper also has the class tl-page so the cat of the tabs
        (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
@@ -13,49 +15,59 @@
 <div class="tl-page st-page" id="stats"{{ with $end }} data-endpoint="{{ . }}" data-names="{{ $names | jsonify }}"{{ end }}>
     <header class="st-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
-        <p class="st-lede">How many people visit this site, counted in totals and shown to everyone.</p>
+        <p class="st-lede" id="st-private">This page is private.</p>
+    </header>
+
+    {{- if $end }}
+    <noscript><p class="st-msg">The numbers are drawn by JavaScript, which is off in your browser.</p></noscript>
+    <form class="st-key" id="st-key" hidden>
+        <label for="st-key-in">Key</label>
+        <input type="password" id="st-key-in" autocomplete="current-password" spellcheck="false" required minlength="24">
+        <button type="submit">Open</button>
+        <span class="st-key-why" id="st-key-why">Kept in this browser only, so you enter it once.</span>
+    </form>
+
+    <div class="st-owner" id="st-owner" hidden>
         <div class="st-note">
             <p><strong>What is counted</strong>, once per page view: the page, the site that sent you there (only when it is another site), whether you use a phone, tablet or computer, your browser's name (Firefox, Chrome, Safari and so on), and your country, which Cloudflare works out from the connection.</p>
             <p><strong>What is not</strong>: no cookies, no IP addresses, nothing about any one visitor. Only running totals per day are kept, and they are shown from the next day on, with anything under 3 views grouped as "Others", so no single visit can be picked out. If your browser asks sites not to track you (Do Not Track or Global Privacy Control), your visit is not counted at all.</p>
             <p>More in the <a href="{{ "privacy/" | relURL }}">privacy notice</a>.</p>
         </div>
-    </header>
-
-    {{- if $end }}
-    <div class="st-controls">
-        <div class="st-range" role="group" aria-label="Period">
-            {{- range slice 7 30 90 }}
-            <button type="button" class="st-range-btn" data-days="{{ . }}" aria-pressed="{{ if eq . 30 }}true{{ else }}false{{ end }}">{{ . }} days</button>
-            {{- end }}
+        <div class="st-controls">
+            <div class="st-range" role="group" aria-label="Period">
+                {{- range slice 7 30 90 }}
+                <button type="button" class="st-range-btn" data-days="{{ . }}" aria-pressed="{{ if eq . 30 }}true{{ else }}false{{ end }}">{{ . }} days</button>
+                {{- end }}
+            </div>
+            <p class="st-status" id="st-status" role="status">Loading the numbers…</p>
         </div>
-        <p class="st-status" id="st-status" role="status">Loading the numbers…</p>
-    </div>
-    <noscript><p class="st-msg">The numbers are drawn by JavaScript, which is off in your browser.</p></noscript>
 
-    <div class="st-body" id="st-body" hidden>
-        <div class="st-sum">
-            <div class="st-tile"><span class="st-num" id="st-total">0</span><span class="st-cap" id="st-total-cap">views in the last 30 days</span></div>
-            <div class="st-tile"><span class="st-num" id="st-today">0</span><span class="st-cap">views a day on average</span></div>
-        </div>
-        <section class="st-sec" aria-labelledby="st-h-daily">
-            <h2 class="st-h2" id="st-h-daily">Views per day</h2>
-            <div class="st-chart" id="st-chart"></div>
-        </section>
-        <div class="st-grid">
-            {{- range slice (slice "page" "Pages" "Most viewed first.") (slice "ref" "Where visitors came from" "The site of the link they followed.") (slice "country" "Countries" "Worked out by Cloudflare.") (slice "device" "Devices" "") (slice "browser" "Browsers" "") }}
-            <section class="st-sec st-list-sec" aria-labelledby="st-h-{{ index . 0 }}">
-                <h2 class="st-h2" id="st-h-{{ index . 0 }}">{{ index . 1 }}</h2>
-                {{- with index . 2 }}<p class="st-intro">{{ . }}</p>{{ end }}
-                <ol class="st-list" data-kind="{{ index . 0 }}"></ol>
+        <div class="st-body" id="st-body" hidden>
+            <div class="st-sum">
+                <div class="st-tile"><span class="st-num" id="st-total">0</span><span class="st-cap" id="st-total-cap">views in the last 30 days</span></div>
+                <div class="st-tile"><span class="st-num" id="st-today">0</span><span class="st-cap">views a day on average</span></div>
+            </div>
+            <section class="st-sec" aria-labelledby="st-h-daily">
+                <h2 class="st-h2" id="st-h-daily">Views per day</h2>
+                <div class="st-chart" id="st-chart"></div>
             </section>
-            {{- end }}
+            <div class="st-grid">
+                {{- range slice (slice "page" "Pages" "Most viewed first.") (slice "ref" "Where visitors came from" "The site of the link they followed.") (slice "country" "Countries" "Worked out by Cloudflare.") (slice "device" "Devices" "") (slice "browser" "Browsers" "") }}
+                <section class="st-sec st-list-sec" aria-labelledby="st-h-{{ index . 0 }}">
+                    <h2 class="st-h2" id="st-h-{{ index . 0 }}">{{ index . 1 }}</h2>
+                    {{- with index . 2 }}<p class="st-intro">{{ . }}</p>{{ end }}
+                    <ol class="st-list" data-kind="{{ index . 0 }}"></ol>
+                </section>
+                {{- end }}
+            </div>
         </div>
-    </div>
 
-    <p class="st-ignore" hidden>
-        <label><input type="checkbox" id="st-ignore"> Don't count my visits on this browser</label>
-        <span class="st-ignore-why">For me, the owner, so my own visits do not inflate the numbers. Remembered in this browser only.</span>
-    </p>
+        <p class="st-ignore">
+            <label><input type="checkbox" id="st-ignore"> Don't count my visits on this browser</label>
+            <span class="st-ignore-why">So my own visits do not inflate the numbers. Remembered in this browser only.</span>
+            <button type="button" class="st-forget" id="st-forget">Forget the key on this browser</button>
+        </p>
+    </div>
     {{- else }}
     <p class="st-msg st-off">The counter is not switched on yet.</p>
     {{- end }}

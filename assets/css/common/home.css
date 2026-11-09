@@ -280,10 +280,9 @@ body:has(.profile.home) .footer {
         line-height: 1.7;
         font-size: 0;                                   /* hides the " · " between the parts: set again below */
     }
-    /* two lines: "© 2026 Name · Site stats", then "Made with ..." */
+    /* two lines: "© 2026 Name · Privacy", then "Made with ..." */
     body:has(.profile.home) .footer > * { font-size: 11px; }
     body:has(.profile.home) .footer > span:last-child { display: block; }
-    body:has(.profile.home) .footer .footer-stats::before { content: "\00b7"; display: inline-block; margin: 0 6px; color: var(--secondary); }
     /* the corner buttons stay at the top of the page instead of floating over it while scrolling */
     body:has(.profile.home) .corner-btn { position: absolute; }
 }

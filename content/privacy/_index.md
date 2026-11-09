@@ -35,9 +35,9 @@ To know how many people visit, each page view sends one small request to a count
 - your browser's family name (Firefox, Chrome, Safari and so on),
 - your country, which Cloudflare works out from your connection.
 
-Only these daily totals are kept. There are no cookies, no IP addresses are stored, and nothing links one page view to another or to you. The totals are public on [Site stats](/stats/). Cloudflare processes the request to run the counter, under the [Cloudflare Privacy Policy](https://www.cloudflare.com/privacypolicy/).
+Only these daily totals are kept. There are no cookies, no IP addresses are stored, and nothing links one page view to another or to you. Cloudflare processes the request to run the counter, under the [Cloudflare Privacy Policy](https://www.cloudflare.com/privacypolicy/).
 
-**How to opt out:** turn on Do Not Track or Global Privacy Control in your browser, and the counter receives nothing from your visits. On [Site stats](/stats/) you can also switch counting off for one browser.
+**How to opt out:** turn on Do Not Track or Global Privacy Control in your browser, and the counter receives nothing from your visits.
 
 ## Game leaderboards
 
@@ -57,7 +57,7 @@ The page [What this site knows about you](/you/) shows you what the counter reco
 
 ## Storage in your browser
 
-The site sets no cookies. A few things are kept in your browser's local storage so the site remembers them for you: the look of the cat you chose, how often you petted it, the hints you have seen, game best scores, chosen levels and game settings, the last nickname you used on a leaderboard, and the "don't count my visits" choice on Site stats. They never leave your browser, and clearing this site's data removes them.
+The site sets no cookies. A few things are kept in your browser's local storage so the site remembers them for you: the look of the cat you chose, how often you petted it, the hints you have seen, game best scores, chosen levels and game settings, the last nickname you used on a leaderboard, and the "don't count my visits" choice. They never leave your browser, and clearing this site's data removes them.
 
 ## No other third parties
 
