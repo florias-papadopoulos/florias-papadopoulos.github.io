@@ -49,7 +49,7 @@ Calc.tool({
             var src = v.input.replace(/\s+/g, '').toUpperCase();
             var p = src.indexOf('='), body = p < 0 ? src : src.slice(0, p), padStr = p < 0 ? '' : src.slice(p);
             if (!/^=*$/.test(padStr)) Calc.fail('An = sign can only be padding at the very end.', 'input');
-            for (var q = 0; q < body.length; q++) if (A.indexOf(body.charAt(q)) < 0) Calc.fail('"' + body.charAt(q) + '" (position ' + (q + 1) + ') is not in this Base32 alphabet' + (v.variant === 'std' && /[01890]/.test(body.charAt(q)) ? ' (0, 1, 8 and 9 are left out so they cannot be confused with O, I and B)' : '') + '.', 'input');
+            for (var q = 0; q < body.length; q++) if (A.indexOf(body.charAt(q)) < 0) Calc.fail('"' + Calc.chr(body, q) + '" (position ' + (q + 1) + ') is not in this Base32 alphabet' + (v.variant === 'std' && /[01890]/.test(body.charAt(q)) ? ' (0, 1, 8 and 9 are left out so they cannot be confused with O, I and B)' : '') + '.', 'input');
             var last = body.length % 8;
             if (last && !PADS[last]) Calc.fail('A last group of ' + last + ' characters is impossible: only 2, 4, 5 or 7 characters can end a block.', 'input');
             if (padStr && (padStr.length !== (last ? PADS[last] : 0))) Calc.fail('Wrong padding: a last group of ' + last + ' characters needs ' + (last ? PADS[last] : 0) + ' = signs.', 'input');

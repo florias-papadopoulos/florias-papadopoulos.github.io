@@ -41,7 +41,7 @@
             }
             if (!s) Calc.fail('Please enter a number.', 'num');
             for (var i = 0; i < s.length; i++) {
-                var c = s.charAt(i), d = kd === 'b64' ? D64.indexOf(c) : D36.indexOf(c.toUpperCase());
+                var c = Calc.chr(s, i), d = kd === 'b64' ? D64.indexOf(c) : D36.indexOf(c.toUpperCase());
                 if (d < 0) Calc.fail('"' + c + '" is not a digit' + (kd === 'b64' ? ' of Base64 (A-Z, a-z, 0-9, + and /).' : '.'), 'num');
                 if (BigInt(d) >= b) Calc.fail('"' + c + '" is worth ' + d + ', too much for base ' + b + ' (digits 0 to ' + (b - 1n) + ').', 'num');
                 ds.push(BigInt(d));

@@ -76,6 +76,8 @@
     };
     /* the plain-text version of a rich string (for copying and for tests) */
     Calc.plain = function (s) { return Calc.rich(s).map(function (p) { return p.v; }).join(''); };
+    /* the character at index i of s, whole even when it is an emoji (two UTF-16 units), for error messages */
+    Calc.chr = function (s, i) { s = String(s); return i < s.length ? String.fromCodePoint(s.codePointAt(i)) : ''; };
 
     /* a rich string as words for screen readers and voice control: "Prime $p$" -> "Prime p", "$a^{-1} \bmod n$" ->
        "a⁻¹ mod n". Used as the accessible name of fields, step titles and table headers that contain maths, since
@@ -155,12 +157,16 @@
         function ws() { while (i < s.length && /\s/.test(s.charAt(i))) i++; }
         function peek() { ws(); return s.charAt(i); }
         function expect(c) { if (peek() !== c) Calc.fail('Expected "' + c + '" at position ' + (i + 1) + '.'); i++; }
+        function unexpected() {
+            var c = Calc.chr(s, i);
+            Calc.fail('Unexpected "' + c + '" at position ' + (i + 1) + '.' + (c === '.' && /\d/.test(s.charAt(i - 1)) ? ' Only whole numbers are allowed here.' : ''));
+        }
         function number() {
             ws();
             var m = /^0x[0-9a-f]+|^0b[01]+|^0o[0-7]+|^\d[\d_]*(?:e\d+)?/i.exec(s.slice(i));
             if (!m) {
                 if (i >= s.length) Calc.fail('The expression ends too early.');
-                Calc.fail('Unexpected "' + s.charAt(i) + '" at position ' + (i + 1) + '.');
+                unexpected();
             }
             i += m[0].length;
             var t = m[0].replace(/_/g, '').toLowerCase();
@@ -256,7 +262,7 @@
         }
         if (!s.trim()) Calc.fail('Please enter a number.');
         var v = expr();
-        if (peek() !== '') Calc.fail('Unexpected "' + s.charAt(i) + '" at position ' + (i + 1) + '.');
+        if (peek() !== '') unexpected();
         return big(v);
     }
     /* Calc.int(text) -> BigInt; Calc.list(text) -> [BigInt] (separated by commas, semicolons or new lines; when there
@@ -495,6 +501,22 @@
         return el('div');
     }
 
+    /* a formula wider than its line (a long number has nowhere to break) would widen the whole page: it becomes a small
+       scroll box of its own instead (class is-wide). Tables and the result lines scroll already. Run after drawing,
+       and again when more steps are shown, when the fonts arrive and when the window changes size. */
+    function fitWide(root) {
+        var all = Array.prototype.filter.call(root.querySelectorAll('.tb-m'), function (m) { return !m.closest('.tb-table-wrap, .tb-result-line'); });
+        all.forEach(function (m) { m.classList.remove('is-wide'); });
+        function out(m) {
+            var h = m.parentElement.getBoundingClientRect(), r = m.getBoundingClientRect();
+            return r.right > h.right + 1 || r.left < h.left - 1;
+        }
+        /* first the formulas wider than their paragraph, then (once those are boxed) any still sticking out */
+        all.filter(function (m) { return m.getBoundingClientRect().width > m.parentElement.clientWidth + 1; }).forEach(function (m) { m.classList.add('is-wide'); });
+        all.filter(out).forEach(function (m) { m.classList.add('is-wide'); });
+    }
+    Calc.fitWide = fitWide;
+
     var MAX_STEPS = 120;
     function render(S, box) {
         box.result.textContent = '';
@@ -529,9 +551,12 @@
             more.addEventListener('click', function () {
                 S.steps.slice(MAX_STEPS).forEach(function (s) { ol.appendChild(stepNode(s)); });
                 more.remove();
+                fitWide(box.steps);
             });
             box.steps.appendChild(more);
         }
+        fitWide(box.result);
+        fitWide(box.steps);
     }
     function copyText(text, btn) {
         function done(ok) { btn.textContent = ok ? 'Copied' : 'Copy failed'; setTimeout(function () { btn.textContent = 'Copy'; }, 1400); }
@@ -740,6 +765,15 @@
             live = setTimeout(function () { go(lastAction, true); }, 250);
         });
         form.addEventListener('change', function () { applyWhen(def, fields); });
+        var refit = null, lastW = G.innerWidth;
+        function fitAll() { fitWide(box.result); fitWide(box.steps); }
+        G.addEventListener('resize', function () {
+            if (G.innerWidth === lastW) return;          /* phones resize the height while scrolling: ignore that */
+            lastW = G.innerWidth;
+            clearTimeout(refit);
+            refit = setTimeout(fitAll, 150);
+        });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
 
         /* start: the inputs of the address if there are any, else the first example, so the procedure shows at once */
         var q = {}, any = false;

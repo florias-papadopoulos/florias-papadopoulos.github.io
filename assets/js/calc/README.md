@@ -68,6 +68,7 @@ Input types: `int` (BigInt, accepts expressions such as `2^127-1`, `0xff`, `10!`
 In `run(v, S)`: `v.<id>` are the parsed values, `v._action` the button pressed.
 
 - `Calc.fail('message', 'fieldId')`: an input mistake, shown to the visitor (the field id marks the field red). With a field id the message is shown as plain text next to the field (no math); without one it is rich text.
+- To name a typed character in a message use `Calc.chr(text, i)` (or a regex with the `u` flag), not `charAt`: an emoji is two UTF-16 units and `charAt` gives half of it.
 - Checkboxes are true for `true`, `'1'`, `'true'`; a field missing from the raw input (in tests) gets its `value` default, as on the page.
 - `optional: true` on an `int` field gives `null` when it is left empty.
 - Libraries load in this order: `nt.js`, `text.js`, then the others alphabetically.

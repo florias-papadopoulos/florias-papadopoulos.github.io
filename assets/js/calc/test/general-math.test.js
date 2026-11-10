@@ -348,16 +348,16 @@
 
     /* ---------- polynomial-division ---------- */
     T.tool('polynomial-division', [
-        { in: { p: 'x^3 - 2x^2 - 4', d: 'x - 3' }, copy: 'q = x^2 + x + 3, r = 5', check: okAll },
-        { in: { p: 'x^5 - 1', d: 'x - 1' }, copy: 'q = x^4 + x^3 + x^2 + x + 1, r = 0', check: okAll },
-        { in: { p: '6x^3 + 5x^2 - 2', d: '2x + 3' }, copy: 'q = 3x^2 - 2x + 3, r = -11' },
-        { in: { p: '1, 0, 0, 0, 1', d: '1, 0, 1' }, copy: 'q = x^2 - 1, r = 2' },
-        { in: { p: '2x^4 + 3x^3 - x + 5', d: 'x^2 - x + 1' }, copy: 'q = 2x^2 + 5x + 3, r = -3x + 2', check: okAll },
-        { in: { p: 'x', d: 'x^2 + 1' }, copy: 'q = 0, r = x' },
-        { in: { p: 'x^2 + 1', d: '2' }, copy: 'q = (1/2)x^2 + 1/2, r = 0' },
-        { in: { p: 't^2 - 1/4', d: 't + 1/2' }, copy: 'q = t - 1/2, r = 0' },
-        { in: { p: '0', d: 'x + 1' }, copy: 'q = 0, r = 0' },
-        { in: { p: 'x^2 + 2*x + 1', d: 'x + 1' }, copy: 'q = x + 1, r = 0' },
+        { in: { p: 'x^3 - 2x^2 - 4', d: 'x - 3' }, copy: 'q = x^2 + x + 3\nr = 5', check: okAll },
+        { in: { p: 'x^5 - 1', d: 'x - 1' }, copy: 'q = x^4 + x^3 + x^2 + x + 1\nr = 0', check: okAll },
+        { in: { p: '6x^3 + 5x^2 - 2', d: '2x + 3' }, copy: 'q = 3x^2 - 2x + 3\nr = -11' },
+        { in: { p: '1, 0, 0, 0, 1', d: '1, 0, 1' }, copy: 'q = x^2 - 1\nr = 2' },
+        { in: { p: '2x^4 + 3x^3 - x + 5', d: 'x^2 - x + 1' }, copy: 'q = 2x^2 + 5x + 3\nr = -3x + 2', check: okAll },
+        { in: { p: 'x', d: 'x^2 + 1' }, copy: 'q = 0\nr = x' },
+        { in: { p: 'x^2 + 1', d: '2' }, copy: 'q = (1/2)x^2 + 1/2\nr = 0' },
+        { in: { p: 't^2 - 1/4', d: 't + 1/2' }, copy: 'q = t - 1/2\nr = 0' },
+        { in: { p: '0', d: 'x + 1' }, copy: 'q = 0\nr = 0' },
+        { in: { p: 'x^2 + 2*x + 1', d: 'x + 1' }, copy: 'q = x + 1\nr = 0' },
         { in: { p: 'x^2', d: '0' }, error: true },
         { in: { p: 'x^2 + y', d: 'x' }, error: true },
         { in: { p: 'x^2 +', d: 'x' }, error: true },
@@ -388,7 +388,7 @@
         var list = function (c) { return c.slice().reverse().map(gm.qstr).join(', '); };
         return T.run('polynomial-division', { p: list(p), d: list(d) }).then(function (o) {
             if (o.errors) return 'error ' + JSON.stringify(o.errors) + ' for ' + list(p) + ' / ' + list(d);
-            var m = /^q = (.*), r = (.*)$/.exec(o.copy);
+            var m = /^q = (.*)\nr = (.*)$/.exec(o.copy);
             if (!m) return 'copy ' + o.copy;
             if (!polyEq(readPoly(m[1]), q) || !polyEq(readPoly(m[2]), rem)) return list(p) + ' / ' + list(d) + ' gave ' + o.copy;
             return checksOk(o.S);

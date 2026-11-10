@@ -6,7 +6,7 @@ Calc.tool({
         Calc.lib.classic.textInput('I am hurt very badly help'),
         { id: 'around', label: 'Letters around the rod', placeholder: '4', width: 's', min: 2, max: 1000, help: 'The thickness of the rod: how many letters one turn of the strip holds.' },
         { id: 'pad', type: 'select', label: 'Last row', width: 'l', value: 'none', options: [['none', 'Leave it short'], ['fill', 'Fill it with filler letters']] },
-        { id: 'filler', type: 'text', label: 'Filler', width: 's', value: 'X', placeholder: 'X', optional: true, when: { pad: 'fill' } }
+        { id: 'filler', type: 'text', label: 'Filler', width: 's', value: 'X', placeholder: 'X', optional: true, when: { pad: 'fill' }, help: 'Used in turn, e.g. X or QKJEU.' }
     ].concat(Calc.lib.classic.transInputs()),
     actions: Calc.lib.classic.ACTIONS,
     examples: [

@@ -5,8 +5,8 @@ Calc.tool({
     inputs: [
         { id: 'p', label: 'Prime $p$ (the field)', placeholder: '1613' },
         { id: 's', type: 'text', label: 'Secret $s$ (to split)', placeholder: '1234', optional: true },
-        { id: 'n', type: 'text', label: 'Number of shares $n$', placeholder: '6', optional: true, width: 's' },
-        { id: 't', type: 'text', label: 'Threshold $t$', placeholder: '3', optional: true, width: 's' },
+        { id: 'n', type: 'text', label: 'Number of shares $n$', placeholder: '6', optional: true },
+        { id: 't', type: 'text', label: 'Threshold $t$', placeholder: '3', optional: true },
         { id: 'coef', type: 'text', label: 'Coefficients $a_1, \\ldots, a_{t-1}$', placeholder: '166, 94', optional: true, width: 'l', help: 'Empty: drawn at random.' },
         { id: 'shares', type: 'textarea', label: 'Shares $(x, y)$ (to reconstruct)', placeholder: '(1, 1494), (2, 329), (3, 965)', optional: true, rows: 2 }
     ],

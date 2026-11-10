@@ -58,7 +58,7 @@ Calc.tool({
                 else if ((m = /^0b([01]+)$/i.exec(t))) { base = 2; digits = m[1]; how = 'binary (prefix)'; }
                 else if ((m = /^0o([0-7]+)$/i.exec(t))) { base = 8; digits = m[1]; how = 'octal (prefix)'; }
                 var re = { 2: /^[01]+$/, 8: /^[0-7]+$/, 10: /^\d+$/, 16: /^[0-9a-f]+$/i }[base];
-                if (!re.test(digits)) Calc.fail('Code ' + (i + 1) + ' ("' + t + '") is not a ' + NAME[base === 16 ? 'hex' : base === 2 ? 'bin' : base === 8 ? 'oct' : 'dec'] + ' number.', 'input');
+                if (!re.test(digits)) Calc.fail('Code ' + (i + 1) + ' ("' + t + '") is not ' + (base === 8 ? 'an ' : 'a ') + NAME[base === 16 ? 'hex' : base === 2 ? 'bin' : base === 8 ? 'oct' : 'dec'] + ' number.', 'input');
                 if (digits.replace(/^0+/, '').length > { 2: 21, 8: 7, 10: 7, 16: 6 }[base]) Calc.fail('Code ' + (i + 1) + ' ("' + t + '") is far above the last code point U+10FFFF.', 'input');
                 var cp = parseInt(digits, base);
                 if (cp > 0x10FFFF) Calc.fail('Code ' + (i + 1) + ' (' + cp + ') is above U+10FFFF = 1114111, the last code point.', 'input');

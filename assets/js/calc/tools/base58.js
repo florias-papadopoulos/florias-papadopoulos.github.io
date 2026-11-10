@@ -40,7 +40,7 @@ Calc.tool({
         function decode() {
             var src = v.input.trim();
             for (var i = 0; i < src.length; i++) {
-                var c = src.charAt(i);
+                var c = Calc.chr(src, i);
                 if (A.indexOf(c) < 0) Calc.fail('"' + c + '" (position ' + (i + 1) + ') is not a Base58 character' + (/[0OIl]/.test(c) ? ': 0, O, I and l are left out of the alphabet on purpose.' : '.'), 'input');
             }
             if (src.length > 1400) Calc.fail('At most 1400 characters.', 'input');

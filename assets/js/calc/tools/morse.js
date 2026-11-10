@@ -55,7 +55,7 @@ Calc.tool({
 
         function decode() {
             var src = v.input.replace(/[\u00B7\u2022\u2219\u22C5*]/g, '.').replace(/[\u2212\u2013\u2014\u2012_]/g, '-').trim();
-            var m = /[^.\-\s/|]/.exec(src);
+            var m = /[^.\-\s/|]/u.exec(src);
             if (m) Calc.fail('"' + m[0] + '" is not Morse: use dots, dashes, spaces, and / between words.', 'input');
             var wordsIn = src.split(/\s*[/|]\s*|\s{2,}/).filter(Boolean), out2 = [], rows2 = [];
             wordsIn.forEach(function (w, wi) {

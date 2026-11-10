@@ -69,6 +69,8 @@
 .tb-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .tb-field[hidden] { display: none; }
 .tb-w-s { flex: 0 1 130px; }
+/* on a phone, a short field with a help text gets wide enough that the help is not a narrow column of five lines */
+@media (max-width: 600px) { .tb-w-s:has(> .tb-help) { flex-basis: 200px; } }
 .tb-w-m { flex: 1 1 200px; }
 .tb-w-l { flex: 2 1 300px; }
 .tb-w-full { flex: 1 1 100%; }
@@ -109,6 +111,10 @@
 .tb-copy { padding: 3px 10px; border: 1px solid #c7d2e8; border-radius: 6px; background: #fff; color: var(--tl-text); font: inherit; font-size: 13px; cursor: pointer; }
 .tb-copy:hover { border-color: var(--tl-navy); color: var(--tl-navy); }
 .tb-result-line { color: var(--tl-ink); font-size: 20px; line-height: 1.5; overflow-wrap: anywhere; overflow-x: auto; }
+/* overflow-x makes the line clip vertically too: KaTeX's subscripts and fractions reach a few pixels beyond the line
+   and gave it a small vertical scrollbar. Room for them in the padding, given back by the margins (same layout) */
+.tb-result-line { overflow-y: hidden; padding: 4px 0; margin: -4px 0; }
+.tb-result-line + .tb-result-line { margin-top: -8px; }
 .tb-result-line .katex { font-size: 1.05em; }
 .tb-note { margin: 8px 0 0; color: var(--tl-text); font-size: 14.5px; line-height: 1.55; }
 .tb-error { margin: 0 0 8px; padding: 12px 16px; border-left: 3px solid #be123c; background: #fff1f2; color: #881337; border-radius: 0 10px 10px 0; }
@@ -128,8 +134,9 @@
 .tb-display .katex-display { margin: 0; text-align: left; }
 .tb-display .katex-display > .katex { text-align: left; }
 .tb-pre { margin: 6px 0 10px; padding: 10px 12px; border: 1px solid var(--tl-line); border-radius: 8px; background: #f8fafc; color: var(--tl-ink); font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
-.tb-check { display: flex; gap: 8px; align-items: baseline; margin: 4px 0 8px; font-size: 15px; }
-.tb-check-mark { font-weight: 700; }
+.tb-check { margin: 4px 0 8px; padding-left: 21px; font-size: 15px; }
+/* the mark hangs in the padding, so a long check wraps like a paragraph (a flex row could not wrap its formulas) */
+.tb-check-mark { display: inline-block; width: 21px; margin-left: -21px; font-weight: 700; }
 .tb-check.is-ok .tb-check-mark { color: #15803d; }
 .tb-check.is-bad .tb-check-mark { color: #be123c; }
 .tb-list { margin: 4px 0 10px; padding-left: 20px; color: var(--tl-text); font-size: 15.5px; line-height: 1.6; }
@@ -145,11 +152,15 @@
 .tb-table tr.is-hl td, .tb-table td.is-hl { background: #eef2fb; }
 .tb-table td.is-hl { box-shadow: inset 0 -2px 0 var(--tl-navy); }
 .tb-gap td { text-align: center !important; }
+/* a formula too wide for its line (core.js fitWide: a long number has nowhere to break) scrolls in a box of its own */
+.tb-m.is-wide { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 0; vertical-align: middle; }
 .tb-more { margin: 4px 0; padding: 4px 0; border: 0; background: none; color: var(--tl-navy); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
 
 /* how it works, related tools */
 .tb-about { color: var(--tl-text); font-size: 15.5px; line-height: 1.65; }
 .tb-about p { margin: 0 0 12px; }
+/* a displayed formula wider than a phone scrolls instead of widening the page */
+.tb-about .katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
 .tb-related ul { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 0; list-style: none; }
 .tb-related a { color: var(--tl-navy); text-decoration: none; font-weight: 600; }
 .tb-related a:hover { text-decoration: underline; }

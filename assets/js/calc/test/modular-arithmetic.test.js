@@ -394,3 +394,11 @@ T.prop('zn-tables for every n', 1, function () {
     })(n);
     return chain;
 });
+
+/* the number parser: a decimal point gets a hint, an emoji is named whole */
+(function () {
+    function msg(s) { try { Calc.int(s); return 'no error'; } catch (e) { return e.message; } }
+    T.ok('Calc.int: decimal point hint', /Only whole numbers/.test(msg('3.5')), msg('3.5'));
+    T.ok('Calc.int: emoji named whole', msg('😀') === 'Unexpected "😀" at position 1.', msg('😀'));
+    T.ok('Calc.int: dot without a digit before has no hint', !/Only whole/.test(msg('.5')), msg('.5'));
+})();
