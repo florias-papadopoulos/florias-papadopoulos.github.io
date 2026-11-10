@@ -55,7 +55,8 @@
 {{- $base := slice "core/theme-vars" "core/reset" "common/main" "common/header" "common/header-phone" "common/footer" "common/paw" "common/play" "common/color-scheme" "common/profile-mode" "common/post-entry" "common/terms" "common/404" }}
 {{- $extra := slice }}
 {{- $lab := in (slice "lab" "games" "toolbox") .Section }}
-{{- if or .IsHome (eq .Layout "lab") }}{{ $extra = $extra | append "common/home" }}{{ end }}
+{{- if .IsHome }}{{ $extra = $extra | append "common/home-page" }}{{ end }}
+{{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/home" }}{{ end }}
 {{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/toolbox" "common/timeline" }}{{ end }}
 {{- if eq .Layout "admin" }}{{ $extra = $extra | append "common/cat" "common/live" }}{{ end }}
 {{- if $lab }}{{ $extra = $extra | append "common/cat" }}{{ end }}
