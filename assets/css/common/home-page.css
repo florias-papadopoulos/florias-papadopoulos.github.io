@@ -208,13 +208,13 @@ body:has(.home3) .footer { background: transparent; }
 :is(.hn-list, .hw-top, .hw-wrap)::before {
     content: "";
     position: absolute;
-    inset: -14px -18px;
+    inset: 0;                                           /* the box itself, so the page never gets wider */
     z-index: -1;
     pointer-events: none;
     --veil: color-mix(in srgb, var(--code-bg) 92%, transparent);
     background: var(--veil);
-    border-radius: 18px;
-    filter: blur(10px);                                 /* soft edges, in every browser */
+    border-radius: 12px;
+    box-shadow: 0 0 16px 10px var(--veil);              /* a soft edge reaching past the text: drawn cheaply, and it adds no width */
 }
 
 /* laptops and up: every project in one row that fits the width (the tiles shrink, up to 150 px each), so the strip

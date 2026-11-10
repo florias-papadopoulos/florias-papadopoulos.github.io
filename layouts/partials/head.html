@@ -48,9 +48,9 @@
 {{- /* Styles */}}
 
 {{- /* Styles: each page carries its own, written into the page (<style>, allowed by the CSP), so nothing has to be
-       fetched before it can be drawn. Every page gets the shared base (colour variables, reset, header, footer, the
-       corner buttons and the lab's navigation); then only what that page uses: home.css on the two home pages, the
-       pet (cat.css) on the lab's pages, timeline.css on the tab pages (Bachelor, Master, Papers, the Toolbox, /you/,
+       fetched before it can be drawn. Every page gets the shared base (colour variables, reset, footer, the corner
+       buttons and the lab's navigation); then only what that page uses: home-page.css on the home page, home.css on
+       the lab's home, the sidebar (site-nav.css) on the other normal pages, the pet (cat.css) on the lab's pages, timeline.css on the tab pages (Bachelor, Master, Papers, the Toolbox, /you/,
        Privacy, /stats/), and the page's own file. zmedia.css (screen size rules) comes last. Audience mode has its own
        head (live-head.html). reset.css and zmedia.css came from the PaperMod theme (MIT, see LICENSE.md). */ -}}
 {{- $base := slice "core/theme-vars" "core/reset" "common/main" "common/footer" "common/paw" "common/play" "common/color-scheme" "common/profile-mode" "common/post-entry" "common/terms" "common/404" }}

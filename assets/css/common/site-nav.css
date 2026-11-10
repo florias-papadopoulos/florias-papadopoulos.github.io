@@ -54,3 +54,31 @@ body:has(.sn-group > .pn-tab[aria-current]) { background-image: radial-gradient(
     .sn-group[data-g="Master"], html:has(.sn-group[data-g="Master"] > .pn-tab[aria-current]) { --aura: #c4b5fd; --aura-glow: rgba(167, 139, 250, 0.13); }
     .sn-group[data-g="Paper"], html:has(.sn-group[data-g="Paper"] > .pn-tab[aria-current]) { --aura: #fbbf24; --aura-glow: rgba(251, 191, 36, 0.11); }
 }
+
+/* ---------- calm dots behind the page, like the home page and the lab: in the colour of the page's kind (Bachelor teal,
+   Master violet, Papers gold; navy elsewhere, e.g. the CV), fixed so they stay while scrolling; behind the texts they
+   fade away (a veil of the page's colour with a soft edge, as in the lab, play.css) ---------- */
+body:has(.site-nav) { --sn-dot: color-mix(in srgb, var(--aura, #1e3a8a) 20%, transparent); --veil: color-mix(in srgb, var(--code-bg) 92%, transparent); }
+body:has(.site-nav)::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 0 var(--pn-w);
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(circle, var(--sn-dot) 1.2px, transparent 1.8px) 0 0 / 30px 30px;
+}
+body:has(.site-nav) .footer { background: transparent; }
+body:has(.site-nav) :is(.tl-page, .cv-page) { position: relative; }
+body:has(.site-nav) :is(.tl-page, .cv-page)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--veil);
+    border-radius: 12px;
+    box-shadow: 0 0 16px 10px var(--veil);
+}
+@media (prefers-color-scheme: dark) {
+    body:has(.site-nav) { --sn-dot: color-mix(in srgb, var(--aura, #9dbaf5) 17%, transparent); }
+}

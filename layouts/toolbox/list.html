@@ -9,8 +9,8 @@
 {{- $n := 0 }}{{ range $cats }}{{ $n = add $n (len .tools) }}{{ end }}
 <div class="tl-page tb-page tb-index">
     <header class="tb-head">
-        {{- /* the band, like the home page's (play.css .lab-band): the title, the intro, the search and its suggestions */}}
-        <div class="lab-band">
+        {{- /* the head, like Games' (play.css .lab-head): the large title, the intro, the search and its suggestions */}}
+        <div class="lab-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
         <div class="tb-lede">{{ .Content }}</div>
         <div class="tb-search">

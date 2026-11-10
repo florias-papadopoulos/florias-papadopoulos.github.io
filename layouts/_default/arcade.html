@@ -17,7 +17,7 @@
 {{- $list = $list | append (dict "id" $g.id "title" $g.title "dogTitle" ($g.dogTitle | default $g.title) "dogDesc" ($g.dogDesc | default $g.desc) "dogEmoji" ($g.dogEmoji | default $g.emoji) "emoji" $g.emoji "desc" $g.desc "group" ($g.group | default "simple") "levels" ($g.levels | default false) "restart" ($g.restart | default true) "tracks" ($g.tracks | default slice) "trackLabel" ($g.trackLabel | default "Track") "src" $src "integrity" $sri) }}
 {{- end }}
 <div class="arcade" id="arcade" data-games="{{ $list | jsonify }}"{{ with site.Params.statsEndpoint }} data-server="{{ . }}"{{ end }}>
-    <header class="arcade-head lab-band">
+    <header class="arcade-head lab-head">
         <h1>Games</h1>
         {{- with .Params.intro }}<p class="arcade-intro"><span class="for-cat">{{ . }}</span><span class="for-dog">{{ $.Params.dogIntro | default . }}</span></p>{{ end }}
         {{- /* The music button: a menu of four background mixes (10+ minutes each, several CC0 tracks joined), files in
