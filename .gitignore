@@ -11,5 +11,3 @@ _slides-pptx/
 # Claude Code session files and agent worktrees
 .claude/
 
-# the CV source (LaTeX + photos) the owner drops here; never committed
-MyCV_2026.zip
