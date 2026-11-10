@@ -1,0 +1,22 @@
+{{- /* One live page: (dict "page" . "kind" "aud" | "pres" | "admin" "files" (slice "00-common.js" ...)). The scripts
+       are assets/js/live/*.js, joined in the order given into one file per page (assets/js/live/README.md). */ -}}
+{{- $p := .page }}
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang }}">
+<head>
+{{ partial "live-head.html" $p }}
+</head>
+<body class="lv-body">
+<div class="lv lv-{{ .kind }}" id="live" data-endpoint="{{ site.Params.liveEndpoint }}" data-base="{{ "live/" | absURL }}">
+    <main id="lv-app"><noscript><p class="lv-plain">This page needs JavaScript.</p></noscript></main>
+</div>
+{{- if site.Params.liveEndpoint }}
+{{- $files := slice }}
+{{- range .files }}{{ $files = $files | append (resources.Get (printf "js/live/%s" .)) }}{{ end }}
+{{- $js := $files | resources.Concat (printf "js/live-%s.js" .kind) | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{- else }}
+<p class="lv-plain">Audience mode is not set up yet.</p>
+{{- end }}
+</body>
+</html>

@@ -1,0 +1,3 @@
+{{- /* The audience page /live/#<code> (content/live/_index.md): phone first, a standalone page (no menu, footer,
+       corner buttons or pet). Script: assets/js/live/30-audience.js. */ -}}
+{{ partial "live-page.html" (dict "page" . "kind" "aud" "files" (slice "00-common.js" "10-render.js" "30-audience.js")) }}

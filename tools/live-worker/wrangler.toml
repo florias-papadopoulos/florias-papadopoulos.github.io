@@ -1,0 +1,29 @@
+# florias-live: audience mode for talks (README.md). Deploy with `npx wrangler deploy` from this folder.
+name = "florias-live"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+preview_urls = false
+
+# DEV = "1" also lets http://localhost:<port> connect (local previews of the site). Keep "0" when deployed.
+[vars]
+DEV = "0"
+
+# One Session object per talk code (and per "<code>.test" rehearsal), one Plans object for the presenter's plans.
+[[durable_objects.bindings]]
+name = "SESSION"
+class_name = "Session"
+
+[[durable_objects.bindings]]
+name = "PLANS"
+class_name = "Plans"
+
+# SQLite-backed Durable Objects: the kind the Workers Free plan allows. Never edit an applied migration; add a new
+# [[migrations]] block with a new tag instead.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Session", "Plans"]
+
+# No request logs (they would hold the audience's IP addresses), as with the visit counter.
+[observability]
+enabled = false

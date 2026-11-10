@@ -1,0 +1,20 @@
+{{- /* The <head> of the live pages (layouts/live/): the site's Content-Security-Policy (layouts/partials/csp.html) with
+       the audience-mode worker (params.liveEndpoint) added to connect-src, over https and wss, on these pages only;
+       no indexing, no referrer; only the theme's reset and assets/css/common/live.css as styles (no fonts, no other
+       site scripts, no visit counter, no pet). */ -}}
+{{- $csp := partial "csp.html" . }}
+{{- with site.Params.liveEndpoint }}{{ with urls.Parse . }}
+{{- $ws := cond (eq .Scheme "https") "wss" "ws" }}
+{{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' %s://%s %s://%s" .Scheme .Host $ws .Host) }}
+{{- end }}{{ end }}
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="{{ $csp }}">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ffffff">
+<title>{{ .Title }}</title>
+<link rel="icon" href="{{ site.Params.assets.favicon | default "favicon.ico" | absURL }}">
+{{- $css := slice (resources.Get "css/core/theme-vars.css") (resources.Get "css/core/reset.css") (resources.Get "css/common/live.css") | resources.Concat "css/live.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" crossorigin="anonymous">

@@ -1,0 +1,3 @@
+{{- /* The presenter page /live/admin/ (content/live/admin.md): talk plans, QR codes, rehearsal, results. Scripts:
+       assets/js/live/50-admin.js and 55-admin-side.js. */ -}}
+{{ partial "live-page.html" (dict "page" . "kind" "admin" "files" (slice "00-common.js" "05-key.js" "10-render.js" "vendor/qrcode-generator.js" "20-qr.js" "50-admin.js" "55-admin-side.js")) }}
