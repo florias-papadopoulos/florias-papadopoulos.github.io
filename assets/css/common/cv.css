@@ -98,7 +98,9 @@ ul.cv-desc { margin-top: 2.9pt !important; }
 /* dark mode: the site's dark colours instead of the PDF's red (red on the dark page reads poorly): the bars, headings
    and bullets take the site's light blue accent, the text its soft white, the grey parts its quiet grey */
 @media (prefers-color-scheme: dark) {
-    .cv-page { --cv-ink: var(--dk-ink); --cv-grey: var(--dk-muted); --cv-first: var(--dk-muted); --cv-last: var(--dk-ink); --cv-red: var(--dk-navy); }
+    /* a step lighter than the site's dark palette (--dk-ink, --dk-muted, --dk-navy): the CV's thin Latin Modern
+       strokes and its italics need more contrast on the dark page than the site's own font does */
+    .cv-page { --cv-ink: #f5f8fc; --cv-grey: #bcc7d6; --cv-first: #c6d0dd; --cv-last: #f5f8fc; --cv-red: #b6cdfb; }
 }
 
 /* printing: only the CV (the PDF itself is the better copy) */
