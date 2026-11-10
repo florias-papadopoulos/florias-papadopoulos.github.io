@@ -2,12 +2,12 @@
    decides its side: the lab's home page, Games and the Toolbox are the playful side (baseof.html sets html[data-mode="play"] there, with the
    play navigation of layouts/partials/play-nav.html, the pet and warm colours, all in assets/css/common/play.css), every
    other page is the normal site. Turning the key on a normal page opens the
-   lab's home page (/lab/); turning it back (or "About me" at the bottom of the sidebar) opens the normal home page. No animation of
+   lab's home page (/lab/); turning it back ("About me") opens the normal home page. No animation of
    its own (play.css cross-fades the two pages where the browser can). No sound. Bundled after
    assets/js/lab/cat-picker.js. */
 (function () {
     'use strict';
-    var root = document.documentElement, key = document.getElementById('key-btn'), back = document.getElementById('play-off');
+    var root = document.documentElement, key = document.getElementById('key-btn');
     if (!key) return;
     var busy = false;
 
@@ -38,7 +38,6 @@
     }
 
     key.addEventListener('click', function () { turn(!isOn()); });
-    if (back) back.addEventListener('click', function () { turn(false); });
     /* coming back to a page with the browser's back button: it may still show the animation's end */
     window.addEventListener('pageshow', function (e) {
         if (!e.persisted) return;

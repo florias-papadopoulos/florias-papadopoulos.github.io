@@ -1,8 +1,8 @@
 {{- /* Play mode's navigation (shown only under html[data-mode="play"], see assets/js/lab/play.js; styles in
        assets/css/common/play.css): a tab bar at the bottom on phones and tablets, a slim sidebar on the left on wider
        screens. Three items: the lab's home page, Games and Toolbox (the owner did not want a combined search). The sidebar
-       also has a place for the cat and dog pickers (the buttons themselves are the corner buttons of baseof.html,
-       placed over it by play.css) and, at the bottom, the way back to the normal site ("About me"). Pets and leaderboards are
+       also has a place for the cat and dog pickers at the bottom (the buttons themselves are the corner buttons of
+       baseof.html, placed over it by play.css); the way back to the normal site is the "About me" key, top right. Pets and leaderboards are
        deliberately not tabs: the pickers live here, the leaderboards stay on the Games page. */ -}}
 {{- $here := .RelPermalink }}
 {{- $key := `<svg class="pn-key" viewBox="6 8 50 50" aria-hidden="true"><circle cx="20" cy="32" r="11"/><path d="M31 32h22M45 32v10M45 37h6M53 32v12"/></svg>` | safeHTML }}
@@ -26,5 +26,4 @@
         <p class="pn-label">Your pet</p>
         <div class="pn-slots" aria-hidden="true"></div>
     </div>
-    <button class="pn-back pm-card" type="button" id="play-off">{{ $key }}<span>About me</span></button>
 </nav>

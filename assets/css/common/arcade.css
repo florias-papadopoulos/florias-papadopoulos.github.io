@@ -157,6 +157,11 @@ body.arcade-playing { overflow: hidden; }
 .music { position: relative; }
 .music[hidden] { display: none; }
 .arcade-head .music { position: absolute; right: 0; top: 1.3rem; z-index: 10; transform: translateY(-50%); }
+/* in the lab's row of corner buttons, next to the light switch (paw.css, play.css): the same height and corners */
+html[data-mode="play"] .arcade-head .music { position: fixed; top: 8px; right: calc(26px + var(--key-w) + var(--sw-w)); z-index: 90; transform: none; }
+html[data-mode="play"] .arcade-head .music-btn { display: grid; place-items: center; height: var(--key-h); min-width: var(--key-h); padding: 0 10px; border-radius: 10px; }
+@media (max-width: 899px) { html[data-mode="play"] .arcade-head .music { right: calc(20px + var(--key-w) + var(--sw-w)); } }
+@media (max-width: 600px) { html[data-mode="play"] .arcade-head .music { top: 6px; } html[data-mode="play"] .arcade-head .music-btn { border-radius: 50%; padding: 0; } }
 .music-btn { display: block; padding: 6px 10px; color: var(--muted); }
 .music-btn svg { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -0.2em; }   /* a text line tall, like the restart button */
 .music-btn.on { color: var(--navy); border-color: var(--navy); }
