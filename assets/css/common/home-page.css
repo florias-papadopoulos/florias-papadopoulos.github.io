@@ -143,3 +143,6 @@ body:has(.home3) .you-link { right: calc(24px + var(--key-w)); }
     body:has(.home3) .key-btn { right: 12px; }
     body:has(.home3) .you-link { left: 12px; right: auto; }
 }
+/* the CV: the word instead of a document icon, in a slightly wider button */
+.hb .social-icons a.si-cv { width: auto; padding: 0 11px; }
+.hb .si-text { font-size: 14px; font-weight: 700; letter-spacing: .02em; line-height: 1; }

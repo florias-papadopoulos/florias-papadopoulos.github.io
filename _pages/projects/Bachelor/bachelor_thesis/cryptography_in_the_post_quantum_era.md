@@ -24,8 +24,8 @@ In 2022 I also gave a talk on the same topic at the Graduate Seminars of the Mat
 ## ❖ Files Included
 
 - [PDF](cryptography_in_the_post_quantum_era_BCsThesis.pdf) (greek)
-- [Presentation](cryptography_in_the_post_quantum_era_BCsThesis.pptx) (greek)
-- [Graduate seminar presentation, 2022](seminar_presentation_2022.pptx) (greek)
+- [Presentation](bsc_thesis_presentation.pdf) (greek; the PowerPoint with its animations on request)
+- [Graduate seminar presentation, 2022](seminar_presentation_2022.pdf) (greek; the PowerPoint with its animations on request)
 
 ## ❖ Keywords
 

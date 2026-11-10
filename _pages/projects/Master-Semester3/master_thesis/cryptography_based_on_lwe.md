@@ -24,7 +24,7 @@ Details about my thesis can be also found in the depository of the university: [
 ## ❖ Files Included
 
 - [PDF](./msc-thesis.pdf) (english)
-- [Presentation](./msc-thesis-presentation.pptx) (english)
+- [Presentation](./msc-thesis-presentation.pdf) (english; the PowerPoint with its animations on request)
 
 ## ❖ Keywords
 

@@ -1,15 +1,18 @@
 {{- /* The theme's social icons (themes/PaperMod/layouts/partials/social_icons.html) with an aria-label on each link and
-       the icons hidden from screen readers, so the links are named by the label rather than the title alone */ -}}
+       the icons hidden from screen readers, so the links are named by the label rather than the title alone. The CV is the
+       word "CV" instead of a document icon */ -}}
 <div class="social-icons" {{ with .align}}align="{{.}}" {{- end }}>
     {{- range site.Params.socialIcons }}
     {{- $name := (.title | default .name) | title }}
     {{- if eq .name "email" }}{{ with site.Params.contactMail }}
     <a href="#email" data-u="{{ .u }}" data-d="{{ .d }}" title="{{ $name }}" aria-label="{{ $name }}">
     {{- end }}{{ else }}
-    <a href="{{ trim .url " " | safeURL }}" target="_blank" rel="noopener noreferrer me"
+    <a href="{{ trim .url " " | safeURL }}" target="_blank" rel="noopener noreferrer me"{{ if eq .name "CV" }} class="si-cv"{{ end }}
         title="{{ $name }}" aria-label="{{ $name }}">
     {{- end }}
+        {{- if eq .name "CV" }}<span class="si-text">CV</span>{{ else }}
         {{ replace (partial "svg.html" .) "<svg " `<svg aria-hidden="true" focusable="false" ` 1 | safeHTML }}
+        {{- end }}
     </a>
     {{- end }}
 </div>

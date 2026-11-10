@@ -23,7 +23,7 @@ In the accompanying pdf, I summarized key facts about the Lorenz system and pres
 
 - [PDF](solving_chaotic.pdf) (english)
 - [Interactive Python Notebook](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/solving_chaotic.ipynb) (english)
-- [Presentation](chaotic_presentation.pptx) (the presentation was continued showing animation from [2nd ipynb file](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/chaotic_presentation.ipynb))
+- [Presentation](chaotic_presentation.pdf) (the presentation was continued showing animation from [2nd ipynb file](https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/blob/master/_pages/projects/Master-Semester1/numerical_methods_for_ODE_and_PDE/chaotic_presentation.ipynb); the PowerPoint with its animations on request)
 
 ## ❖ Keywords
 

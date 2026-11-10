@@ -4,3 +4,6 @@ resources/
 .hugo_build.lock
 .preview/
 tools/out-key/
+
+# the original PowerPoints (with their animations), kept here only; the site has PDFs of them
+_slides-pptx/

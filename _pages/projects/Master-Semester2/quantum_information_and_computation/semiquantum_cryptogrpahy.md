@@ -20,7 +20,7 @@ For further details and additional information, I have included references on th
 
 ## ❖ Files Included
 
-- [Presentation](./semiquantum_presentation.pptx) (english)
+- [Presentation](./semiquantum_presentation.pdf) (english; the PowerPoint with its animations on request)
 
 ## ❖ Keywords
 
