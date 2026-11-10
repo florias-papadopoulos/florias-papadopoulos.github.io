@@ -97,8 +97,6 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
     .cat-pick { right: calc(14px + var(--key-w, 34px)); }
     .dog-pick { right: calc(54px + var(--key-w, 34px)); }
     .theme-btn { right: calc(14px + var(--key-w, 34px)); }
-    /* the normal home page on phones (no header there): the light switch top left, the key alone top right */
-    body:has(.home3) .theme-btn { left: 8px; right: auto; }
     .home-reset { left: 48px; }
 }
 

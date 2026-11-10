@@ -1,6 +1,8 @@
 .main {
     position: relative;
-    min-height: calc(100vh - var(--header-height) - var(--footer-height));
+    /* the footer at the bottom of the window on short pages (no header any more; the phones' tab bar, if any, too) */
+    min-height: calc(100vh - var(--footer-height) - var(--pn-tab, 0px));
+    min-height: calc(100dvh - var(--footer-height) - var(--pn-tab, 0px));
     max-width: calc(var(--main-width) + var(--gap) * 2);
     margin: auto;
     padding: var(--gap);
