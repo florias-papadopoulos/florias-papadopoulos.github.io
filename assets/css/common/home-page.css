@@ -1,6 +1,6 @@
 /* The home page (layouts/partials/index_profile.html): the band, "Latest" (the news) and "Work" (the projects strip).
    The page follows the visitor's browser: light by default, dark when the browser is set to dark
-   (prefers-color-scheme: dark); the band is navy in light mode and slate grey in dark mode (the rest of the page: the
+   (prefers-color-scheme: dark); the band is navy in light mode and light in dark mode (the rest of the page: the
    dark block at the end). */
 
 .home3 {
@@ -30,23 +30,23 @@
 }
 @media (prefers-color-scheme: dark) {
     .home3 {
-        /* the band: flat slate grey (chosen on 2026-11-10 over the old navy gradient #121d35 to #1a2a4a), light enough
-           to stand apart from the dark page under it; its quiet text a step lighter to keep its contrast */
-        --hb-bg: #323c49;
+        /* the band: light inside the dark page (chosen on 2026-11-10, after a navy gradient and two slate greys), with
+           dark text, so it stands out clearly from the page under it */
+        --hb-bg: #e4e9f1;
         --hb-edge: transparent;
-        --hb-dot: #95a1b0;
+        --hb-dot: #99a0ab;
         --hb-dot-op: .55;
-        --hb-kicker: #bcc6d2;
-        --hb-name: #fff;
-        --hb-native: #c3cbd5;
-        --hb-tag: #d6dce4;
-        --hb-strong: #fff;
-        --hb-badge: #cfd6df;
-        --hb-badge-line: rgba(207, 218, 240, .35);
-        --hb-btn: rgba(255, 255, 255, .07);
-        --hb-btn-line: rgba(255, 255, 255, .12);
-        --hb-btn-ink: #dde3ea;
-        --hb-ring: rgba(255, 255, 255, .1);
+        --hb-kicker: #4f5666;
+        --hb-name: #0f172a;
+        --hb-native: #4f5666;
+        --hb-tag: #3a4152;
+        --hb-strong: #0f172a;
+        --hb-badge: #4f5666;
+        --hb-badge-line: rgba(15, 23, 42, .3);
+        --hb-btn: rgba(15, 23, 42, .05);
+        --hb-btn-line: rgba(15, 23, 42, .18);
+        --hb-btn-ink: #1e293b;
+        --hb-ring: rgba(15, 23, 42, .12);
     }
 }
 
@@ -157,6 +157,11 @@ body:has(.home3) .theme-btn { right: calc(24px + var(--key-w)); }
 /* on the navy band (light and dark): see-through, light */
 body:has(.home3) .key-btn, body:has(.home3) .theme-btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .25); color: #e2e8f0; box-shadow: none; }
 body:has(.home3) .key-btn:hover, body:has(.home3) .theme-btn:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+/* in dark mode the band is light: the two buttons in dark ink */
+@media (prefers-color-scheme: dark) {
+    body:has(.home3) .key-btn, body:has(.home3) .theme-btn { background: rgba(15, 23, 42, .05); border-color: rgba(15, 23, 42, .22); color: #1e293b; }
+    body:has(.home3) .key-btn:hover, body:has(.home3) .theme-btn:hover { background: rgba(15, 23, 42, .1); color: #0f172a; }
+}
 @media (max-width: 600px) {
     body:has(.home3) .key-btn, body:has(.home3) .theme-btn { top: 12px; }
     body:has(.home3) .key-btn { right: 12px; }

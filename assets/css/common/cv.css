@@ -99,11 +99,11 @@ ul.cv-desc { margin-top: 2.9pt !important; }
    and bullets take the site's light blue accent, the text its soft white, the grey parts its quiet grey */
 @media (prefers-color-scheme: dark) {
     /* light on dark makes regular text look nearly as heavy as bold, so the weights alone no longer tell them apart
-       (as black bold and black regular do on paper): bold is light blue with a touch thicker strokes, regular text a
+       (as black bold and black regular do on paper): bold is peach with a touch thicker strokes, regular text a
        soft light grey, the PDF's grey parts (first name, title, contact) a step below; what is red in the PDF (the
        section bars and headings, the bullets, the download link) is gold */
     .cv-page { --cv-ink: #c5ceda; --cv-grey: #9ba8bb; --cv-first: #9ba8bb; --cv-last: #fff; --cv-red: #e2bd6b; }
-    .cv-page strong { color: #bcd3ff; -webkit-text-stroke: 0.25px currentColor; }
+    .cv-page strong { color: #f5ccb0; -webkit-text-stroke: 0.25px currentColor; }
     .cv-page strong em { color: var(--cv-ink); -webkit-text-stroke: 0; }
 }
 
