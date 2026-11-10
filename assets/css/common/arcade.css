@@ -472,3 +472,9 @@ body.arcade-playing .cat-layer { display: none; }
     .ab-table, .ab-na { background: none; }
     .ab-table tr { background: var(--dk-card); }
 }
+
+/* closed hours (Wednesdays 14:00 to 18:00, arcade.js): a note under the intro, the game cards faded and off */
+.arcade-closed { max-width: 40em; margin: 0 0 18px; padding: 12px 16px; border-left: 4px solid var(--sec, #e11d48); border-radius: 8px; background: color-mix(in srgb, var(--sec, #e11d48) 9%, transparent); color: var(--ink); font-size: 0.95rem; line-height: 1.45; }
+.arcade-closed[hidden] { display: none; }
+.arcade.is-closed .game-card { pointer-events: none; filter: grayscale(0.7); }
+.arcade.is-closed .game-card > * { opacity: 0.45; }   /* the card stays solid, its contents fade */

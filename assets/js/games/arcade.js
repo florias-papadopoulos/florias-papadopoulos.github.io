@@ -726,8 +726,27 @@
         area.innerHTML = '';
     }
 
+    /* Closed hours: every Wednesday from 14:00 to 18:00, Swiss time (the visitor's own clock, read in Europe/Zurich).
+       No game starts then, a running one closes, and a note says so; checked every 30 seconds. */
+    var closedNote = document.getElementById('arcade-closed');
+    function closedNow() {
+        try {
+            var p = {};
+            new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', weekday: 'short', hour: 'numeric', hourCycle: 'h23' })
+                .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+            var h = +p.hour;
+            return p.weekday === 'Wed' && h >= 14 && h < 18;
+        } catch (e) { return false; }
+    }
+    function checkClosed() {
+        var c = closedNow();
+        root.classList.toggle('is-closed', c);
+        if (closedNote) closedNote.hidden = !c;
+        if (c && !stage.hidden) location.hash = '';
+    }
     function open(id) {
         if (!byId[id] || !byId[id].src) return;
+        if (closedNow()) { checkClosed(); if (/#play/.test(location.hash)) history.replaceState(null, '', location.pathname); return; }
         audio();                                   /* opening a game is a user gesture: sound may start */
         document.body.classList.add('arcade-playing');
         stage.hidden = false;
@@ -1055,4 +1074,6 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !stage.hidden) stage.querySelector('.stage-back').click(); });
     window.addEventListener('hashchange', route);
     route();
+    checkClosed();
+    setInterval(checkClosed, 30000);
 })();

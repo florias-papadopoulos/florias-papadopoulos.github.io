@@ -50,6 +50,9 @@
             </div>
         </div>
     </header>
+    {{- /* shown while the games are closed (Wednesdays 14:00 to 18:00, Swiss time; arcade.js): the cards are off, the
+           leaderboards stay open */}}
+    <p class="arcade-closed" id="arcade-closed" role="status" hidden><b>Games are closed right now.</b> Every Wednesday from 14:00 to 18:00 (Swiss time) the games take a break. Back at 18:00; the leaderboards stay open.</p>
     {{- /* Three tabs (Best, 2 Player, More; Best opens first), one panel of cards each; arcade.js switches them and opens the tab of a game
            that is started from a link. */}}
     {{- $groups := slice (slice "complex" "Best") (slice "two" "2 Player") (slice "simple" "More") }}
