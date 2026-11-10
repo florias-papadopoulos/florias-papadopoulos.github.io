@@ -219,7 +219,30 @@ html[data-mode="play"] .theme-btn { right: calc(18px + var(--key-w)); left: auto
     html[data-mode="play"] .key-btn:hover svg { transform: rotateX(180deg) rotate(24deg); }
 }
 
+/* ---------- the lab's backdrop, like the home page's band: soft glows of colour and a faint grid of dots that
+   fades out down the page; behind everything (fixed, so it stays while scrolling), not under a running game ---------- */
+html[data-mode="play"] { --lab-dot: rgba(30, 58, 138, 0.16); --lab-glow-a: rgba(251, 191, 36, 0.13); --lab-glow-b: rgba(99, 102, 241, 0.08); }
+html[data-mode="play"][data-pet="dog"] { --lab-dot: rgba(138, 59, 18, 0.16); --lab-glow-a: rgba(217, 119, 6, 0.14); --lab-glow-b: rgba(190, 18, 60, 0.06); }
+html[data-mode="play"] body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 0 var(--pn-w);
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(circle, var(--lab-dot) 1.1px, transparent 1.6px) 0 0 / 24px 24px,
+        radial-gradient(60% 50% at 85% 0%, var(--lab-glow-a), transparent 70%),
+        radial-gradient(50% 45% at 0% 20%, var(--lab-glow-b), transparent 70%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.15) 100%);
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.15) 100%);
+}
+body.arcade-playing::before { display: none; }
+
 /* ---------- dark mode (palette: color-scheme.css): the lab's dark is a little warmer too ---------- */
+@media (prefers-color-scheme: dark) {
+    html[data-mode="play"] { --lab-dot: rgba(203, 213, 225, 0.13); --lab-glow-a: rgba(251, 191, 36, 0.11); --lab-glow-b: rgba(129, 140, 248, 0.15); }
+    html[data-mode="play"][data-pet="dog"] { --lab-dot: rgba(253, 230, 138, 0.11); --lab-glow-a: rgba(217, 119, 6, 0.10); --lab-glow-b: rgba(244, 63, 94, 0.05); }
+}
 @media (prefers-color-scheme: dark) {
     :root { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); }
     html[data-mode="play"]:not([data-pet="dog"]) {
