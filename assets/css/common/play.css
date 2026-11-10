@@ -120,6 +120,7 @@ html[data-mode="play"] body > .world-layer, html[data-mode="play"] .cat-layer:no
     /* the pickers: their buttons are the corner buttons, placed over the two slots here */
     .pn-audience { margin-top: auto; padding: 8px 10px; color: #6b7280; font-size: 13.5px; text-decoration: none; border-radius: 6px; }
     .pn-audience:hover { color: var(--pn-on); background: rgba(15, 23, 42, 0.05); }
+    .pn-audience[aria-current="page"] { color: var(--pn-on); font-weight: 700; }
     .pn-pets { margin-top: 6px; padding: 0 10px 12px; }
     .pn-label { margin: 0 0 8px; color: #6b7280; font-size: 13px; }
     .pn-slots { height: 34px; }

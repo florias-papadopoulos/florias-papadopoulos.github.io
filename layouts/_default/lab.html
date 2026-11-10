@@ -22,8 +22,8 @@
             <div class="lab-more" id="lab-more">
             <p class="lab-chips-label">Most used</p>
             <div class="lab-chips">
-                {{- range $chips }}{{ with index $titles . }}
-                <a class="lab-chip" href="{{ printf "toolbox/%s/" $ | relURL }}">{{ . }}</a>
+                {{- range $id := $chips }}{{ with index $titles $id }}
+                <a class="lab-chip" href="{{ printf "toolbox/%s/" $id | relURL }}">{{ . }}</a>
                 {{- end }}{{ end }}
             </div>
             </div>

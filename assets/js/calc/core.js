@@ -77,6 +77,74 @@
     /* the plain-text version of a rich string (for copying and for tests) */
     Calc.plain = function (s) { return Calc.rich(s).map(function (p) { return p.v; }).join(''); };
 
+    /* a rich string as words for screen readers and voice control: "Prime $p$" -> "Prime p", "$a^{-1} \bmod n$" ->
+       "a⁻¹ mod n". Used as the accessible name of fields, step titles and table headers that contain maths, since
+       browsers leave KaTeX out of those names. */
+    var SAY = { equiv: ' ≡ ', bmod: ' mod ', cdot: ' · ', times: ' × ', mid: ' | ', oplus: ' ⊕ ', approx: ' ≈ ', gg: ' ≫ ', ll: ' ≪ ',
+        le: ' ≤ ', leq: ' ≤ ', ge: ' ≥ ', geq: ' ≥ ', ne: ' ≠ ', neq: ' ≠ ', in: ' ∈ ', notin: ' ∉ ', to: ' → ', mapsto: ' ↦ ',
+        pm: ' ± ', cup: ' ∪ ', cap: ' ∩ ', subset: ' ⊂ ', subseteq: ' ⊆ ', land: ' and ', lor: ' or ', wedge: ' ∧ ', vee: ' ∨ ',
+        ldots: '…', dots: '…', cdots: '…', infty: '∞', lceil: '⌈', rceil: '⌉', lfloor: '⌊', rfloor: '⌋', langle: '⟨', rangle: '⟩',
+        alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε', lambda: 'λ', mu: 'μ', pi: 'π', rho: 'ρ',
+        sigma: 'σ', tau: 'τ', phi: 'φ', varphi: 'φ', chi: 'χ', psi: 'ψ', omega: 'ω', theta: 'θ', ell: 'ℓ', Delta: 'Δ', Sigma: 'Σ',
+        Phi: 'Φ', Omega: 'Ω', sum: 'sum ', prod: 'product ', sqrt: '√', prime: '′', star: '*', ast: '*', lvert: '|', rvert: '|',
+        vert: '|', left: '', right: '', big: '', Big: '', quad: ' ', qquad: ' ' };
+    var BB = { Z: 'ℤ', Q: 'ℚ', R: 'ℝ', N: 'ℕ', C: 'ℂ', F: '𝔽' };
+    var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻', '+': '⁺', '*': '*' };
+    var SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉', '-': '₋', '+': '₊', };
+    function sayTex(t) {
+        var i = 0;
+        function group() {          /* one argument: {...} or a single character or command */
+            while (t.charAt(i) === ' ') i++;
+            if (t.charAt(i) === '{') {
+                var depth = 0, j = i;
+                for (; j < t.length; j++) { if (t.charAt(j) === '{') depth++; else if (t.charAt(j) === '}' && !--depth) break; }
+                var inner = t.slice(i + 1, j); i = j + 1;
+                return sayTex(inner);
+            }
+            if (t.charAt(i) === '\\') return cmd();
+            return t.charAt(i++);
+        }
+        function cmd() {
+            i++;
+            var m = /^[a-zA-Z]+/.exec(t.slice(i));
+            if (!m) { var c = t.charAt(i++); return c === ',' || c === ';' || c === ':' || c === ' ' ? ' ' : c === '!' ? '' : c; }
+            var name = m[0]; i += name.length;
+            if (name === 'text' || name === 'mathrm' || name === 'operatorname' || name === 'mathit' || name === 'mathbf' || name === 'boldsymbol' || name === 'mathsf' || name === 'mathtt') return group();
+            if (name === 'mathbb') { var g = group(); return BB[g] || g; }
+            if (name === 'frac' || name === 'dfrac' || name === 'tfrac') { var a = group(), b = group(); return (a.length > 1 ? '(' + a + ')' : a) + '/' + (b.length > 1 ? '(' + b + ')' : b); }
+            if (name === 'sqrt') { var r = group(); return '√' + (r.length > 1 ? '(' + r + ')' : r); }
+            if (name === 'pmod') return ' (mod ' + group() + ')';
+            if (name === 'binom') { var n = group(), k = group(); return n + ' choose ' + k; }
+            if (name === 'overline' || name === 'bar' || name === 'hat' || name === 'tilde' || name === 'vec') return group();
+            if (SAY.hasOwnProperty(name)) return SAY[name];
+            return t.charAt(i) === '(' ? name : name + ' ';          /* gcd, log, min, max, ... */
+        }
+        function script(map, words) {            /* ^ and _: small digits where Unicode has them, else words */
+            var g = group().trim();
+            if (g.split('').every(function (c) { return map.hasOwnProperty(c); })) return g.split('').map(function (c) { return map[c]; }).join('');
+            return words + (g.length > 1 ? '(' + g + ')' : g) + ' ';
+        }
+        var out = '';
+        while (i < t.length) {
+            var c = t.charAt(i);
+            if (c === '\\') out += cmd();
+            else if (c === '^') { i++; out += script(SUP, ' to the '); }
+            else if (c === '_') { i++; out += script(SUB, ' sub '); }
+            else if (c === '{' || c === '}') i++;
+            else if (c === '&') { out += ' '; i++; }
+            else { out += c; i++; }
+        }
+        return out;
+    }
+    Calc.spoken = function (s) {
+        return Calc.rich(s).map(function (p) { return p.m ? sayTex(p.v) : p.v; }).join('').replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')').trim();
+    };
+    /* gives a node the spoken name of a rich string, only when it has maths (plain text names itself) */
+    function nameMath(node, s) {
+        if (s != null && Calc.rich(String(s)).some(function (p) { return p.m; })) node.setAttribute('aria-label', Calc.spoken(String(s)));
+        return node;
+    }
+
     /* ---------- whole numbers of any size: Calc.int('2^127 - 1') ---------- */
     var MAX_BITS = 200000;        // results above this many bits are refused (keeps the page responsive)
     function bits(n) { if (n < 0n) n = -n; return n === 0n ? 0 : n.toString(2).length; }
@@ -363,6 +431,7 @@
             c = c.v;
         }
         richInto(td, c == null ? '' : String(c));
+        if (tag === 'th') nameMath(td, c);
         return td;
     }
     function tableNode(b) {
@@ -447,7 +516,7 @@
         var ol = el('ol', 'tb-steps');
         function stepNode(s) {
             var li = el('li', 'tb-step');
-            if (s.title) li.appendChild(richInto(el('h3', 'tb-step-title'), s.title));
+            if (s.title) li.appendChild(nameMath(richInto(el('h3', 'tb-step-title'), s.title), s.title));
             s.blocks.forEach(function (b) { li.appendChild(blockNode(b)); });
             return li;
         }
@@ -522,6 +591,7 @@
                     if (type === 'int' || type === 'list' || type === 'num') input.inputMode = f.inputMode || 'text';
                 }
                 input.id = id;
+                nameMath(input, f.label);           /* "Prime p", not "Prime": KaTeX is left out of label names */
                 if (f.placeholder) input.placeholder = f.placeholder;
                 if (f.value != null && type !== 'select') input.value = f.value;
                 wrap.appendChild(input);

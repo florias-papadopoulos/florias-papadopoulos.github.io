@@ -1,6 +1,7 @@
 /* World of the cat on the Bachelor, Master and Papers tabs (the cat itself: assets/js/lab/cat-core.js, bundled before this
    file by layouts/partials/cat.html; the page: layouts/_default/timeline.html), and on the Games page
-   (layouts/_default/arcade.html: it sits on the title, the tabs and the game cards; hidden while a game is open).
+   (layouts/_default/arcade.html: it sits on the title, the tabs and the game cards; hidden while a game is open), and on the
+   presenter page of audience mode (layouts/live/admin.html: it sits on the cards).
 
    The cat lives in the window, not on the whole page: its ground is the bottom of the window, and it sits on the page
    title, the semester (or year) labels of the rail and the entries that are in view, above their pictures so it does
@@ -11,7 +12,7 @@
     function boot() {
     'use strict';
     var layer = document.getElementById('cat-layer');
-    var page = document.querySelector('.tl-page') || document.querySelector('.arcade');
+    var page = document.querySelector('.tl-page') || document.querySelector('.arcade') || document.querySelector('.lv-in-lab');
     if (!layer || !page || !window.SiteCat) return;
     layer.classList.add('cat-viewport');
 
@@ -57,6 +58,7 @@
         push('.arcade-tab', 'tab', { w: 0.5, room: CH - 6 });
         push('.arcade-grid:not([hidden]) .game-card', 'card', { w: 0.9 });
         push('.arcade-boards:not([hidden]) .ab-card', 'card', { w: 0.9 });
+        push('.lv-in-lab .lv-card', 'card', { w: 0.9 });         /* the presenter page (audience mode) */
         return list;
     }
     /* Games page: the cat climbs up the side of a game card instead of jumping when the card stands in the same column

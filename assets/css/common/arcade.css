@@ -50,7 +50,7 @@
 .ab-champ-n::before { content: ""; display: inline-block; width: 0.8em; height: 0.8em; margin-right: 6px; border-radius: 50%; background: #e9c46a; border: 1px solid #c9a227; vertical-align: -0.05em; }
 .ab-champ.is-me .ab-champ-n { color: var(--navy); }
 .ab-champ-s { color: var(--muted); font-size: 0.76rem; font-variant-numeric: tabular-nums; }
-.ab-first { color: #a8a29e; font-size: 0.82rem; text-decoration: none; }
+.ab-first { color: #78716c; font-size: 0.82rem; text-decoration: none; }
 .ab-na { background: #fbfaf7; }
 .ab-back { margin: 0 0 10px; padding: 0; border: 0; background: none; color: var(--navy); font: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
 .ab-back::before { content: "\25C2  "; }

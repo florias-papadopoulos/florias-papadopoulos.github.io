@@ -319,7 +319,6 @@ body:has(.profile.home) .footer {
 /* the lab's page is narrower than the normal home page, so the side margins are wide enough for home-lab.js to float its
    symbols there (it needs about 150 px on each side) */
 .lab-home .home-panel { max-width: 660px; margin-inline: auto; }
-.pn-audience[aria-current="page"] { color: var(--pn-on); font-weight: 700; }
 /* a tool opened on the lab bench (assets/js/lab/lab-bench.js): the Toolbox's own page parts, full width under the box */
 .lab-run { margin-top: 14px; }
 .lab-run[hidden] { display: none; }
