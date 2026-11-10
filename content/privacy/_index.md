@@ -11,71 +11,39 @@ searchHidden: true
 # the short version at the top of the page
 short:
   - "No cookies, no ads, no analytics service, no tracking across sites."
-  - "A visit counter keeps **daily totals** of five things (page, referring site, device type, browser family, country). No IP addresses, nothing about any one visitor."
-  - "If your browser sends Do Not Track or Global Privacy Control, your visits are not counted at all."
-  - "Your settings and game scores stay in your browser, unless you choose to add a score to a game's leaderboard: then the nickname you type and the score are public."
-  - "The two-player game passes two devices' connection details (with their IP addresses) on between them and deletes them within about two minutes. The race itself runs directly between the two devices."
-  - "The Toolbox calculates in your browser: what you type is never sent anywhere."
+  - "A visit counter keeps **daily totals** only (page, referring site, device type, browser family, country). No IP addresses, nothing about any one visitor."
+  - "Do Not Track or Global Privacy Control in your browser: your visits are not counted at all."
+  - "Everything else stays in your browser, unless you choose to send it: a leaderboard score, a Kitty Kart Duo race, answers at one of my talks."
 ---
 
 ## Who runs this site
 
-This is the personal website of Florias Papadopoulos, doctoral researcher at the University of St. Gallen (HSG), Switzerland. I am responsible for it. You can reach me by email at <a href="#email" data-u="soluopodapap.sairolf" data-d="hc.gsinu" data-show>my HSG address</a> or on [LinkedIn](https://www.linkedin.com/in/florias-papadopoulos-b035ab233).
+Florias Papadopoulos, doctoral researcher at the University of St. Gallen (HSG), Switzerland. You can reach me at <a href="#email" data-u="soluopodapap.sairolf" data-d="hc.gsinu" data-show>my HSG address</a> or on [LinkedIn](https://www.linkedin.com/in/florias-papadopoulos-b035ab233).
 
-## Hosting: GitHub Pages
+## Hosting and the visit counter
 
-The pages are served by GitHub Pages. To deliver them, GitHub necessarily receives your IP address and the usual request details, and keeps logs of them for security purposes. That happens on GitHub's side under the [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement); I do not see those logs.
+The pages are served by **GitHub Pages**, which receives your IP address and the usual request details to deliver them and keeps logs for security ([GitHub's privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement)); I do not see those logs.
 
-## The visit counter: Cloudflare
+Each page view adds one to the daily totals of a counter of mine on **Cloudflare Workers** ([Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/)): the page, the site that sent you, the device type, the browser family and the country. No cookies, no IP addresses, nothing that links your page views. With Do Not Track or Global Privacy Control turned on, the counter receives nothing from your visits. The page [What this site knows about you](/you/) shows what it records.
 
-To know how many people visit, each page view sends one small request to a counter of mine that runs on Cloudflare Workers. It adds one to the totals of the day for:
+## What you can choose to send
 
-- the page you opened,
-- the site that sent you, only when it is another site,
-- phone, tablet or computer,
-- your browser's family name (Firefox, Chrome, Safari and so on),
-- your country, which Cloudflare works out from your connection.
+- **Leaderboards:** if you add a score, the game, the difficulty, your nickname and the score are stored with the date and shown to everyone. Old scores far from the top are deleted; write to me to have one removed. Likes are only counted, never linked to you.
+- **Kitty Kart Duo:** to connect two devices, each sends a short connection message with its IP address, which the counter passes on and deletes within about two minutes. The race then runs directly between the two devices, which see each other's IP address.
+- **Audience mode at my talks:** your answers, questions, an optional nickname (shown only after I approve it) and a random browser token, kept for that talk only and deleted 24 hours after it ends.
 
-Only these daily totals are kept. There are no cookies, no IP addresses are stored, and nothing links one page view to another or to you. Cloudflare processes the request to run the counter, under the [Cloudflare Privacy Policy](https://www.cloudflare.com/privacypolicy/). Like most databases, Cloudflare's keeps an automatic backup of the last seven days, so data deleted on the counter (an old leaderboard score, a finished game connection) can remain in that backup for up to seven days before it is gone for good.
+Deleted data can remain in Cloudflare's automatic backup for up to seven days.
 
-**How to opt out:** turn on Do Not Track or Global Privacy Control in your browser, and the counter receives nothing from your visits. The [Games](/games/) page still asks the same server for the leaderboards and the number of likes, to show them to you; those requests are not counted and store nothing about you.
+## What stays in your browser
 
-## Game leaderboards
+The Toolbox and the lab's paste box calculate in your browser; nothing you type is sent anywhere. Your pet, settings, best scores, liked games and similar choices are kept in your browser's local storage and never leave it; clearing this site's data removes them.
 
-When a game ends with a score that makes its top 10, you can add it to the leaderboard under a nickname you type. Only then is anything sent: the game, the difficulty, your nickname and your score go to the same counter on Cloudflare, which stores them with the date and shows them to everyone on the [Games](/games/) page. No IP address or anything else about you is stored with them. Each leaderboard keeps at most a few hundred scores; older ones that are no longer near the top are deleted. Pick a nickname that does not identify you if you prefer to stay anonymous. To have a score removed, write to me.
+## Other services and data abroad
 
-**Likes:** every game card has a paw print you can tap to like the game. Your browser remembers your own like; the server only keeps the number of likes per game, nothing about who liked it.
+Fonts, formula files and game music come from this site itself; there are no ads, social media plugins or embedded videos. Google Search Console shows me totals of the Google searches that led here, without telling me who searched.
 
-## Racing a friend: Kitty Kart Duo
-
-In Kitty Kart Duo on the [Games](/games/) page, two people race each other from their own phones or computers. To find each other, each of the two devices sends one short connection message, which contains its network addresses, including its IP address. The counter on Cloudflare holds the two messages under a four letter code only to pass them on. Only the host's device (which gets a secret for it) can collect the answer or close the room. The counter deletes the messages as soon as the host's device has picked up the answer; otherwise a room expires after two minutes and is deleted by the next clean-up, which runs within moments whenever the counter is in use. It stores nothing else and logs nothing. To learn its own public address, each device also asks Cloudflare's STUN service, which sees that request like any other connection.
-
-After that the two devices talk directly, and nothing about the race goes through a server. As with any direct connection, each of the two devices sees the other's IP address, so race with people you are happy to share that with.
-
-Kitty Kart Duo works with both devices on the same home wifi, while Kitty Kart Split Screen (two players on one keyboard) sends nothing anywhere.
-
-## The Toolbox
-
-The calculators, ciphers and decoders of the [Toolbox](/toolbox/) run entirely in your browser: nothing you type or paste is sent anywhere. A tool keeps your inputs in its own address, after a `#`, so that you can bookmark a calculation or send it to someone. That part of an address is never sent to any server, also not when the page is reloaded; it is only kept in your browser's history, like any address you visit.
-
-## Audience mode at talks
-
-When I give a talk, the audience can answer questions on their phones through a QR code on a slide, which opens a hidden page of this site (/live/). For one talk, a service of mine on Cloudflare keeps your answers, your questions, an optional nickname (shown on screen only after I approve it) and a random browser token, under a random id. No IP address is stored: connections are only counted per address in memory, against abuse. Everything is deleted 24 hours after the talk ends; a nickname given before a talk that does not start is deleted 24 hours after it was given, or at once if the talk is deleted. Cloudflare, which runs the service, may keep backups of stored data for a limited time.
-
-## The page "What this site knows about you"
-
-The page [What this site knows about you](/you/) shows you what the counter records about your visit. If your visit is counted, it also asks the counter which country it would record; nothing is stored.
-
-## Storage in your browser
-
-The site sets no cookies. A few things are kept in your browser's local storage so the site remembers them for you: the look of the pet you chose, how often you petted it, the hints you have seen, game best scores, chosen levels, sound, music and other game settings (also for Kitty Kart Duo), the games you liked, the last nickname you used on a leaderboard, and the "don't count my visits" choice. They never leave your browser, and clearing this site's data removes them.
-
-## No other third parties
-
-Fonts, formula files and the music in the games are served from this site itself. There are no ads, social media plugins, embedded videos or maps. Links to other sites (LinkedIn, GitHub, publishers) only take you there when you click them.
-
-Google Search Console shows me totals of the Google searches that led to this site (search terms and clicks), which Google gets from its own search engine. It runs no code on this site and never tells me who searched.
+GitHub and Cloudflare are companies in the United States, so the data above may be processed there. Both are certified under the Swiss-US Data Privacy Framework.
 
 ## Your rights
 
-Under the Swiss Federal Act on Data Protection (nFADP) you can ask me what personal data I hold about you, and ask for it to be corrected or deleted. Since this site stores nothing personal about visitors, there is usually nothing to look up. For data that GitHub or Cloudflare process to deliver the site, their privacy statements explain how to reach them.
+Under the Swiss Federal Act on Data Protection (nFADP) you can ask me what personal data I hold about you, and have it corrected or deleted. In practice that only concerns what you chose to send yourself: a nickname and score on a leaderboard, or answers, questions and a nickname in audience mode. Write to me and I will look it up or remove it. You can also contact the Swiss Federal Data Protection and Information Commissioner (FDPIC).
