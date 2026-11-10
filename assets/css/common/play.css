@@ -207,7 +207,7 @@ html[data-mode="play"] { --sec: #d97706; --sec-glow: rgba(217, 119, 6, 0.16); }
 html[data-mode="play"] body:has(.arcade) { --sec: #e11d48; --sec-glow: rgba(225, 29, 72, 0.12); }
 html[data-mode="play"] body:has(.tb-page) { --sec: #0d9488; --sec-glow: rgba(13, 148, 136, 0.15); }
 @media (prefers-color-scheme: dark) {
-    html[data-mode="play"] { --sec: #fbbf24; --sec-glow: rgba(251, 191, 36, 0.11); --dot-mix: 40%; }   /* the dots stronger on the dark page */
+    html[data-mode="play"] { --sec: #fbbf24; --sec-glow: rgba(251, 191, 36, 0.11); --dot-mix: 62%; --dot-r: 1.5px; }   /* the dots stronger and a little bigger on the dark page */
     html[data-mode="play"] body:has(.arcade) { --sec: #fb7185; --sec-glow: rgba(251, 113, 133, 0.11); }
     html[data-mode="play"] body:has(.tb-page) { --sec: #2dd4bf; --sec-glow: rgba(45, 212, 191, 0.11); }
 }
@@ -218,7 +218,7 @@ html[data-mode="play"] body::before {
     z-index: -1;
     pointer-events: none;
     background:
-        radial-gradient(circle, color-mix(in srgb, var(--sec) var(--dot-mix, 22%), transparent) 1.2px, transparent 1.8px) 0 0 / 30px 30px,
+        radial-gradient(circle, color-mix(in srgb, var(--sec) var(--dot-mix, 22%), transparent) var(--dot-r, 1.2px), transparent calc(var(--dot-r, 1.2px) + 0.6px)) 0 0 / 30px 30px,
         radial-gradient(70% 65% at 100% 0%, var(--sec-glow), transparent 70%);
 }
 body.arcade-playing::before { display: none; }

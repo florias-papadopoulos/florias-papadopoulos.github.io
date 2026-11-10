@@ -109,7 +109,8 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
     .cat-opt { color: var(--dk-ink); }
     .cat-opt:hover { background: var(--dk-raise); }
     .cat-opt[aria-checked="true"] { border-color: var(--dk-field); background: var(--dk-raise); }
-    /* the faces have dark outlines and some are dark (hacker cat, batcat): a soft light disc behind each, so they read */
-    .cat-pick { background: #ece6dc; }
-    .cat-opt svg { padding: 3px; border-radius: 50%; background: #ece6dc; box-sizing: content-box; }
+    /* the faces look exactly as in light mode: each on white, as on the light menu (the drawings have dark outlines
+       and some faces are dark, hacker cat and batcat, which vanish on the dark menu) */
+    .cat-pick, html[data-pet="dog"] .cat-pick { background: #fff; }
+    .cat-opt svg { padding: 5px; border-radius: 50%; background: #fff; box-sizing: content-box; }
 }

@@ -5,16 +5,20 @@
        .winter-only Santa suit, hat and fur collar. The .cat-only parts (pointed ears, slit pupils, whiskers, the
        cat's nose and tail) give way to the .dog-only parts (floppy ears, round pupils, a big nose, a tongue, a short
        tail) when a dog look is chosen (html[data-pet="dog"]). */ -}}
+{{- /* idp: a prefix for the drawing's ids (clip paths), for a page with two copies of the cat: without it the second
+       copy's clip-path url(#...) finds the first copy's clip paths, and if that copy is hidden (the games' mascot)
+       the patches and body of the visible cat are drawn wrongly */ -}}
+{{- $idp := "" }}{{ if reflect.IsMap . }}{{ $idp = index . "idp" | default "" }}{{ end }}
 <svg viewBox="0 0 110 90" aria-hidden="true">
     <defs>
-        <linearGradient id="cat-fur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--fur-top)"/><stop offset="1" style="stop-color:var(--fur-bot)"/></linearGradient>
-        <radialGradient id="cat-head" cx=".42" cy=".3" r=".85"><stop offset="0" style="stop-color:var(--head-top)"/><stop offset="1" style="stop-color:var(--fur-bot)"/></radialGradient>
+        <linearGradient id="{{ $idp }}cat-fur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--fur-top)"/><stop offset="1" style="stop-color:var(--fur-bot)"/></linearGradient>
+        <radialGradient id="{{ $idp }}cat-head" cx=".42" cy=".3" r=".85"><stop offset="0" style="stop-color:var(--head-top)"/><stop offset="1" style="stop-color:var(--fur-bot)"/></radialGradient>
         <!-- the calico patches stay inside the body and head -->
-        <clipPath id="cat-clip-stand"><path d="M24 49c0-10 9-15 26-14h18c13 0 19 7 17 17-2 10-10 12-20 12H40c-12 0-17-6-16-15z"/></clipPath>
-        <clipPath id="cat-clip-sit"><path d="M38 84c-6-18 2-38 22-40 16-1 22 16 16 40z"/></clipPath>
-        <clipPath id="cat-clip-haunch"><ellipse cx="46" cy="72" rx="13" ry="13"/></clipPath>
-        <clipPath id="cat-clip-sleep"><ellipse cx="52" cy="74" rx="32" ry="15"/></clipPath>
-        <clipPath id="cat-clip-head"><path d="M0-15.5C11-15.5 18.5-9 18.5 0c0 4-1.5 7-3 9l3 2-5 1 1.5 2.5H9C6 15.8 3 16.2 0 16.2s-6-.4-9-1.7h-6l1.5-2.5-5-1 3-2c-1.5-2-3-5-3-9 0-9 7.5-15.5 18.5-15.5z"/></clipPath>
+        <clipPath id="{{ $idp }}cat-clip-stand"><path d="M24 49c0-10 9-15 26-14h18c13 0 19 7 17 17-2 10-10 12-20 12H40c-12 0-17-6-16-15z"/></clipPath>
+        <clipPath id="{{ $idp }}cat-clip-sit"><path d="M38 84c-6-18 2-38 22-40 16-1 22 16 16 40z"/></clipPath>
+        <clipPath id="{{ $idp }}cat-clip-haunch"><ellipse cx="46" cy="72" rx="13" ry="13"/></clipPath>
+        <clipPath id="{{ $idp }}cat-clip-sleep"><ellipse cx="52" cy="74" rx="32" ry="15"/></clipPath>
+        <clipPath id="{{ $idp }}cat-clip-head"><path d="M0-15.5C11-15.5 18.5-9 18.5 0c0 4-1.5 7-3 9l3 2-5 1 1.5 2.5H9C6 15.8 3 16.2 0 16.2s-6-.4-9-1.7h-6l1.5-2.5-5-1 3-2c-1.5-2-3-5-3-9 0-9 7.5-15.5 18.5-15.5z"/></clipPath>
     </defs>
     <ellipse class="shadow" cx="56" cy="87.5" rx="30" ry="3.2"/>
     <!-- standing (moving) -->
@@ -27,7 +31,7 @@
             <g class="dog-only"><path class="tail-ol dog-tail" d="M27 48C20 44 16 37 15 30"/><path class="tail-fur dog-tail" d="M27 48C20 44 16 37 15 30"/></g>
         </g>
         <path class="fur ol" d="M24 49c0-10 9-15 26-14h18c13 0 19 7 17 17-2 10-10 12-20 12H40c-12 0-17-6-16-15z"/>
-        <g class="calico-only" clip-path="url(#cat-clip-stand)">
+        <g class="calico-only" clip-path="url(#{{ $idp }}cat-clip-stand)">
             <g class="cal-r"><path class="cal-orange" d="M20 44c4-7 13-10 21-8 3 5 2 11-3 14-6 3-13 3-18 0z"/><path class="cal-black" d="M50 33h13c2 5 0 10-6 11-5 1-9-3-8-8z"/><path class="cal-orange" d="M58 66c1-6 9-9 17-7 4 2 4 6 2 9z"/></g>
             <g class="cal-l"><path class="cal-black" d="M20 52c1-9 9-15 18-13 3 6-1 12-8 14-4 1-7 0-10-1z"/><path class="cal-orange" d="M44 33h19c3 7 1 14-6 16-8 2-15-4-13-16z"/><path class="cal-black" d="M70 40c5-2 11 0 14 4-3 4-10 4-14 0z"/></g>
         </g>
@@ -63,7 +67,7 @@
         <ellipse class="fur-dark ol" cx="74" cy="84" rx="6.2" ry="3.5"/>
         <g class="astro-only"><rect class="pack ol" x="29" y="50" width="12" height="21" rx="3.5"/><path class="pack-line" d="M35 58v8"/><circle class="pack-light" cx="35" cy="54.5" r="1.8"/></g>
         <path class="fur ol" d="M38 84c-6-18 2-38 22-40 16-1 22 16 16 40z"/>
-        <g class="calico-only" clip-path="url(#cat-clip-sit)">
+        <g class="calico-only" clip-path="url(#{{ $idp }}cat-clip-sit)">
             <g class="cal-r"><path class="cal-orange" d="M32 60c2-10 10-16 19-14 3 6-1 14-9 17-4 1-8 1-10-3z"/><path class="cal-black" d="M64 66c5-2 11-1 15 2l-2 16h-12c-3-6-4-12-1-18z"/></g>
             <g class="cal-l"><path class="cal-black" d="M33 52c4-6 12-9 19-7 1 6-4 11-11 12-3 0-6-1-8-5z"/><path class="cal-orange" d="M64 54c6-1 12 2 15 6l-1 14c-5 2-11 1-14-3-2-6-2-12 0-17z"/></g>
         </g>
@@ -81,7 +85,7 @@
             <path class="suit-belt" d="M37.5 61q20 4.5 40 0v5q-20 4.5-40 0z"/><rect class="suit-buckle" x="55.6" y="61.4" width="7.8" height="7" rx="1.2"/>
         </g>
         <ellipse class="fur ol" cx="46" cy="72" rx="13" ry="13"/>
-        <g class="calico-only" clip-path="url(#cat-clip-haunch)">
+        <g class="calico-only" clip-path="url(#{{ $idp }}cat-clip-haunch)">
             <path class="cal-r cal-black" d="M31 70c2-8 10-12 18-10 1 7-4 12-11 13-3 0-6-1-7-3z"/>
             <path class="cal-l cal-orange" d="M42 58c7-1 14 3 17 9-3 5-9 7-14 4-3-3-4-8-3-13z"/>
         </g>
@@ -92,7 +96,7 @@
     <!-- curled up (sleeping) -->
     <g class="p-sleep">
         <ellipse class="fur ol" cx="52" cy="74" rx="32" ry="15"/>
-        <g class="calico-only" clip-path="url(#cat-clip-sleep)">
+        <g class="calico-only" clip-path="url(#{{ $idp }}cat-clip-sleep)">
             <g class="cal-r"><path class="cal-orange" d="M22 68c6-8 17-9 24-5 0 8-8 13-17 12-4-1-7-3-7-7z"/><path class="cal-black" d="M56 58c9-1 17 2 21 8-4 5-13 6-19 3-3-2-4-7-2-11z"/></g>
             <g class="cal-l"><path class="cal-black" d="M24 64c5-5 13-6 18-3 0 6-6 10-13 9-3-1-5-3-5-6z"/><path class="cal-orange" d="M48 58c10-2 20 1 26 8-5 7-17 8-24 4-3-3-4-8-2-12z"/></g>
         </g>
@@ -116,7 +120,7 @@
         <path class="head ol cat-only" d="M0-15.5C11-15.5 18.5-9 18.5 0c0 4-1.5 7-3 9l3 2-5 1 1.5 2.5H9C6 15.8 3 16.2 0 16.2s-6-.4-9-1.7h-6l1.5-2.5-5-1 3-2c-1.5-2-3-5-3-9 0-9 7.5-15.5 18.5-15.5z"/>
         <path class="head ol dog-only" d="M0-15.5C11-15.5 17.5-9 17.5 0c0 9-7.5 16.2-17.5 16.2S-17.5 9-17.5 0c0-9 6.5-15.5 17.5-15.5z"/>
         <path class="stripe" d="M-6-15q1 5 0 8M0-15.6v7M6-15q-1 5 0 8M-18 2h5M-17.5 5.5h4M18 2h-5M17.5 5.5h-4"/>
-        <g class="calico-only" clip-path="url(#cat-clip-head)">
+        <g class="calico-only" clip-path="url(#{{ $idp }}cat-clip-head)">
             <path class="cal-orange" d="M-20 2c-1-10 6-18 16-18 2 5 1 10-2 13-2 2-3 5-3 9-4 2-9 1-11-4z"/>
             <path class="cal-black" d="M5-17c6 0 12 3 15 8-3 2-8 2-11-1-2 0-4-2-4-7z"/>
         </g>

@@ -136,6 +136,10 @@ html.cursor-gone, html.cursor-gone * { cursor: none !important; }
 .cat .ol { stroke: #3b2a1e; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .cat .fur { fill: url(#cat-fur); }
 .cat .head { fill: url(#cat-head); }
+/* the games' mascot has its own copies of the gradients (ids prefixed m-, cat-svg.html), since the roaming cat, which
+   owns the plain ones, is hidden while a game runs and a gradient in a hidden element is not drawn */
+.cat.mascot .fur { fill: url(#m-cat-fur); }
+.cat.mascot .head { fill: url(#m-cat-head); }
 .cat .fur-dark { fill: var(--fur-dark); }
 .cat .cream { fill: var(--cream); }
 .cat .stripe { fill: none; stroke: var(--stripe); stroke-width: 2.6; stroke-linecap: round; }

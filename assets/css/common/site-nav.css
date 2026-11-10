@@ -65,7 +65,7 @@ body:has(.site-nav)::before {
     inset: 0 0 0 var(--pn-w);
     z-index: -1;
     pointer-events: none;
-    background: radial-gradient(circle, var(--sn-dot) 1.2px, transparent 1.8px) 0 0 / 30px 30px;
+    background: radial-gradient(circle, var(--sn-dot) var(--sn-dot-r, 1.2px), transparent calc(var(--sn-dot-r, 1.2px) + 0.6px)) 0 0 / 30px 30px;
 }
 body:has(.site-nav) .footer { background: transparent; }
 body:has(.site-nav) :is(.tl-page, .cv-page) { position: relative; }
@@ -80,5 +80,5 @@ body:has(.site-nav) :is(.tl-page, .cv-page)::before {
     box-shadow: 0 0 16px 10px var(--veil);
 }
 @media (prefers-color-scheme: dark) {
-    body:has(.site-nav) { --sn-dot: color-mix(in srgb, var(--aura, #9dbaf5) 32%, transparent); }
+    body:has(.site-nav) { --sn-dot: color-mix(in srgb, var(--aura, #9dbaf5) 58%, transparent); --sn-dot-r: 1.5px; }
 }

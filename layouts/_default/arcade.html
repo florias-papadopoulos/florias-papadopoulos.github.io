@@ -164,7 +164,7 @@
                 </div>
             </div>
         </div>
-        <div class="cat mascot" aria-hidden="true"><div class="cat-tilt"><div class="cat-flip">{{ partial "cat-svg.html" . }}</div></div></div>
+        <div class="cat mascot" aria-hidden="true"><div class="cat-tilt"><div class="cat-flip">{{ partial "cat-svg.html" (dict "idp" "m-") }}</div></div></div>
     </section>
 </div>
 {{- $shell := resources.Get "js/games/arcade.js" | minify | fingerprint }}

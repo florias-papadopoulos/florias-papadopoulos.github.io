@@ -338,7 +338,12 @@ body:has(.profile.home) .footer {
 .lab-run-bar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 6px; }
 .lab-run-bar h2 { margin: 0; font-size: 20px; }
 .lab-run-bar a, .lab-run-bar button { font: inherit; font-size: 13.5px; color: var(--navy); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 600px) { .lab-chip:nth-child(n+7) { display: none; } }
+/* phones: four of the most used tools, and the lab's content centred in the screen above the footer (not stuck to the
+   top with a gap above the copyright line) */
+@media (max-width: 600px) {
+    .lab-chip:nth-child(n+5) { display: none; }
+    .main:has(.lab-home) { display: flex; flex-direction: column; justify-content: center; }
+}
 
 /* ---------- dark mode (palette: color-scheme.css) ---------- */
 @media (prefers-color-scheme: dark) {
