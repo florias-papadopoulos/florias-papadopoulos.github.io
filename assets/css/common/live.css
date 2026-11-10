@@ -329,6 +329,14 @@ body.lv-body:has(.lv-pres.is-remote) { background: #f6f7f9; }
 .lv-testrow .lv-qrlink { text-align: left; }
 .lv-aside p .lv-btn { margin-top: 8px; }
 
+/* inside the lab the presenter page takes the full width next to the sidebar (not the 720px reading column), and the
+   preview goes under the settings sooner, since the sidebar takes 184px of the window */
+body:has(.lv-in-lab) .main { max-width: none; }
+.lv-in-lab .lv-savebar { background: linear-gradient(transparent, var(--code-bg) 30%); }
+@media (max-width: 1160px) {
+    .lv-in-lab .lv-acols { grid-template-columns: minmax(0, 1fr); }
+    .lv-in-lab .lv-aside { position: static; max-height: none; }
+}
 @media (max-width: 980px) {
     .lv-acols { grid-template-columns: minmax(0, 1fr); }
     .lv-aside { position: static; max-height: none; }
