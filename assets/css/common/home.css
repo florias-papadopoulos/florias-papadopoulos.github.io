@@ -312,12 +312,19 @@ body:has(.profile.home) .footer {
     .lab-bench { order: 2; }
     .lab-home .links { order: 3; }
     .lab-home .buttons { display: flex; }
-    .lab-home .home-panel { padding-top: 40px; }
+    .lab-home .home-panel { padding-top: 22px; }
     /* a roomier paste box with a larger font (16 px and up also keeps phones from zooming in) */
-    .lab-paste { min-height: 112px; padding: 14px 14px; font-size: 17px; line-height: 1.45; }
+    .lab-paste { min-height: 92px; padding: 12px 14px; font-size: 17px; line-height: 1.45; }
     .lab-bench-label { font-size: 15px; }
-    /* the footer at the bottom of the screen (above the tab bar), not right under the content */
-    .main:has(.profile.home) { min-height: calc(100dvh - var(--pn-tab, 0px) - 40px); }
+    /* the footer at the bottom of the screen (above the tab bar), not right under the content; 56px is the footer's
+       height on a phone (two lines), so the page fits the screen exactly and the cat sitting on it stays in view */
+    .main:has(.profile.home) { min-height: calc(100dvh - var(--pn-tab, 0px) - 56px); }
+}
+/* short phones (e.g. 375 x 667): the lab's page a little tighter, so it still fits the screen with the cat in view */
+@media (max-width: 600px) and (max-height: 720px) {
+    .lab-home .home-panel { padding-top: 10px; }
+    .lab-paste { min-height: 76px; }
+    .lab-chip { padding-top: 4px; padding-bottom: 4px; }
 }
 /* small phones: the seven icons stay on one line */
 @media (max-width: 420px) { .home .social-icons { flex-wrap: nowrap; } .home .social-icons a { padding: 0 6px; } }

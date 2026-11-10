@@ -76,3 +76,9 @@ div.highlight:hover .copy-code,
 pre:hover .copy-code {
     display: block;
 }
+
+/* phones: the footer wraps onto two lines and is 16px taller than --footer-height, so a short page would scroll by
+   that much; the lab has its own rule (home.css) */
+@media (max-width: 600px) {
+    html:not([data-mode="play"]) .main { min-height: calc(100dvh - var(--footer-height) - var(--pn-tab, 0px) - 16px); }
+}

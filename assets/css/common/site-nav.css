@@ -80,5 +80,5 @@ body:has(.site-nav) :is(.tl-page, .cv-page)::before {
     box-shadow: 0 0 16px 10px var(--veil);
 }
 @media (prefers-color-scheme: dark) {
-    body:has(.site-nav) { --sn-dot: color-mix(in srgb, var(--aura, #9dbaf5) 17%, transparent); }
+    body:has(.site-nav) { --sn-dot: color-mix(in srgb, var(--aura, #9dbaf5) 32%, transparent); }
 }

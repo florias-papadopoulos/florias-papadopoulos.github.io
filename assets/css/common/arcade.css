@@ -478,3 +478,6 @@ body.arcade-playing .cat-layer { display: none; }
 .arcade-closed[hidden] { display: none; }
 .arcade.is-closed .game-card { pointer-events: none; filter: grayscale(0.7); }
 .arcade.is-closed .game-card > * { opacity: 0.45; }   /* the card stays solid, its contents fade */
+
+/* phones: no room beside the game, so the mascot (and its speech bubble) would sit on the game itself: hidden there */
+@media (max-width: 700px) { .arcade .mascot, .arcade .mascot-say { display: none; } }

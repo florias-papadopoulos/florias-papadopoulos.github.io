@@ -135,7 +135,7 @@ a.hn-text:hover { color: var(--h3-navy); text-decoration: underline; text-decora
 
 /* ---------- phones ---------- */
 @media (max-width: 720px) {
-    .hb-in { gap: 16px; padding-top: 58px; padding-bottom: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .hb-in { gap: 16px; padding-top: 17px; padding-bottom: 20px; align-items: flex-start; flex-wrap: wrap; }   /* the photo level with the corner buttons (top 28px, the band 15px down) */
     .hb-photo { width: 76px; height: 76px; box-shadow: 0 0 0 4px var(--hb-ring), 0 6px 16px rgba(15, 23, 42, .2); }
     .hb-text { flex: 1 1 100%; }
     .hb-tag { font-size: 14px; }
@@ -213,7 +213,7 @@ body:has(.home3) .main { display: flex; flex-direction: column; }
 .h3-rest { position: relative; z-index: 0; flex: 1; padding-bottom: 24px; background: radial-gradient(circle, var(--home-dot) 1.2px, transparent 1.8px) 0 0 / 30px 30px; }   /* each dot sits in the middle of its 30 px square: 15 px clear of the edge */
 body:has(.home3) .footer { background: transparent; }
 @media (prefers-color-scheme: dark) {
-    body:has(.home3) { --theme: var(--code-bg); --home-dot: rgba(157, 186, 245, 0.17); --home-glow: rgba(96, 165, 250, 0.10); }
+    body:has(.home3) { --theme: var(--code-bg); --home-dot: rgba(157, 186, 245, 0.34); --home-glow: rgba(96, 165, 250, 0.10); }
     .hw-wrap::after { background: linear-gradient(90deg, rgba(15, 23, 42, 0), var(--theme) 80%); }
 }
 /* behind the news and the projects the dots fade away (a veil of the page's colour with soft edges, like the lab's texts, play.css) */
