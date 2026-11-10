@@ -349,3 +349,44 @@ body.lv-body:has(.lv-pres.is-remote) { background: #f6f7f9; }
     .lv-react-btn.is-pop { animation: none; }
     .lv-float { animation-duration: 0.01s !important; }
 }
+
+/* ---------- dark mode, on the presenter page only (palette: color-scheme.css) ---------- */
+/* .lv-in-lab: the presenter page inside the lab. The audience's phone page and the projector stay light (their head,
+   live-head.html, does not load the palette), and so do the presenter page's previews of them. */
+@media (prefers-color-scheme: dark) {
+    .lv-in-lab {
+        --lv-ink: var(--dk-ink);
+        --lv-text: var(--dk-text);
+        --lv-muted: var(--dk-muted);
+        --lv-navy: var(--dk-navy);
+        --lv-navy-soft: var(--dk-raise);
+        --lv-line: var(--dk-line);
+        --lv-field: var(--dk-field);
+        --lv-right: var(--dk-good);
+        --lv-right-soft: #163323;
+        --lv-bad: var(--dk-bad);
+    }
+    .lv-in-lab :is(.lv-card, .lv-abar, .lv-tool, .lv-in, .lv-ask-in, .lv-nick-in, .lv-key-in, .lv-up, .lv-opt, .lv-ctl, .lv-rbtn, .lv-ract, .lv-fake-in, .lv-help-box, .lv-dialog-box) { background: var(--dk-card); }
+    .lv-in-lab .lv-btn { color: var(--dk-on-navy) !important; }
+    .lv-in-lab .lv-btn:hover { background: color-mix(in srgb, var(--lv-navy), #fff 20%); }
+    .lv-in-lab .lv-btn.is-quiet { background: var(--dk-card); color: var(--lv-navy) !important; }
+    .lv-in-lab .lv-btn.is-quiet:hover { background: var(--lv-navy-soft); }
+    .lv-in-lab .lv-btn.is-danger { color: var(--lv-bad) !important; }
+    .lv-in-lab :is(.lv-up.is-on, .lv-opt.is-mine .lv-letter, .lv-ctl.is-main, .lv-rbtn.is-main, .lv-actn) { color: var(--dk-on-navy); }
+    .lv-in-lab .lv-opt:hover:not(:disabled) { background: var(--dk-raise); }
+    .lv-in-lab :is(.lv-bar-track, .lv-timer-track) { background: var(--dk-raise); }
+    .lv-in-lab .lv-board li { border-bottom-color: var(--dk-line); }
+    .lv-in-lab .lv-aopts li.is-right .lv-in { border-color: #2f7a4a; }
+    .lv-in-lab .lv-savebar { background: linear-gradient(rgba(0, 0, 0, 0), var(--dk-page) 30%); }
+    .lv-in-lab :is(.lv-help, .lv-dialog) { background: rgba(0, 0, 0, 0.5); }
+    /* the previews of the phone page and the projector: light, as they are */
+    .lv-in-lab :is(.lv-frame-phone, .lv-frame-screen) {
+        color-scheme: light;
+        --lv-ink: #0f172a; --lv-text: #334155; --lv-muted: #5b6b80; --lv-navy: #1e3a8a; --lv-navy-soft: #eef2fb;
+        --lv-line: #e2e8f0; --lv-field: #c7d2e8; --lv-right: #166534; --lv-right-soft: #ecf7ef; --lv-bad: #9f1239;
+        --dk-card: #fff; --dk-raise: #eef1f6; --dk-line: #f0f3f7; --dk-on-navy: #fff; --primary: rgb(30, 30, 30);
+        color: var(--lv-text);
+    }
+    .lv-in-lab :is(.lv-frame-phone, .lv-frame-screen) .lv-btn:hover { background: #26479f; }
+    .lv-in-lab :is(.lv-frame-phone, .lv-frame-screen) .lv-opt:hover:not(:disabled) { background: #fafbff; }
+}
