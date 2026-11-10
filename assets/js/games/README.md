@@ -34,7 +34,8 @@ How to do it:
   (Play again, All games, the difficulty switch). Do not build an end screen of your own. A game with a menu of its
   own (Kitty Kart's tracks, Dino Valley's regions) passes `menu: 'Tracks'` (a button that starts it afresh, on the
   menu) and `again: {...}` (handed to the next round as `api.again` when the player presses Play again, so the game
-  skips its menu and plays the same track or level again). Details in the header of `arcade.js`.
+  skips its menu and plays the same track or level again). A race passes `place` (1st, 2nd...: a medal for the
+  first three). The panel shows the score with the label of the last `api.score` call. Details in the header of `arcade.js`.
 - Sound only through `api.sfx` (it follows the Effects volume); a game with sounds of its own reads
   `Arcade.sfxLevel()`.
 - A game with a leaderboard needs its id in `BOARDS` in `tools/workers/stats/worker.js`, with a `max` (the best real

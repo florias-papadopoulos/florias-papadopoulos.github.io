@@ -21,9 +21,12 @@
      api.level()                 'easy', 'normal' or 'hard': the difficulty picked in the top bar. The picker shows for
                                  games with "levels: true" in content/games/_index.md; changing it restarts the game,
                                  and each difficulty keeps its own best
-     api.end({score, win, text, lowerIsBetter, board, again, menu})   game over: saves the best and opens the end
-                                 panel. Its top part (it scrolls when it is long) has the result: the first line of
-                                 text as its title, the other lines under it, then "New best!" or the best so far. When
+     api.end({score, win, text, lowerIsBetter, board, again, menu, place})   game over: saves the best and opens the
+                                 end panel. Its top part (it scrolls when it is long) has the result: a ribbon with the
+                                 outcome (win false: "Game over"; place: "2nd place" with a medal for the first three),
+                                 the first line of text as its title (unless it only repeats the ribbon), the other
+                                 lines under it, the score big (labelled as in the last api.score call), "New best!"
+                                 and cards with the best at this difficulty and the leaderboard places. When
                                  the site has its server, the game's leaderboard follows (top 10 this week and all
                                  time, per difficulty) and, if the score makes it in, a box to add it under a nickname;
                                  board: an optional sub-board, e.g. the Kitty Kart track. Games of the "two" group have
@@ -364,7 +367,10 @@
             });
             head.appendChild(tabs);
             boardEl.appendChild(head);
-            boardEl.appendChild(topList(data[shown], fmt, mine, 'No scores yet. Be the first!'));
+            /* the player's own rows stand out: the name just sent, or the nickname used before on this device */
+            var nick = store('arcade-name');
+            boardEl.appendChild(topList(data[shown], fmt, mine || (typeof nick === 'string' ? nick : null), 'No scores yet. Be the first!'));
+            setPlaces(id, data, o.score, lower);
             if (!mine && !skipped && (fits(data.week) || fits(data.all))) form();
         }
         var skipped = false;   /* the player closed the name box (x): it stays closed for this score */
@@ -419,7 +425,7 @@
     function start(id, again) {
         stop();
         var g = byId[id];
-        var cleanups = [], resizeFns = [], ended = false;
+        var cleanups = [], resizeFns = [], ended = false, scoreLabel = '';
         hideMsg();
         area.innerHTML = '';
         area.className = 'stage-area game-' + id;
@@ -466,7 +472,7 @@
                 st.textContent = text;
                 document.head.appendChild(st);
             },
-            score: function (v, label) { stage.querySelector('.stage-score').textContent = (label || 'Score') + ' ' + v; },
+            score: function (v, label) { scoreLabel = label || ''; stage.querySelector('.stage-score').textContent = (label || 'Score') + ' ' + v; },
             best: function () { return bests[key] == null ? null : bests[key]; },
             level: function () { return levelOf(id); },
             end: function (o) {
@@ -484,7 +490,7 @@
                 }
                 catMood(o.win === false ? 'sad' : 'happy');
                 api.sfx(o.win === false ? 'lose' : 'win');
-                fillMsg(id, o, isBest);
+                fillMsg(id, o, isBest, scoreLabel);
                 showBoard(id, o);
                 setTimeout(function () { if (current && current.api === api) showMsg(); }, 650);
                 return isBest;
@@ -504,36 +510,168 @@
             if (inst && inst.destroy) { try { inst.destroy(); } catch (e) { /* ignore */ } }
         } };
     }
-    /* ---------- the end panel (layouts/_default/arcade.html: .stage-msg) ---------- */
+    /* ---------- the end panel (layouts/_default/arcade.html: .stage-msg; looks: arcade.css) ----------
+       A header tells the outcome: a win gets a gold ribbon and a trophy, a place (Kitty Kart's 1st, 2nd, 3rd) a gold,
+       silver or bronze medal, anything else a calm blue ribbon ("Game over", or the place) and a paw. The box carries
+       the flavour (sm-warm or sm-cool) and arcade.css colours the rest from it. Then the game's own lines, the score
+       counting up from 0, "New best!" stamped on, small cards (the best at this difficulty, the place this week and
+       of all time once the leaderboard has loaded) and the leaderboard. Confetti on a win, a medal or a new best.
+       With reduced motion nothing moves: the score shows at once, no confetti, no pop. */
+    var msgBox = msg.querySelector('.stage-msg-box'), msgScroll = msg.querySelector('.stage-msg-scroll');
     var msgTitle = msg.querySelector('.stage-msg-title'), msgText = msg.querySelector('.stage-msg-text'), msgBest = msg.querySelector('.stage-msg-best');
+    var msgEmblem = msg.querySelector('.sm-emblem'), msgRibbon = msg.querySelector('.sm-ribbon'), msgHero = msg.querySelector('.sm-hero');
+    var msgStats = msg.querySelector('.sm-stats');
     var againBtn = msg.querySelector('.stage-again'), menuBtn = msg.querySelector('.stage-menu'), quitBtn = msg.querySelector('.stage-quit');
-    var lvBox = msg.querySelector('.stage-msg-level'), ending = null;   /* ending: {id, again} of the round that ended */
-    function fillMsg(id, o, isBest) {
-        var g = byId[id], lines = String(o.text || (o.win === false ? 'Game over' : 'You win!')).split('\n');
-        msgTitle.textContent = lines.shift();
+    var lvBox = msg.querySelector('.stage-msg-level'), ending = null;   /* ending: {id, again, ...} of the round that ended */
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var METALS = { 1: ['#fff1b8', '#f5b81c', '#8a5a00'], 2: ['#f7f9fc', '#b4bfd1', '#4f5b70'], 3: ['#f8d2b0', '#c97a3c', '#6e380f'] };
+    function ordinal(n) { var t = n % 100; return n + (t > 10 && t < 14 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }
+    function emblem(kind, place) {
+        if (kind === 'medal') {
+            var m = METALS[place];
+            return '<svg viewBox="0 0 64 64"><defs><linearGradient id="sm-metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + m[0] +
+                '"/><stop offset="1" stop-color="' + m[1] + '"/></linearGradient></defs>' +
+                '<path d="M17 2h11l7 24H24z" fill="#e8475f"/><path d="M47 2H36l-7 24h11z" fill="#3b82f6"/>' +
+                '<circle cx="32" cy="41" r="19" fill="url(#sm-metal)" stroke="' + m[2] + '" stroke-width="2"/>' +
+                '<circle cx="32" cy="41" r="13.5" fill="none" stroke="' + m[2] + '" stroke-opacity=".45" stroke-width="2"/>' +
+                '<text x="32" y="47.5" text-anchor="middle" font-size="18" font-weight="900" font-family="system-ui, sans-serif" fill="' + m[2] + '">' + place + '</text></svg>';
+        }
+        if (kind === 'trophy') {
+            return '<svg viewBox="0 0 64 64"><defs><linearGradient id="sm-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1b8"/>' +
+                '<stop offset=".55" stop-color="#f5b81c"/><stop offset="1" stop-color="#c98a00"/></linearGradient></defs>' +
+                '<path d="M17 13h-6c0 9 4 14 10 15M47 13h6c0 9-4 14-10 15" fill="none" stroke="#f5b81c" stroke-width="4" stroke-linecap="round"/>' +
+                '<path d="M16 7h32v13c0 11-7 19-16 19S16 31 16 20z" fill="url(#sm-gold)"/>' +
+                '<path d="M22 11h4v9c0 5 1.5 8 4 10-5-1-8-5-8-11z" fill="#fff" fill-opacity=".55"/>' +
+                '<rect x="28.5" y="38" width="7" height="8" fill="#d99a00"/><rect x="20" y="46" width="24" height="6" rx="2" fill="url(#sm-gold)"/>' +
+                '<rect x="16" y="52" width="32" height="7" rx="2.5" fill="#8a5a00"/>' +
+                '<path d="M32 13l2.4 4.9 5.4.8-3.9 3.8.9 5.4L32 25.4l-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z" fill="#fff8dc"/></svg>';
+        }
+        return '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#7cc8ff" fill-opacity=".16" stroke="#7cc8ff" stroke-opacity=".5" stroke-width="2"/>' +
+            '<g fill="#a9dcff"><ellipse cx="32" cy="39" rx="10" ry="8.5"/><circle cx="20" cy="28" r="4.3"/><circle cx="27" cy="20" r="4.3"/>' +
+            '<circle cx="37" cy="20" r="4.3"/><circle cx="44" cy="28" r="4.3"/></g></svg>';
+    }
+    function words(t) { return String(t).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+    function stat(k, label, value) {
+        var li = msgStats.querySelector('[data-k="' + k + '"]');
+        if (label != null) li.querySelector('.sm-stat-l').textContent = label;
+        li.querySelector('.sm-stat-v').textContent = value || '';
+        li.hidden = !value;
+        msgStats.hidden = !msgStats.querySelector('.sm-stat:not([hidden])');
+    }
+    function fillMsg(id, o, isBest, label) {
+        var g = byId[id], fmt = scoreFmt(id);
+        var place = typeof o.place === 'number' && o.place >= 1 ? Math.round(o.place) : 0;
+        var kind = place && place <= 3 ? 'medal' : o.win !== false && !place ? 'trophy' : 'paw';
+        var ribbon = place ? ordinal(place) + ' place' : o.win === false ? 'Game over' : 'You win!';
+        msgBox.className = 'stage-msg-box ' + (kind === 'paw' ? 'sm-cool' : 'sm-warm');
+        msgEmblem.innerHTML = emblem(kind, place);
+        msgRibbon.textContent = ribbon;
+        /* the game's lines: the first is the title, unless it only repeats the ribbon */
+        var lines = String(o.text || '').split('\n');
+        if (!words(lines[0]) || words(lines[0]) === words(ribbon)) lines.shift();
+        msgTitle.textContent = lines.shift() || '';
+        msgTitle.hidden = !msgTitle.textContent;
+        /* a line that only says the score ("Time 95.2 s", "Score 4500") goes: the score is shown big below */
+        var scored = typeof o.score === 'number' && isFinite(o.score);
+        if (scored) lines = lines.filter(function (l) {
+            var w = words(l);
+            return w !== words((label || 'Score') + ' ' + fmt(o.score)) && w !== words('Score ' + fmt(o.score));
+        });
         msgText.textContent = lines.join('\n').replace(/^\n+/, '');
         msgText.hidden = !msgText.textContent;
-        /* "New best!", or the best so far (not for games with tracks: the best on the page is not per track) */
-        var b = bests[bestKey(id)], scored = typeof o.score === 'number' && (o.lowerIsBetter || o.score > 0);
-        msgBest.textContent = isBest ? 'New best!' : scored && b != null && !o.board ? 'Your best' + (g.levels ? ' on ' + LEVEL_NAME[levelOf(id)] : '') + ': ' + scoreFmt(id)(b) : '';
-        msgBest.classList.toggle('is-new', !!isBest);
-        msgBest.hidden = !msgBest.textContent;
-        ending = { id: id, again: o.again === undefined ? null : o.again };
+        /* the score, big; it counts up when the panel opens (showMsg) */
+        msgHero.hidden = !scored;
+        msgHero.querySelector('.sm-hero-l').textContent = label || 'Score';
+        msgHero.querySelector('.sm-hero-v').textContent = scored ? fmt(o.score) : '';
+        msgHero.querySelector('.sm-sr').textContent = scored ? ': ' + fmt(o.score) : '';
+        msgBest.hidden = !isBest;
+        /* the cards: the best at this difficulty (not after a new best, the stamp says it, and not for games with
+           tracks: that best is not per track); the places come with the leaderboard (setPlaces) */
+        var b = bests[bestKey(id)];
+        stat('best', 'Best' + (g.levels ? ', ' + LEVEL_NAME[levelOf(id)] : ''), b != null && !o.board && scored && !isBest ? fmt(b) : '');
+        stat('week', null, ''); stat('all', null, '');
+        ending = { id: id, again: o.again === undefined ? null : o.again, score: scored ? o.score : null, fmt: fmt,
+            party: kind !== 'paw' || isBest };
         againBtn.hidden = g.restart === false;
-        menuBtn.textContent = typeof o.menu === 'string' ? o.menu : '';
-        menuBtn.hidden = !menuBtn.textContent;
+        menuBtn.querySelector('.sm-label').textContent = typeof o.menu === 'string' ? o.menu : '';
+        menuBtn.hidden = !(typeof o.menu === 'string' && o.menu);
         lvBox.hidden = !g.levels;
         Array.prototype.forEach.call(lvBox.querySelectorAll('button'), function (b) {
             b.setAttribute('aria-pressed', b.dataset.level === levelOf(id) ? 'true' : 'false');
         });
-        msg.querySelector('.stage-msg-scroll').scrollTop = 0;
+        msgScroll.scrollTop = 0;
+    }
+    /* the leaderboard's answer: where this score stands this week and of all time (a card only when it is top 10) */
+    function setPlaces(id, data, score, lower) {
+        if (!ending || ending.id !== id || score == null) return;
+        ['week', 'all'].forEach(function (k) {
+            var n = 1;
+            (data[k] || []).forEach(function (r) { if (lower ? r.s < score : r.s > score) n++; });
+            stat(k, null, n <= 10 ? '#' + n : '');
+        });
+    }
+    var countRaf = 0, confettiStop = null;
+    function countUp() {
+        cancelAnimationFrame(countRaf);
+        var v = msgHero.querySelector('.sm-hero-v'), e = ending;
+        if (!e || e.score == null || still.matches) return;
+        var t0 = performance.now(), dur = Math.min(1100, 500 + String(Math.round(Math.abs(e.score))).length * 120);
+        (function frame(now) {
+            var k = Math.min(1, Math.max(0, (now - t0) / dur)), x = 1 - Math.pow(1 - k, 3);
+            v.textContent = e.fmt(k < 1 ? (e.score % 1 ? Math.round(e.score * x * 10) / 10 : Math.round(e.score * x)) : e.score);
+            if (k < 1 && !msg.hidden) countRaf = requestAnimationFrame(frame);
+            else v.textContent = e.fmt(e.score);
+        })(t0);
+    }
+    /* a short burst of confetti from the top of the panel, over everything; then the canvas goes */
+    function confetti() {
+        if (confettiStop) confettiStop();
+        if (still.matches) return;
+        var cv = document.createElement('canvas'), c = cv.getContext('2d');
+        if (!c) return;
+        cv.className = 'sm-confetti';
+        cv.setAttribute('aria-hidden', 'true');
+        msg.appendChild(cv);
+        var dpr = Math.min(2, window.devicePixelRatio || 1), W = msg.clientWidth, H = msg.clientHeight;
+        cv.width = W * dpr; cv.height = H * dpr;
+        c.scale(dpr, dpr);
+        var r = msgBox.getBoundingClientRect(), m = msg.getBoundingClientRect(), ox = r.left - m.left + r.width / 2, oy = r.top - m.top + 70;
+        var cols = ['#ffc84a', '#ff7aa2', '#7cc8ff', '#8ef0b0', '#ffffff', '#c9a7ff'], bits = [], i;
+        for (i = 0; i < 110; i++) {
+            var a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4, sp = 260 + Math.random() * 420;
+            bits.push({ x: ox + (Math.random() - 0.5) * 60, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: Math.random() * 6.28,
+                vr: (Math.random() - 0.5) * 14, w: 5 + Math.random() * 5, h: 3 + Math.random() * 4, c: cols[i % cols.length] });
+        }
+        var t0 = performance.now(), last = t0, raf = 0, done = false;
+        function stopIt() { if (done) return; done = true; cancelAnimationFrame(raf); cv.remove(); confettiStop = null; }
+        confettiStop = stopIt;
+        (function frame(now) {
+            var dt = Math.min(0.05, Math.max(0, now - last) / 1000), age = (now - t0) / 1000;
+            last = now;
+            c.clearRect(0, 0, W, H);
+            c.globalAlpha = Math.max(0, Math.min(1, (1.7 - age) / 0.5));
+            bits.forEach(function (b) {
+                b.vy += 900 * dt; b.vx *= 1 - 1.2 * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.r += b.vr * dt;
+                var f = Math.abs(Math.cos(b.r * 1.3));   /* the flutter: a bit seen edge on gets thin */
+                c.save(); c.translate(b.x, b.y); c.rotate(b.r); c.fillStyle = b.c;
+                c.fillRect(-b.w / 2, -b.h * f / 2, b.w, b.h * f + 0.5);
+                c.restore();
+            });
+            if (age < 1.7 && !msg.hidden) raf = requestAnimationFrame(frame); else stopIt();
+        })(t0);
     }
     function showMsg() {
         msg.hidden = false;
         var b = againBtn.hidden ? msgButtons().filter(function (e) { return e.closest('.stage-msg-actions'); })[0] : againBtn;
         if (b) b.focus({ preventScroll: true });
+        countUp();
+        if (ending && ending.party) confetti();
     }
-    function hideMsg() { msg.hidden = true; ending = null; hideBoard(); }
+    function hideMsg() {
+        msg.hidden = true; ending = null; hideBoard();
+        cancelAnimationFrame(countRaf);
+        if (confettiStop) confettiStop();
+    }
     /* what Tab can reach in the panel, in order */
     function msgButtons() {
         return Array.prototype.filter.call(msg.querySelectorAll('button, input, select, a[href]'), function (e) {
