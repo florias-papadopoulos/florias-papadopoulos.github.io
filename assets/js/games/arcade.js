@@ -29,7 +29,8 @@
                                  and cards with the best at this difficulty and the leaderboard places. When
                                  the site has its server, the game's leaderboard follows (top 10 this week and all
                                  time, per difficulty) and, if the score makes it in, a box to add it under a nickname;
-                                 board: an optional sub-board, e.g. the Kitty Kart track. Games of the "two" group have
+                                 board: an optional sub-board, e.g. the Kitty Kart track, which also gets its own best
+                                 (one per track, see boardKey). Games of the "two" group have
                                  no leaderboard (the server lists the games that have one: tools/workers/stats/worker.js).
                                  The buttons stay pinned under it: "Play again" (focused, so Enter plays again; hidden
                                  for "restart: false"), the game's own menu when it passes one, "All games" (Escape
@@ -111,6 +112,10 @@
     var levelPick = stage.querySelector('.stage-level');
     function levelOf(id) { return byId[id] && byId[id].levels && levels[id] || 'normal'; }
     function bestKey(id) { var l = levelOf(id); return l === 'normal' ? id : id + '/' + l; }   /* normal: the old key */
+    /* games with tracks (api.end board, like Kitty Kart) keep a best per track: "<bestKey>@<board>"; their page and top
+       bar show no single best, since times on different tracks do not compare */
+    function boardKey(id, board) { return bestKey(id) + '@' + board; }
+    function perBoard(id) { return Object.keys(bests).some(function (k) { return k.indexOf(id + '@') === 0 || k.indexOf(id + '/') === 0 && k.indexOf('@') > 0; }) || id === 'kitty-kart'; }
 
     window.Arcade = {
         /* 0..1: how loud effects should be; for games that make sounds of their own (Kitty Kart's piano road) */
@@ -308,8 +313,8 @@
     /* ---------- running a game ---------- */
     function showBests() {
         Array.prototype.forEach.call(root.querySelectorAll('[data-best]'), function (el) {
-            var id = el.dataset.best, b = bests[bestKey(id)], l = levelOf(id);
-            el.textContent = b == null ? '' : 'Best' + (l === 'normal' ? '' : ' (' + l + ')') + ': ' + b;
+            var id = el.dataset.best, b = perBoard(id) ? null : bests[bestKey(id)], l = levelOf(id);
+            el.textContent = b == null ? '' : 'Best' + (l === 'normal' ? '' : ' (' + l + ')') + ': ' + scoreFmt(id)(b);
         });
     }
     showBests();
@@ -329,7 +334,8 @@
     var LEVEL_NAME = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
     function hideBoard() { boardSeq++; if (boardEl) { boardEl.hidden = true; boardEl.innerHTML = ''; } }
     function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-    function scoreFmt(id) { return function (v) { return id === 'kitty-kart' ? v.toFixed(1) + ' s' : String(v); }; }
+    /* scores as shown: times with their unit (Kitty Kart in tenths, Mouse Sweeper in whole seconds) */
+    function scoreFmt(id) { return function (v) { return id === 'kitty-kart' ? v.toFixed(1) + ' s' : id === 'mouse-sweeper' ? v + ' s' : String(v); }; }
     function topList(list, fmt, mine, empty) {
         if (!list.length) return el('p', 'sb-empty', empty);
         var ol = el('ol', 'sb-list');
@@ -431,8 +437,8 @@
         area.className = 'stage-area game-' + id;
         stage.querySelector('.stage-title').textContent = nameOf(g);
         stage.querySelector('.stage-score').textContent = '';
-        var key = bestKey(id), b = bests[key];
-        stage.querySelector('.stage-best').textContent = b == null ? '' : 'Best ' + b;
+        var key = bestKey(id), b = perBoard(id) ? null : bests[key];
+        stage.querySelector('.stage-best').textContent = b == null ? '' : 'Best ' + scoreFmt(id)(b);
         if (levelPick) { levelPick.hidden = !g.levels; levelPick.value = levelOf(id); }
         stage.querySelector('.stage-restart').hidden = g.restart === false;
         catMood('idle');
@@ -481,10 +487,10 @@
                 o = o || {};
                 var isBest = false;
                 if (typeof o.score === 'number' && (o.lowerIsBetter || o.score > 0)) {   /* a score of 0 is never a best */
-                    var old = bests[key];
+                    var bk = o.board ? boardKey(id, o.board) : key, old = bests[bk];
                     if (old == null || (o.lowerIsBetter ? o.score < old : o.score > old)) {
-                        bests[key] = o.score; store('arcade-best', bests); isBest = true;
-                        stage.querySelector('.stage-best').textContent = 'Best ' + o.score;
+                        bests[bk] = o.score; store('arcade-best', bests); isBest = true;
+                        stage.querySelector('.stage-best').textContent = 'Best ' + scoreFmt(id)(o.score);
                         showBests();
                     }
                 }
@@ -585,10 +591,10 @@
         msgHero.querySelector('.sm-hero-v').textContent = scored ? fmt(o.score) : '';
         msgHero.querySelector('.sm-sr').textContent = scored ? ': ' + fmt(o.score) : '';
         msgBest.hidden = !isBest;
-        /* the cards: the best at this difficulty (not after a new best, the stamp says it, and not for games with
-           tracks: that best is not per track); the places come with the leaderboard (setPlaces) */
-        var b = bests[bestKey(id)];
-        stat('best', 'Best' + (g.levels ? ', ' + LEVEL_NAME[levelOf(id)] : ''), b != null && !o.board && scored && !isBest ? fmt(b) : '');
+        /* the cards: the best at this difficulty, on this track for games with tracks (not after a new best, the stamp
+           says it); the places come with the leaderboard (setPlaces) */
+        var b = bests[o.board ? boardKey(id, o.board) : bestKey(id)];
+        stat('best', (o.board ? 'Best on this track' : 'Best') + (g.levels ? ', ' + LEVEL_NAME[levelOf(id)] : ''), b != null && scored && !isBest ? fmt(b) : '');
         stat('week', null, ''); stat('all', null, '');
         ending = { id: id, again: o.again === undefined ? null : o.again, score: scored ? o.score : null, fmt: fmt,
             party: kind !== 'paw' || isBest };
