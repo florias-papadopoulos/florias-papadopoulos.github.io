@@ -216,3 +216,22 @@ html[data-mode="play"] { --key-w: 120px; }
     .you-link:hover svg { animation: eye-blink 0.38s ease-in-out 1; transform-origin: 50% 50%; }
 }
 @keyframes eye-blink { 0%, 100% { transform: scaleY(1); } 45%, 55% { transform: scaleY(0.12); } }
+
+/* ---------- dark mode (palette: color-scheme.css): the lab's dark is a little warmer too ---------- */
+@media (prefers-color-scheme: dark) {
+    :root { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); }
+    html[data-mode="play"]:not([data-pet="dog"]) {
+        --dk-bg: #191714; --dk-page: #1c1a17; --dk-card: #23201c; --dk-raise: #2b2823; --dk-line: #39342d; --dk-field: #4d473e;
+        --dk-ink: #efebe4; --dk-text: #d6d0c6; --dk-muted: #a69e92;
+        --theme: var(--dk-page); --code-bg: var(--dk-bg); --pn-line: var(--dk-line);
+    }
+    html[data-pet="dog"] { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); }
+    .pn-head svg { color: var(--dk-on-navy); }
+    .pn-audience, .pn-label { color: var(--dk-muted); }
+    /* the key, lit while in the lab: a navy that still stands out from the dark */
+    html[data-mode="play"] .key-btn { background: #2a4594; border-color: #3d5aad; }
+}
+@media (prefers-color-scheme: dark) and (min-width: 900px) {
+    .pn-tab:hover, .pn-audience:hover { background: rgba(255, 255, 255, 0.05); }
+    .pn-tab[aria-current="page"] { background: rgba(255, 255, 255, 0.06); }
+}
