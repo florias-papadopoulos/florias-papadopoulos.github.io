@@ -9,6 +9,8 @@
 {{- $n := 0 }}{{ range $cats }}{{ $n = add $n (len .tools) }}{{ end }}
 <div class="tl-page tb-page tb-index">
     <header class="tb-head">
+        {{- /* the band, like the home page's (play.css .lab-band): the title, the intro, the search and its suggestions */}}
+        <div class="lab-band">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
         <div class="tb-lede">{{ .Content }}</div>
         <div class="tb-search">
@@ -16,6 +18,7 @@
             <input type="search" id="tb-search" placeholder="Search {{ $n }} tools, or paste a number, a code or a ciphertext" autocomplete="off" spellcheck="false">
         </div>
         <div class="tb-guess" id="tb-guess" aria-live="polite" hidden></div>
+        </div>
         <h2 class="tb-tasks-h">What do you want to do?</h2>
         <div class="tb-tasks" role="group" aria-label="What do you want to do?">
             {{- range hugo.Data.toolbox_tasks }}

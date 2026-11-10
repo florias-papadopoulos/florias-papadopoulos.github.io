@@ -217,7 +217,35 @@ html[data-mode="play"] body::before {
 }
 body.arcade-playing::before { display: none; }
 
+/* ---------- the band at the top of Games and the Toolbox, like the home page's: a soft gradient, a grid of dots
+   fading in towards the right, the title and intro on it (the pet sits on the title, cat-pages.js); warm in light,
+   ink blue in dark (browns with a dog) ---------- */
+html[data-mode="play"] { --lb-bg: linear-gradient(135deg, #fffaf1 0%, #fdeed8 100%); --lb-edge: #f0dcbd; --lb-dot: rgba(180, 83, 9, 0.32);
+    --lb-ink: #1c1917; --lb-text: #57534e; }
+html[data-mode="play"][data-pet="dog"] { --lb-bg: linear-gradient(135deg, #fdf6ec 0%, #f6e3cb 100%); --lb-edge: #ead3b4; --lb-dot: rgba(138, 59, 18, 0.3); }
+.lab-band { position: relative; overflow: hidden; margin: 6px 0 22px; padding: 26px 28px 24px; border-radius: 18px; background: var(--lb-bg); box-shadow: inset 0 0 0 1px var(--lb-edge), 0 10px 30px -18px rgba(120, 72, 20, 0.35); }
+.lab-band::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle, var(--lb-dot) 1.2px, transparent 1.8px) 0 0 / 18px 18px;
+    -webkit-mask-image: linear-gradient(100deg, transparent 25%, rgba(0, 0, 0, 0.6) 60%, #000 100%);
+    mask-image: linear-gradient(100deg, transparent 25%, rgba(0, 0, 0, 0.6) 60%, #000 100%); }
+.lab-band > * { position: relative; }
+.lab-band h1, .lab-band .tl-h1 { color: var(--lb-ink); }
+.lab-band .tb-lede, .lab-band .arcade-intro { color: var(--lb-text); }
+.lab-band .tb-lede { margin-bottom: 18px; }
+.lab-band .tb-guess { background: rgba(255, 255, 255, 0.7); }
+.arcade-head.lab-band { padding: 24px 20px 22px; }
+@media (max-width: 600px) {
+    .lab-band { margin: 0 0 16px; padding: 18px 16px 16px; border-radius: 14px; }
+}
+
 /* ---------- dark mode (palette: color-scheme.css): the lab's dark is a little warmer too ---------- */
+@media (prefers-color-scheme: dark) {
+    html[data-mode="play"] { --lb-bg: linear-gradient(180deg, #121d35, #1a2a4a); --lb-edge: rgba(255, 255, 255, 0.06); --lb-dot: rgba(143, 163, 199, 0.5);
+        --lb-ink: #fff; --lb-text: #c3cfe3; }
+    html[data-mode="play"][data-pet="dog"] { --lb-bg: linear-gradient(180deg, #221812, #33241a); --lb-edge: rgba(255, 255, 255, 0.06); --lb-dot: rgba(253, 230, 138, 0.28); }
+    .lab-band { box-shadow: inset 0 0 0 1px var(--lb-edge), 0 12px 30px -16px rgba(0, 0, 0, 0.6); }
+    .lab-band .tb-guess { background: rgba(255, 255, 255, 0.06); }
+}
 @media (prefers-color-scheme: dark) {
     html[data-mode="play"] { --lab-dot: rgba(203, 213, 225, 0.13); --lab-glow-a: rgba(251, 191, 36, 0.11); --lab-glow-b: rgba(129, 140, 248, 0.15); }
     html[data-mode="play"][data-pet="dog"] { --lab-dot: rgba(253, 230, 138, 0.11); --lab-glow-a: rgba(217, 119, 6, 0.10); --lab-glow-b: rgba(244, 63, 94, 0.05); }
