@@ -30,15 +30,16 @@
 }
 @media (prefers-color-scheme: dark) {
     .home3 {
-        /* the band: flat slate grey (chosen on 2026-11-10 over the old navy gradient #121d35 to #1a2a4a) */
-        --hb-bg: #1d232b;
+        /* the band: flat slate grey (chosen on 2026-11-10 over the old navy gradient #121d35 to #1a2a4a), light enough
+           to stand apart from the dark page under it; its quiet text a step lighter to keep its contrast */
+        --hb-bg: #323c49;
         --hb-edge: transparent;
-        --hb-dot: #8b97a6;
+        --hb-dot: #95a1b0;
         --hb-dot-op: .55;
-        --hb-kicker: #a7b2c0;
+        --hb-kicker: #bcc6d2;
         --hb-name: #fff;
-        --hb-native: #b3bcc7;
-        --hb-tag: #cad1da;
+        --hb-native: #c3cbd5;
+        --hb-tag: #d6dce4;
         --hb-strong: #fff;
         --hb-badge: #cfd6df;
         --hb-badge-line: rgba(207, 218, 240, .35);
