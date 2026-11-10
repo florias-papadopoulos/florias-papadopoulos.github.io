@@ -180,9 +180,6 @@ html:not([data-mode="play"]) .home-reset { display: none !important; }
     html[data-mode="play"] .home-reset { top: auto; right: auto; bottom: 77px; left: 108px; }
     .pn-label { white-space: nowrap; }
 }
-@media (max-width: 899px) {
-    html[data-mode="play"] .home-reset { left: auto; right: calc(94px + var(--key-w, 34px)); }
-}
 
 /* ---------- the light switch and the key ---------- */
 /* 40 px tall (44 px on phones, a comfortable finger size); --sw-w is the light switch's width */
@@ -204,16 +201,17 @@ html[data-theme="dark"] .theme-btn .sw-knob { transform: translateY(6px); }   /*
     .key-btn, .theme-btn { top: 6px; }
     .theme-btn { padding: 0; border-radius: 50%; right: calc(14px + var(--key-w)); }
 }
-/* in the lab: a small round switch like the pet buttons; from 900 px in the sidebar's top row, next to "The lab";
-   below, in the top right row with the pet buttons (left of the reset button on the lab's home page) */
-html[data-mode="play"] .theme-btn { width: 34px; height: 34px; border-radius: 50%; }
-html[data-mode="play"] .theme-btn svg { width: 21px; height: 21px; }
-@media (min-width: 900px) {
-    html[data-mode="play"] .theme-btn { top: 5px; left: 140px; right: auto; }
-}
+/* in the lab the switch sits next to the key, top right; below 900 px the cat, the dog and the home page's reset
+   button sit together top left (from 900 px they are in the sidebar's "Your pet" row) */
+html[data-mode="play"] .theme-btn { right: calc(18px + var(--key-w)); left: auto; }
 @media (max-width: 899px) {
-    html[data-mode="play"] .theme-btn { top: 5px; right: calc(94px + var(--key-w)); }
-    html[data-mode="play"] body:has(.home-reset) .theme-btn { right: calc(134px + var(--key-w)); }
+    html[data-mode="play"] .theme-btn { right: calc(14px + var(--key-w)); }
+    html[data-mode="play"] .cat-pick { left: 8px; right: auto; }
+    html[data-mode="play"] .dog-pick { left: 48px; right: auto; }
+    html[data-mode="play"] .home-reset { left: 88px; right: auto; }
+    html[data-mode="play"] .cat-menu { left: 8px; right: auto; }
+    /* the pages start under the row of buttons */
+    html[data-mode="play"] .main { padding-top: 54px; }
 }
 /* a little life on hover (mice only, not with reduced motion): the key turns a bit in its lock */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
