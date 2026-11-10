@@ -310,7 +310,7 @@
         var CH = api.size().h;
         push('.home .profile-photo', 'photo');
         /* the name: a big hop is fine, a little less room above is enough, and it may stay to bat another letter */
-        push('.home .name-block h1', 'name', { w: 3, room: CH - 6, hop: 480, again: true });
+        if (h1 && h1.querySelector('.ltr:not(.gone)')) push('.home .name-block h1', 'name', { w: 3, room: CH - 6, hop: 480, again: true });   /* no letters left: nothing to bat there */
         /* not the chips: sitting there, the cat would cover the tagline */
         push('.home .route', 'card');
         push('.home .latest', 'card');
@@ -320,7 +320,9 @@
     }
     function spot(p, fx) {
         if (p.kind !== 'name') return null;
-        var l = h1.querySelectorAll('.ltr'), lr = rel(l[Math.floor(fx * (l.length - 1))]);
+        var l = h1.querySelectorAll('.ltr:not(.gone)');          /* aims at a letter still there */
+        if (!l.length) return null;
+        var lr = rel(l[Math.floor(fx * (l.length - 1))]);
         return { x: lr.x + lr.w / 2, y: lr.y + lr.h * 0.18 };
     }
     /* something loose on the floor: go and push it */
@@ -338,7 +340,7 @@
             var best = null, bd = 1e9, reach = left ? -30 : 30;
             Array.prototype.forEach.call(h1.querySelectorAll('.ltr'), function (l) {
                 var lr = rel(l), d = Math.abs(lr.x + lr.w / 2 - (pos.x + reach));
-                if (l.textContent.trim() && d < bd) { bd = d; best = l; }
+                if (l.textContent.trim() && !l.classList.contains('gone') && d < bd) { bd = d; best = l; }   /* only letters still there */
             });
             if (best) {
                 var dir = left ? -1 : 1;
