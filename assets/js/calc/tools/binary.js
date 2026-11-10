@@ -18,7 +18,7 @@ Calc.tool({
         }
         if (v._action === 'dec') {
             var src = v.input.trim(), groups;
-            if (/[^01\s,]/.test(src)) Calc.fail('"' + /[^01\s,]/.exec(src)[0] + '" is not a binary digit: only 0, 1 and spaces.', 'input');
+            if (/[^01\s,]/.test(src)) Calc.fail('"' + /[^01\s,]/u.exec(src)[0] + '" is not a binary digit: only 0, 1 and spaces.', 'input');
             var spaced = /[\s,]/.test(src);
             if (!src) groups = [];
             else if (spaced) groups = src.split(/[\s,]+/).filter(Boolean);

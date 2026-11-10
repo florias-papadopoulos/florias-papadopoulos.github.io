@@ -76,6 +76,8 @@
     };
     /* the plain-text version of a rich string (for copying and for tests) */
     Calc.plain = function (s) { return Calc.rich(s).map(function (p) { return p.v; }).join(''); };
+    /* the character at index i of s, whole even when it is an emoji (two UTF-16 units), for error messages */
+    Calc.chr = function (s, i) { s = String(s); return i < s.length ? String.fromCodePoint(s.codePointAt(i)) : ''; };
 
     /* a rich string as words for screen readers and voice control: "Prime $p$" -> "Prime p", "$a^{-1} \bmod n$" ->
        "a⁻¹ mod n". Used as the accessible name of fields, step titles and table headers that contain maths, since
@@ -155,12 +157,16 @@
         function ws() { while (i < s.length && /\s/.test(s.charAt(i))) i++; }
         function peek() { ws(); return s.charAt(i); }
         function expect(c) { if (peek() !== c) Calc.fail('Expected "' + c + '" at position ' + (i + 1) + '.'); i++; }
+        function unexpected() {
+            var c = Calc.chr(s, i);
+            Calc.fail('Unexpected "' + c + '" at position ' + (i + 1) + '.' + (c === '.' && /\d/.test(s.charAt(i - 1)) ? ' Only whole numbers are allowed here.' : ''));
+        }
         function number() {
             ws();
             var m = /^0x[0-9a-f]+|^0b[01]+|^0o[0-7]+|^\d[\d_]*(?:e\d+)?/i.exec(s.slice(i));
             if (!m) {
                 if (i >= s.length) Calc.fail('The expression ends too early.');
-                Calc.fail('Unexpected "' + s.charAt(i) + '" at position ' + (i + 1) + '.');
+                unexpected();
             }
             i += m[0].length;
             var t = m[0].replace(/_/g, '').toLowerCase();
@@ -256,7 +262,7 @@
         }
         if (!s.trim()) Calc.fail('Please enter a number.');
         var v = expr();
-        if (peek() !== '') Calc.fail('Unexpected "' + s.charAt(i) + '" at position ' + (i + 1) + '.');
+        if (peek() !== '') unexpected();
         return big(v);
     }
     /* Calc.int(text) -> BigInt; Calc.list(text) -> [BigInt] (separated by commas, semicolons or new lines; when there

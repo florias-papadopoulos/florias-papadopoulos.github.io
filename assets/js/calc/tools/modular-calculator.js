@@ -69,7 +69,7 @@
         }
         if (!s.trim()) Calc.fail('Please enter an expression.', 'expr');
         var x = expr();
-        if (peek() !== '') Calc.fail((peek() === ')' ? 'There is a ")" without a matching "("' : 'Unexpected "' + s.charAt(i) + '"') + where(), 'expr');
+        if (peek() !== '') Calc.fail((peek() === ')' ? 'There is a ")" without a matching "("' : 'Unexpected "' + Calc.chr(s, i) + '"') + where(), 'expr');
         return x;
     }
 

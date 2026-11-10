@@ -49,7 +49,7 @@ Calc.tool({
             }
             if ((m = /^\d+/.exec(rest))) { i += m[0].length; var k = digits(m[0]); return { t: 'num', q: Q(k), tex: T(k), kind: 'int' }; }
             if (i >= src.length) err('The expression ends too early.');
-            err('Unexpected "' + src.charAt(i) + '" at position ' + (i + 1) + '.');
+            err('Unexpected "' + Calc.chr(src, i) + '" at position ' + (i + 1) + '.');
         }
         function power() {
             var b = primary();
@@ -78,7 +78,7 @@ Calc.tool({
         }
         if (!src.trim()) err('Please type an expression.');
         var tree = expr();
-        if (peek() !== '') err('Unexpected "' + src.charAt(i) + '" at position ' + (i + 1) + '.');
+        if (peek() !== '') err('Unexpected "' + Calc.chr(src, i) + '" at position ' + (i + 1) + '.');
 
         /* TeX of the expression as typed */
         var PREC = { '+': 1, '-': 1, '*': 2, '/': 2, neg: 3, '^': 4, num: 5, '()': 5 };

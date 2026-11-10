@@ -48,7 +48,7 @@ Calc.tool({
         function number() {
             ws();
             var m = /^(0x[0-9a-f]+|0b[01]+|0o[0-7]+|\d+(?:e\d+)?)/i.exec(src.slice(i));
-            if (!m) { if (i >= src.length) err('The expression ends too early.'); err('Unexpected "' + src.charAt(i) + '" at position ' + (i + 1) + '.'); }
+            if (!m) { if (i >= src.length) err('The expression ends too early.'); err('Unexpected "' + Calc.chr(src, i) + '" at position ' + (i + 1) + '.'); }
             i += m[0].length;
             var t = m[0].toLowerCase();
             if (/^0[xbo]/.test(t)) return BigInt(t);
@@ -139,7 +139,7 @@ Calc.tool({
         }
         if (!src.trim()) err('Please type an expression.');
         var val = expr();
-        if (peek() !== '') err('Unexpected "' + src.charAt(i) + '" at position ' + (i + 1) + '.');
+        if (peek() !== '') err('Unexpected "' + Calc.chr(src, i) + '" at position ' + (i + 1) + '.');
         chk(val);
 
         var s1 = S.step('Order of evaluation');

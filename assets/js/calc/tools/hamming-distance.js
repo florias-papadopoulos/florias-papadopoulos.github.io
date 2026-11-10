@@ -13,8 +13,8 @@ Calc.tool({
         function hexBits(s, f) {
             var h = String(s).replace(/0x/gi, '').replace(/[\s:_]/g, '');
             if (!h) Calc.fail('Please enter a hex value.', f);
-            var m = /[^0-9a-f]/i.exec(h);
-            if (m) Calc.fail('"' + m[0] + '" is not a hex digit.', f);
+            var m = /[^0-9a-f]/iu.exec(h);
+            if (m) Calc.fail('"' + m[0] + '" is not a hex digit (only 0-9 and A-F).', f);
             return h.toUpperCase().split('').map(function (d) { return E.bin(parseInt(d, 16), 4); }).join('').split('');
         }
         if (v.mode === 'text') {

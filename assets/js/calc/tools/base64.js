@@ -60,7 +60,7 @@ Calc.tool({
             var body = p < 0 ? src : src.slice(0, p), padStr = p < 0 ? '' : src.slice(p);
             if (!/^=*$/.test(padStr)) Calc.fail('An = sign can only be padding at the very end.', 'input');
             if (padStr.length > 2) Calc.fail('At most two = signs of padding.', 'input');
-            for (var q = 0; q < body.length; q++) if (A2.indexOf(body.charAt(q)) < 0) Calc.fail('"' + body.charAt(q) + '" (position ' + (q + 1) + ') is not a Base64 character.', 'input');
+            for (var q = 0; q < body.length; q++) if (A2.indexOf(body.charAt(q)) < 0) Calc.fail('"' + Calc.chr(body, q) + '" (position ' + (q + 1) + ') is not a Base64 character.', 'input');
             if (padStr && (body.length + padStr.length) % 4) Calc.fail('With padding the length must be a multiple of 4 (it is ' + src.length + ').', 'input');
             if (body.length % 4 === 1) Calc.fail('A length of 4k + 1 characters is impossible: one character carries only 6 bits, not a whole byte.', 'input');
             var bytes = [], rows = [], loose = false;

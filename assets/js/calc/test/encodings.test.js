@@ -498,4 +498,28 @@
             return T.run('number-text', { input: o.copy }, 'toText');
         }).then(function (o) { return typeof o === 'string' ? o : o.copy === s ? true : JSON.stringify(s) + ' came back as ' + JSON.stringify(o.copy); });
     });
+
+    /* an emoji in an error message is the whole character, not half of a UTF-16 surrogate pair */
+    T.prop('encodings: emoji named whole in error messages', 1, function () {
+        var cases = [['hex', { input: 'a😀' }, 'dec'], ['base64', { input: '😀', form: 'text' }, 'dec'], ['base32', { input: '😀', form: 'text' }, 'dec'], ['base58', { input: '😀', form: 'text' }, 'dec'],
+            ['morse', { input: '😀' }, 'dec'], ['binary', { input: '😀' }, 'dec'], ['utf8', { input: '😀' }, 'dec'], ['xor', { data: '😀', dform: 'hex', key: 'k', kform: 'text' }],
+            ['hamming-distance', { a: '😀', b: 'ab', mode: 'hex' }], ['base-conversion', { num: '😀', from: '10', to: '2' }], ['gray-code', { dir: 'g2b', x: '😀', fmt: 'bin' }]];
+        return cases.reduce(function (p, c) {
+            return p.then(function (r) {
+                if (r !== true) return r;
+                return T.run(c[0], c[1], c[2]).then(function (o) {
+                    var msg = o.errors ? Object.keys(o.errors).map(function (k) { return o.errors[k]; }).join(' ') : '';
+                    if (!o.errors) return c[0] + ': no error';
+                    if (/[\uD800-\uDFFF]/.test(msg.replace(/😀/g, ''))) return c[0] + ': half a character in ' + JSON.stringify(msg);
+                    return true;
+                });
+            });
+        }, Promise.resolve(true));
+    });
+    T.prop('hamming-distance: hex error names the digits', 1, function () {
+        return T.run('hamming-distance', { a: 'zz', b: 'ff', mode: 'hex' }).then(function (o) { return o.errors && /only 0-9 and A-F/.test(o.errors.a) ? true : JSON.stringify(o.errors); });
+    });
+    T.prop('character-codes: "an octal number"', 1, function () {
+        return T.run('character-codes', { input: '9', fmt: 'oct' }, 'dec').then(function (o) { return o.errors && /is not an octal number/.test(o.errors.input) ? true : JSON.stringify(o.errors); });
+    });
 })();

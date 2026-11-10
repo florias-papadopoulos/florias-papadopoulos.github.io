@@ -90,7 +90,7 @@
     /* bytes from hex text: spaces, commas, colons, 0x and \x are ignored; field marks the input on error */
     enc.parseHex = function (src, field) {
         var s = String(src).replace(/0x/gi, ' ').replace(/\\x/gi, ' ').replace(/[\s,:;]+/g, '');
-        var m = /[^0-9a-f]/i.exec(s);
+        var m = /[^0-9a-f]/iu.exec(s);
         if (m) Calc.fail('"' + m[0] + '" is not a hex digit (only 0-9 and A-F).', field);
         if (s.length % 2) Calc.fail('An odd number of hex digits (' + s.length + '): every byte is two digits.', field);
         var out = [];
@@ -100,7 +100,7 @@
     /* a string of 0 and 1 from binary text (spaces ignored) */
     enc.parseBits = function (src, field) {
         var s = String(src).replace(/0b/gi, ' ').replace(/[\s,_]+/g, '');
-        var m = /[^01]/.exec(s);
+        var m = /[^01]/u.exec(s);
         if (m) Calc.fail('"' + m[0] + '" is not a binary digit (only 0 and 1).', field);
         return s;
     };
