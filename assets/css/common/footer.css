@@ -59,7 +59,7 @@
 
 /* phones, home page: the " · " between the footer parts is hidden there (home.css), so the Privacy link brings its own */
 @media (max-width: 600px) {
-    body:has(.profile.home) .footer .footer-privacy::before { content: "\00b7"; display: inline-block; margin: 0 6px; color: var(--secondary); }
+    body:has(.profile.home) .footer .footer-privacy::before, body:has(.profile.home) .footer .footer-you::before { content: "\00b7"; display: inline-block; margin: 0 6px; color: var(--secondary); }
 }
 
 /* the box the email icon opens (assets/js/site/footer.js) */

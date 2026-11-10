@@ -45,7 +45,8 @@
     }
 
     /* Desktop world: numbers, letters and field symbols float in the side margins as platforms, above a flat floor
-       just over the footer line. Phones: nothing, just a flat floor at the bottom of the page. */
+       just over the footer line. Phones: nothing, just a flat floor at the bottom of the page, on top of the tab bar
+       (the page's padding at the bottom is the bar's room, play.css). */
     var GLYPHS = ['𝔽<sub>q</sub>', '7', 'λ', 'ℤ<sub>p</sub>', 'A', '∑', 'GF(2<sup>8</sup>)', '0x2A', 'ℝ', '⊕', 'π', 'k',
                   'ℤ<sub>q</sub><sup>n</sup>', '∀', '3', 'ℚ', 'mod p', '∃', 'ℂ', '≡', '𝔽<sub>2</sub>', 'x²', '∞', '1'];
     var KEY_ICON = '<svg viewBox="0 0 64 30" aria-hidden="true"><circle cx="13" cy="15" r="9" fill="none" stroke="currentColor" stroke-width="5"/>' +
@@ -60,7 +61,8 @@
         wide = side > 200;
         phone = W < 700;
         if (phone) {
-            ridge = [{ x: 0, y: F - 2 }, { x: W, y: F - 2 }];
+            var bar = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+            ridge = [{ x: 0, y: F - 2 - bar }, { x: W, y: F - 2 - bar }];
             return;
         }
         var floor = F - 30;

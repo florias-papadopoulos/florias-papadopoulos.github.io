@@ -313,6 +313,11 @@ body:has(.profile.home) .footer {
     .lab-home .links { order: 3; }
     .lab-home .buttons { display: flex; }
     .lab-home .home-panel { padding-top: 40px; }
+    /* a roomier paste box with a larger font (16 px and up also keeps phones from zooming in) */
+    .lab-paste { min-height: 112px; padding: 14px 14px; font-size: 17px; line-height: 1.45; }
+    .lab-bench-label { font-size: 15px; }
+    /* the footer at the bottom of the screen (above the tab bar), not right under the content */
+    .main:has(.profile.home) { min-height: calc(100dvh - var(--pn-tab, 0px) - 40px); }
 }
 /* small phones: the seven icons stay on one line */
 @media (max-width: 420px) { .home .social-icons { flex-wrap: nowrap; } .home .social-icons a { padding: 0 6px; } }
