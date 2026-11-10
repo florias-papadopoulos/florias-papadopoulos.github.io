@@ -30,7 +30,7 @@ Each page view adds one to the daily totals of a counter of mine on **Cloudflare
 
 - **Leaderboards:** if you add a score, the game, the difficulty, your nickname and the score are stored with the date and shown to everyone. Old scores far from the top are deleted; write to me to have one removed. Likes are only counted, never linked to you.
 - **Kitty Kart Duo:** to connect two devices, each sends a short connection message with its IP address, which the counter passes on and deletes within about two minutes. The race then runs directly between the two devices, which see each other's IP address.
-- **Audience mode at my talks:** your answers, questions, an optional nickname (shown only after I approve it) and a random browser token, kept for that talk only and deleted 24 hours after it ends.
+- **Audience mode at my talks:** your answers, questions, an optional nickname (shown with the ranking; nicknames with rude words are refused) and a random browser token, kept for that talk only and deleted 24 hours after it ends.
 
 Deleted data can remain in Cloudflare's automatic backup for up to seven days.
 

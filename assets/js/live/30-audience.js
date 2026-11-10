@@ -135,12 +135,12 @@
         short: ['ask', 'Write a little more.'], full: ['ask', 'No more questions can be taken.'], late: ['main', 'Too late: the time was up.'],
         closed: ['main', 'That is closed now.']
     };
-    /* what the nickname line says: the speaker shows each nickname on the screen before others see it */
+    /* what the nickname line says: a nickname is on the ranking at once (the speaker can hide one) */
     function nickSaid(n, s) {
         var g = view && view.me ? view.me.guest : 'a guest';
         if (!n) return 'Cleared. You play as ' + g + '.';
         if (s === 'ok') return 'Saved. You are “' + n + '” on the ranking.';
-        if (s === 'no') return 'The speaker did not put “' + n + '” on the screen: others see you as ' + g + '. You can pick another nickname.';
+        if (s === 'no') return 'The speaker hid “' + n + '”: others see you as ' + g + '. You can pick another nickname.';
         return 'Saved. Others see “' + n + '” once the speaker approves it; until then you appear as ' + g + '.';
     }
     function message(m) {

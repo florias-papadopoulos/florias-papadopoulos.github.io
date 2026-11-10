@@ -35,10 +35,8 @@
         side = h('aside.lv-aside');
         status = h('span.lv-save-status', { role: 'status' });
         saveBtn = h('button.lv-btn', { type: 'button', text: 'Save', onclick: save });
-        LV.clear(app).appendChild(h('div.lv-ahead', {}, [
-            h('div', {}, [h('h1.lv-title', { text: 'Audience mode' }), h('p.lv-sub', { text: 'Your talk plans. Only you can open this page; the plans are kept in the worker, not on the site.' })]),
-            LV.forgetButton()
-        ]));
+        /* the title and intro are the page's own (layouts/live/admin.html): here only the way to forget the key */
+        LV.clear(app).appendChild(h('div.lv-ahead', {}, [LV.forgetButton()]));
         app.appendChild(bar);
         app.appendChild(h('div.lv-acols', {}, [h('div.lv-aleft', {}, [edit, h('div.lv-savebar', {}, [saveBtn, status])]), side]));
         LV.A.side = side;

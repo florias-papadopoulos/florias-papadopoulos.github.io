@@ -25,6 +25,13 @@
 .tb-guess-link:hover { border-color: var(--tl-navy); }
 .tb-guess-link b { color: var(--tl-navy); font-size: 14.5px; }
 .tb-guess-link span { color: var(--tl-muted); font-size: 12.5px; }
+/* the answer of a calculation typed in the box (index.js answer()): the sum, the result, Copy */
+.tb-answer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 12px; }
+.tb-answer-q { color: var(--tl-muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; overflow-wrap: anywhere; }
+.tb-answer-r { color: var(--tl-ink); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 22px; font-weight: 700; overflow-wrap: anywhere; }
+.tb-answer.is-bad { color: var(--tl-muted); font-size: 14px; }
+.tb-partial { margin: 10px 0 0; color: var(--tl-muted); font-size: 14px; }
+.tb-partial[hidden] { display: none; }
 /* "What do you want to do?" */
 .tb-tasks-h { margin: 26px 0 10px; color: var(--tl-ink); font-size: 17px; font-weight: 700; }
 .tb-tasks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }

@@ -33,6 +33,7 @@
         what.className = 'lab-guess-what';
         what.textContent = g ? g.what : 'Search the Toolbox';
         out.appendChild(what);
+        if (g && g.answer && window.ToolboxGuess.answerNode) out.appendChild(window.ToolboxGuess.answerNode(g.answer, 'tb-answer'));
         var list = document.createElement('div');
         list.className = 'lab-guess-list';
         if (g) g.tools.forEach(function (t) {

@@ -16,6 +16,9 @@
     {{- /* the privacy notice (layouts/_default/privacy.html). The visit totals page (/stats/) is not linked anywhere */}}
     <a class="footer-privacy" href="{{ "privacy/" | relURL }}">Privacy</a>
     {{- print " · "}}
+    {{- /* what this site could know about the visitor (layouts/_default/you.html) */}}
+    <a class="footer-you" href="{{ "you/" | relURL }}"{{ if eq .Layout "you" }} aria-current="page"{{ end }}>Your data</a>
+    {{- print " · "}}
     <span>Made with <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a></span>
 </footer>
 {{- end }}

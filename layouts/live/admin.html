@@ -4,6 +4,11 @@
        by head.html), the worker's address in the CSP (head.html). */ -}}
 {{- define "main" }}
 <div class="lv lv-admin lv-in-lab" id="live" data-endpoint="{{ site.Params.liveEndpoint }}" data-base="{{ "live/" | absURL }}">
+    {{- /* the page title and intro as on the lab's other pages (Toolbox, Games); the app below draws no title of its own here */}}
+    <header class="lv-page-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">Audience mode</span></h1>
+        <p class="lv-lede">Polls, quiz questions and questions from the audience for my talks. Locked with the presenter key; the talk plans are kept in the worker, not on the site.</p>
+    </header>
     <div id="lv-app"><noscript><p class="lv-plain">This page needs JavaScript.</p></noscript></div>
 </div>
 {{- if site.Params.liveEndpoint }}

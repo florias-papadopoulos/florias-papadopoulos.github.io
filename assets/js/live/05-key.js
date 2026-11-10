@@ -18,8 +18,9 @@
             LV.setKey(k);
             done(k);
         } }, [
-            h('h1.lv-title', { text: 'Presenter' }),
-            h('p.lv-sub', { text: 'This page is for the speaker.' }),
+            /* inside the lab the page has its title already (layouts/live/admin.html) */
+            document.querySelector('.lv-in-lab') ? null : h('h1.lv-title', { text: 'Presenter' }),
+            document.querySelector('.lv-in-lab') ? null : h('p.lv-sub', { text: 'This page is for the speaker.' }),
             h('label', { for: 'lv-key-in', text: 'Presenter key' }),
             h('div.lv-form-row', {}, [input, h('button.lv-btn', { type: 'submit', text: 'Open' })]),
             note

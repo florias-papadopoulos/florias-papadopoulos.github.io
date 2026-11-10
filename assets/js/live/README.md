@@ -36,9 +36,9 @@ Keys on the projector: right arrow or Page Down next (or start), left or Page Up
 code, L ranking, Escape close the activity, P quick poll, F full screen, ? help. The controls fade out after 3 s
 without mouse movement. A quiz reveals itself on the projector when its time is up.
 
-Nicknames (optional, for the quiz ranking) reach the projector and the other phones only once the presenter approves
-them on the remote ("Approve", "Keep off", "Approve all"); until then, and when kept off, the ranking shows the guest
-name ("Guest 123"). Each phone sees its own nickname.
+Nicknames (optional, for the quiz ranking) are refused when they contain rude words (the word lists shared with the
+leaderboards) and are otherwise shown at once on the projector and the other phones; the presenter can hide one on the
+remote ("Hide", "Show again"), and a hidden one shows as the guest name ("Guest 123"). Each phone sees its own nickname.
 
 Privacy (shown on the pages): no accounts, no cookies, no IP addresses stored (the worker counts connections per
 address in memory only, against abuse); a random token in localStorage (`live-tok`) so a reload is not a second person

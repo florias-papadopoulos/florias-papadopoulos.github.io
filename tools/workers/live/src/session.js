@@ -298,16 +298,17 @@ export function presenterView(st, now, aud) {
     const rank = ranking(st);
     v.top = top(rank, 10, null);
     v.players = rank.length;
-    const waiting = [], off = [];
+    const waiting = [], off = [], shown = [];
     let ok = 0;
     for (const id of Object.keys(st.players)) {
         const p = st.players[id];
         if (!p.n) continue;
-        if (p.s === 'ok') ok++;
+        if (p.s === 'ok') { ok++; shown.push(p.n); }
         else if (p.s === 'no') off.push(p.n);
         else waiting.push(p.n);
     }
-    v.names = { waiting: waiting.slice(0, NAMES_NEW), off: off.slice(-NAMES_NO), nw: waiting.length, nno: off.length, nok: ok };
+    /* waiting: only from talks saved before nicknames were shown at once */
+    v.names = { waiting: waiting.slice(0, NAMES_NEW), off: off.slice(-NAMES_NO), shown: shown.slice(-NAMES_NEW), nw: waiting.length, nno: off.length, nok: ok };
     return v;
 }
 
@@ -512,8 +513,9 @@ function audience(st, att, msg, info) {
         if (n) for (const k of Object.keys(st.players)) if (k !== att.id && st.players[k].n.toLowerCase() === low) return me(r, { t: 'nick', ok: false, e: 'taken' });
         const p = own(st, att, r);
         if (!p) return me(r, { t: 'nick', ok: false, e: 'full' });
-        /* a new nickname waits for the presenter; the same one again keeps its state */
-        if (p.n !== n) { p.n = n; p.s = n ? 'new' : ''; }
+        /* a nickname that passes the word filter (nameOk) is shown at once; the presenter can still hide it ("name",
+           s: "no"); the same one again keeps its state */
+        if (p.n !== n) { p.n = n; p.s = n ? 'ok' : ''; }
         r.dirty.push('ph:' + p.tok);
         if (m.s === 'waiting' && n) {
             /* if the talk never starts, nicknames given before it are deleted 24 hours after the last one */
@@ -522,7 +524,7 @@ function audience(st, att, msg, info) {
             r.alarm = m.wdue;
         }
         me(r, { t: 'nick', ok: true, n: n, s: p.s });
-        /* the remote lists the nickname to decide on; phones redraw only when the ranking is on screen */
+        /* the remote lists it (to hide if needed); phones redraw only when the ranking is on screen */
         r.out.push({ to: 'pres', view: true });
         if (boardOn(st)) r.out.push({ to: 'aud', view: true });
         return r;

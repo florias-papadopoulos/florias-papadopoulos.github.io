@@ -332,6 +332,15 @@ body.lv-body:has(.lv-pres.is-remote) { background: #f6f7f9; }
 /* inside the lab the presenter page takes the full width next to the sidebar (not the 720px reading column), and the
    preview goes under the settings sooner, since the sidebar takes 184px of the window */
 body:has(.lv-in-lab) .main { max-width: none; }
+/* its title and intro, like the Toolbox's (tl-h1 from timeline.css), above the app; the key card and the "forget" link
+   line up under them */
+.lv-page-head { max-width: 1240px; margin: 0 auto; padding: 22px 24px 0; }
+.lv-page-head .tl-h1 { margin: 10px 0 10px; color: var(--lv-ink); }
+.lv-lede { max-width: 720px; margin: 0; color: var(--tl-text, var(--lv-text)); font-size: 16.5px; line-height: 1.6; }
+.lv-in-lab#live #lv-app { padding-top: 14px; }
+.lv-in-lab .lv-keycard { max-width: 520px; margin: 4px 0 0; }
+.lv-in-lab .lv-ahead { margin-top: -6px; }
+@media (max-width: 600px) { .lv-page-head { padding: 14px 16px 0; } }
 .lv-in-lab .lv-savebar { background: linear-gradient(transparent, var(--code-bg) 30%); }
 @media (max-width: 1160px) {
     .lv-in-lab .lv-acols { grid-template-columns: minmax(0, 1fr); }

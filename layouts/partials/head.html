@@ -59,7 +59,7 @@
 {{- if .IsHome }}{{ $extra = $extra | append "common/home-page" }}{{ end }}
 {{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/home" }}{{ end }}
 {{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/toolbox" "common/timeline" }}{{ end }}
-{{- if eq .Layout "admin" }}{{ $extra = $extra | append "common/cat" "common/live" }}{{ end }}
+{{- if eq .Layout "admin" }}{{ $extra = $extra | append "common/cat" "common/live" "common/timeline" }}{{ end }}
 {{- if $lab }}{{ $extra = $extra | append "common/cat" }}{{ end }}
 {{- if eq .Section "games" }}{{ $extra = $extra | append "common/arcade" }}{{ end }}
 {{- if or (eq .Section "toolbox") (in (slice "timeline" "you" "privacy" "stats") .Layout) (and (eq .Kind "section") (not $lab)) }}{{ $extra = $extra | append "common/timeline" }}{{ end }}
@@ -74,6 +74,9 @@
 {{- $key := delimit $extra "+" | replaceRE "common/" "" | default "base" }}
 {{- $css := $files | resources.Concat (printf "css/page-%s.css" $key) | resources.Minify }}
 <style>{{ $css.Content | safeCSS }}</style>
+{{- /* the light switch: right after the styles and without defer, so a chosen look is there before the first paint */}}
+{{- $theme := resources.Get "js/site/theme.js" | minify | fingerprint }}
+<script src="{{ $theme.RelPermalink }}" integrity="{{ $theme.Data.Integrity }}"></script>
 
 {{- /* Favicons */}}
 <link rel="icon" href="{{ site.Params.assets.favicon | default "favicon.ico" | absURL }}">

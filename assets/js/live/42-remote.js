@@ -1,7 +1,6 @@
 /* The remote: /live/present/#<code> on the presenter's phone (40-present.js switches to it on small touch screens,
    or with its "Remote view" button). Big buttons for the same commands as the projector's keys, the audience
-   questions and the nicknames to approve (only approved ones reach the projector and the other phones; a nickname not
-   approved shows as "Guest 123"), a quick poll, and the list of activities to jump to. LV.remote(pv) draws it from the presenter view; commands go through LV.P.send. */
+   questions, the nicknames on the ranking (shown at once; one can be hidden, it then shows as "Guest 123"), a quick poll, and the list of activities to jump to. LV.remote(pv) draws it from the presenter view; commands go through LV.P.send. */
 (function (LV) {
     'use strict';
     var h = LV.h;
@@ -74,7 +73,13 @@
         var nm = pv.names || { waiting: [], off: [], nw: 0, nno: 0, nok: 0 };
         if (nm.nw || nm.nno || nm.nok) {
             var nsec = [h('h2.lv-h2', { text: 'Nicknames' }),
-                h('p.lv-sub', { text: LV.plural(nm.nok, 'nickname is', 'nicknames are') + ' on the ranking. The others show as “Guest 123” until you approve them.' })];
+                h('p.lv-sub', { text: LV.plural(nm.nok, 'nickname is', 'nicknames are') + ' on the ranking (nicknames with rude words are refused). A hidden one shows as “Guest 123”.' })];
+            if (nm.shown && nm.shown.length) {
+                nsec.push(h('h3.lv-h3', { text: 'On the ranking (' + nm.nok + ')' }));
+                nsec.push(h('ol.lv-rqs', {}, nm.shown.map(function (n) {
+                    return h('li', {}, [h('p.lv-rq-text', { text: n }), h('div.lv-rq-row', {}, [big('Hide', function () { send({ t: 'name', n: n, s: 'no' }); })])]);
+                })));
+            }
             if (nm.nw) {
                 nsec.push(h('h3.lv-h3', { text: 'New (' + nm.nw + ')' }));
                 nsec.push(big('Approve all (' + nm.nw + ')', function () { send({ t: 'names' }); }, 'is-main'));
@@ -84,11 +89,11 @@
                         big('Keep off', function () { send({ t: 'name', n: n, s: 'no' }); })])]);
                 })));
                 if (nm.nw > nm.waiting.length) nsec.push(h('p.lv-sub', { text: 'And ' + (nm.nw - nm.waiting.length) + ' more.' }));
-            } else nsec.push(h('p.lv-sub', { text: 'No new nicknames.' }));
+            }
             if (nm.off.length) {
-                nsec.push(h('h3.lv-h3', { text: 'Kept off the screen (' + nm.nno + ')' }));
+                nsec.push(h('h3.lv-h3', { text: 'Hidden (' + nm.nno + ')' }));
                 nsec.push(h('ol.lv-rqs', {}, nm.off.map(function (n) {
-                    return h('li', {}, [h('p.lv-rq-text', { text: n }), h('div.lv-rq-row', {}, [big('Approve', function () { send({ t: 'name', n: n, s: 'ok' }); })])]);
+                    return h('li', {}, [h('p.lv-rq-text', { text: n }), h('div.lv-rq-row', {}, [big('Show again', function () { send({ t: 'name', n: n, s: 'ok' }); })])]);
                 })));
             }
             kids.push(h('section.lv-card', {}, nsec));

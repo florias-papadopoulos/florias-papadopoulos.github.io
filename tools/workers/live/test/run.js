@@ -292,15 +292,13 @@ test('quiz: timer, points, reveal, ranking, no early answers', function () {
     assert.ok(/^Guest \d{3}$/.test(rank[0].n));
     /* nickname */
     let r = b.send(a, { t: 'nick', n: 'Milo' });
-    assert.deepStrictEqual(mine(r)[0], { t: 'nick', ok: true, n: 'Milo', s: 'new' });
+    assert.deepStrictEqual(mine(r)[0], { t: 'nick', ok: true, n: 'Milo', s: 'ok' });
     r = b.send(c, { t: 'nick', n: 'milo' });
     assert.strictEqual(mine(r)[0].e, 'taken');
     r = b.send(c, { t: 'nick', n: 'sh1thead' });
     assert.strictEqual(mine(r)[0].e, 'name');
     assert.strictEqual(S.ranking(b.st)[0].own, 'Milo');
-    assert.ok(/^Guest \d{3}$/.test(S.ranking(b.st)[0].n), 'not shown before the presenter approves it');
-    b.send(p, { t: 'name', n: 'milo', s: 'ok' });
-    assert.strictEqual(S.ranking(b.st)[0].n, 'Milo');
+    assert.strictEqual(S.ranking(b.st)[0].n, 'Milo', 'shown at once');
     /* the leaderboard activity shows the top 10 */
     b.send(p, { t: 'go', i: 4 });
     v = S.audienceView(b.st, c.id, b.now);
@@ -696,7 +694,7 @@ test('IPv6 addresses count per /64', function () {
     assert.strictEqual(P.ipKey(null), '');
 });
 
-test('M3: nicknames reach the screen only once the presenter shows them', function () {
+test('M3: nicknames are shown at once; the presenter can hide one and show it again', function () {
     const b = setup();
     S.setPlan(b.st, b.plan);
     const p = b.pres(), a = b.phone(T1), c = b.phone(T2);
@@ -705,28 +703,28 @@ test('M3: nicknames reach the screen only once the presenter shows them', functi
     assert.ok(!r.out.some(function (o) { return o.to === 'aud'; }), 'not every phone redraws for a nickname');
     b.send(c, { t: 'nick', n: 'Noor' });
     let pv = S.presenterView(b.st, b.now, 2);
-    assert.deepStrictEqual(pv.names.waiting.sort(), ['Milo', 'Noor']);
-    assert.strictEqual(S.audienceView(b.st, a.id, b.now).me.ns, 'new');
-    r = b.send(p, { t: 'name', n: 'MILO', s: 'ok' });
-    assert.ok(r.out.some(function (o) { return o.to === 'who' && o.id === a.id && o.m.s === 'ok'; }), 'the phone hears it');
-    assert.deepStrictEqual(r.dirty.filter(function (k) { return k !== 'meta'; }), ['ph:' + T1]);
-    b.send(p, { t: 'name', n: 'Noor', s: 'no' });
-    pv = S.presenterView(b.st, b.now, 2);
     assert.deepStrictEqual(pv.names.waiting, []);
+    assert.deepStrictEqual(pv.names.shown.sort(), ['Milo', 'Noor']);
+    assert.strictEqual(pv.names.nok, 2);
+    assert.strictEqual(S.audienceView(b.st, a.id, b.now).me.ns, 'ok');
+    r = b.send(p, { t: 'name', n: 'NOOR', s: 'no' });
+    assert.ok(r.out.some(function (o) { return o.to === 'who' && o.id === c.id && o.m.s === 'no'; }), 'the phone hears it');
+    pv = S.presenterView(b.st, b.now, 2);
     assert.deepStrictEqual(pv.names.off, ['Noor']);
+    assert.deepStrictEqual(pv.names.shown, ['Milo']);
     assert.strictEqual(pv.names.nok, 1);
     assert.strictEqual(mine(b.send(p, { t: 'name', n: 'Nobody', s: 'ok' }))[0].e, 'bad');
     assert.strictEqual(mine(b.send(p, { t: 'name', s: 'ok' }))[0].e, 'bad', 'no name is not "all"');
-    /* a new nickname waits again; "names" shows every waiting one, not the ones turned down */
-    b.send(a, { t: 'nick', n: 'Milo B' });
-    assert.strictEqual(b.st.players[a.id].s, 'new');
-    b.send(p, { t: 'names' });
-    assert.strictEqual(b.st.players[a.id].s, 'ok');
+    /* the same name again keeps its state (hidden stays hidden); "Show again" brings it back */
+    b.send(c, { t: 'nick', n: 'Noor' });
     assert.strictEqual(b.st.players[c.id].s, 'no');
-    /* the same name again keeps its state */
-    b.send(a, { t: 'nick', n: 'Milo B' });
-    assert.strictEqual(b.st.players[a.id].s, 'ok');
-    /* a phone sees its own nickname on the ranking, others see the guest name */
+    b.send(p, { t: 'name', n: 'Noor', s: 'ok' });
+    assert.strictEqual(b.st.players[c.id].s, 'ok');
+    /* rude ones are refused */
+    assert.strictEqual(mine(b.send(a, { t: 'nick', n: 'Scheisskerl' }))[0].e, 'name');
+    assert.strictEqual(mine(b.send(a, { t: 'nick', n: 'fuck you' }))[0].e, 'name');
+    /* a phone sees its own nickname on the ranking, others see the guest name (Noor hidden again) */
+    b.send(p, { t: 'name', n: 'Noor', s: 'no' });
     b.send(p, { t: 'start' }); b.send(p, { t: 'go', i: 1 });
     const quiz = b.st.meta.acts[1];
     b.send(c, { t: 'vote', a: quiz.id, c: 2 });

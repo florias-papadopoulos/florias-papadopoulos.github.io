@@ -127,10 +127,10 @@ html[data-mode="play"] body > .world-layer, html[data-mode="play"] .cat-layer:no
     html[data-mode="play"] .cat-pick { top: auto; right: auto; bottom: 77px; left: 24px; }
     html[data-mode="play"] .dog-pick { left: 66px; }
     html[data-mode="play"] .cat-menu { top: auto; right: auto; bottom: 14px; left: calc(var(--pn-w) + 8px); }
-    html[data-mode="play"] .you-link { right: calc(18px + var(--key-w)); }
+    html[data-mode="play"] .theme-btn { right: calc(18px + var(--key-w)); }
     html[data-mode="play"] .nav { padding-inline-end: calc(60px + var(--key-w)); }
-    /* on the home page the eye and the reset button sit top left: next to the sidebar now */
-    html[data-mode="play"] body:has(.home-reset) .you-link { left: calc(var(--pn-w) + 10px); }
+    /* on the home page the reset button sits top left: next to the sidebar now */
+    html[data-mode="play"] body:has(.home-reset) .theme-btn { left: calc(var(--pn-w) + 10px); }
     html[data-mode="play"] .home-reset { left: calc(var(--pn-w) + 52px); }
     .pn-back {
         display: flex;
@@ -177,8 +177,8 @@ html:not([data-mode="play"]) .cat-layer,
 html:not([data-mode="play"]) body > .world-layer,
 html:not([data-mode="play"]) .home-reset { display: none !important; }
 
-/* the eye ("What this site knows about you") belongs to the normal site */
-html[data-mode="play"] .you-link { display: none; }
+/* the light switch belongs to the normal site (the lab follows the choice made there) */
+html[data-mode="play"] .theme-btn { display: none; }
 
 /* the home pages' reset button (layouts/partials/cat.html) sits with the cat and dog pickers: in the sidebar's
    "Your pet" row from 900 px, next to them in the top right corner below */
@@ -190,33 +190,32 @@ html[data-mode="play"] .you-link { display: none; }
     html[data-mode="play"] .home-reset { left: auto; right: calc(94px + var(--key-w, 34px)); }
 }
 
-/* ---------- the eye and the key: bigger, the eye with its name ---------- */
-/* 40 px tall (44 px on phones, a comfortable finger size); the eye reads "Your data" from 601 px, an icon below.
-   --eye-w is the eye's width, which the header keeps clear of (paw.css) */
-:root { --key-h: 40px; --eye-w: 116px; --key-w: 112px; }
+/* ---------- the light switch and the key ---------- */
+/* 40 px tall (44 px on phones, a comfortable finger size). --sw-w is the light switch's width, which the header keeps
+   clear of (paw.css) */
+:root { --key-h: 40px; --sw-w: 40px; --key-w: 112px; }
 html[data-mode="play"] { --key-w: 120px; }
 @media (max-width: 899px) { html[data-mode="play"] { --key-w: 44px; } }   /* the key alone, round, in the lab on phones */
-.key-btn, .you-link { top: 8px; height: var(--key-h); }
+.key-btn, .theme-btn { top: 8px; height: var(--key-h); }
 .key-btn { font-size: 15px; }
 .key-btn svg { width: 24px; height: 24px; }
-.you-link { width: var(--eye-w); grid-auto-flow: column; gap: 7px; padding: 0 13px 0 11px; border-radius: 10px; font: inherit; font-size: 14.5px; font-weight: 650; line-height: 1; white-space: nowrap; text-decoration: none; }
-.you-link svg { width: 21px; height: 21px; }
-.you-link { right: calc(18px + var(--key-w)); }
+.theme-btn { width: var(--sw-w); padding: 0; border-radius: 10px; }
+.theme-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
+.theme-btn .sw-knob { fill: currentColor; stroke: none; transition: transform 0.2s; }
+html[data-theme="dark"] .theme-btn .sw-knob { transform: translateY(6px); }   /* the rocker down: lights off */
+.theme-btn { right: calc(18px + var(--key-w)); }
 /* pills do not tilt like the round buttons: they lift a little */
-.key-btn:hover, .you-link:hover { transform: translateY(-1px); }
+.key-btn:hover, .theme-btn:hover { transform: translateY(-1px); }
 @media (max-width: 600px) {
-    :root { --key-h: 44px; --eye-w: 44px; --key-w: 112px; }
-    .key-btn, .you-link { top: 6px; }
-    .you-link { padding: 0; border-radius: 50%; right: calc(14px + var(--key-w)); }
-    .you-label { display: none; }
+    :root { --key-h: 44px; --sw-w: 44px; --key-w: 112px; }
+    .key-btn, .theme-btn { top: 6px; }
+    .theme-btn { padding: 0; border-radius: 50%; right: calc(14px + var(--key-w)); }
 }
-/* a little life on hover (mice only, not with reduced motion): the key turns a bit in its lock, the eye blinks */
+/* a little life on hover (mice only, not with reduced motion): the key turns a bit in its lock */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .key-btn:hover svg { transform: rotate(-24deg); }
     html[data-mode="play"] .key-btn:hover svg { transform: rotateX(180deg) rotate(24deg); }
-    .you-link:hover svg { animation: eye-blink 0.38s ease-in-out 1; transform-origin: 50% 50%; }
 }
-@keyframes eye-blink { 0%, 100% { transform: scaleY(1); } 45%, 55% { transform: scaleY(0.12); } }
 
 /* ---------- dark mode (palette: color-scheme.css): the lab's dark is a little warmer too ---------- */
 @media (prefers-color-scheme: dark) {

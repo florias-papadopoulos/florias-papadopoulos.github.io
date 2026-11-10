@@ -53,8 +53,8 @@ Local development with wrangler: create `.dev.vars` (ignored by git) with `DEV=1
 - **Phones**: the worker gives each phone a random id (16 characters, CSPRNG) at its first hello; votes, questions,
   upvotes and nicknames are kept under that id. The browser's own token (`live-tok`) only finds the id again after a
   reload, and one connection cannot switch tokens (a second hello with another one closes it).
-- **Nicknames** reach the projector and the other phones only after the presenter approves them on the remote; until
-  then the ranking shows "Guest 123".
+- **Nicknames** with rude words are refused (the leaderboards' word lists); the others are shown at once, and the
+  presenter can hide one on the remote (it then shows as "Guest 123").
 - **Alarms**: a started session ends by itself after 12 hours without a presenter command; 24 hours after a session
   ends, its audience data (votes, questions, nicknames) is deleted. Nicknames given while a talk waits to start are
   deleted 24 hours after the last one if it has not started by then, and at once when its plan is deleted. Plans stay

@@ -183,7 +183,7 @@ export function summary(plan, updated) {
 /* The leaderboards' rule and word lists, copied unchanged from tools/workers/stats/worker.js (test/run.js checks that the
    copy agrees): 2 to 20 Latin letters (with accents), digits, spaces and . _ ' -; none of the SHORT words as a whole
    word, none of the LONG ones anywhere, after lower case, accents removed and lookalike digits read as letters (and
-   again with digits as gaps). The presenter still approves each nickname before others see it (session.js). */
+   again with digits as gaps). A nickname that passes is shown at once; the presenter can hide one (session.js). */
 export const SHORT = new Set(['sex', 'sexy', 'dick', 'dicks', 'cock', 'cocks', 'kill', 'kys', 'fag', 'fags', 'nazi', 'nazis',
     'gamo', 'hure', 'puta', 'fuk', 'rape', 'cunt', 'cunts', 'cunty', 'kunt', 'cvnt', 'twat', 'twats', 'arsch', 'admin']);
 export const LONG = ['fuck', 'shit', 'bitch', 'pussy', 'penis', 'vagina', 'porn', 'hitler', 'nigg', 'faggot', 'retard', 'whore',

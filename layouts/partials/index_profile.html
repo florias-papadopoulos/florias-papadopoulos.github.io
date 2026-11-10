@@ -3,10 +3,12 @@
        - the band: photo, kicker and badge, name (and the Greek name), the line about the research, the link icons; a
          faint lattice fades in on the right. Light for browsers set to light, dark (ink blue) for browsers set to dark
          (prefers-color-scheme), like the rest of the page;
-       - "Latest": the news and LinkedIn posts (profileMode.latest), in two columns of rows with a picture, the date above
+       - "Selected News": the news and LinkedIn posts (profileMode.latest), in two columns of rows with a picture, the date above
          the text and the LinkedIn logo; an entry without a picture of its own shows the first paper's figure;
-       - "Work": every project as a picture tile in one strip that scrolls sideways, with filters (All, Papers, Master,
-         Bachelor) and an arrow; each tile opens its entry on the Papers, Master or Bachelor page. */ -}}
+       - "Selected Projects": every project as a picture tile in one strip that scrolls sideways, with filters (All,
+         Papers, Master, Bachelor) and an arrow; each tile opens its entry on the Papers, Master or Bachelor page. Each
+         kind has its own colour, a soft glow around the picture and a dot on the filter (papers gold, master violet,
+         bachelor teal: --aura in home-page.css). */ -}}
 {{- $projects := where site.RegularPages "Section" "projects" }}
 {{- $liMark := `<svg class="in-mark" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="currentColor"/><path d="M6.2 9.6h2.6V18H6.2zM7.5 5.4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.4 9.6h2.5v1.15c.4-.7 1.3-1.35 2.7-1.35 2.8 0 3.3 1.8 3.3 4.2V18h-2.6v-3.9c0-.95 0-2.15-1.3-2.15s-1.5 1-1.5 2.1V18h-2.6z" fill="#fff"/></svg>` }}
 {{- with site.Params.profileMode }}
@@ -41,7 +43,7 @@
 
     {{- with .latest }}
     <section class="hn" aria-labelledby="hn-h">
-        <h2 class="h3-h" id="hn-h">Latest</h2>
+        <h2 class="h3-h" id="hn-h">Selected News</h2>
         {{- $fallback := "" }}
         {{- range first 1 (where $projects "Params.context" "like" "^Paper") }}{{ $fallback = .Params.preview }}{{ end }}
         <ul class="hn-list">
@@ -78,7 +80,7 @@
     {{- $total := 0 }}{{ range $groups }}{{ $total = add $total (len (where $projects "Params.context" "like" (printf "^%s" .key))) }}{{ end }}
     <section class="hw" aria-labelledby="hw-h">
         <div class="hw-top">
-            <h2 class="h3-h" id="hw-h">Work</h2>
+            <h2 class="h3-h" id="hw-h">Selected Projects</h2>
             <div class="hw-chips" role="group" aria-label="Show">
                 <button type="button" class="hw-chip" data-g="" aria-pressed="true">All <span>{{ $total }}</span></button>
                 {{- range $groups }}

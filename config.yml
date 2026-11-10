@@ -162,8 +162,6 @@ params:
       url: https://www.linkedin.com/in/florias-papadopoulos-b035ab233
     - name: GitHub
       url: https://github.com/florias-papadopoulos
-    - name: Instagram
-      url: https://www.instagram.com/florias.pap/
 
   # "?v=key" makes browsers fetch the new (key) icon instead of a cached old one; bump it when the icon changes
   assets:

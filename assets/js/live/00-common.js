@@ -183,7 +183,7 @@
     LV.privacy = function () {
         return LV.h('details.lv-privacy', {}, [
             LV.h('summary', { text: 'Privacy' }),
-            LV.h('p', { text: 'This page is run by Florias Papadopoulos for his talks. For one talk it keeps your answers, the questions you send, your nickname if you choose one (it appears on the screen only once the speaker approves it), and a random number your browser stores so that a reload does not count you twice. No account, no cookies, nothing that says who you are. No IP address is stored: against abuse, connections are only counted per address, in memory, while the talk runs.' }),
+            LV.h('p', { text: 'This page is run by Florias Papadopoulos for his talks. For one talk it keeps your answers, the questions you send, your nickname if you choose one (shown with the ranking; nicknames with rude words are refused, and the speaker can hide one), and a random number your browser stores so that a reload does not count you twice. No account, no cookies, nothing that says who you are. No IP address is stored: against abuse, connections are only counted per address, in memory, while the talk runs.' }),
             LV.h('p', { text: 'Everything about a talk is deleted 24 hours after it ends (a nickname given before a talk that then does not start: 24 hours after it was given). Cloudflare runs the service: it sees your IP address in order to deliver the data, as with any website, and may keep backup copies of the stored data for a limited time after they are deleted.' })
         ]);
     };
