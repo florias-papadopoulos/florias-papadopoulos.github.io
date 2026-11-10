@@ -58,13 +58,17 @@ Kitty Kart Duo works with both devices on the same home wifi, while Kitty Kart S
 
 The calculators, ciphers and decoders of the [Toolbox](/toolbox/) run entirely in your browser: nothing you type or paste is sent anywhere. A tool keeps your inputs in its own address, after a `#`, so that you can bookmark a calculation or send it to someone. That part of an address is never sent to any server, also not when the page is reloaded; it is only kept in your browser's history, like any address you visit.
 
+## Audience mode at talks
+
+When I give a talk, the audience can answer questions on their phones through a QR code on a slide, which opens a hidden page of this site (/live/). For one talk, a service of mine on Cloudflare keeps your answers, your questions, an optional nickname (shown on screen only after I approve it) and a random browser token, under a random id. No IP address is stored: connections are only counted per address in memory, against abuse. Everything is deleted 24 hours after the talk ends; a nickname given before a talk that does not start is deleted 24 hours after it was given, or at once if the talk is deleted. Cloudflare, which runs the service, may keep backups of stored data for a limited time.
+
 ## The page "What this site knows about you"
 
 The page [What this site knows about you](/you/) shows you what the counter records about your visit. If your visit is counted, it also asks the counter which country it would record; nothing is stored.
 
 ## Storage in your browser
 
-The site sets no cookies. A few things are kept in your browser's local storage so the site remembers them for you: the look of the pet you chose, how often you petted it, the hints you have seen, game best scores, chosen levels, sound, music and other game settings (also for Kitty Kart Duo), the games you liked, the last nickname you used on a leaderboard, and the "don't count my visits" choice. In the tab you are using (session storage, gone when you close it) the site remembers the last page of the lab you opened, so the key can take you back there. They never leave your browser, and clearing this site's data removes them.
+The site sets no cookies. A few things are kept in your browser's local storage so the site remembers them for you: the look of the pet you chose, how often you petted it, the hints you have seen, game best scores, chosen levels, sound, music and other game settings (also for Kitty Kart Duo), the games you liked, the last nickname you used on a leaderboard, and the "don't count my visits" choice. They never leave your browser, and clearing this site's data removes them.
 
 ## No other third parties
 

@@ -3,9 +3,9 @@
 {{- end -}}
 
 <!DOCTYPE html>
-{{- /* two sides: Games and the Toolbox are the playful side (html[data-mode="play"]: play navigation, pet, warm colours),
+{{- /* two sides: the lab home, Games and the Toolbox are the playful side (html[data-mode="play"]: play navigation, pet, warm colours),
        every other page is the normal, serious site. The key (assets/js/play.js) is the door between them. */ -}}
-<html lang="{{ site.Language }}" dir="{{ .Language.Direction | default "auto" }}"{{ if in (slice "games" "toolbox") .Section }} data-mode="play" data-side="play"{{ end }}>
+<html lang="{{ site.Language }}" dir="{{ .Language.Direction | default "auto" }}"{{ if in (slice "lab" "games" "toolbox") .Section }} data-mode="play" data-side="play"{{ end }}>
 
 <head>
     {{- partial "head.html" . }}
@@ -23,7 +23,7 @@
            (no defer) */}}
     {{- $look := resources.Get "js/cat-look.js" | minify | fingerprint }}
     <script src="{{ $look.RelPermalink }}" integrity="{{ $look.Data.Integrity }}"></script>
-    {{- if not .IsHome  }}
+    {{- if not (or .IsHome (eq .Layout "lab")) }}
     {{- partialCached "header.html" . .Page -}}
     {{- end }}
     <main class="main">
@@ -52,9 +52,9 @@
     {{- end }}
     {{- /* the key (the site's icon): the door between the normal site and its playful side (assets/js/play.js); data-play
            and data-home are where it opens when this tab has no last page of that side yet */}}
-    <button class="corner-btn key-btn" id="key-btn" type="button" aria-pressed="false" title="Turn the key: the lab" aria-label="The lab: games and toolbox" data-play="{{ "games/" | relURL }}" data-home="{{ "" | relURL }}">
+    <button class="corner-btn key-btn" id="key-btn" type="button" aria-pressed="false" title="Turn the key: the lab" aria-label="The lab: games and toolbox" data-play="{{ "lab/" | relURL }}" data-home="{{ "" | relURL }}">
         <svg viewBox="6 8 50 50" aria-hidden="true"><circle cx="20" cy="32" r="11"/><path d="M31 32h22M45 32v10M45 37h6M53 32v12"/></svg>
-        <span class="key-label">{{ if in (slice "games" "toolbox") .Section }}Normal site{{ else }}The Lab{{ end }}</span>
+        <span class="key-label">{{ if in (slice "lab" "games" "toolbox") .Section }}Normal site{{ else }}The Lab{{ end }}</span>
     </button>
     {{- partial "play-nav.html" . }}
     {{- /* the eye leads to what this site could know about the visitor (layouts/_default/you.html) */}}

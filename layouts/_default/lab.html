@@ -1,0 +1,23 @@
+{{- define "main" }}
+{{- /* The lab's home page (content/lab/_index.md), opened by the key in the corner (assets/js/play.js). Built like the
+       normal home page (classes of home.css), so its playground works here too: assets/js/home-lab.js breaks the
+       title into letters, floats symbols and numbers around and lets the pet push them (layouts/partials/cat.html). */ -}}
+<div class="profile home lab-home" id="home">
+    <div class="profile_inner home-panel">
+        <header class="hero">
+            <div class="name-block">
+                <p class="kicker">Welcome to</p>
+                <h1>The lab</h1>
+            </div>
+        </header>
+        <p class="tagline">Games, puzzles and crypto tools. Push the numbers around, pet the cat.</p>
+        <div class="links">
+            <div class="buttons">
+                <a class="button" href="{{ "games/" | relURL }}"><span class="button-inner">Games</span></a>
+                <a class="button" href="{{ "toolbox/" | relURL }}"><span class="button-inner">Toolbox</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+{{ partial "cat.html" (dict "world" "home") }}
+{{- end }}

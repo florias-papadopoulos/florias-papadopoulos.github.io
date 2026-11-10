@@ -1,12 +1,14 @@
 {{- /* Play mode's navigation (shown only under html[data-mode="play"], see assets/js/play.js; styles in
        assets/css/common/play.css): a tab bar at the bottom on phones and tablets, a slim sidebar on the left on wider
-       screens. Two items: Games and Toolbox (the owner did not want a combined search). The sidebar
+       screens. Three items: the lab's home page, Games and Toolbox (the owner did not want a combined search). The sidebar
        also has a place for the cat and dog pickers (the buttons themselves are the corner buttons of baseof.html,
        placed over it by play.css) and, at the bottom, the way back to the academic site. Pets and leaderboards are
        deliberately not tabs: the pickers live here, the leaderboards stay on the Games page. */ -}}
 {{- $here := .RelPermalink }}
 {{- $key := `<svg class="pn-key" viewBox="6 8 50 50" aria-hidden="true"><circle cx="20" cy="32" r="11"/><path d="M31 32h22M45 32v10M45 37h6M53 32v12"/></svg>` | safeHTML }}
 {{- $items := slice
+    (dict "name" "Home" "url" ("lab/" | relURL) "on" (eq .Section "lab")
+          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.8 9.4V20h12.4V9.4M10 20v-5.5h4V20"/></svg>`)
     (dict "name" "Games" "url" ("games/" | relURL) "on" (eq $here ("games/" | relURL))
           "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7.5h10a4.5 4.5 0 0 1 4.4 3.6l1 5.2a2.6 2.6 0 0 1-4.5 2.2L15.6 16H8.4l-2.3 2.5a2.6 2.6 0 0 1-4.5-2.2l1-5.2A4.5 4.5 0 0 1 7 7.5z"/><path d="M7.6 10.2v3.6M5.8 12h3.6"/><circle cx="15.4" cy="11" r="0.6" class="pn-dot"/><circle cx="17.6" cy="13.2" r="0.6" class="pn-dot"/></svg>`)
     (dict "name" "Toolbox" "url" ("toolbox/" | relURL) "on" (eq .Section "toolbox")

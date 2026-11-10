@@ -196,7 +196,7 @@ params:
   statsEndpoint: "https://florias-stats.floriaspapadopoulos.workers.dev"
   # Audience mode for talks (the hidden /live/ pages, worker in tools/live-worker). Empty means the pages only say
   # "not set up yet"; set it to the worker's URL (e.g. https://florias-live.NAME.workers.dev, no trailing slash).
-  liveEndpoint: ""
+  liveEndpoint: "https://florias-live.floriaspapadopoulos.workers.dev"
   cover:
     hiddenInList: false
     hiddenInSingle: true
