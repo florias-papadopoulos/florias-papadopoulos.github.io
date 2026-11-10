@@ -41,6 +41,8 @@
         </div>
     </header>
 
+    {{- /* everything under the band, on the dots (home-page.css), so the first row of dots keeps clear of the band's edge */}}
+    <div class="h3-rest">
     {{- with .latest }}
     <section class="hn" aria-labelledby="hn-h">
         <h2 class="h3-h" id="hn-h">Selected News</h2>
@@ -111,6 +113,7 @@
             <button type="button" class="hw-next" id="hw-next" aria-label="Show more projects"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
     </section>
+    </div>
 </div>
 {{- $js := resources.Get "js/site/home.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>

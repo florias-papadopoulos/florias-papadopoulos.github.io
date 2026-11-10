@@ -1,6 +1,6 @@
 /* The home page (layouts/partials/index_profile.html): the band, "Latest" (the news) and "Work" (the projects strip).
    The page follows the visitor's browser: light by default, dark when the browser is set to dark
-   (prefers-color-scheme: dark), the band then ink blue (the rest of the page: the dark block at the end). */
+   (prefers-color-scheme: dark); the band is navy in both (the rest of the page: the dark block at the end). */
 
 .home3 {
     --h3-ink: #0f172a;
@@ -9,22 +9,22 @@
     --h3-line: #e8ecf2;
     --h3-navy: #1e3a8a;
     --h3-pad: clamp(18px, 6vw, 72px);
-    /* the band, light */
-    --hb-bg: linear-gradient(180deg, #f3f6fb, #eaf0f8);
-    --hb-edge: #dbe3ef;
-    --hb-dot: #5b7bb8;
-    --hb-dot-op: .45;
-    --hb-kicker: #3b5a99;
-    --hb-name: #0f172a;
-    --hb-native: #475569;
-    --hb-tag: #334155;
-    --hb-strong: #0f172a;
-    --hb-badge: #1e3a8a;
-    --hb-badge-line: #b9c8e4;
-    --hb-btn: #fff;
-    --hb-btn-line: #d3dcea;
-    --hb-btn-ink: #1e3a8a;
-    --hb-ring: #fff;
+    /* the band: deep navy in light mode too, like in dark */
+    --hb-bg: linear-gradient(180deg, #152448, #1e3466);
+    --hb-edge: transparent;
+    --hb-dot: #8fa3c7;
+    --hb-dot-op: .5;
+    --hb-kicker: #a9bce0;
+    --hb-name: #fff;
+    --hb-native: #b6c3da;
+    --hb-tag: #d3dcec;
+    --hb-strong: #fff;
+    --hb-badge: #cfdaf0;
+    --hb-badge-line: rgba(207, 218, 240, .4);
+    --hb-btn: rgba(255, 255, 255, .08);
+    --hb-btn-line: rgba(255, 255, 255, .18);
+    --hb-btn-ink: #e3eaf6;
+    --hb-ring: rgba(255, 255, 255, .14);
     color: var(--h3-ink);
 }
 @media (prefers-color-scheme: dark) {
@@ -151,10 +151,9 @@ a.hn-text:hover { color: var(--h3-navy); text-decoration: underline; text-decora
 body:has(.home3) .key-btn, body:has(.home3) .theme-btn { position: absolute; top: 16px; }
 body:has(.home3) .key-btn { right: 16px; }
 body:has(.home3) .theme-btn { right: calc(24px + var(--key-w)); }
-@media (prefers-color-scheme: dark) {
-    body:has(.home3) .key-btn, body:has(.home3) .theme-btn { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .2); color: #e2e8f0; box-shadow: none; }
-    body:has(.home3) .key-btn:hover, body:has(.home3) .theme-btn:hover { background: rgba(255, 255, 255, .14); color: #fff; }
-}
+/* on the navy band (light and dark): see-through, light */
+body:has(.home3) .key-btn, body:has(.home3) .theme-btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .25); color: #e2e8f0; box-shadow: none; }
+body:has(.home3) .key-btn:hover, body:has(.home3) .theme-btn:hover { background: rgba(255, 255, 255, .16); color: #fff; }
 @media (max-width: 600px) {
     body:has(.home3) .key-btn, body:has(.home3) .theme-btn { top: 12px; }
     body:has(.home3) .key-btn { right: 12px; }
@@ -183,4 +182,25 @@ body:has(.home3) .theme-btn { right: calc(24px + var(--key-w)); }
     .hw-wrap::after { background: linear-gradient(90deg, rgba(15, 23, 42, 0), var(--dk-bg) 80%); }
     .hw-next { background: var(--dk-card); box-shadow: 0 1px 4px var(--dk-shadow), inset 0 0 0 1px var(--dk-field); }
     .hw-next:hover { box-shadow: 0 2px 8px var(--dk-shadow), inset 0 0 0 1px var(--h3-navy); }
+}
+
+/* ---------- the page behind, like the lab's (play.css): a shade deeper than white in light, a softer ink in dark,
+   calm navy dots under the band (the grid starts half a step below its edge, so no dot ever touches the line, and
+   stops where the footer starts) and a soft glow in the corner ---------- */
+body:has(.home3) { --theme: #edf0f5; --home-dot: rgba(30, 58, 138, 0.2); --home-glow: rgba(59, 130, 246, 0.12); }
+body:has(.home3)::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(70% 65% at 100% 100%, var(--home-glow), transparent 70%);
+}
+body:has(.home3) .main { display: flex; flex-direction: column; }
+.home3 { flex: 1; display: flex; flex-direction: column; }
+.h3-rest { flex: 1; padding-bottom: 24px; background: radial-gradient(circle, var(--home-dot) 1.2px, transparent 1.8px) 0 0 / 30px 30px; }   /* each dot sits in the middle of its 30 px square: 15 px clear of the edge */
+body:has(.home3) .footer { background: transparent; }
+@media (prefers-color-scheme: dark) {
+    body:has(.home3) { --theme: #1a2440; --home-dot: rgba(157, 186, 245, 0.17); --home-glow: rgba(96, 165, 250, 0.10); }
+    .hw-wrap::after { background: linear-gradient(90deg, rgba(26, 36, 64, 0), var(--theme) 80%); }
 }
