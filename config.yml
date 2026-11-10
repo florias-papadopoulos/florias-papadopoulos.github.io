@@ -36,9 +36,6 @@ menu:
     - name: Papers
       url: /papers/
       weight: 2
-    - name: CV
-      url: /files/resume.pdf
-      weight: 4
 
 params:
   description: "Florias Papadopoulos, doctoral researcher in cryptography at the University of St. Gallen (HSG)."

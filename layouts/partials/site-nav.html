@@ -1,0 +1,40 @@
+{{- /* The normal side's navigation, on every page of it except the home page (which has its band): the same shape as
+       the lab's (layouts/partials/play-nav.html, styles shared from play.css, the rest in assets/css/common/site-nav.css).
+       From 900 px a sidebar on the left: the name (to the home page), then Home, Bachelor, Master and Papers; each of the
+       last three has an arrow that opens the list of its projects underneath (a <details>, so it works by touch and
+       without scripts; open on its own page), and each project opens its entry on that page (url#anchor, as on the home
+       page). Below 900 px a tab bar at the bottom with the four tabs, without the lists (the pages list the projects). */ -}}
+{{- $here := .RelPermalink }}
+{{- $projects := where site.RegularPages "Section" "projects" }}
+{{- $groups := slice
+    (dict "key" "Bachelor" "name" "Bachelor" "url" "bachelor/"
+          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5 12 5l9.5 4.5L12 14z"/><path d="M6.5 11.6V16c1.6 1.6 3.4 2.3 5.5 2.3s3.9-.7 5.5-2.3v-4.4M21.5 9.5v5"/></svg>`)
+    (dict "key" "Master" "name" "Master" "url" "master/"
+          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7.5 4.6 3.5 5v13c4-.4 6.5 0 8.5 1.5 2-1.5 4.5-1.9 8.5-1.5V5c-4-.4-6.5 0-8.5 1.5zM12 6.5v13"/></svg>`)
+    (dict "key" "Paper" "name" "Papers" "url" "papers/"
+          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 15.5h6"/></svg>`) }}
+<nav class="play-nav site-nav" id="site-nav" aria-label="Main">
+    <a class="pn-head sn-name" href="{{ "" | relURL }}"><img src="{{ site.Params.label.icon | relURL }}" alt="" width="22" height="22"><span>{{ site.Title }}</span></a>
+    <ul class="pn-tabs">
+        <li><a class="pn-tab" href="{{ "" | relURL }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.8 9.4V20h12.4V9.4M10 20v-5.5h4V20"/></svg><span>Home</span></a></li>
+        {{- range $g := $groups }}
+        {{- $url := $g.url | relURL }}
+        {{- $on := eq $here $url }}
+        {{- $list := sort (where $projects "Params.context" "like" (printf "^%s" $g.key)) "Weight" }}
+        <li class="sn-group">
+            <a class="pn-tab" href="{{ $url }}"{{ if $on }} aria-current="page"{{ end }}>{{ $g.icon | safeHTML }}<span>{{ $g.name }}</span></a>
+            {{- with $list }}
+            <details class="sn-more"{{ if $on }} open{{ end }}>
+                <summary aria-label="{{ $g.name }}: all projects"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></summary>
+                <ul class="sn-list">
+                    {{- range . }}
+                    {{- $id := .Params.anchor | default (urlize .File.ContentBaseName) }}
+                    <li><a href="{{ printf "%s#%s" $g.url $id | relURL }}" title="{{ .Title }}"><span>{{ .Title }}</span></a></li>
+                    {{- end }}
+                </ul>
+            </details>
+            {{- end }}
+        </li>
+        {{- end }}
+    </ul>
+</nav>

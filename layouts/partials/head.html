@@ -62,6 +62,7 @@
 {{- if eq .Layout "admin" }}{{ $extra = $extra | append "common/cat" "common/live" "common/timeline" }}{{ end }}
 {{- if $lab }}{{ $extra = $extra | append "common/cat" }}{{ end }}
 {{- if eq .Section "games" }}{{ $extra = $extra | append "common/arcade" }}{{ end }}
+{{- if not (or .IsHome $lab (eq .Layout "admin")) }}{{ $extra = $extra | append "common/site-nav" }}{{ end }}
 {{- if or (eq .Section "toolbox") (in (slice "timeline" "you" "privacy" "stats") .Layout) (and (eq .Kind "section") (not $lab)) }}{{ $extra = $extra | append "common/timeline" }}{{ end }}
 {{- if eq .Section "toolbox" }}{{ $extra = $extra | append "common/toolbox" }}{{ end }}
 {{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats") .Layout }}{{ $extra = $extra | append . }}{{ end }}

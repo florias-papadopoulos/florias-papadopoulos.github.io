@@ -23,10 +23,10 @@
            (no defer) */}}
     {{- $look := resources.Get "js/lab/cat-look.js" | minify | fingerprint }}
     <script src="{{ $look.RelPermalink }}" integrity="{{ $look.Data.Integrity }}"></script>
-    {{- /* the header (name and menu) only on the normal side: the lab (its home, Games, Toolbox, the presenter page) has its
-           sidebar and the "About me" key instead */}}
+    {{- /* no header: the normal side's pages have their sidebar (site-nav.html; the home page has its band instead), the
+           lab's pages theirs (play-nav.html, further down) */}}
     {{- if not (or .IsHome (in (slice "lab" "games" "toolbox") .Section) (eq .Layout "admin")) }}
-    {{- partialCached "header.html" . .Page -}}
+    {{- partial "site-nav.html" . -}}
     {{- end }}
     <main class="main">
         {{- block "main" . }}{{ end }}
