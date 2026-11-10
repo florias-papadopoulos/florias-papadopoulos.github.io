@@ -45,7 +45,7 @@ sections:
     entries:
       - date: "2026"
         title: "[Privacy-preserving Proximity Testing from Geometric Fuzzy Matching](/papers/#gfm-asiaccs26)"
-        sub: "Florias Papadopoulos, Ioannis Katis, and Katerina Mitrokotsa"
+        sub: "Ioannis Katis, Katerina Mitrokotsa, and Florias Papadopoulos"
         desc:
           - "In *Proceedings of the ACM Asia Conference on Computer and Communications Security*"
           - "*(ASIA CCS ’26)*, pp. 472–488, Bangalore, India. [doi:10.1145/3779208.3785374](https://doi.org/10.1145/3779208.3785374)"
