@@ -119,21 +119,41 @@
             <button class="arcade-btn stage-restart" type="button" title="Restart">&#8635;</button>
         </div>
         <div class="stage-area"></div>
-        {{- /* the end of a game (api.end in arcade.js): the result and the leaderboard scroll in the top part, the buttons
-               stay pinned under them. stage-menu is the game's own menu (its label comes from the game), the difficulty
-               switch shows for games with levels */}}
+        {{- /* the end of a game (api.end in arcade.js): a header with the outcome (an emblem: trophy, medal or paw, and a
+               ribbon), the game's own lines, the score counting up, "New best!", small stat cards and the leaderboard
+               scroll in the top part; the buttons stay pinned under them. stage-menu is the game's own menu (its label
+               comes from the game), the difficulty switch shows for games with levels. Styles: arcade.css */}}
         <div class="stage-msg" hidden>
-            <div class="stage-msg-box" role="dialog" aria-modal="true" aria-labelledby="stage-msg-title" aria-describedby="stage-msg-text">
+            <div class="stage-msg-box" role="dialog" aria-modal="true" aria-labelledby="stage-msg-ribbon stage-msg-title" aria-describedby="stage-msg-text">
                 <div class="stage-msg-scroll">
+                    <div class="sm-head">
+                        <div class="sm-emblem" aria-hidden="true"></div>
+                        <p class="sm-ribbon" id="stage-msg-ribbon"></p>
+                    </div>
                     <h2 class="stage-msg-title" id="stage-msg-title"></h2>
                     <p class="stage-msg-text" id="stage-msg-text"></p>
-                    <p class="stage-msg-best" hidden></p>
+                    <p class="sm-hero" hidden><span class="sm-hero-l"></span><span class="sm-hero-v" aria-hidden="true"></span><span class="sm-sr"></span></p>
+                    <p class="stage-msg-best" hidden>New best!</p>
+                    <ul class="sm-stats" hidden>
+                        <li class="sm-stat" data-k="best" hidden><span class="sm-stat-l"></span><b class="sm-stat-v"></b></li>
+                        <li class="sm-stat" data-k="week" hidden><span class="sm-stat-l">This week</span><b class="sm-stat-v"></b></li>
+                        <li class="sm-stat" data-k="all" hidden><span class="sm-stat-l">All time</span><b class="sm-stat-v"></b></li>
+                    </ul>
                     <div class="stage-board" hidden></div>
                 </div>
                 <div class="stage-msg-actions">
-                    <button class="arcade-btn stage-again" type="button">Play again</button>
-                    <button class="arcade-btn stage-menu" type="button" hidden></button>
-                    <button class="arcade-btn stage-quit" type="button">All games</button>
+                    <button class="arcade-btn stage-again" type="button" aria-keyshortcuts="Enter">
+                        <svg class="sm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
+                        <span>Play again</span><kbd aria-hidden="true">Enter</kbd>
+                    </button>
+                    <button class="arcade-btn stage-menu" type="button" hidden>
+                        <svg class="sm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
+                        <span class="sm-label"></span>
+                    </button>
+                    <button class="arcade-btn stage-quit" type="button" aria-keyshortcuts="Escape">
+                        <svg class="sm-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>
+                        <span>All games</span><kbd aria-hidden="true">Esc</kbd>
+                    </button>
                     <div class="stage-msg-level" role="group" aria-labelledby="stage-msg-level-n" hidden>
                         <span id="stage-msg-level-n">Difficulty</span>
                         <button type="button" data-level="easy">Easy</button><button type="button" data-level="normal">Normal</button><button type="button" data-level="hard">Hard</button>

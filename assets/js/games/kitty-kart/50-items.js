@@ -207,7 +207,7 @@
         show();
         if (place === 1) { api.cat('happy'); api.say(dogify('Purrfect! First place!'), 2400); }
         else api.say(dogify(place === 2 ? 'So close! Again?' : 'Meow. Next time!'), 2400);
-        api.end({ score: t, lowerIsBetter: true, win: place === 1, board: MAP.id, again: { track: MAP.id }, menu: 'Tracks',
+        api.end({ score: t, lowerIsBetter: true, win: place === 1, place: place, board: MAP.id, again: { track: MAP.id }, menu: 'Tracks',
             text: 'You finished ' + ordinal(place) + ' on ' + MAP.name + '\nTime ' + t.toFixed(1) + ' s' });
     }
     function collide() {

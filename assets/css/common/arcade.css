@@ -204,40 +204,6 @@ body.arcade-playing { overflow: hidden; }
 }
 .stage-area { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 
-/* the end panel (arcade.js, api.end): result and leaderboard scroll in the top part, the buttons stay pinned under them,
-   so they are always in view, on phones too */
-.stage-msg { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
-    padding: 12px; background: rgba(15, 23, 42, 0.4); }
-.stage-msg[hidden] { display: none; }
-.stage-msg-box { display: flex; flex-direction: column; width: 380px; max-width: 100%; max-height: 100%; box-sizing: border-box; overflow: hidden;
-    border-radius: 18px; background: #fff; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25); animation: msg-in 0.22s ease-out; }
-@keyframes msg-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
-.stage-msg-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 22px 24px 14px;
-    scrollbar-color: #cbd5e1 transparent; }   /* light like the panel, also in dark mode (the root sets dark ones) */
-.stage-msg-title { margin: 0; color: var(--ink); font-size: 1.3rem; font-weight: 800; line-height: 1.3; }
-.stage-msg-text { margin: 8px 0 0; color: var(--ink); font-size: 0.98rem; line-height: 1.45; white-space: pre-line; }
-.stage-msg-text[hidden], .stage-msg-best[hidden] { display: none; }
-.stage-msg-best { margin: 10px 0 0; color: var(--muted); font-size: 0.9rem; font-weight: 600; }
-.stage-msg-best.is-new { display: inline-block; padding: 3px 12px; border-radius: 999px; background: #fff3c4; color: #7a5200; font-weight: 800; }
-/* the buttons: Play again across the top, the game's menu and All games under it, then the difficulty */
-.stage-msg-actions { flex: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 14px 20px 16px; border-top: 1px solid var(--line); background: #f8fafc; }
-.stage-msg-actions .arcade-btn { flex: 1 1 0; min-height: 40px; padding: 8px 14px; font-weight: 600; }
-.stage-msg-actions .arcade-btn[hidden] { display: none; }
-/* (two classes: the dark block's .arcade-btn background must not turn it white on white) */
-.stage-msg-actions .stage-again { flex-basis: 100%; border-color: var(--ink); background: var(--ink); color: #fff; font-size: 1.02rem; font-weight: 700; }
-.stage-msg-actions .stage-again:hover { background: var(--navy); border-color: var(--navy); }
-.stage-msg-actions .arcade-btn:focus-visible, .stage-msg-level button:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
-.stage-msg-level { flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; color: var(--muted); font-size: 0.85rem; }
-.stage-msg-level[hidden] { display: none; }
-.stage-msg-level span { margin-right: 6px; }
-.stage-msg-level button { min-height: 32px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted);
-    font: inherit; cursor: pointer; }
-.stage-msg-level button:hover { border-color: var(--navy); color: var(--ink); }
-.stage-msg-level button[aria-pressed="true"] { border-color: var(--navy); background: var(--navy); color: #fff; font-weight: 700; }
-@media (prefers-reduced-motion: reduce) { .stage-msg-box { animation: none; } }
-@media (pointer: coarse) { .stage-msg-actions .arcade-btn { min-height: 44px; } .stage-msg-level button { min-height: 38px; } }
-/* the leaderboard under the result */
-.stage-board { width: 300px; max-width: 100%; margin: 16px auto 0; text-align: left; }
 .stage-board[hidden] { display: none; }
 .sb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .sb-title { font-weight: 700; font-size: 0.95rem; }
@@ -266,6 +232,140 @@ body.arcade-playing { overflow: hidden; }
 .sb-send { margin-top: 8px; }
 .sb-note { min-height: 1.2em; margin: 6px 0 0; color: var(--pink); font-size: 0.82rem; }
 @media (pointer: coarse) { .sb-input { font-size: 16px; } }
+
+/* ---------- the end panel (arcade.js, api.end) ----------
+   A deep night blue box with bright accents, the same in light and dark mode, on top of the dimmed and blurred game.
+   Two flavours set by arcade.js on the box: sm-warm (a win or a medal: gold) and sm-cool (game over: sky blue); the
+   accent colours come from --acc. Result, score and leaderboard scroll in the top part; the buttons stay pinned under
+   them, so they are always in view, on phones too. Text on the box is at least 4.5:1. With reduced motion nothing
+   moves (no pop, no rays turning, no stamp; arcade.js skips the count up and the confetti). */
+.stage-msg { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+    padding: 12px; background: rgba(6, 9, 26, 0.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: sm-fade 0.25s ease-out; }
+.stage-msg[hidden] { display: none; }
+.stage-msg-box {
+    --sm-ink: #f4f6ff; --sm-muted: #c3cbea; --sm-line: rgba(255, 255, 255, 0.14);
+    --acc: #ffc84a; --acc-hi: #ffe39a; --acc-lo: #d99a00; --acc-ink: #2b1b00; --acc-glow: rgba(255, 200, 74, 0.35);
+    position: relative; display: flex; flex-direction: column; width: 400px; max-width: 100%; max-height: 100%; box-sizing: border-box;
+    overflow: hidden; border-radius: 22px; color: var(--sm-ink); text-align: center;
+    background: radial-gradient(120% 60% at 50% 0%, var(--acc-glow), transparent 70%), linear-gradient(180deg, #232b63, #161c42 55%, #11163a);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 0 4px rgba(255, 255, 255, 0.04), 0 24px 60px rgba(3, 6, 20, 0.55);
+    animation: sm-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.stage-msg-box.sm-cool { --acc: #7cc8ff; --acc-hi: #b9e3ff; --acc-lo: #3d93d6; --acc-ink: #062640; --acc-glow: rgba(124, 200, 255, 0.24); }
+@keyframes sm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sm-in { from { opacity: 0; transform: scale(0.82) translateY(14px); } to { opacity: 1; transform: none; } }
+.sm-confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.sm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.stage-msg-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 18px 24px 16px;
+    scrollbar-color: rgba(255, 255, 255, 0.28) transparent; }
+.stage-msg [hidden] { display: none !important; }
+
+/* the header: the emblem (trophy, medal or paw) in a ring of slowly turning rays, the ribbon over its foot */
+.sm-head { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+.sm-emblem { position: relative; width: 76px; height: 76px; animation: sm-pop 0.55s 0.12s cubic-bezier(0.34, 1.7, 0.64, 1) both; }
+.sm-emblem::before { content: ""; position: absolute; inset: -34px; z-index: -1; border-radius: 50%;
+    background: repeating-conic-gradient(from 0deg, var(--acc-glow) 0deg 9deg, transparent 9deg 22.5deg);
+    -webkit-mask: radial-gradient(closest-side, #000 35%, transparent); mask: radial-gradient(closest-side, #000 35%, transparent);
+    animation: sm-turn 14s linear infinite; }
+.sm-cool .sm-emblem::before { opacity: 0.5; }
+.sm-emblem svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35)); }
+@keyframes sm-pop { from { opacity: 0; transform: scale(0.3) rotate(-18deg); } to { opacity: 1; transform: none; } }
+@keyframes sm-turn { to { transform: rotate(360deg); } }
+.sm-ribbon { position: relative; margin: -6px 0 0; padding: 7px 34px 8px; background: linear-gradient(180deg, var(--acc-hi), var(--acc));
+    color: var(--acc-ink); font-size: 0.95rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; line-height: 1.2;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 50%, 100% 100%, 0 100%, 14px 50%); }
+.stage-msg-title { margin: 14px 0 0; color: var(--sm-ink); font-size: 1.15rem; font-weight: 800; line-height: 1.3; }
+.stage-msg-text { margin: 6px 0 0; color: var(--sm-muted); font-size: 0.92rem; line-height: 1.45; white-space: pre-line; }
+
+/* the score, the hero of the panel; "New best!" is stamped on under it */
+.sm-hero { display: flex; flex-direction: column; align-items: center; margin: 14px 0 0; }
+.sm-hero-l { color: var(--sm-muted); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+.sm-hero-v { color: #fff; font-size: 3.1rem; font-weight: 900; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+    text-shadow: 0 0 26px var(--acc-glow), 0 3px 0 rgba(0, 0, 0, 0.25); }
+.stage-msg-best { position: relative; display: inline-block; overflow: hidden; margin: 8px 0 0; padding: 4px 16px; border: 2px solid #ffd56b;
+    border-radius: 8px; background: rgba(255, 200, 74, 0.14); color: #ffe08a; font-size: 0.9rem; font-weight: 900; letter-spacing: 0.1em;
+    text-transform: uppercase; transform: rotate(-4deg); animation: sm-stamp 0.45s 0.6s cubic-bezier(0.3, 1.5, 0.6, 1) both; }
+.stage-msg-best::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+    transform: translateX(-120%); animation: sm-shine 1.1s 1.1s ease-out both; }
+@keyframes sm-stamp { from { opacity: 0; transform: rotate(-12deg) scale(2.2); } to { opacity: 1; transform: rotate(-4deg); } }
+@keyframes sm-shine { to { transform: translateX(120%); } }
+
+/* small cards: the best at this difficulty and the leaderboard places */
+.sm-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.sm-stat { display: flex; flex-direction: column; min-width: 86px; padding: 7px 12px; border: 1px solid var(--sm-line); border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06); }
+.sm-stat-l { color: var(--sm-muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.sm-stat-v { color: var(--sm-ink); font-size: 1.08rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sm-stat[data-k="week"] .sm-stat-v, .sm-stat[data-k="all"] .sm-stat-v { color: var(--acc); }
+
+/* the buttons: Play again big across the top, the game's menu and All games under it, then the difficulty */
+.stage-msg-actions { flex: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 14px 18px 16px;
+    border-top: 1px solid var(--sm-line); background: rgba(5, 8, 24, 0.35); }
+.stage-msg-actions .arcade-btn { display: inline-flex; flex: 1 1 0; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+    padding: 8px 14px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 14px; background: rgba(255, 255, 255, 0.08);
+    color: var(--sm-ink); font-size: 0.92rem; font-weight: 700; transition: background 0.15s, border-color 0.15s, transform 0.1s; }
+.stage-msg-actions .arcade-btn:hover { border-color: var(--acc); background: rgba(255, 255, 255, 0.14); }
+.stage-msg-actions .arcade-btn:active { transform: translateY(1px); }
+.stage-msg-actions .stage-again { flex-basis: 100%; min-height: 52px; border: 0; background: linear-gradient(180deg, var(--acc-hi), var(--acc));
+    color: var(--acc-ink); font-size: 1.1rem; font-weight: 900; box-shadow: 0 4px 0 var(--acc-lo), 0 10px 26px var(--acc-glow); }
+.stage-msg-actions .stage-again:hover { background: linear-gradient(180deg, #fff, var(--acc-hi)); }
+.stage-msg-actions .stage-again:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--acc-lo), 0 6px 16px var(--acc-glow); }
+.sm-ico { flex: none; width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.stage-again .sm-ico { width: 21px; height: 21px; stroke-width: 2.6; }
+.stage-msg-actions kbd { padding: 1px 6px; border: 1px solid currentColor; border-radius: 5px; background: rgba(0, 0, 0, 0.1);
+    font: 700 0.68rem/1.4 ui-monospace, Menlo, Consolas, monospace; opacity: 0.8; }
+.stage-msg :focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.stage-msg-actions .stage-again:focus-visible { outline-offset: 3px; }
+.stage-msg-level { flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 4px; color: var(--sm-muted); font-size: 0.84rem; }
+.stage-msg-level span { margin-right: 6px; }
+.stage-msg-level button { min-height: 32px; padding: 4px 13px; border: 1px solid rgba(255, 255, 255, 0.24); border-radius: 999px; background: transparent;
+    color: var(--sm-ink); font: inherit; font-weight: 600; cursor: pointer; }
+.stage-msg-level button:hover { border-color: var(--acc); }
+.stage-msg-level button[aria-pressed="true"] { border-color: var(--acc); background: var(--acc); color: var(--acc-ink); font-weight: 800; }
+/* key hints only where there is a keyboard */
+@media (pointer: coarse), (max-width: 600px) { .stage-msg-actions kbd { display: none; } }
+@media (pointer: coarse) { .stage-msg-actions .arcade-btn { min-height: 46px; } .stage-msg-level button { min-height: 38px; } }
+@media (max-width: 600px) {
+    .stage-msg { padding: 8px; }
+    .stage-msg-scroll { padding: 14px 16px 14px; }
+    .sm-emblem { width: 64px; height: 64px; }
+    .sm-hero-v { font-size: 2.6rem; }
+    .stage-msg-actions { padding: 12px 12px 14px; }
+    .sm-stat { min-width: 0; flex: 1 1 0; padding: 6px 6px; }
+    .sm-stat-l { font-size: 0.66rem; letter-spacing: 0.03em; }
+    .stage-msg-title { margin-top: 10px; }
+    .sm-hero { margin-top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .stage-msg, .stage-msg *, .stage-msg *::before, .stage-msg *::after { animation: none !important; transition: none !important; }
+}
+
+/* the leaderboard under the result, in the colours of the panel: medals for the top three, the player's own rows lit */
+.stage-board { width: 320px; max-width: 100%; margin: 18px auto 0; text-align: left; }
+.stage-msg .sb-head { border-bottom-color: var(--sm-line); }
+.stage-msg .sb-title { color: var(--sm-ink); }
+.stage-msg .sb-tab { color: var(--sm-muted); }
+.stage-msg .sb-tab[aria-pressed="true"] { color: var(--sm-ink); text-decoration-color: var(--acc); }
+.stage-msg .sb-list { padding: 0; list-style: none; counter-reset: sb; font-size: 0.9rem; }
+.stage-msg .sb-list li { display: flex; align-items: center; gap: 10px; margin: 2px 0; padding: 4px 8px; border-radius: 10px; counter-increment: sb; }
+.stage-msg .sb-list li::before { content: counter(sb); flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08); color: var(--sm-muted); font-size: 0.75rem; font-weight: 800; }
+.stage-msg .sb-list li:nth-child(1)::before { background: linear-gradient(135deg, #fff1b8, #f5b81c); color: #4a3000; }
+.stage-msg .sb-list li:nth-child(2)::before { background: linear-gradient(135deg, #f7f9fc, #b4bfd1); color: #2b3445; }
+.stage-msg .sb-list li:nth-child(3)::before { background: linear-gradient(135deg, #f8d2b0, #c97a3c); color: #3d1f06; }
+.stage-msg .sb-name { flex: 1; }
+.stage-msg .sb-score { float: none; margin-left: auto; color: var(--sm-muted); }
+.stage-msg .sb-me { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1.5px var(--acc); color: var(--sm-ink); }
+.stage-msg .sb-me .sb-score { color: var(--sm-ink); }
+.stage-msg .sb-empty, .stage-msg .sb-load { color: var(--sm-muted); }
+.stage-msg .sb-form { border-top-color: var(--sm-line); color: var(--sm-ink); }
+.stage-msg .sb-input { border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.08); color: var(--sm-ink); }
+.stage-msg .sb-input::placeholder { color: #a7b1d8; }
+.stage-msg .sb-input:focus { outline: 2px solid var(--acc); }
+.stage-msg .sb-close { border-color: rgba(255, 255, 255, 0.28); background: transparent; color: var(--sm-ink); }
+.stage-msg .sb-close:hover { border-color: var(--acc); color: #fff; }
+.stage-msg .sb-send { border: 0; background: var(--acc); color: var(--acc-ink); font-weight: 800; }
+.stage-msg .sb-note { color: #ffb3c8; }
 
 /* the cat in the corner, reacting to the game */
 .arcade .mascot { position: absolute; right: 10px; bottom: 6px; z-index: 4; width: 88px; height: 72px; pointer-events: auto; cursor: pointer; }
