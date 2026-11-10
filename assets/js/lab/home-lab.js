@@ -309,8 +309,9 @@
         }
         var CH = api.size().h;
         push('.home .profile-photo', 'photo');
-        /* the name: a big hop is fine, a little less room above is enough, and it may stay to bat another letter */
-        if (h1 && h1.querySelector('.ltr:not(.gone)')) push('.home .name-block h1', 'name', { w: 3, room: CH - 6, hop: 480, again: true });   /* no letters left: nothing to bat there */
+        /* the name: a big hop is fine, a little less room above is enough; it leaves after each bat (walking along the name it
+           would cross the gaps of letters it knocked off) and lands again on a letter still there */
+        if (h1 && there().length) push('.home .name-block h1', 'name', { w: 3, room: CH - 6, hop: 480 });   /* no letters left: nothing to bat there */
         /* not the chips: sitting there, the cat would cover the tagline */
         push('.home .route', 'card');
         push('.home .latest', 'card');
@@ -318,9 +319,13 @@
         glyphs.forEach(function (g) { list.push({ el: g, kind: 'glyph', w: 1.4 }); });
         return list;
     }
+    /* the letters of the name still in place, without the spaces between words */
+    function there() {
+        return h1 ? Array.prototype.filter.call(h1.querySelectorAll('.ltr:not(.gone)'), function (l) { return l.textContent.trim(); }) : [];
+    }
     function spot(p, fx) {
         if (p.kind !== 'name') return null;
-        var l = h1.querySelectorAll('.ltr:not(.gone)');          /* aims at a letter still there */
+        var l = there();                                          /* aims at a letter still there (not the space) */
         if (!l.length) return null;
         var lr = rel(l[Math.floor(fx * (l.length - 1))]);
         return { x: lr.x + lr.w / 2, y: lr.y + lr.h * 0.18 };
@@ -337,14 +342,17 @@
     function arrive(p, r) {
         var pos = api.pos(), left = cat.classList.contains('left');
         if (p.kind === 'name' && r < 0.75) {
-            var best = null, bd = 1e9, reach = left ? -30 : 30;
+            /* only letters still there, and not the one under its paws (it never stands over a gap) */
+            var best = null, bd = 1e9, reach = left ? -30 : 30, left1 = there().length;
             Array.prototype.forEach.call(h1.querySelectorAll('.ltr'), function (l) {
                 var lr = rel(l), d = Math.abs(lr.x + lr.w / 2 - (pos.x + reach));
-                if (l.textContent.trim() && !l.classList.contains('gone') && d < bd) { bd = d; best = l; }   /* only letters still there */
+                var under = pos.x >= lr.x - 2 && pos.x <= lr.x + lr.w + 2;
+                if (l.textContent.trim() && !l.classList.contains('gone') && !under && d < bd) { bd = d; best = l; }
             });
             if (best) {
                 var dir = left ? -1 : 1;
-                if (Math.random() < 0.65) api.bat(function () { makeLoose(best, dir * (180 + Math.random() * 220), -(380 + Math.random() * 220)); });
+                /* the last letter stays: with one left it only bumps it, so the name never empties */
+                if (left1 > 1 && Math.random() < 0.65) api.bat(function () { makeLoose(best, dir * (180 + Math.random() * 220), -(380 + Math.random() * 220)); });
                 else api.bat(function () { bonk(best, 'bonk', 900); });
             }
             api.next(1700 + Math.random() * 1500);
