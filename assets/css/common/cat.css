@@ -340,10 +340,11 @@ html[data-cat="astronaut"] .cat-pick .cf-face, .cat-opt[data-look="astronaut"] .
 
 /* ---------- dark mode (palette: color-scheme.css): the pets' drawings stay as they are ---------- */
 @media (prefers-color-scheme: dark) {
-    /* the home page's floating symbols, lighter so that they show on the dark */
-    .glyph, .glyph.keyicon { color: rgba(157, 186, 245, 0.5); }
-    .glyph.pink { color: rgba(243, 139, 180, 0.55); }
-    .glyph:hover { color: var(--dk-navy); }
+    /* the lab's floating symbols (mod p, GF(2^8), the key...): in the lab's warm dark, its gold and a warm orange
+       instead of the old light blue and pink */
+    .glyph, .glyph.keyicon { color: rgba(251, 191, 36, 0.55); }
+    .glyph.pink { color: rgba(251, 146, 60, 0.6); }
+    .glyph:hover { color: #fbbf24; }
     /* with a dog: warm browns, and amber instead of the light blue */
     html[data-pet="dog"] {
         --dk-bg: #1b1612; --dk-page: #1e1915; --dk-card: #262019; --dk-raise: #2f2820; --dk-line: #40352a; --dk-field: #55483a;

@@ -7,6 +7,15 @@
 :root {
     color-scheme: light dark;
 }
+/* the "don't recolour" hint (2026-11-10): the site has its own light and dark looks, so it asks browsers not to darken
+   or recolour it themselves (Chromium's auto dark mode, used by Chrome, Brave and Edge, skips pages that say "only").
+   Light while light is showing, dark while dark is showing; theme.js rewrites this media condition like every other
+   dark block, so the light switch's choice is followed. A browser's own forced-colour or night mode may still ignore
+   it; nothing a site can do about that. */
+:root { color-scheme: only light; }
+@media (prefers-color-scheme: dark) {
+    :root { color-scheme: only dark; }
+}
 
 /* ---------- dark mode: the palette ---------- */
 /* ink blue backgrounds (not black; lightened a step on 2026-11-10 at the user's request), soft white text, and the navy turned into a light blue that reads on the dark.
