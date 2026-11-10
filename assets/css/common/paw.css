@@ -95,7 +95,7 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
 .cat-opt[aria-checked="true"] { border-color: #cbd5e1; background: #f8fafc; font-weight: 700; }
 
 /* leave room for the corner buttons at the right end of the menu (two, four in play mode) */
-.nav { padding-inline-end: calc(60px + var(--key-w, 34px)); }
+.nav { padding-inline-end: calc(36px + var(--eye-w, 40px) + var(--key-w, 34px)); }
 html[data-mode="play"] .nav { padding-inline-end: calc(144px + var(--key-w, 34px)); }
 @keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
 @media (max-width: 600px) {

@@ -128,3 +128,18 @@ a.hn-text:hover { color: var(--h3-navy); text-decoration: underline; text-decora
     .hw-next { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .hb .social-icons a { transition: none; } }
+
+/* ---------- the eye and the key, inside the band ---------- */
+/* on the home page they belong to the band: they scroll away with it and take its colours (light or ink blue) */
+body:has(.home3) .key-btn, body:has(.home3) .you-link { position: absolute; top: 16px; }
+body:has(.home3) .key-btn { right: 16px; }
+body:has(.home3) .you-link { right: calc(24px + var(--key-w)); }
+@media (prefers-color-scheme: dark) {
+    body:has(.home3) .key-btn, body:has(.home3) .you-link { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .2); color: #e2e8f0; box-shadow: none; }
+    body:has(.home3) .key-btn:hover, body:has(.home3) .you-link:hover { background: rgba(255, 255, 255, .14); color: #fff; }
+}
+@media (max-width: 600px) {
+    body:has(.home3) .key-btn, body:has(.home3) .you-link { top: 12px; }
+    body:has(.home3) .key-btn { right: 12px; }
+    body:has(.home3) .you-link { left: 12px; right: auto; }
+}

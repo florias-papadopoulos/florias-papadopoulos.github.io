@@ -19,11 +19,14 @@ In this thesis, I explore Cryptography in the Post-Quantum era, addressing the i
 
 The thesis was presented on [Seminar on Theoretical Computer Science and Discrete Mathematics](https://users.auth.gr/grahonis/Seminar_TCS.html) on March 2022.
 
+In 2022 I also gave a talk on the same topic at the Graduate Seminars of the Mathematics Department of Aristotle University of Thessaloniki: the quantum threat to cryptography and the post-quantum families, hash-based, code-based and lattice-based, with the actions of organizations such as NIST.
+
 ## ❖ Files Included
 
 - [PDF](cryptography_in_the_post_quantum_era_BCsThesis.pdf) (greek)
 - [Presentation](cryptography_in_the_post_quantum_era_BCsThesis.pptx) (greek)
+- [Graduate seminar presentation, 2022](seminar_presentation_2022.pptx) (greek)
 
 ## ❖ Keywords
 
-Cryptography, quantum computer, Shor’s quantum algorithm, Grover’s quantum algorithm, Quantum Cryptography, Post-Quantum Cryptography, Hash-based Cryptography, Merkle tree, Coding Theory, Code-based Cryptography, McEliece cryptosystem, NIST competition, hybridation.
+Cryptography, quantum computer, Shor’s quantum algorithm, Grover’s quantum algorithm, Quantum Cryptography, Post-Quantum Cryptography, Hash-based Cryptography, Merkle tree, Coding Theory, Code-based Cryptography, McEliece cryptosystem, Lattice Cryptography, NIST competition, hybridation.

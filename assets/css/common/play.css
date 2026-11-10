@@ -25,13 +25,11 @@ html[data-pet="dog"][data-mode="play"] .key-btn { background: #8a5a2b; border-co
 /* the key with its name: a wider button than the others, "The Lab" on the normal site and "About me" in the lab
    (only the key on phones in the lab, where the corner also holds the pet pickers); --key-w is its width, which the
    other corner buttons (paw.css) keep clear of */
-:root { --key-w: 104px; }
-html[data-mode="play"] { --key-w: 110px; }
 .key-btn { width: var(--key-w); grid-auto-flow: column; gap: 6px; padding: 0 12px 0 9px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 650; white-space: nowrap; }
 .key-btn:hover { transform: translateY(-1px); }
 .key-btn .key-label { line-height: 1; }
 @media (max-width: 899px) {
-    html[data-mode="play"] { --key-w: 34px; }
+    html[data-mode="play"] { --key-w: 44px; }
     html[data-mode="play"] .key-btn { padding: 0; border-radius: 50%; }
     html[data-mode="play"] .key-btn .key-label { display: none; }
 }
@@ -190,3 +188,31 @@ html[data-mode="play"] .you-link { display: none; }
 @media (max-width: 899px) {
     html[data-mode="play"] .home-reset { left: auto; right: calc(94px + var(--key-w, 34px)); }
 }
+
+/* ---------- the eye and the key: bigger, the eye with its name ---------- */
+/* 40 px tall (44 px on phones, a comfortable finger size); the eye reads "Your data" from 601 px, an icon below.
+   --eye-w is the eye's width, which the header keeps clear of (paw.css) */
+:root { --key-h: 40px; --eye-w: 116px; --key-w: 112px; }
+html[data-mode="play"] { --key-w: 120px; }
+@media (max-width: 899px) { html[data-mode="play"] { --key-w: 44px; } }   /* the key alone, round, in the lab on phones */
+.key-btn, .you-link { top: 8px; height: var(--key-h); }
+.key-btn { font-size: 15px; }
+.key-btn svg { width: 24px; height: 24px; }
+.you-link { width: var(--eye-w); grid-auto-flow: column; gap: 7px; padding: 0 13px 0 11px; border-radius: 10px; font: inherit; font-size: 14.5px; font-weight: 650; line-height: 1; white-space: nowrap; text-decoration: none; }
+.you-link svg { width: 21px; height: 21px; }
+.you-link { right: calc(18px + var(--key-w)); }
+/* pills do not tilt like the round buttons: they lift a little */
+.key-btn:hover, .you-link:hover { transform: translateY(-1px); }
+@media (max-width: 600px) {
+    :root { --key-h: 44px; --eye-w: 44px; --key-w: 112px; }
+    .key-btn, .you-link { top: 6px; }
+    .you-link { padding: 0; border-radius: 50%; right: calc(14px + var(--key-w)); }
+    .you-label { display: none; }
+}
+/* a little life on hover (mice only, not with reduced motion): the key turns a bit in its lock, the eye blinks */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .key-btn:hover svg { transform: rotate(-24deg); }
+    html[data-mode="play"] .key-btn:hover svg { transform: rotateX(180deg) rotate(24deg); }
+    .you-link:hover svg { animation: eye-blink 0.38s ease-in-out 1; transform-origin: 50% 50%; }
+}
+@keyframes eye-blink { 0%, 100% { transform: scaleY(1); } 45%, 55% { transform: scaleY(0.12); } }

@@ -60,6 +60,7 @@
     {{- /* the eye leads to what this site could know about the visitor (layouts/_default/you.html) */}}
     <a class="corner-btn you-link" id="you-link" href="{{ "you/" | relURL }}" title="What this site knows about you" aria-label="What this site knows about you"{{ if eq .Layout "you" }} aria-current="page"{{ end }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.3"/></svg>
+    <span class="you-label">Your data</span>
     </a>
     {{- $picker := slice (resources.Get "js/lab/cat-picker.js") (resources.Get "js/lab/play.js") | resources.Concat "js/corner.js" | minify | fingerprint }}
     <script src="{{ $picker.RelPermalink }}" integrity="{{ $picker.Data.Integrity }}" defer></script>
