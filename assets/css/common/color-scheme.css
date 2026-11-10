@@ -9,17 +9,17 @@
 }
 
 /* ---------- dark mode: the palette ---------- */
-/* ink blue backgrounds (not black), soft white text, and the navy turned into a light blue that reads on the dark.
+/* ink blue backgrounds (not black; lightened a step on 2026-11-10 at the user's request), soft white text, and the navy turned into a light blue that reads on the dark.
    The lab has warmer values (play.css), and warm browns while a dog is chosen (cat.css). Each line names the light
    colour it stands in for. */
 @media (prefers-color-scheme: dark) {
     :root {
-        --dk-bg: #0f172a;               /* the page, header and footer (#f5f5f5) */
-        --dk-page: #131c31;             /* a page's own background where it differs from the header (#fff) */
-        --dk-card: #162036;             /* cards, boxes and form fields (#fff) */
-        --dk-raise: #1d2941;            /* pale tiles, hovers and highlights (#f5f7fb, #eef2fb, #f1f5f9) */
-        --dk-line: #2a3752;             /* lines and card borders (#e2e8f0) */
-        --dk-field: #3d4c6b;            /* borders of fields and buttons (#c7d2e8, #cbd5e1) */
+        --dk-bg: #1b2539;               /* the page, header and footer (#f5f5f5) */
+        --dk-page: #1f2a40;             /* a page's own background where it differs from the header (#fff) */
+        --dk-card: #243047;             /* cards, boxes and form fields (#fff) */
+        --dk-raise: #2b3851;            /* pale tiles, hovers and highlights (#f5f7fb, #eef2fb, #f1f5f9) */
+        --dk-line: #3a4862;             /* lines and card borders (#e2e8f0) */
+        --dk-field: #4d5d7c;            /* borders of fields and buttons (#c7d2e8, #cbd5e1) */
         --dk-ink: #e8edf5;              /* headings and strong text (#0f172a) */
         --dk-text: #cbd5e1;             /* body text (#334155) */
         --dk-muted: #9aa8bd;            /* quiet text (#5b6b80) */
@@ -43,7 +43,7 @@
         --code-block-bg: var(--dk-card);
         --border: var(--dk-line);
         --darkcolor: #8fa6d6;
-        --lightcolor: #2c3a58;
+        --lightcolor: #364563;
 
         /* scrollbars of the boxes that scroll (the Work strip, the presenter page's preview): dark ones, also where the
            browser's own would stay light */

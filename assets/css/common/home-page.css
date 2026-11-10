@@ -30,18 +30,18 @@
 }
 @media (prefers-color-scheme: dark) {
     .home3 {
-        /* the band: light inside the dark page (chosen on 2026-11-10, after a navy gradient and two slate greys), with
+        /* the band: a light grey card inside the dark page (chosen on 2026-11-10, after a navy gradient and two slate greys), with
            dark text, so it stands out clearly from the page under it */
-        --hb-bg: #e4e9f1;
+        --hb-bg: #c8ced7;
         --hb-edge: transparent;
-        --hb-dot: #99a0ab;
+        --hb-dot: #8a919c;
         --hb-dot-op: .55;
-        --hb-kicker: #4f5666;
+        --hb-kicker: #3f4654;
         --hb-name: #0f172a;
-        --hb-native: #4f5666;
-        --hb-tag: #3a4152;
+        --hb-native: #3f4654;
+        --hb-tag: #2a313d;
         --hb-strong: #0f172a;
-        --hb-badge: #4f5666;
+        --hb-badge: #3f4654;
         --hb-badge-line: rgba(15, 23, 42, .3);
         --hb-btn: rgba(15, 23, 42, .05);
         --hb-btn-line: rgba(15, 23, 42, .18);
@@ -166,14 +166,12 @@ body:has(.home3) .key-btn:hover, body:has(.home3) .theme-btn:hover { background:
     body:has(.home3) .key-btn, body:has(.home3) .theme-btn { top: 12px; }
     body:has(.home3) .key-btn { right: 12px; }
 }
-/* in dark mode the light band is a card: a strip of the dark page around it (no top-to-edge white) and rounded
-   corners, chosen on 2026-11-10; the two buttons move in with it */
-@media (prefers-color-scheme: dark) {
-    .hb { margin: 14px 14px 0; border-radius: 16px; }
-    body:has(.home3) .key-btn, body:has(.home3) .theme-btn { top: 28px; }
-    body:has(.home3) .key-btn { right: 30px; }
-    body:has(.home3) .theme-btn { right: calc(38px + var(--key-w)); }
-}
+/* the band is a card in both modes: a strip of the page around it and rounded corners (chosen on 2026-11-10, first
+   for dark mode, then for light mode too); the two buttons move in with it */
+.hb { margin: 14px 14px 0; border-radius: 16px; }
+body:has(.home3) .key-btn, body:has(.home3) .theme-btn { top: 28px; }
+body:has(.home3) .key-btn { right: 30px; }
+body:has(.home3) .theme-btn { right: calc(38px + var(--key-w)); }
 /* the CV: the word instead of a document icon, in a slightly wider button */
 .hb .social-icons a.si-cv { width: auto; padding: 0 11px; }
 .hb .si-text { font-size: 14px; font-weight: 700; letter-spacing: .02em; line-height: 1; }
