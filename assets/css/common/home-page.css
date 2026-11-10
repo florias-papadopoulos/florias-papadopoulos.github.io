@@ -184,10 +184,9 @@ body:has(.home3) .key-btn:hover, body:has(.home3) .theme-btn:hover { background:
     .hw-next:hover { box-shadow: 0 2px 8px var(--dk-shadow), inset 0 0 0 1px var(--h3-navy); }
 }
 
-/* ---------- the page behind, like the lab's (play.css): a shade deeper than white in light, a softer ink in dark,
-   calm navy dots under the band (the grid starts half a step below its edge, so no dot ever touches the line, and
+/* ---------- the page behind, like the lab's (play.css): calm navy dots under the band (the grid starts half a step below its edge, so no dot ever touches the line, and
    stops where the footer starts) and a soft glow in the corner ---------- */
-body:has(.home3) { --theme: #edf0f5; --home-dot: rgba(30, 58, 138, 0.2); --home-glow: rgba(59, 130, 246, 0.12); }
+body:has(.home3) { --theme: var(--code-bg); --home-dot: rgba(30, 58, 138, 0.2); --home-glow: rgba(59, 130, 246, 0.12); }
 body:has(.home3)::before {
     content: "";
     position: fixed;
@@ -201,6 +200,21 @@ body:has(.home3) .main { display: flex; flex-direction: column; }
 .h3-rest { flex: 1; padding-bottom: 24px; background: radial-gradient(circle, var(--home-dot) 1.2px, transparent 1.8px) 0 0 / 30px 30px; }   /* each dot sits in the middle of its 30 px square: 15 px clear of the edge */
 body:has(.home3) .footer { background: transparent; }
 @media (prefers-color-scheme: dark) {
-    body:has(.home3) { --theme: #1a2440; --home-dot: rgba(157, 186, 245, 0.17); --home-glow: rgba(96, 165, 250, 0.10); }
-    .hw-wrap::after { background: linear-gradient(90deg, rgba(26, 36, 64, 0), var(--theme) 80%); }
+    body:has(.home3) { --theme: var(--code-bg); --home-dot: rgba(157, 186, 245, 0.17); --home-glow: rgba(96, 165, 250, 0.10); }
+    .hw-wrap::after { background: linear-gradient(90deg, rgba(15, 23, 42, 0), var(--theme) 80%); }
+}
+/* behind the news the dots fade away (a veil of the page's colour with soft edges, like the lab's texts, play.css) */
+.hn-list { position: relative; }
+.hn-list::before {
+    content: "";
+    position: absolute;
+    inset: -18px -22px;
+    z-index: -1;
+    pointer-events: none;
+    --veil: color-mix(in srgb, var(--code-bg) 92%, transparent);
+    background: var(--veil);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent), linear-gradient(180deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent), linear-gradient(180deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    mask-composite: intersect;
 }
