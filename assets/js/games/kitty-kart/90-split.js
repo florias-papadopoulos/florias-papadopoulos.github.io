@@ -323,6 +323,12 @@
     showBests();
     buildSkins();
     if (!split) show();
+    /* "Play again" in the end panel of arcade.js: the same track again, straight to the countdown ("Tracks" there
+       starts the game without api.again, on the picker) */
+    if (!duo && !split && api.again && api.again.track) {
+        MAPS.forEach(function (m, i) { if (m.id === api.again.track && i !== sel) choose(i); });
+        go();
+    }
     return { destroy: function () {
         if (window.__kk === test) try { delete window.__kk; } catch (e) { window.__kk = undefined; }
         if (duo) { send({ t: 'bye' }); teardown(false); }

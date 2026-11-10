@@ -10,7 +10,7 @@ layout: arcade
 # levels: true shows the Easy/Normal/Hard picker while playing (the game reads it with api.level()).
 # script: <file> runs a game from another game's file (assets/js/games/<file>.js registers both ids).
 # dogTitle, dogDesc, dogEmoji: the name, text and icon shown instead when a dog is chosen (html[data-pet="dog"]); default the cat ones.
-# restart: false hides the restart button (a two-player race would lose the other player).
+# restart: false hides the restart button and the end panel's "Play again" (a two-player race would lose the other player).
 # tracks: the sub-boards of a game's leaderboard (Kitty Kart tracks, Garden Defender gardens): the ids the game passes
 # to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track;
 # with a single track the picker is not shown and that board is used).

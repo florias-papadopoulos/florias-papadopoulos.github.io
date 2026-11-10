@@ -678,10 +678,17 @@ Arcade.register('dino-valley', function (api) {
         state = 'dead'; stateT = 0;
         if (lives <= 0) { gameOver(); return; }
     }
+    /* the end panel of arcade.js: "Play again" starts the next run where this one started (api.again below), and once
+       a later region is open a "Regions" button goes back to the title card with its "Or start at" choices */
+    function endOpts(o) {
+        o.again = { from: firstLv };
+        if (furthest[diff] >= 2) o.menu = 'Regions';
+        return o;
+    }
     function gameOver() {
         state = 'over';
         api.timeout(function () {
-            api.end({ score: score, win: false, text: 'The valley was too much this time.\nScore ' + score + ', eggs ' + eggsGot + ' of ' + eggsAll });
+            api.end(endOpts({ score: score, win: false, text: 'The valley was too much this time.\nScore ' + score + ', eggs ' + eggsGot + ' of ' + eggsAll }));
         }, 900);
     }
     function doSwipe() {
@@ -1038,7 +1045,7 @@ Arcade.register('dino-valley', function (api) {
         if (stateT > 4.2 && !ending) {
             ending = 1;
             addScore(300 * lives);
-            api.end({ score: score, win: true, text: 'Home before the eruption!\nScore ' + score + ', eggs ' + eggsGot + ' of ' + eggsAll });
+            api.end(endOpts({ score: score, win: true, text: 'Home before the eruption!\nScore ' + score + ', eggs ' + eggsGot + ' of ' + eggsAll }));
         }
     }
     function stepFx(dt) {
@@ -1612,7 +1619,9 @@ Arcade.register('dino-valley', function (api) {
     /* ---------- run ---------- */
     fit();
     W = parse(LEVELS[0], diff); P = newBody(W.start.x, W.start.y); camTo(true);
-    titleCard();
+    var from = api.again && api.again.from;   /* "Play again": straight on, from the same region (if open at this difficulty) */
+    if (typeof from === 'number') begin(from > 0 && from <= furthest[diff] ? from : 0);
+    else titleCard();
     api.loop(function (dt) {
         update(dt);
         if (W && P && (state === 'play' || state === 'clear' || state === 'ending' || state === 'dead' || state === 'intro')) camTo(false);

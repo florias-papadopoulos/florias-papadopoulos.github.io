@@ -119,11 +119,26 @@
             <button class="arcade-btn stage-restart" type="button" title="Restart">&#8635;</button>
         </div>
         <div class="stage-area"></div>
+        {{- /* the end of a game (api.end in arcade.js): the result and the leaderboard scroll in the top part, the buttons
+               stay pinned under them. stage-menu is the game's own menu (its label comes from the game), the difficulty
+               switch shows for games with levels */}}
         <div class="stage-msg" hidden>
-            <div class="stage-msg-box">
-                <p class="stage-msg-text"></p>
-                <div class="stage-board" hidden></div>
-                <button class="arcade-btn stage-again" type="button">Play again</button>
+            <div class="stage-msg-box" role="dialog" aria-modal="true" aria-labelledby="stage-msg-title" aria-describedby="stage-msg-text">
+                <div class="stage-msg-scroll">
+                    <h2 class="stage-msg-title" id="stage-msg-title"></h2>
+                    <p class="stage-msg-text" id="stage-msg-text"></p>
+                    <p class="stage-msg-best" hidden></p>
+                    <div class="stage-board" hidden></div>
+                </div>
+                <div class="stage-msg-actions">
+                    <button class="arcade-btn stage-again" type="button">Play again</button>
+                    <button class="arcade-btn stage-menu" type="button" hidden></button>
+                    <button class="arcade-btn stage-quit" type="button">All games</button>
+                    <div class="stage-msg-level" role="group" aria-labelledby="stage-msg-level-n" hidden>
+                        <span id="stage-msg-level-n">Difficulty</span>
+                        <button type="button" data-level="easy">Easy</button><button type="button" data-level="normal">Normal</button><button type="button" data-level="hard">Hard</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="cat mascot" aria-hidden="true"><div class="cat-tilt"><div class="cat-flip">{{ partial "cat-svg.html" . }}</div></div></div>
