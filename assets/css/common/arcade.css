@@ -203,13 +203,40 @@ body.arcade-playing { overflow: hidden; }
 }
 .stage-area { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 
-.stage-msg { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(15, 23, 42, 0.35); }
+/* the end panel (arcade.js, api.end): result and leaderboard scroll in the top part, the buttons stay pinned under them,
+   so they are always in view, on phones too */
+.stage-msg { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+    padding: 12px; background: rgba(15, 23, 42, 0.4); }
 .stage-msg[hidden] { display: none; }
-.stage-msg-box { padding: 22px 28px; border-radius: 18px; background: #fff; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25); }
-.stage-msg-text { margin: 0 0 14px; font-size: 1.15rem; font-weight: 700; white-space: pre-line; }
-.stage-msg-box { max-width: calc(100% - 24px); max-height: calc(100% - 24px); overflow: auto; }
+.stage-msg-box { display: flex; flex-direction: column; width: 380px; max-width: 100%; max-height: 100%; box-sizing: border-box; overflow: hidden;
+    border-radius: 18px; background: #fff; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25); animation: msg-in 0.22s ease-out; }
+@keyframes msg-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+.stage-msg-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 22px 24px 14px;
+    scrollbar-color: #cbd5e1 transparent; }   /* light like the panel, also in dark mode (the root sets dark ones) */
+.stage-msg-title { margin: 0; color: var(--ink); font-size: 1.3rem; font-weight: 800; line-height: 1.3; }
+.stage-msg-text { margin: 8px 0 0; color: var(--ink); font-size: 0.98rem; line-height: 1.45; white-space: pre-line; }
+.stage-msg-text[hidden], .stage-msg-best[hidden] { display: none; }
+.stage-msg-best { margin: 10px 0 0; color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+.stage-msg-best.is-new { display: inline-block; padding: 3px 12px; border-radius: 999px; background: #fff3c4; color: #7a5200; font-weight: 800; }
+/* the buttons: Play again across the top, the game's menu and All games under it, then the difficulty */
+.stage-msg-actions { flex: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 14px 20px 16px; border-top: 1px solid var(--line); background: #f8fafc; }
+.stage-msg-actions .arcade-btn { flex: 1 1 0; min-height: 40px; padding: 8px 14px; font-weight: 600; }
+.stage-msg-actions .arcade-btn[hidden] { display: none; }
+/* (two classes: the dark block's .arcade-btn background must not turn it white on white) */
+.stage-msg-actions .stage-again { flex-basis: 100%; border-color: var(--ink); background: var(--ink); color: #fff; font-size: 1.02rem; font-weight: 700; }
+.stage-msg-actions .stage-again:hover { background: var(--navy); border-color: var(--navy); }
+.stage-msg-actions .arcade-btn:focus-visible, .stage-msg-level button:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+.stage-msg-level { flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; color: var(--muted); font-size: 0.85rem; }
+.stage-msg-level[hidden] { display: none; }
+.stage-msg-level span { margin-right: 6px; }
+.stage-msg-level button { min-height: 32px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted);
+    font: inherit; cursor: pointer; }
+.stage-msg-level button:hover { border-color: var(--navy); color: var(--ink); }
+.stage-msg-level button[aria-pressed="true"] { border-color: var(--navy); background: var(--navy); color: #fff; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .stage-msg-box { animation: none; } }
+@media (pointer: coarse) { .stage-msg-actions .arcade-btn { min-height: 44px; } .stage-msg-level button { min-height: 38px; } }
 /* the leaderboard under the result */
-.stage-board { width: 300px; max-width: 100%; margin: 0 auto 16px; text-align: left; }
+.stage-board { width: 300px; max-width: 100%; margin: 16px auto 0; text-align: left; }
 .stage-board[hidden] { display: none; }
 .sb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .sb-title { font-weight: 700; font-size: 0.95rem; }
@@ -238,7 +265,6 @@ body.arcade-playing { overflow: hidden; }
 .sb-send { margin-top: 8px; }
 .sb-note { min-height: 1.2em; margin: 6px 0 0; color: var(--pink); font-size: 0.82rem; }
 @media (pointer: coarse) { .sb-input { font-size: 16px; } }
-.stage-again { background: var(--ink); color: #fff; border-color: var(--ink); padding: 8px 18px; }
 
 /* the cat in the corner, reacting to the game */
 .arcade .mascot { position: absolute; right: 10px; bottom: 6px; z-index: 4; width: 88px; height: 72px; pointer-events: auto; cursor: pointer; }

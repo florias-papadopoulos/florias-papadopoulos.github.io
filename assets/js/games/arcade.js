@@ -21,11 +21,23 @@
      api.level()                 'easy', 'normal' or 'hard': the difficulty picked in the top bar. The picker shows for
                                  games with "levels: true" in content/games/_index.md; changing it restarts the game,
                                  and each difficulty keeps its own best
-     api.end({score, win, text, lowerIsBetter, board})   game over: saves the best, shows text and "Play again". When the
-                                 site has its server, it also shows the game's leaderboard (top 10 this week and all
+     api.end({score, win, text, lowerIsBetter, board, again, menu})   game over: saves the best and opens the end
+                                 panel. Its top part (it scrolls when it is long) has the result: the first line of
+                                 text as its title, the other lines under it, then "New best!" or the best so far. When
+                                 the site has its server, the game's leaderboard follows (top 10 this week and all
                                  time, per difficulty) and, if the score makes it in, a box to add it under a nickname;
                                  board: an optional sub-board, e.g. the Kitty Kart track. Games of the "two" group have
-                                 no leaderboard (the server lists the games that have one: tools/workers/stats/worker.js)
+                                 no leaderboard (the server lists the games that have one: tools/workers/stats/worker.js).
+                                 The buttons stay pinned under it: "Play again" (focused, so Enter plays again; hidden
+                                 for "restart: false"), the game's own menu when it passes one, "All games" (Escape
+                                 too) and, for games with levels, an Easy / Normal / Hard switch that plays again at
+                                 that difficulty. Tab stays inside the panel while it is open, and keys pressed there
+                                 never reach the game.
+                                 again: any value, handed to the round that "Play again" (or the difficulty switch)
+                                 starts as api.again, so a game with a menu of its own (tracks, regions...) can skip it
+                                 and play the same thing again. menu: the label of a button for that menu ('Tracks');
+                                 it starts the game afresh (api.again null), so the game opens on its menu.
+     api.again                   null, or the "again" value of the round before when the player pressed "Play again"
      api.cat(mood)               the cat in the corner: 'happy', 'sad', 'wow', 'think' or 'idle'
      api.say(text, ms)           a speech bubble from the cat
      api.sfx(name)               'tap', 'pop', 'point', 'hit', 'jump', 'move', 'win', 'lose'
@@ -36,7 +48,9 @@
 
    One file can register more than one id: an entry in content/games/_index.md with "script: <file>" loads
    assets/js/games/<file>.js and runs the game registered under its own id. "restart: false" hides the restart button
-   (for a game that a restart would break, like one linked to another player).
+   and "Play again" in the end panel (for a game that a restart would break, like one linked to another player).
+   The two-player games ("two" group) keep result boxes of their own (Rematch, Race again, New track, Reset...) and do
+   not call api.end.
 
    Likes: every card has a like button (a paw print, "paws up") with the total of all visitors (GET and POST /likes on the site's
    server, tools/workers/stats/worker.js). When the page loads, the cards of each tab are ordered by likes (most first,
@@ -402,12 +416,11 @@
             .catch(function () { if (seq === boardSeq) { boardEl.innerHTML = ''; boardEl.appendChild(el('p', 'sb-load', 'The leaderboard is not reachable right now.')); } });
     }
 
-    function start(id) {
+    function start(id, again) {
         stop();
         var g = byId[id];
         var cleanups = [], resizeFns = [], ended = false;
-        msg.hidden = true;
-        hideBoard();
+        hideMsg();
         area.innerHTML = '';
         area.className = 'stage-area game-' + id;
         stage.querySelector('.stage-title').textContent = nameOf(g);
@@ -420,6 +433,7 @@
         if (bubble) { bubble.remove(); bubble = null; }   /* no leftover speech bubble from the previous round */
         var api = {
             el: area,
+            again: again === undefined ? null : again,
             server: root.dataset.server || '',
             touch: window.matchMedia('(pointer: coarse)').matches,
             reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -470,10 +484,9 @@
                 }
                 catMood(o.win === false ? 'sad' : 'happy');
                 api.sfx(o.win === false ? 'lose' : 'win');
-                var mt = o.text || (o.win === false ? 'Game over' : 'You win!');
-                msg.querySelector('.stage-msg-text').textContent = mt + (isBest && typeof o.score === 'number' ? (mt.indexOf('\n') >= 0 ? '\n' : '  ') + 'New best!' : '');
+                fillMsg(id, o, isBest);
                 showBoard(id, o);
-                setTimeout(function () { if (current && current.id === id) { msg.hidden = false; msg.querySelector('.stage-again').focus(); } }, 650);
+                setTimeout(function () { if (current && current.api === api) showMsg(); }, 650);
                 return isBest;
             },
             cat: catMood,
@@ -486,11 +499,83 @@
         cleanups.push(function () { ro.disconnect(); });
         var inst = null;
         try { inst = factories[id](api) || {}; } catch (e) { area.textContent = 'Sorry, this game could not start.'; if (window.console) console.error(e); }
-        current = { id: id, cleanup: function () {
+        current = { id: id, api: api, cleanup: function () {
             cleanups.forEach(function (fn) { try { fn(); } catch (e) { /* keep cleaning */ } });
             if (inst && inst.destroy) { try { inst.destroy(); } catch (e) { /* ignore */ } }
         } };
     }
+    /* ---------- the end panel (layouts/_default/arcade.html: .stage-msg) ---------- */
+    var msgTitle = msg.querySelector('.stage-msg-title'), msgText = msg.querySelector('.stage-msg-text'), msgBest = msg.querySelector('.stage-msg-best');
+    var againBtn = msg.querySelector('.stage-again'), menuBtn = msg.querySelector('.stage-menu'), quitBtn = msg.querySelector('.stage-quit');
+    var lvBox = msg.querySelector('.stage-msg-level'), ending = null;   /* ending: {id, again} of the round that ended */
+    function fillMsg(id, o, isBest) {
+        var g = byId[id], lines = String(o.text || (o.win === false ? 'Game over' : 'You win!')).split('\n');
+        msgTitle.textContent = lines.shift();
+        msgText.textContent = lines.join('\n').replace(/^\n+/, '');
+        msgText.hidden = !msgText.textContent;
+        /* "New best!", or the best so far (not for games with tracks: the best on the page is not per track) */
+        var b = bests[bestKey(id)], scored = typeof o.score === 'number' && (o.lowerIsBetter || o.score > 0);
+        msgBest.textContent = isBest ? 'New best!' : scored && b != null && !o.board ? 'Your best' + (g.levels ? ' on ' + LEVEL_NAME[levelOf(id)] : '') + ': ' + scoreFmt(id)(b) : '';
+        msgBest.classList.toggle('is-new', !!isBest);
+        msgBest.hidden = !msgBest.textContent;
+        ending = { id: id, again: o.again === undefined ? null : o.again };
+        againBtn.hidden = g.restart === false;
+        menuBtn.textContent = typeof o.menu === 'string' ? o.menu : '';
+        menuBtn.hidden = !menuBtn.textContent;
+        lvBox.hidden = !g.levels;
+        Array.prototype.forEach.call(lvBox.querySelectorAll('button'), function (b) {
+            b.setAttribute('aria-pressed', b.dataset.level === levelOf(id) ? 'true' : 'false');
+        });
+        msg.querySelector('.stage-msg-scroll').scrollTop = 0;
+    }
+    function showMsg() {
+        msg.hidden = false;
+        var b = againBtn.hidden ? msgButtons().filter(function (e) { return e.closest('.stage-msg-actions'); })[0] : againBtn;
+        if (b) b.focus({ preventScroll: true });
+    }
+    function hideMsg() { msg.hidden = true; ending = null; hideBoard(); }
+    /* what Tab can reach in the panel, in order */
+    function msgButtons() {
+        return Array.prototype.filter.call(msg.querySelectorAll('button, input, select, a[href]'), function (e) {
+            return !e.disabled && e.offsetParent !== null;
+        });
+    }
+    function replay(again) { if (current && ending) start(current.id, again); }
+    againBtn.addEventListener('click', function () { if (ending) replay(ending.again); });
+    menuBtn.addEventListener('click', function () { replay(null); });
+    quitBtn.addEventListener('click', function () { stage.querySelector('.stage-back').click(); });
+    lvBox.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-level]');
+        if (!b || !current || !ending) return;
+        levels[current.id] = b.dataset.level;
+        store('arcade-level', levels);
+        showBests();
+        replay(ending.again);
+    });
+    /* keys pressed in the panel stay there (the games listen on document and window); Tab goes round inside it */
+    function trap(e, inside) {
+        var list = msgButtons();
+        if (!list.length) return;
+        var i = list.indexOf(document.activeElement);
+        if (!inside || (e.shiftKey && i <= 0) || (!e.shiftKey && i === list.length - 1)) {
+            e.preventDefault();
+            list[e.shiftKey ? list.length - 1 : 0].focus();
+        }
+    }
+    msg.addEventListener('keydown', function (e) {
+        e.stopPropagation();
+        if (e.key === 'Escape') quitBtn.click();
+        else if (e.key === 'Tab') trap(e, true);
+    });
+    ['keyup', 'keypress'].forEach(function (t) { msg.addEventListener(t, function (e) { e.stopPropagation(); }); });
+    /* focus outside the panel while it is open (a click on the dimmed game): Tab comes back, other keys do nothing */
+    window.addEventListener('keydown', function (e) {
+        if (msg.hidden || stage.hidden || msg.contains(e.target) || e.key === 'Escape') return;
+        e.stopPropagation();
+        if (e.key === 'Tab') trap(e, false);
+    }, true);
+    msg.addEventListener('mousedown', function (e) { if (e.target === msg) e.preventDefault(); });   /* a click beside the panel keeps the focus in it */
+
     function stop() {
         if (current) current.cleanup();
         current = null;
@@ -508,8 +593,7 @@
     function close() {
         stop();
         stage.hidden = true;
-        msg.hidden = true;
-        hideBoard();
+        hideMsg();
         document.body.classList.remove('arcade-playing');
         if (musicBox && musicBox.parentNode === stage.querySelector('.stage-bar')) { musicBox.close(); root.querySelector('.arcade-head').appendChild(musicBox); }
     }
@@ -818,7 +902,6 @@
     });
     stage.querySelector('.stage-back').addEventListener('click', function () { history.length > 1 && /#play/.test(location.hash) ? history.back() : (location.hash = ''); });
     stage.querySelector('.stage-restart').addEventListener('click', function () { if (current) start(current.id); });
-    stage.querySelector('.stage-again').addEventListener('click', function () { if (current) start(current.id); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !stage.hidden) stage.querySelector('.stage-back').click(); });
     window.addEventListener('hashchange', route);
     route();

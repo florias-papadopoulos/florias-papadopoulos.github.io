@@ -30,6 +30,11 @@ How to do it:
 
 - Dog mode (`html[data-pet="dog"]`): draw a dog with dog items (bones, tennis balls), and give dog names and texts
   in `content/games/_index.md` (`dogTitle`, `dogDesc`, `dogEmoji`) where the name mentions the cat.
+- The end of a game is `api.end(...)`: the shell's end panel shows the result, the leaderboard and the buttons
+  (Play again, All games, the difficulty switch). Do not build an end screen of your own. A game with a menu of its
+  own (Kitty Kart's tracks, Dino Valley's regions) passes `menu: 'Tracks'` (a button that starts it afresh, on the
+  menu) and `again: {...}` (handed to the next round as `api.again` when the player presses Play again, so the game
+  skips its menu and plays the same track or level again). Details in the header of `arcade.js`.
 - Sound only through `api.sfx` (it follows the Effects volume); a game with sounds of its own reads
   `Arcade.sfxLevel()`.
 - A game with a leaderboard needs its id in `BOARDS` in `tools/workers/stats/worker.js`, with a `max` (the best real
