@@ -35,7 +35,9 @@ html[data-pet="dog"][data-mode="play"] .key-btn { background: #8a5a2b; border-co
 }
 
 /* ---------- play mode's colours: a little warmer ---------- */
-html[data-mode="play"]:not([data-pet="dog"]) { --theme: #fffdf9; --code-bg: #f7f3ec; --pn-line: #e8e0d3; }
+/* the page a shade deeper than white, so the cards stand out */
+html[data-mode="play"]:not([data-pet="dog"]) { --theme: #f9f5ee; --code-bg: #efe9df; --pn-line: #e0d7c8; }
+html[data-mode="play"][data-pet="dog"] { --theme: #f9f2e7; --code-bg: #f1e7d8; }
 html[data-pet="dog"] { --pn-ink: #4a3a2c; --pn-on: #8a3b12; --pn-line: #eadccb; }
 
 /* ---------- the play navigation ---------- */
@@ -199,7 +201,7 @@ html[data-mode="play"] .theme-btn { right: calc(18px + var(--key-w)); left: auto
 }
 
 /* ---------- the lab's look: big type, no boxes. Each section has a colour (the lab home amber, Games coral, the
-   Toolbox teal): one big soft glow of it in the top corner behind the page (fixed, so it stays while scrolling, not
+   Toolbox teal): calm dots of it all over the page and one big soft glow of it in the top corner, behind the page (fixed, so it stays while scrolling, not
    under a running game), a short bar of it under each title, the top edge of the cards and the sidebar's current tab ---------- */
 html[data-mode="play"] { --sec: #d97706; --sec-glow: rgba(217, 119, 6, 0.16); }
 html[data-mode="play"] body:has(.arcade) { --sec: #e11d48; --sec-glow: rgba(225, 29, 72, 0.12); }
@@ -215,7 +217,9 @@ html[data-mode="play"] body::before {
     inset: 0 0 0 var(--pn-w);
     z-index: -1;
     pointer-events: none;
-    background: radial-gradient(70% 65% at 100% 0%, var(--sec-glow), transparent 70%);
+    background:
+        radial-gradient(circle, color-mix(in srgb, var(--sec) 22%, transparent) 1.2px, transparent 1.8px) 0 0 / 30px 30px,
+        radial-gradient(70% 65% at 100% 0%, var(--sec-glow), transparent 70%);
 }
 body.arcade-playing::before { display: none; }
 html[data-mode="play"] .footer { background: transparent; }   /* the backdrop runs down to the bottom */
@@ -249,11 +253,13 @@ html[data-mode="play"] .tb-task[aria-pressed="true"] { border-color: var(--sec);
 @media (prefers-color-scheme: dark) {
     :root { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); }
     html[data-mode="play"]:not([data-pet="dog"]) {
-        --dk-bg: #191714; --dk-page: #1c1a17; --dk-card: #23201c; --dk-raise: #2b2823; --dk-line: #39342d; --dk-field: #4d473e;
+        --dk-bg: #24211d; --dk-page: #272420; --dk-card: #302c27; --dk-raise: #38342e; --dk-line: #47413a; --dk-field: #5a534a;
         --dk-ink: #efebe4; --dk-text: #d6d0c6; --dk-muted: #a69e92;
         --theme: var(--dk-page); --code-bg: var(--dk-bg); --pn-line: var(--dk-line);
     }
     html[data-pet="dog"] { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); }
+    /* a softer dark in the lab: a few shades lighter than the rest of the site's */
+    html[data-mode="play"][data-pet="dog"] { --dk-bg: #26201a; --dk-page: #29231d; --dk-card: #322a22; --dk-raise: #3a3128; --dk-line: #4a3e32; --dk-field: #5f5143; }
     .pn-head svg { color: var(--dk-on-navy); }
     .pn-audience, .pn-label { color: var(--dk-muted); }
     /* the key, lit while in the lab: a navy that still stands out from the dark */
