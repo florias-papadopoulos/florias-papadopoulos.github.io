@@ -313,6 +313,13 @@ html[data-cat="astronaut"] .cat.moving .cat-head { transform: translate(79px, 36
 }
 @keyframes chip-nudge { 0%, 100% { transform: translateX(0) rotate(0deg); } 30% { transform: translateX(10px) rotate(4deg); } 60% { transform: translateX(-4px) rotate(-2deg); } }
 
+/* small moves where it lands (cat-core.js trick()): looks around, stretches, a little hop */
+.cat.look .cat-head { animation: cat-look 2.4s ease-in-out; }
+@keyframes cat-look { 0%, 100% { transform: translate(66px, 30px) rotate(0deg); } 25%, 40% { transform: translate(66px, 30px) rotate(-14deg); } 65%, 80% { transform: translate(66px, 30px) rotate(12deg); } }
+.cat.stretch .cat-flip svg { transform-origin: 50% 100%; animation: cat-stretch 1.4s ease-in-out; }
+@keyframes cat-stretch { 0%, 100% { transform: none; } 35%, 65% { transform: scaleX(1.12) scaleY(0.88); } }
+.cat.hop .cat-flip svg { animation: cat-hop 0.7s ease-out 2; }
+@keyframes cat-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px); } }
 @media (prefers-reduced-motion: reduce) {
     .cat-layer *, .ltr, .chips li { animation: none !important; transition: none !important; }
 }

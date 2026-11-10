@@ -259,13 +259,30 @@
             var r = Math.random();
             if (world.arrive && world.arrive(p, r)) return;
             if (r > 0.94 && p.kind !== 'button' && p.kind !== 'chip') return nap();
-            if (r > 0.6) groom();
-            next(2400 + Math.random() * 3000);
+            /* a little something wherever it lands, then on again soon (it used to sit for up to five seconds) */
+            if (r > 0.74) groom();
+            else if (r > 0.56) trick('look', 2400);
+            else if (r > 0.40) trick('stretch', 1400);
+            else if (r > 0.30) turnAround();
+            else if (r > 0.22) trick('hop', 1400);
+            next(1700 + Math.random() * 2300);
+        }
+        /* a short move shown by a class on the cat (cat.css: look, stretch, hop) */
+        function trick(cls, ms) {
+            cat.classList.add(cls);
+            setTimeout(function () { cat.classList.remove(cls); }, ms);
+        }
+        /* looks behind it, then back */
+        function turnAround() {
+            var was = cat.classList.contains('left');
+            cat.classList.toggle('left', !was);
+            setTimeout(function () { if (!moving) cat.classList.toggle('left', was); }, 900);
         }
         function groom() {
             cat.classList.add('groom');
             setTimeout(function () { cat.classList.remove('groom'); }, 2600);
         }
+        var wakeUp = null;
         function nap(ms) {
             cat.classList.add('sleep');
             var z = document.createElement('span');
@@ -273,7 +290,8 @@
             z.textContent = 'z z';
             cat.appendChild(z);
             clearTimeout(timer);
-            timer = setTimeout(function () { cat.classList.remove('sleep'); z.remove(); decide(); }, ms || 6000 + Math.random() * 5000);
+            wakeUp = function () { wakeUp = null; cat.classList.remove('sleep'); z.remove(); decide(); };
+            timer = setTimeout(function () { if (wakeUp) wakeUp(); }, ms || 6000 + Math.random() * 5000);
         }
 
         /* ---------- petting and dragging the cat ---------- */
@@ -498,12 +516,20 @@
         /* the blinking and the tail are endless CSS animations, which the browser redraws every frame: they rest
            (class "still", cat.css) while the pet is off screen or nobody has touched the page for a minute, and
            start again with the next scroll, key, tap or mouse move (saves battery on phones) */
+        /* after two minutes with nobody there it curls up for a nap (rather than freezing mid-pose); the next move,
+           tap or scroll wakes it */
         var offscreen = false, idle = false, idleTimer = null;
         function still() { cat.classList.toggle('still', offscreen || idle); }
         function awake() {
-            if (idle) { idle = false; still(); }
+            if (idle) {
+                idle = false; still();
+                if (wakeUp && cat.classList.contains('sleep')) { clearTimeout(timer); wakeUp(); }
+            }
             clearTimeout(idleTimer);
-            idleTimer = setTimeout(function () { idle = true; still(); }, 60000);
+            idleTimer = setTimeout(function () {
+                idle = true; still();
+                if (!moving && !away && !cat.classList.contains('sleep')) nap(30 * 60000);
+            }, 120000);
         }
         ['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'].forEach(function (t) { window.addEventListener(t, awake, { passive: true }); });
         awake();
