@@ -183,3 +183,9 @@
     .tb-tool .tb-art { grid-row: span 2; align-self: start; }
     .tb-titlebar .tb-art { width: 56px; height: 56px; }
 }
+/* while searching (something typed in the box), the list is a plain list of results: no drawings */
+.tb-page:has(#tb-search:not(:placeholder-shown)) .tb-tool .tb-art { display: none; }
+.tb-page:has(#tb-search:not(:placeholder-shown)) .tb-tool { grid-template-columns: minmax(180px, 250px) minmax(0, 1fr); }
+@media (max-width: 640px) {
+    .tb-page:has(#tb-search:not(:placeholder-shown)) .tb-tool { grid-template-columns: minmax(0, 1fr); }
+}

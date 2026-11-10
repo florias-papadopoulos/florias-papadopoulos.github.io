@@ -349,3 +349,7 @@ body.lv-body:has(.lv-pres.is-remote) { background: #f6f7f9; }
     .lv-react-btn.is-pop { animation: none; }
     .lv-float { animation-duration: 0.01s !important; }
 }
+
+/* the presenter page inside the lab: the same background as the lab's other pages (theirs come from body.list in
+   main.css), so the header does not show as a separate strip */
+body:has(.lv-in-lab) { background: var(--code-bg); }
