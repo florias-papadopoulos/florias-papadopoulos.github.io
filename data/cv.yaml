@@ -1,0 +1,189 @@
+# The CV page (/cv/, layouts/_default/cv.html, styles assets/css/common/cv.css), written to look exactly like the PDF
+# (moderncv, style "classic", colour "red"). Every entry is one \cventry of the LaTeX source, field by field:
+#
+#   \cventry{date}{title \newline {\normalfont sub}}{employer}{city}{grade}{desc}
+#
+#   date      the left column
+#   title     bold; *text* inside it is upright weight italic (the source's {\normalfont \textit{...}})
+#   sub       optional, a second line under the title in normal weight (*...* for italic)
+#   employer  optional, italic, after ", "
+#   city      optional, after ", "
+#   grade     optional, after ", "
+#               the line then ends with "." as moderncv does
+#   desc      optional, in the small font on the next line; when the PDF sets it on several lines, a list of
+#               those lines (so the page breaks them in the same places)
+#   items     optional, a list in the small font (the source's itemize)
+#
+# A \cvitem (left label, plain text, no full stop) is { date, text }. { heading: ... } is a \subsection.
+# Every field is Markdown (*italic*, [link](url)). Keep it in step with the LaTeX source of the PDF.
+sections:
+  - title: Education
+    entries:
+      - date: "01.2024 – Present"
+        title: "PhD, Applied Cryptography & Privacy-Preserving Authentication"
+        sub: "*University of St. Gallen*"
+        city: Switzerland
+        desc: "PhD Thesis Topic: *Privacy-Preserving Primitives for Location-Based Services*"
+      - date: "10.2022 – 12.2023"
+        title: "MSc, Theoretical Computer Science and Control Theory"
+        sub: "*Aristotle University of Thessaloniki (AUTh)*"
+        city: Greece
+        grade: '(GPA: 9.55/10 “Excellent")'
+        desc: "Master’s thesis: *[Cryptography based on Learning with Errors](/master/#msc-thesis)*"
+      - date: "09.2020 – 01.2021"
+        title: "Semester Exchange in UFR de Math et d’Info (Erasmus)"
+        sub: "*University of Strasbourg*"
+        city: France
+      - date: "10.2017 – 03.2022"
+        title: "BSc, Mathematics"
+        sub: "*Aristotle University of Thessaloniki (AUTh)*"
+        city: Greece
+        grade: '(GPA: 8.50/10 “Excellent")'
+        desc: "Bachelor’s thesis: *[Cryptography in the Post-Quantum Era](/bachelor/#bsc-thesis)*"
+
+  - title: Publications
+    entries:
+      - date: "2026"
+        title: "[Privacy-preserving Proximity Testing from Geometric Fuzzy Matching](/papers/#gfm-asiaccs26)"
+        sub: "Florias Papadopoulos, Ioannis Katis, and Katerina Mitrokotsa"
+        desc:
+          - "In *Proceedings of the ACM Asia Conference on Computer and Communications Security*"
+          - "*(ASIA CCS ’26)*, pp. 472–488, Bangalore, India. [doi:10.1145/3779208.3785374](https://doi.org/10.1145/3779208.3785374)"
+
+  - title: Work Experience
+    entries:
+      - date: "01.2024 – Present"
+        title: "Research Assistant"
+        employer: "University of St. Gallen"
+        city: "St. Gallen, Switzerland"
+        desc:
+          - "Research interests: provable security, post-quantum cryptography, and privacy-preserving protocols,"
+          - "with a focus on privacy-preserving proximity tracking and collision avoidance."
+      - date: "10.2021 – 01.2022"
+        title: "Intern"
+        employer: "Hellenic National Meteorological Service"
+        city: "Thessaloniki, Greece"
+        items:
+          - "Analyzed data from worldwide weather stations and satellites."
+          - "Co-wrote and co-presented a research paper on the Vardaris Wind."
+          - "Used Excel, Surfer, and PowerPoint for data processing and visualization."
+
+  - title: Fellowships & Awards
+    entries:
+      - date: "02.2025 – 01.2029"
+        title: "CYD Doctoral Fellowship, *Cyber-Defense Campus, armasuisse Science & Technology*"
+        desc: "Project: *Privacy-Preserving Primitives for Proximity Tracking and Collision Avoidance*"
+
+  - title: Teaching
+    entries:
+      - heading: Teaching Assistantship
+      - date: "Spring 2024-2026"
+        title: Cybersecurity
+        employer: "BSc. Computer Science, University of St. Gallen"
+      - date: "Spring 2024-2026"
+        title: "Technologies: Data Security and Privacy"
+        employer: "Contextual Studies (MSc), Uni. of St. Gallen"
+      - date: "Fall 2024, 2025"
+        title: "(Advanced) Cybersecurity"
+        employer: "MSc. Computer Science, University of St. Gallen"
+      - date: "Fall 2024"
+        title: "Security Protocols & Applications"
+        employer: "BSc. Computer Science, University of St. Gallen"
+      - date: "Spring 2024"
+        title: "Secure and Private Computing"
+        employer: "MSc. Computer Science, University of St. Gallen"
+      - heading: Thesis/Project Supervision
+      - date: "Fall 2025–Present"
+        title: "Thesis Co-supervision"
+        employer: "BSc. and MSc. Computer Science, University of St. Gallen"
+        desc: "Co-supervision of two MSc. theses and one BSc. thesis on cryptography and cybersecurity topics."
+      - date: "Spring 2025, 2026"
+        title: "Secure and Private Computing"
+        employer: "MSc. Computer Science, University of St. Gallen"
+        desc: "Supervised two implementation projects yearly based on cryptography and cybersecurity research."
+      - heading: Teaching Workshops
+      - date: "09. & 11.2024"
+        title: "Exploring Sustainable Teaching"
+        employer: "University of St. Gallen"
+      - date: "06.2024"
+        title: "Supervising and Assessing Student Writing"
+        employer: "University of St. Gallen"
+      - date: "06.2024"
+        title: "Crash Course Teaching and Learning in Higher Education"
+        employer: "University of St. Gallen"
+
+  - title: Academic Service
+    entries:
+      - date: "06.2024 – 06.2026"
+        title: "Tenure and Promotion Committee"
+        employer: "University of St. Gallen"
+        desc: "Evaluated internal promotion applications (Assistant to Associate, Associate to Full Professor)."
+      - date: "2025 – Present"
+        title: "“What is?”– PhD Seminar Series"
+        employer: "School of Computer Science, University of St. Gallen"
+        desc: "Co-organizer of monthly seminar series for PhD students."
+      - date: "2025 – Present"
+        title: Subreviewer
+        desc:
+          - "IEEE TDSC 2025 (×2), Indocrypt 2025, GameSec 2025, CANS 2025, ACM AsiaCCS 2025 (×2),"
+          - "APKC 2026, ACNS 2026 (×2), Cluster Computing 2026, ACNS 2027 (×2)"
+
+  - title: Talks & Academic Activities
+    entries:
+      - heading: Invited / Contributed Talks
+      - date: "06.2025"
+        title: "Privacy-Preserving Proximity Tracking for Drones"
+        employer: "Cyber AlpRetreat 2025"
+        city: Davos
+      - date: "2022"
+        title: "Cryptography in the Post-Quantum Era"
+        items:
+          - "Graduate Seminar of Mathematics Students, AUTh (Thessaloniki, 10.2022)"
+          - "12th International Week Dedicated to Maths, Helexpo (Thessaloniki, 05.2022)"
+          - "Seminar on Theoretical CS and Discrete Mathematics (Online, 03.2022)"
+      - heading: Schools & Workshops
+      - date: "06.2026"
+        title: "CASA Summer School 2026"
+        employer: "Ruhr University Bochum"
+        city: "Bochum, Germany"
+      - date: "06.2025"
+        title: "Cyber AlpRetreat 2025"
+        employer: "Cyber-Defense Campus"
+        city: "Davos, Switzerland"
+      - date: "09.2024, 04.2025"
+        title: "Swiss Crypto Day"
+        employer: "University of St. Gallen (#1), Università della Svizzera italiana (#2)"
+      - date: "06.2024"
+        title: "Introduction to Quantum-Safe Cryptography"
+        employer: "SLMath + IBM Research"
+        city: Switzerland
+      - date: "05.2024"
+        title: "ReCAP 2024: Cryptography and Privacy for the People"
+        city: "Tufts University (hybrid)"
+      - date: "05.2023"
+        title: "MEGA-ACE NTUA Summer School on Blockchains"
+        city: "Spetses, Greece"
+      - date: "02.2023"
+        title: "ISCwsISC 2023 on Secure Computations: ZKP, MPC & FHE"
+        city: Online
+      - date: "06.2022"
+        title: "2nd Congress of Greek Mathematicians"
+        employer: NTUA
+        city: "Athens, Greece"
+      - heading: Other
+      - date: "05.2026"
+        title: "Panel Speaker"
+        employer: "HSG School of Computer Science Conference"
+        desc: "Shared insights from my PhD experience."
+      - date: "2021"
+        title: "Volunteer Translator, Mathematics Problems (English to Greek)"
+        employer: AUTh
+        city: Greece
+        desc: "Among the 25% of volunteers who undertook additional work."
+
+  - title: Miscellaneous
+    entries:
+      - date: Languages
+        text: "Greek (native), English (fluent), French (advanced)"
+      - date: Interests
+        text: "Travelling, Hiking, Bouldering, Spelunking"

@@ -1,6 +1,7 @@
 /* The home page (layouts/partials/index_profile.html): the band, "Latest" (the news) and "Work" (the projects strip).
    The page follows the visitor's browser: light by default, dark when the browser is set to dark
-   (prefers-color-scheme: dark); the band is navy in both (the rest of the page: the dark block at the end). */
+   (prefers-color-scheme: dark); the band is navy in light mode and slate grey in dark mode (the rest of the page: the
+   dark block at the end). */
 
 .home3 {
     --h3-ink: #0f172a;
@@ -29,20 +30,21 @@
 }
 @media (prefers-color-scheme: dark) {
     .home3 {
-        --hb-bg: linear-gradient(180deg, #121d35, #1a2a4a);
+        /* the band: flat slate grey (chosen on 2026-11-10 over the old navy gradient #121d35 to #1a2a4a) */
+        --hb-bg: #1d232b;
         --hb-edge: transparent;
-        --hb-dot: #8fa3c7;
+        --hb-dot: #8b97a6;
         --hb-dot-op: .55;
-        --hb-kicker: #9fb2d6;
+        --hb-kicker: #a7b2c0;
         --hb-name: #fff;
-        --hb-native: #b6c3da;
-        --hb-tag: #c3cfe3;
+        --hb-native: #b3bcc7;
+        --hb-tag: #cad1da;
         --hb-strong: #fff;
-        --hb-badge: #cfdaf0;
+        --hb-badge: #cfd6df;
         --hb-badge-line: rgba(207, 218, 240, .35);
         --hb-btn: rgba(255, 255, 255, .07);
         --hb-btn-line: rgba(255, 255, 255, .12);
-        --hb-btn-ink: #dbe4f3;
+        --hb-btn-ink: #dde3ea;
         --hb-ring: rgba(255, 255, 255, .1);
     }
 }

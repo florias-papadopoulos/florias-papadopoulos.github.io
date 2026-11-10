@@ -1,64 +1,112 @@
-/* The CV page (layouts/_default/cv.html, content/cv/_index.md): a header with the name, the contact line and the
-   buttons, then the sections; each entry is the dates on the left and the entry on the right (a definition list), one
-   column on phones. Printing (or saving as PDF from the print dialog) gives a clean black on white page. */
-.cv-page { --cv-ink: #0f172a; --cv-text: #334155; --cv-mute: #5b6b80; --cv-line: #e2e8f0; --cv-acc: #1e3a8a;
-    max-width: 880px; margin: 0 auto; color: var(--cv-text); }
-.cv-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; margin: 8px 0 8px; padding-bottom: 16px; border-bottom: 2px solid var(--cv-ink); }
-.cv-h1 { margin: 0; color: var(--cv-ink); font-size: 32px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
-.cv-sub { margin: 2px 0 0; color: var(--cv-mute); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
-.cv-contact { margin: 8px 0 0; font-size: 14.5px; }
-.cv-contact a, .cv-doc a { color: var(--cv-acc); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--cv-acc) 30%, transparent); }
-.cv-contact a:hover, .cv-doc a:hover { border-bottom-color: var(--cv-acc); }
-.cv-acts { display: flex; flex-wrap: wrap; gap: 8px; }
-.cv-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 1px solid #c7d2e8; border-radius: 9px; background: #fff; color: var(--cv-acc); font: inherit; font-size: 14.5px; font-weight: 600; text-decoration: none; cursor: pointer; }
-.cv-btn:hover { border-color: var(--cv-acc); }
-.cv-btn.is-main { border-color: var(--cv-acc); background: var(--cv-acc); color: #fff; }
-.cv-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.cv-btn:focus-visible { outline: 2px solid var(--cv-acc); outline-offset: 2px; }
+/* The CV page (layouts/_default/cv.html, entries in data/cv.yaml): the PDF on the page. It copies moderncv's "classic"
+   style in "red" as the LaTeX source sets it (12pt, A4, geometry scale 0.9, hints column 3.1cm, photo 80pt), so every
+   length here is in pt and at 100% zoom the page is the PDF at 100%:
+     text width 535.75pt = hints column 87.87pt + separator 9.71pt + main column 438.15pt (as LaTeX reports them)
+     every line of the PDF is a line here (.cv-ln, no wrapping); assets/js/site/cv.js narrows the spaces of a line
+     that is too long, as TeX does, and lines TeX could not narrow enough run a little past the column, as there
+     12pt text on 14.5pt lines, \small 10.95pt on 13.6pt lines, 0.25em (3pt) after every entry
+   The font is Latin Modern Sans in its optical sizes as LaTeX picks them (static/fonts/lmsans, GUST font licence):
+   LMSans10 below 11pt, LMSans12 up to 15.5pt, LMSans17 above; bold is always the 10pt design.
+   Colours: moderncv red's color1 (0.95, 0.20, 0.20), color2 (0.45 grey), and xcolor's gray and darkgray for the name.
+   Phones (narrower than the PDF): the same type, the dates above each entry instead of beside it. */
+@font-face { font-family: "LMSans10"; src: url("/fonts/lmsans/lmsans10-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LMSans10"; src: url("/fonts/lmsans/lmsans10-oblique.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "LMSans10"; src: url("/fonts/lmsans/lmsans10-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LMSans12"; src: url("/fonts/lmsans/lmsans12-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LMSans12"; src: url("/fonts/lmsans/lmsans12-oblique.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "LMSans12"; src: url("/fonts/lmsans/lmsans10-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LMSans17"; src: url("/fonts/lmsans/lmsans17-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LMSans17"; src: url("/fonts/lmsans/lmsans17-oblique.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
 
-.cv-doc h2 { margin: 30px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--cv-line); color: var(--cv-acc); font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.cv-doc h3 { margin: 18px 0 8px calc(var(--cv-dates) + 22px); color: var(--cv-ink); font-size: 15px; font-weight: 700; }
-.cv-doc { --cv-dates: 150px; font-size: 15px; line-height: 1.55; }
-.cv-doc dl { display: grid; grid-template-columns: var(--cv-dates) minmax(0, 1fr); column-gap: 22px; row-gap: 12px; margin: 0; }
-.cv-doc dt { color: var(--cv-mute); font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; padding-top: 1px; }
-.cv-doc dd { margin: 0; }
-.cv-doc dd strong { color: var(--cv-ink); font-weight: 650; }
-.cv-doc dd p { margin: 0; }
-.cv-doc dd ul { margin: 3px 0 0; padding-left: 18px; }
-.cv-doc dd li { margin: 1px 0; }
+.cv-page {
+    --cv-ink: #000; --cv-red: #f23333; --cv-grey: #737373; --cv-first: #808080; --cv-last: #404040;
+    --cv-hint: 87.87pt; --cv-sep: 9.71pt; --cv-main: 438.15pt;
+    max-width: 535.75pt; margin: 0 auto; color: var(--cv-ink);
+    font: 400 12pt/14.5pt "LMSans12", "Latin Modern Sans", sans-serif;
+    font-kerning: normal; font-variant-ligatures: common-ligatures;
+}
+.cv-page a { color: inherit; text-decoration: none; }
+.cv-page a:hover { text-decoration: underline; text-decoration-thickness: from-font; }
+.cv-page strong { font-weight: 700; }
+.cv-page strong em { font-weight: 400; }   /* {\normalfont ...} inside the bold title */
+.cv-page p, .cv-page h1, .cv-page h2, .cv-page h3, .cv-page ul { margin: 0; padding: 0; }
 
-@media (max-width: 640px) {
-    .cv-head { padding-right: 0; }
-    .cv-h1 { font-size: 27px; padding-right: 100px; }        /* the corner buttons sit at the top right */
-    .cv-doc dl { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
-    .cv-doc dt { text-align: left; font-weight: 600; }
-    .cv-doc dd { margin-bottom: 12px; }
-    .cv-doc h3 { margin-left: 0; }
+/* the one thing the PDF does not have, on the left at the height of the corner buttons (fixed at the top right,
+   8px from the top, --key-h tall: paw.css, play.css); the row is as tall as they are, so the header with the photo
+   always starts below them, on phones as on laptops */
+.cv-dl { display: flex; align-items: center; height: var(--key-h, 40px); font: 10.95pt/13.6pt "LMSans10", sans-serif;
+    margin: calc(8px - var(--gap, 24px)) 0 10px !important; }
+.cv-page .cv-dl a { color: var(--cv-red); text-decoration: underline; text-decoration-thickness: from-font; text-underline-offset: 2pt; }
+
+/* \makecvtitle: the name and title (8cm wide), the details right-aligned, the photo; all on the same bottom line */
+.cv-top { display: flex; align-items: flex-end; }
+.cv-top + .cv-sec { margin-top: 14.6pt; }       /* \\[2.5em] and \\vspace{-1.2cm} after the title, then the section's own space */
+.cv-name { flex: 0 0 226.77pt; }
+.cv-name h1 { font: 400 24pt/22pt "LMSans17", sans-serif; letter-spacing: 0; }
+.cv-first { color: var(--cv-first); }
+.cv-last { color: var(--cv-last); }
+.cv-title { margin-top: 15pt !important; font: italic 400 20.74pt/25pt "LMSans17", sans-serif; color: var(--cv-grey); }
+.cv-info { flex: 1 1 auto; text-align: right; color: var(--cv-grey); font: italic 400 10.95pt/13.6pt "LMSans10", sans-serif; padding-bottom: 1pt; }
+.cv-info p { white-space: nowrap; }
+.cv-ic { display: inline-block; height: 0.68em; width: auto; margin-right: 0.33em; vertical-align: 0; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
+.cv-ic-home { height: 1.05em; vertical-align: -0.05em; stroke-width: 1.25; }
+.cv-ic-fill { height: 0.8em; vertical-align: -0.06em; fill: currentColor; stroke: none; margin-right: 0.2em; }
+.cv-quad { display: inline-block; width: 1.33em; }
+.cv-photo { flex: 0 0 80pt; width: 80pt; height: 80pt; margin-left: var(--cv-sep); border-radius: 50%; }
+
+/* \section: a red bar the width of the hints column at the height of the title's lower case letters, the title */
+.cv-sec { margin-top: 10.9pt; }
+.cv-sec h2 { font: 400 17.28pt/22pt "LMSans17", sans-serif; color: var(--cv-red); margin-bottom: 3.7pt; white-space: nowrap; }
+.cv-bar { display: inline-block; width: var(--cv-hint); height: 5.07pt; margin: 0 var(--cv-sep) 2.6pt 0; background: var(--cv-red); vertical-align: baseline; }
+/* \subsection */
+.cv-sec h3 { margin: 7.6pt 0 1.5pt calc(var(--cv-hint) + var(--cv-sep)); font: 400 14.4pt/18pt "LMSans12", sans-serif; color: var(--cv-red); }
+
+/* \cventry and \cvitem: the date right-aligned in the hints column, the entry in the main column */
+.cv-row { display: grid; grid-template-columns: var(--cv-hint) var(--cv-main); column-gap: var(--cv-sep); margin-bottom: 3pt; }
+.cv-hint { text-align: right; white-space: nowrap; }
+.cv-ln { display: block; white-space: nowrap; }
+.cv-desc > span.cv-ln:not(:last-of-type) { text-align: justify; text-align-last: justify; }   /* a paragraph's full lines */
+/* in the PDF the table row's strut already holds the last line's descenders when the description has several lines,
+   so such an entry is about 2pt shorter than its lines add up to */
+.cv-desc:has(> .cv-ln + .cv-ln) { margin-bottom: -2pt; }
+ul.cv-desc { margin-top: 2.9pt !important; }
+.cv-desc { font: 400 10.95pt/13.6pt "LMSans10", sans-serif; margin-top: 1.4pt; }
+.cv-page ul.cv-desc { list-style: none; text-align: left; }
+.cv-page ul.cv-desc li { position: relative; padding-left: 1em; }
+.cv-page ul.cv-desc li::before {              /* marvosym's \Neutral, in red */
+    content: ""; position: absolute; left: 0.02em; top: 0.32em; width: 0.46em; height: 0.46em;
+    border: 0.085em solid var(--cv-red); border-radius: 50%; box-sizing: border-box;
 }
 
+@media (max-width: 760px) {
+    .cv-page { max-width: none; }
+    .cv-top { flex-wrap: wrap; align-items: flex-end; }
+    .cv-name { flex: 1 1 0; min-width: 0; }
+    .cv-name h1 { font-size: 21pt; line-height: 22pt; }
+    .cv-title { margin-top: 8pt !important; font-size: 17pt; line-height: 21pt; }
+    .cv-photo { flex-basis: 64pt; width: 64pt; height: 64pt; }
+    .cv-info { order: 3; flex: 1 1 100%; text-align: left; margin-top: 10pt; }
+    .cv-row { grid-template-columns: minmax(0, 1fr); margin-bottom: 7pt; }
+    .cv-hint { text-align: left; color: var(--cv-grey); font: 400 10.95pt/13.6pt "LMSans10", sans-serif; }
+    .cv-ln { white-space: normal; }
+    .cv-desc > span.cv-ln { display: inline; }
+    .cv-desc > span.cv-ln:not(:last-of-type) { text-align: left; text-align-last: auto; }
+    .cv-bar { width: 26pt; margin-right: 9pt; }
+    .cv-sec h3 { margin-left: 0; }
+}
+
+/* dark mode: the site's dark colours instead of the PDF's red (red on the dark page reads poorly): the bars, headings
+   and bullets take the site's light blue accent, the text its soft white, the grey parts its quiet grey */
 @media (prefers-color-scheme: dark) {
-    .cv-page { --cv-ink: var(--dk-ink); --cv-text: var(--dk-text); --cv-mute: var(--dk-muted); --cv-line: var(--dk-line); --cv-acc: var(--dk-navy); }
-    .cv-btn { border-color: var(--dk-field); background: var(--dk-card); }
-    .cv-btn.is-main { background: var(--dk-navy); border-color: var(--dk-navy); color: var(--dk-on-navy); }
+    .cv-page { --cv-ink: var(--dk-ink); --cv-grey: var(--dk-muted); --cv-first: var(--dk-muted); --cv-last: var(--dk-ink); --cv-red: var(--dk-navy); }
 }
 
-/* printing: only the CV, black on white, the sections kept whole where possible */
+/* printing: only the CV (the PDF itself is the better copy) */
 @media print {
-    @page { margin: 16mm 15mm; }
     html, body { background: #fff !important; }
-    body { padding: 0 !important; }
-    .site-nav, .corner-btn, .cat-picker, .footer, .top-link, .cv-acts { display: none !important; }
+    .site-nav, .corner-btn, .cat-picker, .footer, .top-link, .cv-dl { display: none !important; }
     .main { max-width: none; padding: 0; }
-    .cv-page { --cv-ink: #000; --cv-text: #111; --cv-mute: #444; --cv-acc: #000; --cv-line: #bbb; max-width: none; }
-    .cv-head { margin-top: 0; padding-bottom: 8px; }
-    .cv-h1 { font-size: 20pt; }
-    .cv-doc { --cv-dates: 92px; font-size: 9pt; line-height: 1.35; }
-    .cv-doc h2 { margin: 12px 0 5px; padding-bottom: 3px; font-size: 9.5pt; }
-    .cv-doc h3 { margin: 8px 0 4px calc(var(--cv-dates) + 14px); font-size: 9pt; }
-    .cv-doc dl { column-gap: 14px; row-gap: 5px; }
-    .cv-doc dt { font-size: 8.5pt; }
-    .cv-doc a, .cv-contact a { border-bottom: 0; }
-    .cv-doc dl > dt { break-after: avoid; }
-    .cv-doc dd { break-inside: avoid; }
-    .cv-doc h2, .cv-doc h3 { break-after: avoid; }
+    .cv-page { --cv-ink: #000; --cv-red: #f23333; --cv-grey: #737373; --cv-first: #808080; --cv-last: #404040; }
+    .cv-row, .cv-sec h2, .cv-sec h3 { break-inside: avoid; }
+    .cv-sec h2, .cv-sec h3 { break-after: avoid; }
 }

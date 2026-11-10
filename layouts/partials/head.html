@@ -75,6 +75,10 @@
 {{- $key := delimit $extra "+" | replaceRE "common/" "" | default "base" }}
 {{- $css := $files | resources.Concat (printf "css/page-%s.css" $key) | resources.Minify }}
 <style>{{ $css.Content | safeCSS }}</style>
+{{- /* the CV's fonts (cv.css), fetched at once so the page does not first show another font */}}
+{{- if eq .Layout "cv" }}{{ range slice "lmsans12-regular" "lmsans12-oblique" "lmsans10-regular" "lmsans10-oblique" "lmsans10-bold" "lmsans17-regular" "lmsans17-oblique" }}
+<link rel="preload" href="{{ printf "fonts/lmsans/%s.woff2" . | relURL }}" as="font" type="font/woff2" crossorigin>
+{{- end }}{{ end }}
 {{- /* the light switch: right after the styles and without defer, so a chosen look is there before the first paint */}}
 {{- $theme := resources.Get "js/site/theme.js" | minify | fingerprint }}
 <script src="{{ $theme.RelPermalink }}" integrity="{{ $theme.Data.Integrity }}"></script>
