@@ -111,3 +111,14 @@ html[data-mode="play"] .nav { padding-inline-end: calc(144px + var(--key-w, 34px
     body:has(.home3) .you-link { left: 8px; right: auto; }
     .home-reset { left: 48px; }
 }
+
+/* ---------- dark mode (palette: color-scheme.css) ---------- */
+@media (prefers-color-scheme: dark) {
+    .corner-btn { border-color: var(--dk-field); background: var(--dk-card); color: var(--dk-text); box-shadow: 0 1px 4px var(--dk-shadow); }
+    .corner-btn:hover { color: var(--dk-ink); }
+    .cat-menu { border-color: var(--dk-field); background: var(--dk-card); box-shadow: 0 10px 30px var(--dk-shadow); }
+    .cat-menu-title { color: var(--dk-muted); }
+    .cat-opt { color: var(--dk-ink); }
+    .cat-opt:hover { background: var(--dk-raise); }
+    .cat-opt[aria-checked="true"] { border-color: var(--dk-field); background: var(--dk-raise); }
+}

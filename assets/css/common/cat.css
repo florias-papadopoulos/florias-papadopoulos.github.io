@@ -333,3 +333,28 @@ html[data-cat="winter"] .cat-pick :is(.cf-collar, .cf-hat, .cf-fluff), .cat-opt[
 /* the astronaut's face is a little smaller, so that it fits in the helmet */
 .cf-face { transform-origin: 20px 22px; }
 html[data-cat="astronaut"] .cat-pick .cf-face, .cat-opt[data-look="astronaut"] .cf-face { transform: scale(0.78); }
+
+/* ---------- dark mode (palette: color-scheme.css): the pets' drawings stay as they are ---------- */
+@media (prefers-color-scheme: dark) {
+    /* the home page's floating symbols, lighter so that they show on the dark */
+    .glyph, .glyph.keyicon { color: rgba(157, 186, 245, 0.5); }
+    .glyph.pink { color: rgba(243, 139, 180, 0.55); }
+    .glyph:hover { color: var(--dk-navy); }
+    /* with a dog: warm browns, and amber instead of the light blue */
+    html[data-pet="dog"] {
+        --dk-bg: #1b1612; --dk-page: #1e1915; --dk-card: #262019; --dk-raise: #2f2820; --dk-line: #40352a; --dk-field: #55483a;
+        --dk-ink: #f3e9dc; --dk-text: #dccdbb; --dk-muted: #ad9b86; --dk-navy: #e8a978; --dk-navy-soft: #6b4a30;
+        --dk-on-navy: #1d130b; --dk-pink: #e9b55a;
+        --theme: var(--dk-page); --code-bg: var(--dk-bg); --darkcolor: #c08a58; --lightcolor: #4a3a2a;
+    }
+    html[data-pet="dog"] .profile.home, html[data-pet="dog"] .arcade, html[data-pet="dog"] .tl-page, html[data-pet="dog"] {
+        --ink: var(--dk-ink); --muted: var(--dk-muted); --navy: var(--dk-navy); --pink: var(--dk-pink); --line: var(--dk-line);
+        --tl-ink: var(--dk-ink); --tl-text: var(--dk-text); --tl-muted: var(--dk-muted); --tl-navy: var(--dk-navy); --tl-line: var(--dk-line);
+        --tl-rule: var(--dk-field);
+    }
+    html[data-pet="dog"] .glyph, html[data-pet="dog"] .glyph.keyicon { color: rgba(232, 169, 120, 0.5); }
+    html[data-pet="dog"] .glyph.pink { color: rgba(233, 181, 90, 0.55); }
+    html[data-pet="dog"] .glyph:hover { color: var(--dk-navy); }
+    html[data-pet="dog"] .corner-btn { background: var(--dk-card); border-color: var(--dk-field); color: var(--dk-text); }
+    html[data-pet="dog"] .cat-menu { background: var(--dk-card); border-color: var(--dk-field); }
+}

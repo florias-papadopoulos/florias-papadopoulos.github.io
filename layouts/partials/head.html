@@ -10,9 +10,10 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-{{- /* The site is designed light: stop phone browsers (Chrome "darken websites", Samsung Internet) from recolouring it */}}
-<meta name="color-scheme" content="only light">
-<meta name="supported-color-schemes" content="light">
+{{- /* Light, or dark when the visitor's browser is set to dark (assets/css/common/color-scheme.css): form controls and
+       scrollbars follow, and phone browsers (Chrome "darken websites", Samsung Internet) leave the colours to the site */}}
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
 {{- if hugo.IsProduction | and (ne .Params.robotsNoIndex true) }}
 <meta name="robots" content="index, follow">
 {{- else }}

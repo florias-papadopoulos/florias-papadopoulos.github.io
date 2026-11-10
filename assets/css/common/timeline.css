@@ -189,3 +189,21 @@
     .tl-aside { grid-template-columns: minmax(0, 1fr); gap: 12px; }
     .tl-bib pre { font-size: 11.5px; }
 }
+
+/* ---------- dark mode (palette: color-scheme.css): the tokens above, and the few colours set directly ---------- */
+@media (prefers-color-scheme: dark) {
+    .tl-page {
+        --tl-ink: var(--dk-ink);
+        --tl-text: var(--dk-text);
+        --tl-muted: var(--dk-muted);
+        --tl-navy: var(--dk-navy);
+        --tl-line: var(--dk-line);
+        --tl-rule: var(--dk-field);
+    }
+    .tl-entry.open { background: var(--dk-card); }
+    .tl-sub { color: var(--dk-text); }
+    .tl-abstract a, .tl-files a, .tl-keys a { border-bottom-color: var(--dk-navy-soft); }
+    .tl-btn { border-color: var(--dk-field); background: var(--dk-card); }
+    .tl-bib-btn[aria-expanded="true"] { color: var(--dk-on-navy); }
+    .tl-bib pre { background: var(--dk-raise); }
+}
