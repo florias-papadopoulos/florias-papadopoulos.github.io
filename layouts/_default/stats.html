@@ -7,10 +7,9 @@
        (assets/js/lab/cat-pages.js) lives here too and sits on the title. */ -}}
 {{- define "main" }}
 {{- $end := site.Params.statsEndpoint }}
-{{- /* readable names for the pages that turn up in the counts: every page's title, the menu names for the tabs */}}
+{{- /* readable names for the pages that turn up in the counts: every page's title */}}
 {{- $names := slice (dict "p" "/" "t" "Home") (dict "p" "/404/" "t" "Page not found") (dict "p" "/you/" "t" "What this site knows about you") (dict "p" "/stats/" "t" "Site stats") }}
 {{- range site.Pages }}{{ if and .RelPermalink .Title (ne .RelPermalink "/") }}{{ $names = $names | append (dict "p" .RelPermalink "t" .Title) }}{{ end }}{{ end }}
-{{- range site.Menus.main }}{{ $names = $names | append (dict "p" .URL "t" .Name) }}{{ end }}
 
 <div class="tl-page st-page" id="stats"{{ with $end }} data-endpoint="{{ . }}" data-names="{{ $names | jsonify }}"{{ end }}>
     <header class="st-head">

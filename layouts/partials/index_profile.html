@@ -100,7 +100,7 @@
                 {{- if eq $g.key "Bachelor" }}{{ $sub = "Bachelor thesis" }}{{ end }}
                 <li class="hw-tile" data-g="{{ $g.key }}">
                     <a href="{{ printf "%s#%s" $g.url $id | relURL }}">
-                        {{- with .Params.preview }}<img src="{{ . | relURL }}" alt="" width="160" height="100" loading="lazy" decoding="async" draggable="false">{{ else }}<span class="hw-noimg" aria-hidden="true"></span>{{ end }}
+                        {{- with .Params.preview }}<img src="{{ . | relURL }}" alt="" width="128" height="76" loading="lazy" decoding="async" draggable="false">{{ else }}<span class="hw-noimg" aria-hidden="true"></span>{{ end }}
                         <span class="hw-title">{{ .Title }}</span>
                         <span class="hw-sub">{{ $sub }}</span>
                     </a>

@@ -25,17 +25,7 @@ module:
       target: static/_pages/projects
       files: ["! **/*.md"]
 
-menu:
-  main:
-    - name: Bachelor
-      url: /bachelor/
-      weight: 1
-    - name: Master
-      url: /master/
-      weight: 1
-    - name: Papers
-      url: /papers/
-      weight: 2
+# no menu: the normal side's pages have a sidebar (layouts/partials/site-nav.html), the lab's theirs (play-nav.html)
 
 params:
   description: "Florias Papadopoulos, doctoral researcher in cryptography at the University of St. Gallen (HSG)."

@@ -46,4 +46,4 @@ GitHub and Cloudflare are companies in the United States, so the data above may 
 
 ## Your rights
 
-Under the Swiss Federal Act on Data Protection (nFADP) you can ask me what personal data I hold about you, and have it corrected or deleted. In practice that only concerns what you chose to send yourself: a nickname and score on a leaderboard, or answers, questions and a nickname in audience mode. Write to me and I will look it up or remove it. You can also contact the Swiss Federal Data Protection and Information Commissioner (FDPIC).
+Under the Swiss Federal Act on Data Protection (nFADP) you can ask me what personal data I hold about you, and have it corrected or deleted. In practice that only concerns what you chose to send yourself: a nickname and score on a leaderboard, or answers, questions and a nickname in audience mode. Write to me and I will look it up or remove it.

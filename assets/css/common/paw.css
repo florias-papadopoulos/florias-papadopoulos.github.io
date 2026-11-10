@@ -29,8 +29,6 @@
 /* the pickers only in play mode */
 .cat-picker { display: none; }
 html[data-mode="play"] .cat-picker { display: block; }
-html[data-mode="play"] .theme-btn { right: calc(102px + var(--key-w, 34px)); }
-body:has(.home-reset) .theme-btn { left: 10px; right: auto; }
 .home-reset { left: 52px; }
 .home-reset svg { width: 17px; height: 17px; }
 
@@ -92,19 +90,13 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
 .cat-opt:hover { background: #f1f5f9; }
 .cat-opt[aria-checked="true"] { border-color: #cbd5e1; background: #f8fafc; font-weight: 700; }
 
-/* leave room for the corner buttons at the right end of the menu (two, four in play mode) */
-.nav { padding-inline-end: calc(36px + var(--sw-w, 40px) + var(--key-w, 34px)); }
-html[data-mode="play"] .nav { padding-inline-end: calc(144px + var(--key-w, 34px)); }
 @keyframes paw-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.15); } 75% { transform: rotate(18deg) scale(1.15); } }
 @media (max-width: 600px) {
-    .nav, html[data-mode="play"] .nav { padding-inline-end: 0; }
     .corner-btn { top: 5px; }
     .key-btn { right: 8px; }
     .cat-pick { right: calc(14px + var(--key-w, 34px)); }
     .dog-pick { right: calc(54px + var(--key-w, 34px)); }
     .theme-btn { right: calc(14px + var(--key-w, 34px)); }
-    html[data-mode="play"] .theme-btn { right: calc(94px + var(--key-w, 34px)); }
-    body:has(.home-reset) .theme-btn { left: 8px; right: auto; }
     /* the normal home page on phones (no header there): the light switch top left, the key alone top right */
     body:has(.home3) .theme-btn { left: 8px; right: auto; }
     .home-reset { left: 48px; }

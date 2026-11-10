@@ -21,7 +21,7 @@
         {{- $url := $g.url | relURL }}
         {{- $on := eq $here $url }}
         {{- $list := sort (where $projects "Params.context" "like" (printf "^%s" $g.key)) "Weight" }}
-        <li class="sn-group">
+        <li class="sn-group" data-g="{{ $g.key }}">
             <a class="pn-tab" href="{{ $url }}"{{ if $on }} aria-current="page"{{ end }}>{{ $g.icon | safeHTML }}<span>{{ $g.name }}</span></a>
             {{- with $list }}
             <details class="sn-more"{{ if $on }} open{{ end }}>

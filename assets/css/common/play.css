@@ -41,7 +41,6 @@ html[data-pet="dog"] { --pn-ink: #4a3a2c; --pn-on: #8a3b12; --pn-line: #eadccb; 
 /* ---------- the play navigation ---------- */
 .play-nav { display: none; }
 html[data-mode="play"] .play-nav { display: flex; }
-html[data-mode="play"] #menu { display: none; }
 body.arcade-playing .play-nav { display: none; }       /* a running game has the whole screen */
 .play-nav {
     z-index: 85;                                        /* above the page and the pet, below the corner buttons and games */
@@ -127,10 +126,7 @@ html[data-mode="play"] body > .world-layer, html[data-mode="play"] .cat-layer:no
     html[data-mode="play"] .cat-pick { top: auto; right: auto; bottom: 77px; left: 24px; }
     html[data-mode="play"] .dog-pick { left: 66px; }
     html[data-mode="play"] .cat-menu { top: auto; right: auto; bottom: 14px; left: calc(var(--pn-w) + 8px); }
-    html[data-mode="play"] .theme-btn { right: calc(18px + var(--key-w)); }
-    html[data-mode="play"] .nav { padding-inline-end: calc(60px + var(--key-w)); }
     /* on the home page the reset button sits top left: next to the sidebar now */
-    html[data-mode="play"] body:has(.home-reset) .theme-btn { left: calc(var(--pn-w) + 10px); }
     html[data-mode="play"] .home-reset { left: calc(var(--pn-w) + 52px); }
     .pn-back {
         display: flex;
@@ -177,8 +173,6 @@ html:not([data-mode="play"]) .cat-layer,
 html:not([data-mode="play"]) body > .world-layer,
 html:not([data-mode="play"]) .home-reset { display: none !important; }
 
-/* the light switch belongs to the normal site (the lab follows the choice made there) */
-html[data-mode="play"] .theme-btn { display: none; }
 
 /* the home pages' reset button (layouts/partials/cat.html) sits with the cat and dog pickers: in the sidebar's
    "Your pet" row from 900 px, next to them in the top right corner below */
@@ -191,8 +185,7 @@ html[data-mode="play"] .theme-btn { display: none; }
 }
 
 /* ---------- the light switch and the key ---------- */
-/* 40 px tall (44 px on phones, a comfortable finger size). --sw-w is the light switch's width, which the header keeps
-   clear of (paw.css) */
+/* 40 px tall (44 px on phones, a comfortable finger size); --sw-w is the light switch's width */
 :root { --key-h: 40px; --sw-w: 40px; --key-w: 112px; }
 html[data-mode="play"] { --key-w: 120px; }
 @media (max-width: 899px) { html[data-mode="play"] { --key-w: 44px; } }   /* the key alone, round, in the lab on phones */
@@ -210,6 +203,17 @@ html[data-theme="dark"] .theme-btn .sw-knob { transform: translateY(6px); }   /*
     :root { --key-h: 44px; --sw-w: 44px; --key-w: 112px; }
     .key-btn, .theme-btn { top: 6px; }
     .theme-btn { padding: 0; border-radius: 50%; right: calc(14px + var(--key-w)); }
+}
+/* in the lab: a small round switch like the pet buttons; from 900 px in the sidebar's top row, next to "The lab";
+   below, in the top right row with the pet buttons (left of the reset button on the lab's home page) */
+html[data-mode="play"] .theme-btn { width: 34px; height: 34px; border-radius: 50%; }
+html[data-mode="play"] .theme-btn svg { width: 21px; height: 21px; }
+@media (min-width: 900px) {
+    html[data-mode="play"] .theme-btn { top: 5px; left: 140px; right: auto; }
+}
+@media (max-width: 899px) {
+    html[data-mode="play"] .theme-btn { top: 5px; right: calc(94px + var(--key-w)); }
+    html[data-mode="play"] body:has(.home-reset) .theme-btn { right: calc(134px + var(--key-w)); }
 }
 /* a little life on hover (mice only, not with reduced motion): the key turns a bit in its lock */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {

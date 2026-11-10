@@ -33,8 +33,24 @@ html:not([data-mode="play"]) .site-nav { display: flex; }
 }
 @media (prefers-reduced-motion: reduce) { .sn-more > summary svg { transition: none; } }
 
+/* each kind has its colour, as on the home page's projects (home-page.css): Bachelor teal, Master violet, Papers gold.
+   In the sidebar the icon (and the open item) takes it; on the kind's own page it replaces the navy of the timeline
+   (rail dots, the bar of an open entry, links and buttons) and lights the top of the page with a faint glow. */
+.sn-group[data-g="Bachelor"], html:has(.sn-group[data-g="Bachelor"] > .pn-tab[aria-current]) { --aura: #0f766e; --aura-glow: rgba(13, 148, 136, 0.13); }
+.sn-group[data-g="Master"], html:has(.sn-group[data-g="Master"] > .pn-tab[aria-current]) { --aura: #6d28d9; --aura-glow: rgba(124, 58, 237, 0.11); }
+.sn-group[data-g="Paper"], html:has(.sn-group[data-g="Paper"] > .pn-tab[aria-current]) { --aura: #b45309; --aura-glow: rgba(217, 119, 6, 0.13); }
+.sn-group > .pn-tab svg { color: var(--aura); }
+.site-nav .sn-group > .pn-tab[aria-current="page"] { color: var(--aura); border-left-color: var(--aura); }
+.sn-group .sn-list { border-left-color: var(--aura-glow); }
+.sn-group .sn-list a:hover { color: var(--aura); }
+html:has(.sn-group > .pn-tab[aria-current]) .tl-page { --tl-navy: var(--aura); }
+body:has(.sn-group > .pn-tab[aria-current]) { background-image: radial-gradient(1000px 420px at 35% -160px, var(--aura-glow), transparent 72%); background-repeat: no-repeat; }
+
 /* dark (palette: color-scheme.css) */
 @media (prefers-color-scheme: dark) {
     .site-nav { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); background: var(--dk-bg); }
     .sn-more > summary:hover, .sn-list a:hover { background: rgba(255, 255, 255, 0.06); }
+    .sn-group[data-g="Bachelor"], html:has(.sn-group[data-g="Bachelor"] > .pn-tab[aria-current]) { --aura: #5eead4; --aura-glow: rgba(45, 212, 191, 0.12); }
+    .sn-group[data-g="Master"], html:has(.sn-group[data-g="Master"] > .pn-tab[aria-current]) { --aura: #c4b5fd; --aura-glow: rgba(167, 139, 250, 0.13); }
+    .sn-group[data-g="Paper"], html:has(.sn-group[data-g="Paper"] > .pn-tab[aria-current]) { --aura: #fbbf24; --aura-glow: rgba(251, 191, 36, 0.11); }
 }

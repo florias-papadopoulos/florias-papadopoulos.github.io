@@ -38,6 +38,11 @@
             if (x[0].media.mediaText !== t) x[0].media.mediaText = t;
         });
         root.style.colorScheme = want || '';
+        /* the browser's bar on phones: only the chosen colour applies (as written when following the browser) */
+        Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"][data-scheme]'), function (m) {
+            if (!m.hasAttribute('data-media')) m.setAttribute('data-media', m.getAttribute('media') || '');
+            m.setAttribute('media', want ? (m.getAttribute('data-scheme') === want ? 'all' : 'not all') : m.getAttribute('data-media'));
+        });
         var now = want || system();
         root.setAttribute('data-theme', now);
         var b = document.getElementById('theme-btn');

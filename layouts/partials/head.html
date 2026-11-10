@@ -53,7 +53,7 @@
        pet (cat.css) on the lab's pages, timeline.css on the tab pages (Bachelor, Master, Papers, the Toolbox, /you/,
        Privacy, /stats/), and the page's own file. zmedia.css (screen size rules) comes last. Audience mode has its own
        head (live-head.html). reset.css and zmedia.css came from the PaperMod theme (MIT, see LICENSE.md). */ -}}
-{{- $base := slice "core/theme-vars" "core/reset" "common/main" "common/header" "common/header-phone" "common/footer" "common/paw" "common/play" "common/color-scheme" "common/profile-mode" "common/post-entry" "common/terms" "common/404" }}
+{{- $base := slice "core/theme-vars" "core/reset" "common/main" "common/footer" "common/paw" "common/play" "common/color-scheme" "common/profile-mode" "common/post-entry" "common/terms" "common/404" }}
 {{- $extra := slice }}
 {{- $lab := in (slice "lab" "games" "toolbox") .Section }}
 {{- if .IsHome }}{{ $extra = $extra | append "common/home-page" }}{{ end }}
@@ -67,7 +67,7 @@
 {{- if eq .Section "toolbox" }}{{ $extra = $extra | append "common/toolbox" }}{{ end }}
 {{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats") .Layout }}{{ $extra = $extra | append . }}{{ end }}
 {{- /* in the same order as before the split: the core files, then assets/css/common in alphabetical order of the file
-       names (later rules win, e.g. header.css after header-phone.css), then zmedia.css */}}
+       names (later rules win, e.g. site-nav.css after play.css), then zmedia.css */}}
 {{- $common := slice }}{{ range after 2 ($base | append $extra) }}{{ $common = $common | append (printf "%s.css" .) }}{{ end }}
 {{- $names := slice "core/theme-vars.css" "core/reset.css" | append (sort $common) | append "core/zmedia.css" }}
 {{- $files := slice }}
@@ -86,7 +86,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="{{ site.Params.assets.apple_touch_icon | default "apple-touch-icon.png" | absURL }}">
 {{- /* Safari: pinned tabs and its start page use this one */}}
 <link rel="mask-icon" href="{{ site.Params.assets.safari_pinned_tab | default "safari-pinned-tab.svg" | absURL }}" color="#1e3a8a">
-<meta name="theme-color" content="{{ site.Params.assets.theme_color | default "#2e2e33" }}">
+{{- /* the colour of the browser's bar on phones: the page's own, light or dark (the light switch picks one, theme.js) */}}
+<meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" data-scheme="light">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" data-scheme="dark">
 <meta name="msapplication-TileColor" content="{{ site.Params.assets.msapplication_TileColor | default "#2e2e33" }}">
 
 {{- /* RSS */}}
