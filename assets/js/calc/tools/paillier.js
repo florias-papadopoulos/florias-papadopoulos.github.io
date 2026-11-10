@@ -9,7 +9,7 @@ Calc.tool({
         { id: 'm2', type: 'text', label: 'Message $m_2$', placeholder: '100', optional: true },
         { id: 'r1', type: 'text', label: 'Randomness $r_1$', placeholder: '23', optional: true, help: 'Empty: drawn at random.' },
         { id: 'r2', type: 'text', label: 'Randomness $r_2$', placeholder: '81', optional: true, help: 'Empty: drawn at random.' },
-        { id: 'c', type: 'text', label: 'Ciphertext $c$ (to decrypt)', optional: true, width: 'l' }
+        { id: 'c', type: 'text', label: 'Ciphertext $c$ (to decrypt)', placeholder: '88465', optional: true, width: 'l' }
     ],
     actions: [{ id: 'add', label: 'Encrypt and add' }, { id: 'dec', label: 'Decrypt' }],
     examples: [

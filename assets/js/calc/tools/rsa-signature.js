@@ -6,7 +6,7 @@ Calc.tool({
         { id: 'p', label: 'Prime $p$', placeholder: '61' },
         { id: 'q', label: 'Prime $q$', placeholder: '53' },
         { id: 'e', label: 'Public exponent $e$', placeholder: '17' },
-        { id: 'fmt', type: 'select', label: 'Message as', value: 'num', options: [['num', 'A number'], ['text', 'Text']] },
+        { id: 'fmt', type: 'select', label: 'Message as', value: 'num', options: [['num', 'A number'], ['text', 'Text (UTF-8 bytes)']] },
         { id: 'm', type: 'text', label: 'Message $m$', placeholder: '65', optional: true, when: { fmt: 'num' } },
         { id: 'text', type: 'text', label: 'Message text', placeholder: 'Hello', optional: true, maxLength: 1000, when: { fmt: 'text' } },
         { id: 'hash', type: 'select', label: 'What is signed', width: 'l', value: 'none', options: [['none', 'The message itself (as a number)'], ['sha', 'SHA-256 of the message, mod N']] },

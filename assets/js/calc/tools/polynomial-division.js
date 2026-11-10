@@ -157,7 +157,7 @@ Calc.tool({
         var back = addp(mulp(quo, D), rem);
         S.step('Check: $q \\cdot d + r = p$').math('\\left(' + ptex(quo) + '\\right) \\cdot \\left(' + ptex(D) + '\\right) + ' + (deg(rem) >= 0 && rem.some(function (q) { return q.n < 0n; }) ? '\\left(' + ptex(rem) + '\\right)' : ptex(rem)) + ' = ' + ptex(back))
             .check(back.length === P.length && back.every(function (q, i) { return gm.eq(q, P[i]); }), 'This is $' + px + '$ again, and $\\deg r < \\deg d$');
-        S.result(['$' + qx + ' = ' + ptex(quo) + '$', '$' + rx + ' = ' + ptex(rem) + '$'], { copy: 'q = ' + pstr(quo) + ', r = ' + pstr(rem) });
+        S.result(['$' + qx + ' = ' + ptex(quo) + '$', '$' + rx + ' = ' + ptex(rem) + '$'], { copy: 'q = ' + pstr(quo) + '\nr = ' + pstr(rem) });
         S.note(deg(rem) < 0 ? 'The remainder is 0: $' + dx + '$ divides $' + px + '$ exactly, $' + px + ' = ' + (deg(quo) > 0 ? '\\left(' + ptex(quo) + '\\right)' : ptex(quo)) + ' \\cdot \\left(' + ptex(D) + '\\right)$.' : 'So $\\dfrac{' + px + '}{' + dx + '} = ' + qx + ' + \\dfrac{' + rx + '}{' + dx + '}$.');
     }
 });
