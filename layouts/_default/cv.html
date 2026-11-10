@@ -1,0 +1,28 @@
+{{- /* The CV (content/cv/_index.md, written in Markdown): the name and the ways to reach me, "Download PDF" (the PDF in
+       static/files) and "Print" (the browser's print, which can also save this page as a PDF: cv.css has print styles),
+       then the sections. Each entry is a definition list item, shown as the dates on the left and the entry on the
+       right (one column on phones). Styles: assets/css/common/cv.css. */ -}}
+{{- define "main" }}
+{{- $mail := site.Params.cvMail }}
+<article class="cv-page">
+    <header class="cv-head">
+        <div class="cv-who">
+            <h1 class="cv-h1">{{ site.Title }}</h1>
+            <p class="cv-sub">Curriculum Vitae</p>
+            <p class="cv-contact">
+                {{- with $mail }}<a href="#email" data-u="{{ .u }}" data-d="{{ .d }}" data-show>email</a> · {{ end -}}
+                <a href="{{ "" | absURL }}">{{ replace ("" | absURL) "https://" "" | strings.TrimSuffix "/" }}</a> ·
+                <a href="https://github.com/florias-papadopoulos" rel="noopener" target="_blank">GitHub</a> ·
+                <a href="https://www.linkedin.com/in/florias-papadopoulos-b035ab233" rel="noopener" target="_blank">LinkedIn</a>
+            </p>
+        </div>
+        <div class="cv-acts">
+            <a class="cv-btn is-main" href="{{ "files/resume.pdf" | relURL }}" download="Florias-Papadopoulos-CV.pdf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>Download PDF</a>
+            <button class="cv-btn" type="button" data-print><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3.5h10V8M7 17H4.5V10a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7H17"/><path d="M7 14h10v6.5H7z"/></svg>Print</button>
+        </div>
+    </header>
+    <div class="cv-doc">
+        {{ .Content }}
+    </div>
+</article>
+{{- end }}

@@ -133,9 +133,11 @@ params:
   # The email address is kept as two reversed halves, so robots that collect addresses from pages (and this
   # repository) find nothing; assets/js/footer.js puts it together in the browser.
   contactMail: { u: "soluopodapap.sairolf", d: "hc.gsinu" }
+  # the address on the CV page (layouts/_default/cv.html), kept the same way
+  cvMail: { u: "soluopodapapsairolf", d: "moc.liamg" }
   socialIcons:
     - name: CV
-      url: /files/resume.pdf
+      url: /cv/
     - name: email
       title: Email
       url: "#email"

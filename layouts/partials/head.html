@@ -65,7 +65,7 @@
 {{- if not (or .IsHome $lab (eq .Layout "admin")) }}{{ $extra = $extra | append "common/site-nav" }}{{ end }}
 {{- if or (eq .Section "toolbox") (in (slice "timeline" "you" "privacy" "stats") .Layout) (and (eq .Kind "section") (not $lab)) }}{{ $extra = $extra | append "common/timeline" }}{{ end }}
 {{- if eq .Section "toolbox" }}{{ $extra = $extra | append "common/toolbox" }}{{ end }}
-{{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats") .Layout }}{{ $extra = $extra | append . }}{{ end }}
+{{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats" "cv" "common/cv") .Layout }}{{ $extra = $extra | append . }}{{ end }}
 {{- /* in the same order as before the split: the core files, then assets/css/common in alphabetical order of the file
        names (later rules win, e.g. site-nav.css after play.css), then zmedia.css */}}
 {{- $common := slice }}{{ range after 2 ($base | append $extra) }}{{ $common = $common | append (printf "%s.css" .) }}{{ end }}

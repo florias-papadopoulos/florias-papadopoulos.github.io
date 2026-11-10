@@ -80,6 +80,8 @@
         var sel = window.getSelection();
         sel.removeAllRanges(); sel.addRange(range);
     }
+    /* the CV page's Print button (layouts/_default/cv.html) */
+    Array.prototype.forEach.call(document.querySelectorAll('[data-print]'), function (b) { b.addEventListener('click', function () { window.print(); }); });
     Array.prototype.forEach.call(document.querySelectorAll('[data-u][data-d]'), function (a) {
         var back = function (s) { return s.split('').reverse().join(''); }, m = back(a.getAttribute('data-u')) + '@' + back(a.getAttribute('data-d'));
         if (a.tagName === 'A') a.href = 'mailto:' + m;

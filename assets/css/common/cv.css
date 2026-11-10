@@ -1,0 +1,64 @@
+/* The CV page (layouts/_default/cv.html, content/cv/_index.md): a header with the name, the contact line and the
+   buttons, then the sections; each entry is the dates on the left and the entry on the right (a definition list), one
+   column on phones. Printing (or saving as PDF from the print dialog) gives a clean black on white page. */
+.cv-page { --cv-ink: #0f172a; --cv-text: #334155; --cv-mute: #5b6b80; --cv-line: #e2e8f0; --cv-acc: #1e3a8a;
+    max-width: 880px; margin: 0 auto; color: var(--cv-text); }
+.cv-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; margin: 8px 0 8px; padding-bottom: 16px; border-bottom: 2px solid var(--cv-ink); }
+.cv-h1 { margin: 0; color: var(--cv-ink); font-size: 32px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+.cv-sub { margin: 2px 0 0; color: var(--cv-mute); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.cv-contact { margin: 8px 0 0; font-size: 14.5px; }
+.cv-contact a, .cv-doc a { color: var(--cv-acc); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--cv-acc) 30%, transparent); }
+.cv-contact a:hover, .cv-doc a:hover { border-bottom-color: var(--cv-acc); }
+.cv-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cv-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 1px solid #c7d2e8; border-radius: 9px; background: #fff; color: var(--cv-acc); font: inherit; font-size: 14.5px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.cv-btn:hover { border-color: var(--cv-acc); }
+.cv-btn.is-main { border-color: var(--cv-acc); background: var(--cv-acc); color: #fff; }
+.cv-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cv-btn:focus-visible { outline: 2px solid var(--cv-acc); outline-offset: 2px; }
+
+.cv-doc h2 { margin: 30px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--cv-line); color: var(--cv-acc); font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.cv-doc h3 { margin: 18px 0 8px calc(var(--cv-dates) + 22px); color: var(--cv-ink); font-size: 15px; font-weight: 700; }
+.cv-doc { --cv-dates: 150px; font-size: 15px; line-height: 1.55; }
+.cv-doc dl { display: grid; grid-template-columns: var(--cv-dates) minmax(0, 1fr); column-gap: 22px; row-gap: 12px; margin: 0; }
+.cv-doc dt { color: var(--cv-mute); font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; padding-top: 1px; }
+.cv-doc dd { margin: 0; }
+.cv-doc dd strong { color: var(--cv-ink); font-weight: 650; }
+.cv-doc dd p { margin: 0; }
+.cv-doc dd ul { margin: 3px 0 0; padding-left: 18px; }
+.cv-doc dd li { margin: 1px 0; }
+
+@media (max-width: 640px) {
+    .cv-head { padding-right: 0; }
+    .cv-h1 { font-size: 27px; padding-right: 100px; }        /* the corner buttons sit at the top right */
+    .cv-doc dl { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+    .cv-doc dt { text-align: left; font-weight: 600; }
+    .cv-doc dd { margin-bottom: 12px; }
+    .cv-doc h3 { margin-left: 0; }
+}
+
+@media (prefers-color-scheme: dark) {
+    .cv-page { --cv-ink: var(--dk-ink); --cv-text: var(--dk-text); --cv-mute: var(--dk-muted); --cv-line: var(--dk-line); --cv-acc: var(--dk-navy); }
+    .cv-btn { border-color: var(--dk-field); background: var(--dk-card); }
+    .cv-btn.is-main { background: var(--dk-navy); border-color: var(--dk-navy); color: var(--dk-on-navy); }
+}
+
+/* printing: only the CV, black on white, the sections kept whole where possible */
+@media print {
+    @page { margin: 16mm 15mm; }
+    html, body { background: #fff !important; }
+    body { padding: 0 !important; }
+    .site-nav, .corner-btn, .cat-picker, .footer, .top-link, .cv-acts { display: none !important; }
+    .main { max-width: none; padding: 0; }
+    .cv-page { --cv-ink: #000; --cv-text: #111; --cv-mute: #444; --cv-acc: #000; --cv-line: #bbb; max-width: none; }
+    .cv-head { margin-top: 0; padding-bottom: 8px; }
+    .cv-h1 { font-size: 20pt; }
+    .cv-doc { --cv-dates: 92px; font-size: 9pt; line-height: 1.35; }
+    .cv-doc h2 { margin: 12px 0 5px; padding-bottom: 3px; font-size: 9.5pt; }
+    .cv-doc h3 { margin: 8px 0 4px calc(var(--cv-dates) + 14px); font-size: 9pt; }
+    .cv-doc dl { column-gap: 14px; row-gap: 5px; }
+    .cv-doc dt { font-size: 8.5pt; }
+    .cv-doc a, .cv-contact a { border-bottom: 0; }
+    .cv-doc dl > dt { break-after: avoid; }
+    .cv-doc dd { break-inside: avoid; }
+    .cv-doc h2, .cv-doc h3 { break-after: avoid; }
+}

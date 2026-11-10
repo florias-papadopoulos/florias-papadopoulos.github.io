@@ -1,9 +1,9 @@
 {{- /* The normal side's navigation, on every page of it except the home page (which has its band): the same shape as
        the lab's (layouts/partials/play-nav.html, styles shared from play.css, the rest in assets/css/common/site-nav.css).
-       From 900 px a sidebar on the left: the name (to the home page), then Home, Bachelor, Master and Papers; each of the
-       last three has an arrow that opens the list of its projects underneath (a <details>, so it works by touch and
+       From 900 px a sidebar on the left: the name (to the home page), then Home, Bachelor, Master, Papers and CV; each of
+       Bachelor, Master and Papers has an arrow that opens the list of its projects underneath (a <details>, so it works by touch and
        without scripts; open on its own page), and each project opens its entry on that page (url#anchor, as on the home
-       page). Below 900 px a tab bar at the bottom with the four tabs, without the lists (the pages list the projects). */ -}}
+       page). Below 900 px a tab bar at the bottom with the five tabs, without the lists (the pages list the projects). */ -}}
 {{- $here := .RelPermalink }}
 {{- $projects := where site.RegularPages "Section" "projects" }}
 {{- $groups := slice
@@ -36,5 +36,6 @@
             {{- end }}
         </li>
         {{- end }}
+        <li><a class="pn-tab" href="{{ "cv/" | relURL }}"{{ if eq .Layout "cv" }} aria-current="page"{{ end }}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4M14 13.5h4"/></svg><span>CV</span></a></li>
     </ul>
 </nav>
