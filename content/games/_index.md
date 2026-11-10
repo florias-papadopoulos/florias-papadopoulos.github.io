@@ -15,7 +15,7 @@ layout: arcade
 # to api.end as board, with names for the picker on the Leaderboards tab (trackLabel names the picker, default Track;
 # with a single track the picker is not shown and that board is used).
 games:
-  - { id: cipher-cat,     title: "Cipher Cat",          emoji: "🔐", desc: "The cat hid a message. Crack the code before the clock runs out.", dogTitle: "Cipher Dog", dogDesc: "The dog hid a message. Crack the code before the clock runs out.", group: complex, levels: true }
+  - { id: cipher-cat,     title: "Cipher Cat",          emoji: "🔐", desc: "The cat hid a message. Crack the code before the clock runs out.", dogTitle: "Cipher Dog", dogDesc: "The dog hid a message. Crack the code before the clock runs out.", group: simple, levels: true }
   - { id: cat-tower,      title: "Cat Tower Stack",     emoji: "🗼", desc: "Drop the pieces, build the tallest wobbly cat tower.", dogTitle: "Dog Tower Stack", dogDesc: "Drop the pieces, build the tallest wobbly dog tower.", group: simple, levels: true }
   - { id: laser-chase,    title: "Laser Chase",         emoji: "💫", desc: "Steer the laser dot, the cat follows. Mind the vases.", dogDesc: "Steer the laser dot, the dog follows. Mind the vases.", group: simple, levels: true }
   - { id: night-prowl,    title: "Night Prowl",         emoji: "🌙", desc: "Sneak to the treat jar without being seen.", group: simple, levels: true }
@@ -37,7 +37,7 @@ games:
   - { id: kitty-kart-split, title: "Kitty Kart Split Screen", emoji: "📱", desc: "Two players on one phone, one half each, or on one keyboard. No internet needed.", dogTitle: "Puppy Kart Split Screen", group: two, script: kitty-kart, levels: true }
   - { id: tic-tac-paw-2p, title: "Tic Tac Two",         emoji: "#️⃣", desc: "Two players on one phone or computer, taking turns. Paws against fish.", group: two, script: tic-tac-paw }
   - { id: four-in-a-row-2p, title: "Four for Two",        emoji: "🟠", desc: "Two players on one phone or computer, taking turns. Four or five in a row.", group: two, script: four-in-a-row }
-  - { id: crypto-heist,   title: "Crypto Heist",        emoji: "🗝️", desc: "Break into the Treat Vault room by room: one-time pads, RSA, hashes, Diffie-Hellman and zero knowledge, by hand.", group: complex, levels: true }
+  - { id: crypto-heist,   title: "Crypto Heist",        emoji: "🗝️", desc: "Break into the Treat Vault room by room: one-time pads, RSA, hashes, Diffie-Hellman and zero knowledge, by hand.", group: simple, levels: true }
   - { id: yarn-smash,     title: "Yarn Smash",          emoji: "🪟", desc: "Sky isles, crystal caves, a clockwork tower: smash the glass with yarn.", group: complex, levels: true }
   - { id: garden-defender, title: "Garden Defender",    emoji: "🐞", desc: "Keep the bugs, snails and wind up mice out with a water pistol while the garden keeps changing, and grab the power ups they drop.", group: complex, levels: true,
       tracks: [{ id: tour, name: "Garden Tour" }] }

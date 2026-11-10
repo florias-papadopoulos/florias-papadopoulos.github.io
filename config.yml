@@ -36,9 +36,6 @@ menu:
     - name: Papers
       url: /papers/
       weight: 2
-    - name: Toolbox
-      url: /toolbox/
-      weight: 3
     - name: CV
       url: /files/resume.pdf
       weight: 4
@@ -153,13 +150,7 @@ params:
     imageTitle: Florias Papadopoulos
     imageWidth: 168
     imageHeight: 168
-    buttons:
-      - name: Bachelor
-        url: /bachelor/
-      - name: Master
-        url: /master/
-      - name: Papers
-        url: /papers/
+    # no Bachelor/Master/Papers buttons: the route from Greece to Switzerland (journey above) links to all three
 
   # The email address is kept as two reversed halves, so robots that collect addresses from pages (and this
   # repository) find nothing; assets/js/footer.js puts it together in the browser.

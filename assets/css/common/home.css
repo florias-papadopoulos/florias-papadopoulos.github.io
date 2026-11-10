@@ -280,9 +280,10 @@ body:has(.profile.home) .footer {
         line-height: 1.7;
         font-size: 0;                                   /* hides the " · " between the parts: set again below */
     }
-    /* two lines: "© 2026 Name · Privacy", then "Made with ..." */
+    /* one line, "© 2026 Name · Privacy · Made with Hugo", when it fits; otherwise "Made with Hugo" wraps as a whole */
     body:has(.profile.home) .footer > * { font-size: 11px; }
-    body:has(.profile.home) .footer > span:last-child { display: block; }
+    body:has(.profile.home) .footer > span:last-child { display: inline-block; }
+    body:has(.profile.home) .footer > span:last-child::before { content: "\00b7"; display: inline-block; margin: 0 6px; }
     /* the corner buttons stay at the top of the page instead of floating over it while scrolling */
     body:has(.profile.home) .corner-btn { position: absolute; }
 }
@@ -291,3 +292,30 @@ body:has(.profile.home) .footer {
 .lab-home .links { width: 100%; display: flex; justify-content: center; }
 .lab-home .buttons { display: flex; justify-content: center; gap: 8px; }
 .lab-home .button { margin: 0; min-width: 120px; justify-content: center; }
+/* the lab bench: the paste box, what it recognised, the most used tools */
+.lab-bench { width: 100%; max-width: 640px; margin: 0 auto; text-align: left; }
+.lab-bench-label { display: block; margin: 0 0 6px; color: var(--ink); font-size: 14.5px; font-weight: 600; }
+.lab-paste { display: block; width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; background: #fff; color: var(--ink); font: 15px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: vertical; }
+.lab-paste:focus-visible { outline: 2px solid var(--navy); outline-offset: 1px; border-color: var(--navy); }
+.lab-guess { margin: 10px 0 0; padding: 10px 12px; border-left: 3px solid var(--navy); border-radius: 0 10px 10px 0; background: #f5f7fb; }
+.lab-guess[hidden] { display: none; }
+.lab-guess-what { margin: 0 0 8px; color: #64748b; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.lab-guess-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.lab-guess-link { padding: 7px 11px; border: 1px solid #c7d2e8; border-radius: 8px; background: #fff; text-decoration: none; }
+.lab-guess-link:hover { border-color: var(--navy); }
+.lab-guess-link b { color: var(--navy); font-size: 14px; }
+.lab-chips-label { margin: 16px 0 6px; color: #64748b; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.lab-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-chip { padding: 5px 10px; border: 1px solid #d6dbe4; border-radius: 999px; background: #fff; color: var(--ink); font-size: 13.5px; text-decoration: none; }
+.lab-chip:hover { border-color: var(--navy); color: var(--navy); }
+@media (max-width: 600px) {
+    .lab-bench { order: 2; }
+    .lab-home .links { order: 3; }
+    .lab-home .buttons { display: flex; }
+    .lab-home .home-panel { padding-top: 40px; }
+}
+/* small phones: the seven icons stay on one line */
+@media (max-width: 420px) { .home .social-icons { flex-wrap: nowrap; } .home .social-icons a { padding: 0 6px; } }
+/* the lab's page is narrower than the normal home page, so the side margins are wide enough for home-lab.js to float its
+   symbols there (it needs about 150 px on each side) */
+.lab-home .home-panel { max-width: 660px; margin-inline: auto; }

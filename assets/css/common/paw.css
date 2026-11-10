@@ -113,5 +113,7 @@ html[data-mode="play"] .nav { padding-inline-end: calc(144px + var(--key-w, 34px
     .you-link { right: calc(14px + var(--key-w, 34px)); }
     html[data-mode="play"] .you-link { right: calc(94px + var(--key-w, 34px)); }
     body:has(.home-reset) .you-link { left: 8px; right: auto; }
+    /* the normal home page on phones (no header there): the eye top left, the key alone top right */
+    body:has(.profile.home) .you-link { left: 8px; right: auto; }
     .home-reset { left: 48px; }
 }

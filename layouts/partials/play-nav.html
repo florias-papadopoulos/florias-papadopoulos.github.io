@@ -20,6 +20,8 @@
         <li class="pm-card"><a class="pn-tab" href="{{ .url }}"{{ if .on }} aria-current="page"{{ end }}>{{ .icon | safeHTML }}<span>{{ .name }}</span></a></li>
         {{- end }}
     </ul>
+    {{- /* the owner's way into audience mode (locked by the presenter key there), only in the sidebar */}}
+    <a class="pn-audience" href="{{ "live/admin/" | relURL }}"><span aria-hidden="true">🔒</span> Audience mode</a>
     <div class="pn-pets pm-card">
         <p class="pn-label">Your pet</p>
         <div class="pn-slots" aria-hidden="true"></div>
