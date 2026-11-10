@@ -1,5 +1,8 @@
 CREATE TABLE IF NOT EXISTS counts (day TEXT NOT NULL, kind TEXT NOT NULL, key TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, kind, key));
-CREATE TABLE IF NOT EXISTS rooms (code TEXT PRIMARY KEY, offer TEXT NOT NULL, answer TEXT, at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS rooms (code TEXT PRIMARY KEY, offer TEXT NOT NULL, answer TEXT, at INTEGER NOT NULL, secret TEXT);
+CREATE INDEX IF NOT EXISTS rooms_at ON rooms (at);
 CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY, board TEXT NOT NULL, name TEXT NOT NULL, score REAL NOT NULL, week TEXT NOT NULL, at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS scores_board ON scores (board, score);
 CREATE TABLE IF NOT EXISTS likes (game TEXT PRIMARY KEY, up INTEGER NOT NULL DEFAULT 0, down INTEGER NOT NULL DEFAULT 0);
+-- An older database gets the rooms secret column and the rooms_at index from the worker itself (roomsSetup), so this
+-- file is only needed for a new database.

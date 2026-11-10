@@ -11,7 +11,7 @@
        there), and the kart keeps its default look. A kart being put back after a cut has flag 128 in the snapshot. */
     var LAG = 0.1, SNAP_MS = 33, KF = 13, ICE = [{ urls: 'stun:stun.cloudflare.com:3478' }], PH = ['pick', 'count', 'race', 'done'];
     var SERVER = (api.server || '').replace(/\/+$/, '');
-    var pc = null, fast = null, sure = null, gen = 0, linked = false, role = '', roomCode = null, codeAt = 0, heard = 0;
+    var pc = null, fast = null, sure = null, gen = 0, linked = false, role = '', roomCode = null, roomKey = null, codeAt = 0, heard = 0;
     var raceNo = 0, ready = false, snapAt = 0, snapSeq = 0, yarnId = 0, doneAt = 0, myDone = false, palUsed = 0;
     var palIn = { thr: 0, want: 0, use: 0, seq: 0, at: 0 };
     var snaps = [], vclock = -1, lastSeq = 0, cd = -1, sinceGo = 0, uses = 0, inSeq = 0, sentAt = 0, heldItem = null, resKey = '';
@@ -171,19 +171,30 @@
     }
     function leave() { send({ t: 'bye' }); menu(); }
 
-    /* ---------- signalling: the counter passes the offer and the answer on ---------- */
-    function ask(method, path, body) {
+    /* ---------- signalling: the counter passes the offer and the answer on ----------
+       The host asks for a room with a host key ("k": 1); the counter sends one back (a counter from before the key
+       does not, and then everything works as before). Only the host knows it: waiting for the answer sends it in the
+       Authorization header, closing the room in the body, never in the address, so nobody else can take the answer
+       or close the room. */
+    function ask(method, path, body, key) {
+        var h = {};
+        if (body) h['Content-Type'] = 'text/plain';
+        if (key) h.Authorization = 'Room ' + key;
         return fetch(SERVER + path, { method: method, cache: 'no-store', credentials: 'omit',
-            headers: body ? { 'Content-Type': 'text/plain' } : {}, body: body ? JSON.stringify(body) : null })
+            headers: h, body: body ? JSON.stringify(body) : null })
             .then(function (r) {
                 if (r.status !== 200) return { status: r.status };
                 return r.json().then(function (d) { return { status: 200, data: d || {} }; });
             });
     }
     function closeRoom() {  /* the host stops waiting: the counter deletes the room now rather than after two minutes */
-        var c = roomCode;
-        roomCode = null;
-        try { fetch(SERVER + '/room/' + c + '/close', { method: 'POST', keepalive: true, cache: 'no-store', credentials: 'omit' }).catch(function () {}); } catch (e) { /* offline */ }
+        var c = roomCode, k = roomKey;
+        roomCode = roomKey = null;
+        /* text/plain: a simple request (no preflight), which keepalive needs to get out while the page closes */
+        try {
+            fetch(SERVER + '/room/' + c + '/close', { method: 'POST', keepalive: true, cache: 'no-store', credentials: 'omit',
+                headers: k ? { 'Content-Type': 'text/plain' } : {}, body: k ? JSON.stringify({ key: k }) : null }).catch(function () {});
+        } catch (e) { /* offline */ }
     }
     function peer() {
         var p = new RTCPeerConnection({ iceServers: ICE }), g = gen;
@@ -212,11 +223,12 @@
         pc = peer();
         pc.createOffer().then(function (o) { return g === gen ? pc.setLocalDescription(o) : null; })
             .then(function () { return g === gen ? gathered(pc) : null; })
-            .then(function () { return g === gen ? ask('POST', '/room', { offer: pc.localDescription.sdp }) : null; })
+            .then(function () { return g === gen ? ask('POST', '/room', { offer: pc.localDescription.sdp, k: 1 }) : null; })
             .then(function (r) {
                 if (!r || g !== gen) return;
                 if (r.status !== 200 || !/^[A-Z]{4}$/.test(r.data.code)) { fail(r.status === 503 ? 'full' : 'server'); return; }
                 roomCode = r.data.code; codeAt = Date.now();
+                roomKey = typeof r.data.key === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(r.data.key) ? r.data.key : null;
                 lobbyEl.querySelector('.kk-code').textContent = roomCode;
                 lobby('code');
                 api.timeout(function () { waitAnswer(g); }, 1200);
@@ -226,11 +238,11 @@
     function waitAnswer(g) {  /* the host asks every 1.2 s whether the friend has answered */
         if (g !== gen || !roomCode) return;
         if (Date.now() - codeAt > 115000) { expired(); return; }
-        ask('GET', '/room/' + roomCode + '/answer').then(function (r) {
+        ask('GET', '/room/' + roomCode + '/answer', null, roomKey).then(function (r) {
             if (g !== gen) return;
             if (r.status === 204) { api.timeout(function () { waitAnswer(g); }, 1200); return; }
-            if (r.status !== 200 || typeof r.data.answer !== 'string') { roomCode = null; expired(); return; }
-            roomCode = null;  /* the counter has deleted the room */
+            if (r.status !== 200 || typeof r.data.answer !== 'string') { roomCode = roomKey = null; expired(); return; }
+            roomCode = roomKey = null;  /* the counter has deleted the room */
             msg('Connecting', 'Your friend is joining…', [['Cancel', menu]]);
             pc.setRemoteDescription({ type: 'answer', sdp: r.data.answer }).then(function () { linkWait(g); }, function () { if (g === gen) fail('direct'); });
         }, function () { if (g === gen) api.timeout(function () { waitAnswer(g); }, 2500); });  /* a hiccup: ask again */
