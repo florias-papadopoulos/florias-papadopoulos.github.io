@@ -597,12 +597,13 @@
         document.body.classList.remove('arcade-playing');
         if (musicBox && musicBox.parentNode === stage.querySelector('.stage-bar')) { musicBox.close(); root.querySelector('.arcade-head').appendChild(musicBox); }
     }
-    /* The Leaderboards tab, filled when first opened. Champions (the first view): one table, one row per game with a
-       leaderboard and one column per difficulty, each cell the board's leader (from /scores/summary, which has the top
-       3 of every board); a click opens that board in the full view. Games with tracks or gardens show the leader of
-       their busiest track in each cell and a link to a table of their tracks. Empty boards say "be the first" and
-       start the game. On phones every row becomes a small card (arcade.css). Full leaderboards: pick a game, a
-       difficulty (and a track), see both top 10s. Without /scores/summary on the server, the full view opens. */
+    /* The Leaderboards tab, filled when first opened. Champions (the first view): one table, one row per game that
+       has a champion and one column per difficulty, each cell the board's leader (from /scores/summary, which has the
+       top 3 of every board); a click opens that board in the full view. A game joins the table with its first score
+       (with none at all, a short line says so instead of the table); its empty boards say "be the first" and start
+       the game. Games with tracks or gardens show the leader of their busiest track in each cell and a link to a table
+       of their tracks. On phones every row becomes a small card (arcade.css). Full leaderboards (every game): pick a
+       game, a difficulty (and a track), see both top 10s. Without /scores/summary on the server, the full view opens. */
     var boards = document.getElementById('panel-boards'), boardsReady = false, boardsSeq = 0;
     function boardsLoad() {
         var gSel = boards.querySelector('.ab-game'), lSel = boards.querySelector('.ab-level'), tSel = boards.querySelector('.ab-track');
@@ -688,12 +689,17 @@
         var over = boards.querySelector('.ab-over'), mine = store('arcade-name'), by = champData;
         over.innerHTML = '';
         var games = boardGames().map(function (g, i) {
-            var players = 0;
-            Object.keys(by).forEach(function (k) { if (k.split('/')[0] === g.id) players += by[k].p; });
-            return { g: g, i: i, players: players };
-        });
-        /* games with scores first (most players first), then the others in page order */
-        games.sort(function (a, b) { return (b.players > 0) - (a.players > 0) || b.players - a.players || a.i - b.i; });
+            var players = 0, champ = false;
+            Object.keys(by).forEach(function (k) { if (k.split('/')[0] === g.id) { players += by[k].p; champ = true; } });
+            return { g: g, i: i, players: players, champ: champ };
+        }).filter(function (e) { return e.champ; });   /* a game shows up here with its first score (the full view has them all) */
+        if (!games.length) {
+            var none = el('p', 'ab-none', 'No champions yet. Play any game and your score could be the first one here!');
+            over.appendChild(none);
+            return;
+        }
+        /* most players first, then page order */
+        games.sort(function (a, b) { return b.players - a.players || a.i - b.i; });
         var table = el('table', 'ab-table'), body = el('tbody');
         table.appendChild(champHead('Game', LEVELS.map(function (l) { return LEVEL_NAME[l]; })));
         games.forEach(function (e) {

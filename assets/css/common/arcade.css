@@ -51,6 +51,7 @@
 .ab-champ.is-me .ab-champ-n { color: var(--navy); }
 .ab-champ-s { color: var(--muted); font-size: 0.76rem; font-variant-numeric: tabular-nums; }
 .ab-first { color: #78716c; font-size: 0.82rem; text-decoration: none; }
+.ab-none { margin: 28px auto; max-width: 420px; color: var(--muted); text-align: center; }   /* no game has a champion yet */
 .ab-na { background: #fbfaf7; }
 .ab-back { margin: 0 0 10px; padding: 0; border: 0; background: none; color: var(--navy); font: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
 .ab-back::before { content: "\25C2  "; }
