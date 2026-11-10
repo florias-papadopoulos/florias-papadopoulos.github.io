@@ -32,8 +32,8 @@ How to do it:
   in `content/games/_index.md` (`dogTitle`, `dogDesc`, `dogEmoji`) where the name mentions the cat.
 - Sound only through `api.sfx` (it follows the Effects volume); a game with sounds of its own reads
   `Arcade.sfxLevel()`.
-- A game with a leaderboard needs its id in `BOARDS` in `tools/stats-worker/worker.js`, with a `max` (the best real
+- A game with a leaderboard needs its id in `BOARDS` in `tools/workers/stats/worker.js`, with a `max` (the best real
   score, worked out from the game's scoring; `min` too when lower is better) and its `tracks` when it passes a `board`
-  to `api.end` (the worker refuses any other track). Then run `node tools/stats-worker/test/run.js` and paste the
+  to `api.end` (the worker refuses any other track). Then run `node tools/workers/stats/test/run.js` and paste the
   worker into Cloudflare again.
 - Original designs only, no clones of existing games.

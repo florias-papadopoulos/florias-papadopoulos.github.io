@@ -1,4 +1,4 @@
-/* Drawing the views the worker sends (tools/live-worker/src/session.js: audienceView and presenterView): the phone's
+/* Drawing the views the worker sends (tools/workers/live/src/session.js: audienceView and presenterView): the phone's
    main card (LV.phoneMain), the question list (LV.qItems), the ranking (LV.boardList) and the projector's screen
    (LV.screen). The presenter page draws its previews with the same functions, so what it shows is what people see. */
 (function (LV) {

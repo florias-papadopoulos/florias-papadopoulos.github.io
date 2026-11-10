@@ -1,4 +1,4 @@
-/* Home page world of the cat (the cat itself: assets/js/cat-core.js, bundled before this file by
+/* Home page world of the cat (the cat itself: assets/js/lab/cat-core.js, bundled before this file by
    layouts/partials/cat.html; markup there, styles in assets/css/common/cat.css).
 
    On desktop, numbers, letters and field symbols float in the margins as platforms (nothing on phones). The cat knocks letters of the name and symbols loose: they fly, fall, land, and
@@ -411,7 +411,7 @@
 
         document.addEventListener('playmode-off', reset);
     }
-    /* the pet and its world only come out in play mode, after the key (assets/js/play.js); the academic site is plain */
+    /* the pet and its world only come out in play mode, after the key (assets/js/lab/play.js); the academic site is plain */
     if (document.documentElement.dataset.mode === 'play') boot();
     else document.addEventListener('playmode-on', boot, { once: true });
 })();

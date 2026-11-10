@@ -1,4 +1,4 @@
-/* "What this site knows about you" (layouts/_default/you.html, assets/js/you.js). Plain cards and type in the navy
+/* "What this site knows about you" (layouts/_default/you.html, assets/js/site/you.js). Plain cards and type in the navy
    and grays of the tabs; monospace only for the values. */
 
 .main:has(.you-page) { max-width: calc(780px + var(--gap) * 2); }

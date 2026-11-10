@@ -1,9 +1,8 @@
 {{- define "main" }}
-{{- /* The lab's home page (content/lab/_index.md), opened by the key in the corner (assets/js/play.js). A lab bench:
-       one box for anything pasted (assets/js/lab-bench.js asks the Toolbox's recogniser, assets/js/calc/index.js, which
-       tools fit and links to them already filled in), the most used tools as chips, and the doors to the Games and the
-       Toolbox. Built with the classes of the normal home page (home.css), so its playground works here too:
-       assets/js/home-lab.js breaks the title into letters and floats symbols the pet can push (layouts/partials/cat.html). */ -}}
+{{- /* The lab's home page (content/lab/_index.md), opened by the key in the corner (assets/js/lab/play.js). A lab bench:
+       one box for anything pasted (assets/js/lab/lab-bench.js asks the Toolbox's recogniser, assets/js/calc/index.js, which
+       tools fit and links to them already filled in), the most used tools as chips, (Enter runs the first suggestion right here, see lab-bench.js). Built with the classes of the normal home page (home.css), so its playground works here too:
+       assets/js/lab/home-lab.js breaks the title into letters and floats symbols the pet can push (layouts/partials/cat.html). */ -}}
 {{- $titles := dict }}
 {{- range hugo.Data.toolbox }}{{ range .tools }}{{ $titles = merge $titles (dict .id .title) }}{{ end }}{{ end }}
 {{- $chips := slice "modular-calculator" "chinese-remainder" "modular-inverse" "rsa" "prime-factorization" "elliptic-curve" "caesar-breaker" "vigenere-breaker" "cipher-identifier" "base64" "hex" "hash" }}
@@ -19,22 +18,19 @@
             <label class="lab-bench-label" for="lab-paste">Paste anything: a number, a sum mod n, a cipher, Base64, hex, binary, Morse...</label>
             <textarea id="lab-paste" class="lab-paste" rows="2" spellcheck="false" autocomplete="off" placeholder="e.g. 3^200 mod 101, or SGVsbG8gd29ybGQ=" data-toolbox="{{ "toolbox/" | relURL }}"></textarea>
             <div class="lab-guess" id="lab-guess" aria-live="polite" hidden></div>
+            <div class="lab-run" id="lab-run" hidden></div>
+            <div class="lab-more" id="lab-more">
             <p class="lab-chips-label">Most used</p>
             <div class="lab-chips">
                 {{- range $chips }}{{ with index $titles . }}
                 <a class="lab-chip" href="{{ printf "toolbox/%s/" $ | relURL }}">{{ . }}</a>
                 {{- end }}{{ end }}
             </div>
-        </div>
-        <div class="links">
-            <div class="buttons">
-                <a class="button" href="{{ "games/" | relURL }}"><span class="button-inner">Games</span></a>
-                <a class="button" href="{{ "toolbox/" | relURL }}"><span class="button-inner">All tools</span></a>
             </div>
         </div>
     </div>
 </div>
-{{- $js := slice (resources.Get "js/calc/index.js") (resources.Get "js/lab-bench.js") | resources.Concat "js/lab-bench.bundle.js" | minify | fingerprint }}
+{{- $js := slice (resources.Get "js/calc/index.js") (resources.Get "js/lab/lab-bench.js") | resources.Concat "js/lab-bench.bundle.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{ partial "cat.html" (dict "world" "home") }}
 {{- end }}

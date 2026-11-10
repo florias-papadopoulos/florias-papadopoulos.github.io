@@ -3,7 +3,7 @@
 // it uses (storage, acceptWebSocket, getWebSockets, attachments, the ping auto-response) and a minimal WebSocket
 // server. With HIBERNATE=1 every Session is thrown away after each event and rebuilt from its storage, as Cloudflare
 // does when an object hibernates, so state kept only in memory shows up as a bug.
-//   LIVE_DEV_KEY=<a made-up key> PORT=8811 SCRATCH=<a folder for one patched file> node tools/live-worker/test/devserver.js
+//   LIVE_DEV_KEY=<a made-up key> PORT=8811 SCRATCH=<a folder for one patched file> node tools/workers/live/test/devserver.js
 // This is a test harness, not Cloudflare: it shows that the code is consistent with the documented APIs, not that
 // Cloudflare behaves exactly like it.
 import http from 'http';

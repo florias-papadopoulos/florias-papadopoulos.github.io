@@ -1,4 +1,4 @@
-// Tests of the pure logic (plan.js, session.js), in plain node (12 or later): node tools/live-worker/test/run.js
+// Tests of the pure logic (plan.js, session.js), in plain node (12 or later): node tools/workers/live/test/run.js
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -100,7 +100,7 @@ test('nicknames', function () {
 });
 
 test('the nickname filter is the leaderboards worker\'s, unchanged', function () {
-    const w = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '../../stats-worker/worker.js'), 'utf8');
+    const w = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '../../stats/worker.js'), 'utf8');
     /* the same lists */
     const short = /const SHORT = new Set\((\[[^\]]*\])\)/.exec(w), long = /const LONG = (\[[^\]]*\])/.exec(w);
     assert.ok(short && long, 'SHORT or LONG not found in the stats worker');
@@ -829,7 +829,7 @@ test('privacy: nicknames from before the start go 24 hours later, or when the pl
 });
 
 /* ---------- the site: CSV export, presenter key, links, privacy note ---------- */
-const siteDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../../../assets/js/live');
+const siteDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../../../../assets/js/live');
 function siteBox(files) {
     const mem = function () {
         const m = {};
@@ -899,9 +899,9 @@ test('links: the code first, then the join secret; the privacy note says what is
 
 test('no em or en dashes in audience mode', function () {
     const top = path.join(siteDir, '../../..');
-    const files = [path.join(siteDir, 'README.md'), path.join(top, 'tools/live-worker/README.md'), path.join(top, 'assets/css/common/live.css'),
+    const files = [path.join(siteDir, 'README.md'), path.join(top, 'tools/workers/live/README.md'), path.join(top, 'assets/css/common/live.css'),
         path.join(top, 'layouts/partials/live-head.html'), path.join(top, 'layouts/partials/live-page.html')];
-    [siteDir, path.join(top, 'tools/live-worker/src'), path.join(top, 'tools/live-worker/test'), path.join(top, 'layouts/live'), path.join(top, 'content/live')].forEach(function (d) {
+    [siteDir, path.join(top, 'tools/workers/live/src'), path.join(top, 'tools/workers/live/test'), path.join(top, 'layouts/live'), path.join(top, 'content/live')].forEach(function (d) {
         fs.readdirSync(d).filter(function (f) { return /\.(js|cjs|html|md)$/.test(f); }).forEach(function (f) { files.push(path.join(d, f)); });
     });
     files.forEach(function (f) { assert.ok(!/[\u2013\u2014]/.test(fs.readFileSync(f, 'utf8')), f); });
@@ -909,7 +909,7 @@ test('no em or en dashes in audience mode', function () {
 
 /* the site keeps copies of some limits for its forms: they must agree */
 test('the site\'s limits agree with the worker', function () {
-    const file = path.join(path.dirname(new URL(import.meta.url).pathname), '../../../assets/js/live/00-common.js');
+    const file = path.join(path.dirname(new URL(import.meta.url).pathname), '../../../../assets/js/live/00-common.js');
     const src = fs.readFileSync(file, 'utf8');
     const m = /LV\.LIMITS = (\{[^}]*\})/.exec(src);
     assert.ok(m, 'LV.LIMITS not found');

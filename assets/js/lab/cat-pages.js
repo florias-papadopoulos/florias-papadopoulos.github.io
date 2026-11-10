@@ -1,4 +1,4 @@
-/* World of the cat on the Bachelor, Master and Papers tabs (the cat itself: assets/js/cat-core.js, bundled before this
+/* World of the cat on the Bachelor, Master and Papers tabs (the cat itself: assets/js/lab/cat-core.js, bundled before this
    file by layouts/partials/cat.html; the page: layouts/_default/timeline.html), and on the Games page
    (layouts/_default/arcade.html: it sits on the title, the tabs and the game cards; hidden while a game is open).
 
@@ -173,7 +173,7 @@
     if (window.ResizeObserver) new ResizeObserver(onScroll).observe(page);
 
     }
-    /* the pet and its world only come out in play mode, after the key (assets/js/play.js); the academic site is plain */
+    /* the pet and its world only come out in play mode, after the key (assets/js/lab/play.js); the academic site is plain */
     if (document.documentElement.dataset.mode === 'play') boot();
     else document.addEventListener('playmode-on', boot, { once: true });
 })();

@@ -1,6 +1,6 @@
 // Do the site's QR codes scan? Encodes live links with assets/js/live/20-qr.js and the vendored encoder, writes each
 // as a PNG and as the SVG path the page makes, and decodes them with an independent decoder (zxing-cpp for Python,
-// given by its folder): node tools/live-worker/test/qr.cjs <out dir> <python path with zxingcpp>
+// given by its folder): node tools/workers/live/test/qr.cjs <out dir> <python path with zxingcpp>
 // Without the decoder it only checks the format (finder patterns, timing patterns, sizes).
 'use strict';
 const fs = require('fs'), path = require('path'), vm = require('vm'), zlib = require('zlib'), cp = require('child_process');

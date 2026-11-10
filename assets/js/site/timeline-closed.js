@@ -1,6 +1,6 @@
 /* Bachelor, Master, Papers (layouts/_default/timeline.html): entries start closed (without JavaScript everything
    stays open), #anchor opens its entry right away. Loaded without defer right after the entries, so nothing flashes
-   open; the rest of the behaviour is assets/js/timeline.js. */
+   open; the rest of the behaviour is assets/js/site/timeline.js. */
 (function () {
     var h = '';
     try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) {}

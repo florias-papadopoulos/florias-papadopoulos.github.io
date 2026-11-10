@@ -5,7 +5,7 @@
 (<https://github.com/kazuhikoarase/qrcode-generator>), unchanged. It is served from this site, so the live pages make
 no third-party requests. Used by `../20-qr.js` (the QR codes on the presenter page and the projector).
 
-Checked with `node tools/live-worker/test/qr.cjs`, which encodes the live links and decodes them again with an
+Checked with `node tools/workers/live/test/qr.cjs`, which encodes the live links and decodes them again with an
 independent decoder.
 
 ## License (MIT)

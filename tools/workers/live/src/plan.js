@@ -180,7 +180,7 @@ export function summary(plan, updated) {
 }
 
 /* ---------- nicknames ---------- */
-/* The leaderboards' rule and word lists, copied unchanged from tools/stats-worker/worker.js (test/run.js checks that the
+/* The leaderboards' rule and word lists, copied unchanged from tools/workers/stats/worker.js (test/run.js checks that the
    copy agrees): 2 to 20 Latin letters (with accents), digits, spaces and . _ ' -; none of the SHORT words as a whole
    word, none of the LONG ones anywhere, after lower case, accents removed and lookalike digits read as letters (and
    again with digits as gaps). The presenter still approves each nickname before others see it (session.js). */

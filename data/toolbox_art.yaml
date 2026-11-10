@@ -1,0 +1,200 @@
+# One small drawing per Toolbox tool: the inside of an <svg viewBox="0 0 64 64">, wrapped by
+# layouts/partials/tool-art.html and shown in the Toolbox list and at the top of each tool's page.
+# Lines are navy (currentColor, 2.5 wide, round ends); classes: f = pale fill, s = solid navy, k = pink line,
+# kf = pink fill, t / ts / tl = text (normal, small, large; centred on x). The tests check that every tool has one.
+
+# ---------- general maths ----------
+matrix: |
+  <path d="M19 12h-7v40h7M45 12h7v40h-7"/><g class="s"><circle cx="22" cy="22" r="2.6"/><circle cx="32" cy="22" r="2.6"/><circle cx="42" cy="22" r="2.6"/><circle cx="22" cy="32" r="2.6"/><circle cx="42" cy="32" r="2.6"/><circle cx="22" cy="42" r="2.6"/><circle cx="32" cy="42" r="2.6"/><circle cx="42" cy="42" r="2.6"/></g><circle class="kf" cx="32" cy="32" r="3.4"/>
+linear-system: |
+  <path d="M10 46L54 16M10 18L54 48"/><circle class="kf" cx="32" cy="31" r="4.5"/>
+fractions: |
+  <text class="tl" x="32" y="27">3</text><path d="M20 33h24"/><text class="tl" x="32" y="55">4</text>
+binomial: |
+  <g class="s"><circle cx="32" cy="12" r="3"/><circle cx="26" cy="22" r="3"/><circle cx="38" cy="22" r="3"/><circle cx="20" cy="32" r="3"/><circle cx="44" cy="32" r="3"/><circle cx="14" cy="42" r="3"/><circle cx="50" cy="42" r="3"/></g><circle class="kf" cx="32" cy="32" r="3.6"/><circle class="kf" cx="26" cy="42" r="3.6"/><circle class="kf" cx="38" cy="42" r="3.6"/><circle class="f" cx="32" cy="52" r="3"/>
+combinatorics: |
+  <text class="tl" x="24" y="42">n!</text><g class="f"><circle cx="46" cy="18" r="5"/><circle cx="46" cy="32" r="5"/></g><circle class="kf" cx="46" cy="46" r="5"/>
+polynomial-division: |
+  <path d="M14 22h40M14 22c5 8 5 22 0 30"/><text class="t" x="36" y="44">x²</text><text class="ts" x="36" y="16">x+1</text>
+big-number: |
+  <text class="tl" x="27" y="44">10</text><text class="t k" x="47" y="26">100</text>
+bits-and-sizes: |
+  <g class="f"><rect x="8" y="18" width="12" height="12" rx="2"/><rect x="20" y="18" width="12" height="12" rx="2"/><rect x="32" y="18" width="12" height="12" rx="2"/><rect x="44" y="18" width="12" height="12" rx="2"/></g><rect class="kf" x="8" y="36" width="48" height="10" rx="2"/><text class="ts" x="32" y="58">8 bits</text>
+
+# ---------- classical ciphers ----------
+caesar: |
+  <circle class="f" cx="32" cy="32" r="24"/><circle cx="32" cy="32" r="14"/><path d="M32 8v6M32 50v6M8 32h6M50 32h6"/><text class="ts" x="32" y="25">A</text><text class="ts k" x="44" y="37">D</text><circle class="s" cx="32" cy="32" r="2"/>
+rot13: |
+  <path d="M46 18A18 18 0 1 0 50 34"/><path d="M42 13l5 5-6 3"/><text class="t k" x="31" y="39">13</text>
+atbash: |
+  <text class="tl" x="16" y="42">A</text><text class="tl k" x="48" y="42">Z</text><path d="M26 30h12M34 26l4 4-4 4M38 40H26M30 36l-4 4 4 4"/>
+affine: |
+  <path d="M12 52V10M12 52h42"/><path class="k" d="M14 46L52 16"/><circle class="s" cx="30" cy="33" r="2.6"/><text class="ts" x="44" y="44">ax+b</text>
+keyword-substitution: |
+  <circle cx="20" cy="32" r="9"/><path d="M29 32h26M47 32v8M53 32v6"/><text class="t k" x="20" y="38">K</text>
+vigenere: |
+  <rect class="f" x="10" y="10" width="44" height="44" rx="3"/><path d="M10 21h44M10 32h44M10 43h44M21 10v44M32 10v44M43 10v44"/><rect class="kf" x="32" y="32" width="11" height="11"/>
+beaufort: |
+  <rect class="f" x="10" y="10" width="44" height="44" rx="3"/><path d="M10 21h44M10 32h44M10 43h44M21 10v44M32 10v44M43 10v44"/><path class="k" d="M54 10L10 54"/>
+autokey: |
+  <circle cx="14" cy="16" r="7"/><path d="M21 16h14M30 16v5"/><g class="f"><rect x="8" y="34" width="10" height="12" rx="2"/><rect x="20" y="34" width="10" height="12" rx="2"/></g><g class="kf"><rect x="32" y="34" width="10" height="12" rx="2"/><rect x="44" y="34" width="10" height="12" rx="2"/></g><path class="k" d="M44 30c0-10-2-14-6-14"/><path class="k" d="M40 12l-3 4 4 3"/>
+playfair: |
+  <rect class="f" x="9" y="9" width="46" height="46" rx="3"/><path d="M18.2 9v46M27.4 9v46M36.6 9v46M45.8 9v46M9 18.2h46M9 27.4h46M9 36.6h46M9 45.8h46"/><rect class="kf" x="18.2" y="18.2" width="9.2" height="9.2"/><rect class="kf" x="36.6" y="36.6" width="9.2" height="9.2"/><rect class="k" x="22.8" y="22.8" width="18.4" height="18.4"/>
+hill: |
+  <path d="M14 14h-5v36h5M30 14h5v36h-5"/><g class="s"><circle cx="17" cy="24" r="2.4"/><circle cx="27" cy="24" r="2.4"/><circle cx="17" cy="40" r="2.4"/><circle cx="27" cy="40" r="2.4"/></g><path class="k" d="M40 32h12M48 28l4 4-4 4"/><text class="ts" x="56" y="22">AB</text>
+rail-fence: |
+  <path class="f" d="M8 18h48M8 32h48M8 46h48" stroke-dasharray="2 5"/><path class="k" d="M8 18l12 14 12 14 12-14 12-14"/><g class="s"><circle cx="8" cy="18" r="3"/><circle cx="20" cy="32" r="3"/><circle cx="32" cy="46" r="3"/><circle cx="44" cy="32" r="3"/><circle cx="56" cy="18" r="3"/></g>
+columnar-transposition: |
+  <g class="f"><rect x="10" y="20" width="12" height="34" rx="2"/><rect x="26" y="20" width="12" height="34" rx="2"/><rect x="42" y="20" width="12" height="34" rx="2"/></g><text class="ts" x="16" y="15">3</text><text class="ts k" x="32" y="15">1</text><text class="ts" x="48" y="15">2</text>
+scytale: |
+  <rect class="f" x="24" y="6" width="16" height="52" rx="8"/><path class="k" d="M24 16l16 8M24 28l16 8M24 40l16 8"/>
+polybius: |
+  <rect class="f" x="14" y="14" width="42" height="42" rx="3"/><path d="M22.4 14v42M30.8 14v42M39.2 14v42M47.6 14v42M14 22.4h42M14 30.8h42M14 39.2h42M14 47.6h42"/><rect class="kf" x="22.4" y="30.8" width="8.4" height="8.4"/><text class="ts" x="26.6" y="10">2</text><text class="ts" x="8" y="37.8">3</text>
+bifid: |
+  <text class="t" x="14" y="22">2</text><text class="t" x="14" y="46">4</text><text class="t" x="50" y="22">3</text><text class="t" x="50" y="46">1</text><path class="k" d="M22 20l20 22M22 44l20-22"/>
+adfgvx: |
+  <rect class="f" x="8" y="20" width="48" height="24" rx="4"/><text class="t" x="32" y="38">ADFGVX</text>
+bacon: |
+  <text class="t" x="32" y="28">AABAB</text><g class="s"><rect x="10" y="40" width="7" height="12" rx="1.5"/><rect x="19" y="40" width="7" height="12" rx="1.5"/></g><rect class="kf" x="28" y="40" width="7" height="12" rx="1.5"/><rect class="s" x="37" y="40" width="7" height="12" rx="1.5"/><rect class="kf" x="46" y="40" width="7" height="12" rx="1.5"/>
+one-time-pad: |
+  <rect class="f" x="14" y="10" width="36" height="46" rx="3"/><path d="M14 18h36" stroke-dasharray="3 3"/><path d="M20 28h24M20 36h18M20 44h22"/><circle class="kf" cx="46" cy="48" r="6"/>
+
+# ---------- encodings ----------
+character-codes: |
+  <text class="tl" x="16" y="42">A</text><path d="M26 34h10M32 30l4 4-4 4"/><text class="t k" x="50" y="40">65</text>
+hex: |
+  <rect class="f" x="10" y="16" width="44" height="32" rx="5"/><text class="tl" x="32" y="42">0x</text>
+binary: |
+  <text class="t" x="32" y="28">1011</text><text class="t k" x="32" y="50">0110</text>
+base64: |
+  <rect class="f" x="10" y="14" width="44" height="36" rx="6"/><text class="tl" x="32" y="42">64</text>
+base32: |
+  <rect class="f" x="10" y="14" width="44" height="36" rx="6"/><text class="tl" x="32" y="42">32</text>
+base58: |
+  <rect class="f" x="10" y="14" width="44" height="36" rx="6"/><text class="tl" x="32" y="42">58</text>
+url-encoding: |
+  <rect class="f" x="6" y="20" width="52" height="24" rx="12"/><text class="t" x="32" y="38">%20</text>
+utf8: |
+  <text class="tl" x="14" y="42">é</text><path d="M24 33h6M27 30l3 3-3 3"/><g class="f"><rect x="33" y="18" width="24" height="13" rx="2"/><rect x="33" y="35" width="24" height="13" rx="2"/></g><text class="ts" x="45" y="28">C3</text><text class="ts k" x="45" y="45">A9</text>
+morse: |
+  <g class="s"><circle cx="12" cy="24" r="3.5"/><circle cx="22" cy="24" r="3.5"/></g><path d="M30 24h12M48 24h8M8 40h14" stroke-width="5"/><g class="s"><circle cx="30" cy="40" r="3.5"/><circle cx="40" cy="40" r="3.5"/></g><path class="k" d="M48 40h8" stroke-width="5"/>
+xor: |
+  <circle class="f" cx="32" cy="32" r="18"/><path d="M32 14v36M14 32h36"/><circle class="k" cx="32" cy="32" r="24"/>
+bitwise: |
+  <path class="f" d="M16 14h16a18 18 0 0 1 0 36H16z"/><path d="M6 24h10M6 40h10M50 32h8"/><circle class="kf" cx="52" cy="32" r="3"/>
+twos-complement: |
+  <text class="tl" x="32" y="28">−1</text><text class="t k" x="32" y="52">1111</text>
+ieee754: |
+  <rect class="kf" x="6" y="24" width="8" height="16"/><rect class="f" x="14" y="24" width="16" height="16"/><rect x="30" y="24" width="28" height="16"/><text class="ts" x="10" y="54">±</text><text class="ts" x="22" y="54">2ᵉ</text><text class="ts" x="44" y="54">1.m</text>
+gray-code: |
+  <text class="t" x="32" y="16">00</text><text class="t" x="32" y="30">01</text><text class="t" x="32" y="44">11</text><text class="t" x="32" y="58">10</text><path class="k" d="M44 12v42" stroke-dasharray="2 4"/><path class="k" d="M18 20v28" stroke-dasharray="2 4"/>
+hamming-distance: |
+  <text class="t" x="32" y="26">10110</text><text class="t" x="32" y="48">10011</text><rect class="k" x="34" y="10" width="20" height="44" rx="3"/>
+hash: |
+  <path class="f" d="M8 12h48L38 34v14l-12 6V34z"/><text class="ts" x="32" y="25">any text</text><circle class="kf" cx="32" cy="58" r="3"/>
+number-text: |
+  <text class="t" x="16" y="38">42</text><path d="M26 32h12M34 28l4 4-4 4M38 40"/><text class="t k" x="50" y="38">Ab</text>
+
+# ---------- code breaking ----------
+frequency-analysis: |
+  <path d="M8 54h48"/><g class="f"><rect x="10" y="14" width="8" height="40"/><rect x="21" y="24" width="8" height="30"/><rect x="32" y="32" width="8" height="22"/><rect x="43" y="42" width="8" height="12"/></g><rect class="kf" x="10" y="14" width="8" height="40"/><text class="ts" x="14" y="10">E</text>
+index-of-coincidence: |
+  <rect class="f" x="8" y="16" width="48" height="12" rx="2"/><rect class="f" x="8" y="36" width="48" height="12" rx="2"/><path class="k" d="M20 28v8M38 28v8M47 28v8"/>
+kasiski: |
+  <path d="M8 44h48"/><rect class="kf" x="10" y="38" width="10" height="12" rx="2"/><rect class="kf" x="44" y="38" width="10" height="12" rx="2"/><path d="M15 34c0-18 34-18 34 0"/><text class="ts" x="32" y="22">12</text>
+caesar-breaker: |
+  <circle class="f" cx="26" cy="26" r="18"/><circle cx="26" cy="26" r="9"/><path d="M26 8v5M26 39v5M8 26h5M39 26h5"/><circle class="k" cx="44" cy="44" r="9"/><path class="k" d="M51 51l7 7"/>
+affine-breaker: |
+  <path d="M8 46V8M8 46h36"/><path d="M10 42L40 14"/><circle class="k" cx="44" cy="44" r="9"/><path class="k" d="M51 51l7 7"/>
+vigenere-breaker: |
+  <rect class="f" x="6" y="6" width="34" height="34" rx="3"/><path d="M6 17h34M6 28h34M17 6v34M28 6v34"/><circle class="k" cx="44" cy="44" r="9"/><path class="k" d="M51 51l7 7"/>
+substitution-solver: |
+  <text class="t" x="14" y="24">Q</text><text class="t" x="14" y="48">X</text><path d="M24 18h10M30 14l4 4-4 4M24 42h10M30 38l4 4-4 4"/><text class="t k" x="46" y="24">E</text><text class="t k" x="46" y="48">?</text>
+transposition-breaker: |
+  <g class="f"><rect x="6" y="10" width="9" height="30" rx="2"/><rect x="18" y="10" width="9" height="30" rx="2"/><rect x="30" y="10" width="9" height="30" rx="2"/></g><circle class="k" cx="44" cy="44" r="9"/><path class="k" d="M51 51l7 7"/>
+cipher-identifier: |
+  <circle class="f" cx="28" cy="28" r="18"/><text class="tl" x="28" y="38">?</text><path class="k" d="M41 41l14 14"/>
+decoder-guesser: |
+  <path d="M12 52L40 24"/><path class="k" d="M44 8v8M44 24v8M36 20h-8M60 20h-8M50 14l4-4M50 26l4 4"/><circle class="kf" cx="44" cy="20" r="3"/>
+
+# ---------- modular arithmetic ----------
+modulo: |
+  <circle class="f" cx="32" cy="32" r="24"/><path d="M32 12v4M52 32h-4M32 52v-4M12 32h4"/><path class="k" d="M32 32V18M32 32l9 6"/><circle class="s" cx="32" cy="32" r="2.6"/>
+gcd: |
+  <rect class="f" x="8" y="16" width="48" height="10" rx="2"/><rect class="f" x="8" y="38" width="36" height="10" rx="2"/><path class="k" d="M8 32h12M20 30v4M8 30v4" stroke-width="2"/><path d="M20 16v10M32 16v10M44 16v10M20 38v10M32 38v10"/>
+modular-inverse: |
+  <circle class="f" cx="28" cy="34" r="20"/><path class="k" d="M28 34V20"/><path class="k" d="M18 10c6-4 14-4 20 0"/><path class="k" d="M34 6l4 4-5 2"/><text class="ts" x="52" y="16">−1</text>
+euclidean-division: |
+  <g class="f"><rect x="6" y="22" width="12" height="20" rx="2"/><rect x="20" y="22" width="12" height="20" rx="2"/><rect x="34" y="22" width="12" height="20" rx="2"/></g><rect class="kf" x="48" y="22" width="8" height="20" rx="2"/><text class="ts" x="26" y="54">q · n</text><text class="ts k" x="52" y="54">r</text>
+extended-euclid: |
+  <path class="f" d="M8 12h14v10h12v10h10v10h12v12H8z"/><path class="k" d="M14 58c10-6 30-22 40-46"/><path class="k" d="M50 13l4-2 1 5"/>
+modular-exponentiation: |
+  <circle class="f" cx="26" cy="36" r="20"/><path class="k" d="M26 36V22M26 36l8 6"/><text class="t" x="50" y="20">xᵉ</text>
+modular-calculator: |
+  <rect class="f" x="14" y="6" width="36" height="52" rx="5"/><rect x="20" y="12" width="24" height="10" rx="2"/><g class="s"><circle cx="24" cy="32" r="2.6"/><circle cx="32" cy="32" r="2.6"/><circle cx="40" cy="32" r="2.6"/><circle cx="24" cy="41" r="2.6"/><circle cx="32" cy="41" r="2.6"/><circle cx="40" cy="41" r="2.6"/><circle cx="24" cy="50" r="2.6"/><circle cx="32" cy="50" r="2.6"/></g><circle class="kf" cx="40" cy="50" r="3"/>
+linear-congruence: |
+  <text class="tl" x="32" y="42">≡</text><text class="ts k" x="32" y="56">mod n</text>
+chinese-remainder: |
+  <circle class="f" cx="22" cy="24" r="13"/><circle class="f" cx="42" cy="24" r="13"/><circle class="f" cx="32" cy="42" r="13"/><circle class="kf" cx="32" cy="30" r="4"/>
+base-conversion: |
+  <text class="t" x="14" y="30">10</text><path d="M24 26h16M36 22l4 4-4 4"/><text class="t k" x="50" y="30">2</text><text class="ts" x="32" y="52">1010</text>
+zn-tables: |
+  <rect class="f" x="10" y="10" width="44" height="44" rx="3"/><path d="M10 21h44M10 32h44M10 43h44M21 10v44M32 10v44M43 10v44"/><path class="kf" d="M10 10h44v11H10zM10 10h11v44H10z" opacity=".55"/>
+
+# ---------- modern crypto ----------
+rsa: |
+  <circle class="f" cx="20" cy="32" r="12"/><circle cx="20" cy="32" r="4"/><path d="M32 32h24M48 32v10M55 32v7"/><text class="ts k" x="44" y="22">e, d</text>
+rsa-signature: |
+  <path class="f" d="M12 52l4-14 26-26 10 10-26 26z"/><path d="M38 16l10 10"/><path class="k" d="M30 56l6 4 14-14"/>
+diffie-hellman: |
+  <circle class="f" cx="14" cy="18" r="8"/><circle class="f" cx="50" cy="18" r="8"/><path d="M20 24l24 14M44 24L20 38"/><circle class="kf" cx="32" cy="48" r="8"/>
+elgamal: |
+  <rect class="f" x="8" y="16" width="48" height="32" rx="3"/><path d="M8 18l24 16 24-16"/><rect class="kf" x="38" y="34" width="16" height="12" rx="2"/><path class="k" d="M41 34v-4a5 5 0 0 1 10 0v4"/>
+schnorr-signature: |
+  <path class="f" d="M12 52l4-14 26-26 10 10-26 26z"/><path d="M38 16l10 10"/><text class="t k" x="48" y="56">s</text>
+elliptic-curve: |
+  <path d="M4 32h56" opacity=".4"/><path class="k f" d="M8 32c0-8 4-12 8-12s8 4 8 12-4 12-8 12-8-4-8-12z"/><path class="k" d="M58 6c-12 7-18 16-18 26s6 19 18 26"/>
+elliptic-curve-points: |
+  <path d="M58 6c-12 7-18 16-18 26s6 19 18 26"/><path d="M6 46L60 12"/><g class="kf"><circle cx="41.5" cy="23.6" r="4"/><circle cx="52.6" cy="16.6" r="4"/><circle cx="22" cy="36" r="4"/></g>
+ecdh: |
+  <path d="M50 6c-12 7-18 16-18 26s6 19 18 26"/><circle class="f" cx="36" cy="19" r="4"/><circle class="f" cx="36" cy="45" r="4"/><path class="kf" d="M54 26l2.5 5 5.5.8-4 3.9 1 5.5-5-2.6-5 2.6 1-5.5-4-3.9 5.5-.8z"/>
+shamir-secret-sharing: |
+  <path d="M8 52h48"/><path class="k" d="M8 44C20 10 40 10 56 40"/><g class="s"><circle cx="16" cy="31" r="3.4"/><circle cx="32" cy="18" r="3.4"/><circle cx="48" cy="25" r="3.4"/></g><circle class="kf" cx="8" cy="44" r="4"/>
+gf256: |
+  <rect class="f" x="10" y="14" width="44" height="36" rx="6"/><text class="tl" x="30" y="42">2</text><text class="t k" x="44" y="30">8</text>
+polynomial-mod-p: |
+  <path class="f" d="M6 34c7-20 14-20 18 0s12 20 18 0 10-14 16-6"/><text class="ts k" x="32" y="58">mod p</text>
+paillier: |
+  <rect class="f" x="12" y="28" width="40" height="28" rx="4"/><path d="M20 28v-8a12 12 0 0 1 24 0v8"/><path class="k" d="M32 34v16M24 42h16"/>
+lattice-reduction: |
+  <g class="s"><circle cx="12" cy="12" r="2.4"/><circle cx="32" cy="12" r="2.4"/><circle cx="52" cy="12" r="2.4"/><circle cx="12" cy="32" r="2.4"/><circle cx="52" cy="32" r="2.4"/><circle cx="12" cy="52" r="2.4"/><circle cx="32" cy="52" r="2.4"/><circle cx="52" cy="52" r="2.4"/></g><circle class="kf" cx="32" cy="32" r="3.4"/><path d="M32 32l18-18" opacity=".35"/><path class="k" d="M32 32h18M32 32V14"/>
+lwe: |
+  <g class="s"><circle cx="12" cy="12" r="2.4"/><circle cx="32" cy="12" r="2.4"/><circle cx="52" cy="12" r="2.4"/><circle cx="12" cy="32" r="2.4"/><circle cx="32" cy="32" r="2.4"/><circle cx="52" cy="32" r="2.4"/><circle cx="12" cy="52" r="2.4"/><circle cx="32" cy="52" r="2.4"/><circle cx="52" cy="52" r="2.4"/></g><circle class="kf" cx="39" cy="38" r="3.4"/><circle class="k" cx="39" cy="38" r="9" stroke-dasharray="2 3"/>
+birthday-bound: |
+  <rect class="f" x="10" y="34" width="44" height="20" rx="3"/><path d="M10 42c6 4 10 4 15 0s10-4 15 0 10 4 14 0"/><path d="M22 34v-10M32 34v-10M42 34v-10"/><g class="kf"><path d="M22 14c3 4 3 7 0 8-3-1-3-4 0-8z"/><path d="M32 14c3 4 3 7 0 8-3-1-3-4 0-8z"/><path d="M42 14c3 4 3 7 0 8-3-1-3-4 0-8z"/></g>
+
+# ---------- primes ----------
+prime-factorization: |
+  <text class="t" x="32" y="16">12</text><path d="M27 20l-9 10M37 20l9 10"/><text class="t" x="16" y="42">4</text><text class="t k" x="48" y="42">3</text><path d="M12 46l-4 6M20 46l4 6"/><text class="ts k" x="7" y="62">2</text><text class="ts k" x="25" y="62">2</text>
+primality-test: |
+  <circle class="f" cx="32" cy="32" r="22"/><text class="tl" x="32" y="42">17</text><path class="k" d="M44 50l5 5 10-12"/>
+euler-totient: |
+  <text class="tl" x="32" y="44">φ</text><circle class="k" cx="32" cy="32" r="24" stroke-dasharray="3 5"/>
+divisors: |
+  <g class="f"><rect x="8" y="14" width="10" height="10" rx="2"/><rect x="20" y="14" width="10" height="10" rx="2"/><rect x="32" y="14" width="10" height="10" rx="2"/><rect x="8" y="26" width="10" height="10" rx="2"/><rect x="20" y="26" width="10" height="10" rx="2"/><rect x="32" y="26" width="10" height="10" rx="2"/></g><text class="ts" x="25" y="52">2 × 3</text><path class="k" d="M48 14v22"/>
+multiplicative-order: |
+  <circle class="f" cx="32" cy="32" r="22"/><g class="s"><circle cx="32" cy="10" r="3"/><circle cx="51" cy="21" r="3"/><circle cx="51" cy="43" r="3"/><circle cx="32" cy="54" r="3"/><circle cx="13" cy="43" r="3"/></g><circle class="kf" cx="13" cy="21" r="4"/><path class="k" d="M18 16c6-6 14-7 14-6"/>
+primitive-root: |
+  <circle cx="32" cy="32" r="22"/><path class="k f" d="M32 10L53 39 19 50 19 14 53 25 32 54 45 14 11 25 45 50 11 39z"/>
+legendre-jacobi: |
+  <path d="M18 10c-8 8-8 36 0 44M46 10c8 8 8 36 0 44"/><text class="t" x="32" y="28">a</text><path d="M24 33h16"/><text class="t k" x="32" y="50">p</text>
+modular-square-root: |
+  <path d="M8 34l6-4 8 18 12-38h22"/><text class="t k" x="44" y="40">mod</text>
+discrete-logarithm: |
+  <text class="t" x="28" y="30">log</text><text class="tl k" x="32" y="56">?</text><circle class="f" cx="50" cy="20" r="8"/>
+continued-fraction: |
+  <text class="ts" x="10" y="20">1</text><path d="M16 22h42"/><text class="ts" x="22" y="34">1</text><path d="M28 36h30"/><text class="ts" x="34" y="48">1</text><path class="k" d="M40 50h18"/>
+prime-sieve: |
+  <rect class="f" x="8" y="8" width="48" height="48" rx="3"/><path d="M20 8v48M32 8v48M44 8v48M8 20h48M8 32h48M8 44h48"/><g class="kf"><rect x="20" y="8" width="12" height="12"/><rect x="32" y="8" width="12" height="12"/><rect x="8" y="20" width="12" height="12"/><rect x="8" y="44" width="12" height="12"/></g><path d="M47 11l6 6M53 11l-6 6M23 35l6 6M29 35l-6 6"/>
+carmichael-function: |
+  <text class="tl" x="32" y="44">λ</text><circle class="k" cx="32" cy="32" r="24" stroke-dasharray="3 5"/>

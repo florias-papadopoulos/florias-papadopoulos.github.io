@@ -1,6 +1,6 @@
 {{- /* Bachelor, Master, Papers (and /projects/): a rail of groups (semesters, or years for papers) that stays in view
        while scrolling, and one entry per project that opens in place (styles: assets/css/common/timeline.css,
-       behaviour: assets/js/timeline.js).
+       behaviour: assets/js/site/timeline.js).
        Projects come from the "projects" section; their context "Group · Course" sets where they appear, and listLevel
        keeps only contexts starting with it (e.g. "Master").
        An entry shows its preview picture, course (or venue), title and blurb (or authors). Opened, it shows the
@@ -150,9 +150,9 @@
 </div>
 {{- /* closed until opened (without JavaScript everything stays open); #anchor opens its entry right away. No defer:
        it runs before the entries are drawn. */}}
-{{- $closed := resources.Get "js/timeline-closed.js" | minify | fingerprint }}
+{{- $closed := resources.Get "js/site/timeline-closed.js" | minify | fingerprint }}
 <script src="{{ $closed.RelPermalink }}" integrity="{{ $closed.Data.Integrity }}"></script>
 {{- if $math }}{{ partial "math.html" . }}{{ end }}
-{{- $tl := resources.Get "js/timeline.js" | minify | fingerprint }}
+{{- $tl := resources.Get "js/site/timeline.js" | minify | fingerprint }}
 <script src="{{ $tl.RelPermalink }}" integrity="{{ $tl.Data.Integrity }}" defer></script>
 {{- end }}

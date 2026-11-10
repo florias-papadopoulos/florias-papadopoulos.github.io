@@ -1,3 +1,18 @@
-{{- /* The presenter page /live/admin/ (content/live/admin.md): talk plans, QR codes, rehearsal, results. Scripts:
-       assets/js/live/50-admin.js and 55-admin-side.js. */ -}}
-{{ partial "live-page.html" (dict "page" . "kind" "admin" "files" (slice "00-common.js" "05-key.js" "10-render.js" "vendor/qrcode-generator.js" "20-qr.js" "50-admin.js" "55-admin-side.js")) }}
+{{- /* The presenter page /live/admin/ (content/live/admin.md): talk plans, QR codes, rehearsal, results. A page of the
+       lab (sidebar, pet), unlocked with the presenter key; the audience's phone page and the projector keep their own
+       plain pages (live-page.html). Scripts: assets/js/live/50-admin.js and 55-admin-side.js; styles: live.css (added
+       by head.html), the worker's address in the CSP (head.html). */ -}}
+{{- define "main" }}
+<div class="lv lv-admin lv-in-lab" id="live" data-endpoint="{{ site.Params.liveEndpoint }}" data-base="{{ "live/" | absURL }}">
+    <div id="lv-app"><noscript><p class="lv-plain">This page needs JavaScript.</p></noscript></div>
+</div>
+{{- if site.Params.liveEndpoint }}
+{{- $files := slice }}
+{{- range slice "00-common.js" "05-key.js" "10-render.js" "vendor/qrcode-generator.js" "20-qr.js" "50-admin.js" "55-admin-side.js" }}{{ $files = $files | append (resources.Get (printf "js/live/%s" .)) }}{{ end }}
+{{- $js := $files | resources.Concat "js/live-admin.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{- else }}
+<p class="lv-plain">Audience mode is not set up yet.</p>
+{{- end }}
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}

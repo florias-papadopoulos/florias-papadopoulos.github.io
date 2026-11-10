@@ -1,10 +1,10 @@
 {{- /* "Site stats" (content/stats/_index.md), owner only and linked from nowhere: the totals kept by the visit counter
-       (tools/stats-worker, fed by assets/js/stats-hit.js on every page), read and drawn by assets/js/stats.js. The
+       (tools/workers/stats, fed by assets/js/site/stats-hit.js on every page), read and drawn by assets/js/site/stats.js. The
        worker gives them only for the owner's key (its STATS_KEY secret): /stats/?me shows a box to enter it once per
        browser, everyone else sees only "This page is private".
        While params.statsEndpoint is empty the counter is off and the page says so, without any script.
        Styles: assets/css/common/stats.css. The wrapper also has the class tl-page so the cat of the tabs
-       (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
+       (assets/js/lab/cat-pages.js) lives here too and sits on the title. */ -}}
 {{- define "main" }}
 {{- $end := site.Params.statsEndpoint }}
 {{- /* readable names for the pages that turn up in the counts: every page's title, the menu names for the tabs */}}
@@ -73,7 +73,7 @@
     {{- end }}
 </div>
 {{- if $end }}
-{{- $js := resources.Get "js/stats.js" | minify | fingerprint }}
+{{- $js := resources.Get "js/site/stats.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{- end }}
 {{- end }}

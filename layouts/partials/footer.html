@@ -28,9 +28,10 @@
 </a>
 {{- end }}
 
-{{- /* The theme's footer scripts live in assets/js/footer.js (menu scroll position, smooth #anchor scrolling), no inline
+{{- /* The theme's footer scripts live in assets/js/site/footer.js (menu scroll position, smooth #anchor scrolling), no inline
        scripts for the Content-Security-Policy. The theme's scroll-to-top, theme-toggle and code-copy scripts are left
        out: those features are off here (config.yml: disableScrollToTop, disableThemeToggle) or never rendered (code-copy
        buttons: single pages only, and project pages are redirects). */}}
-{{- $footer := resources.Get "js/footer.js" | minify | fingerprint }}
+{{- /* with assets/js/site/prefetch.js: pages are fetched when a link is about to be clicked */}}
+{{- $footer := slice (resources.Get "js/site/footer.js") (resources.Get "js/site/prefetch.js") | resources.Concat "js/footer.bundle.js" | minify | fingerprint }}
 <script src="{{ $footer.RelPermalink }}" integrity="{{ $footer.Data.Integrity }}" defer></script>

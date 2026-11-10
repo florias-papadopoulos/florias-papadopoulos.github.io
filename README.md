@@ -20,10 +20,10 @@ Live at https://florias-papadopoulos.github.io/.
 - **CV:** `static/files/resume.pdf` (served at `/files/resume.pdf`; `/cv/` forwards to it).
 - **Games:** `/games/`, reached by the paw button. List and groups in `content/games/_index.md`, shell
   `assets/js/games/arcade.js` (its header documents the API), one file per game in `assets/js/games/`.
-- **The cat:** `layouts/partials/cat.html`, engine `assets/js/cat-core.js`, worlds `assets/js/home-lab.js` (home) and
-  `assets/js/cat-pages.js` (tabs), looks in `assets/css/common/cat.css`.
-- **Visit counter:** a Cloudflare Worker with a D1 database, code in `tools/stats-worker/` (pasted into the Cloudflare
-  dashboard by hand; `schema.sql` holds the table). The site side is `assets/js/stats-hit.js`, the public numbers are
+- **The cat:** `layouts/partials/cat.html`, engine `assets/js/lab/cat-core.js`, worlds `assets/js/lab/home-lab.js` (home) and
+  `assets/js/lab/cat-pages.js` (tabs), looks in `assets/css/common/cat.css`.
+- **Visit counter:** a Cloudflare Worker with a D1 database, code in `tools/workers/stats/` (pasted into the Cloudflare
+  dashboard by hand; `schema.sql` holds the table). The site side is `assets/js/site/stats-hit.js`, the public numbers are
   `/stats/`, and `/you/` shows a visitor what is recorded about their visit. Totals only, no cookies, no IP addresses.
 - **Privacy notice:** `content/privacy/_index.md`, linked from the footer.
 - **Security:** a Content Security Policy on every page (`layouts/partials/csp.html`); no inline scripts, every script
@@ -33,7 +33,7 @@ Live at https://florias-papadopoulos.github.io/.
 
 - `tools/linkedin_post.py URL [URL ...]`: fetches a public LinkedIn post's text and picture and prints an entry for the
   news feed in `config.yml` (the picture is saved small under `static/img/linkedin/`).
-- `tools/stats-worker/`: the visit counter (see above).
+- `tools/workers/stats/`: the visit counter (see above).
 
 ## Preview and deploy
 

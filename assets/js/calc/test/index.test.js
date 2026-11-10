@@ -22,10 +22,14 @@
                 var def = Calc.tools[t[0]];
                 if (!def) return 'unknown tool ' + t[0];
                 var ids = def.inputs.map(function (f) { return f.id; });
-                var bad = Object.keys(t[2]).filter(function (k) { return ids.indexOf(k) < 0; });
+                /* "do" picks the button (the action), as in a tool's address */
+                var bad = Object.keys(t[2]).filter(function (k) { return k !== 'do' && ids.indexOf(k) < 0; });
                 if (bad.length) return t[0] + ' has no input ' + bad.join(', ');
-                var action = def.actions ? (/^(Encode|Its bytes|Encrypt)/.test(t[1]) ? def.actions[0].id : (def.actions[1] || def.actions[0]).id) : undefined;
-                return Calc.run(def, t[2], action).then(function (o) { return o.errors ? t[0] + ' errors ' + JSON.stringify(o.errors) : true; });
+                if (t[2]['do'] && !(def.actions || []).some(function (a) { return a.id === t[2]['do']; })) return t[0] + ' has no action ' + t[2]['do'];
+                var vals = {};
+                Object.keys(t[2]).forEach(function (k) { if (k !== 'do') vals[k] = t[2][k]; });
+                var action = t[2]['do'] || (def.actions ? (/^(Encode|Its bytes|Encrypt)/.test(t[1]) ? def.actions[0].id : (def.actions[1] || def.actions[0]).id) : undefined);
+                return Calc.run(def, vals, action).then(function (o) { return o.errors ? t[0] + ' errors ' + JSON.stringify(o.errors) : true; });
             })).then(function (rs) { var b = rs.filter(function (r) { return r !== true; }); return b.length ? b.join('; ') : true; });
         });
     });

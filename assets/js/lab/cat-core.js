@@ -1,6 +1,6 @@
 /* The site's cat, shared by every page that has one (markup in layouts/partials/cat.html, drawing in cat-svg.html,
    styles in assets/css/common/cat.css). Bundled with a "world" that says where the cat can go and what it plays with:
-   assets/js/home-lab.js (home page: letters of the name, symbols) or assets/js/cat-pages.js
+   assets/js/lab/home-lab.js (home page: letters of the name, symbols) or assets/js/lab/cat-pages.js
    (Bachelor, Master, Papers: entries, rail labels and the bottom of the window).
 
    The cat walks, runs and jumps between page elements and the ground, sits, grooms and naps. You can drag it and
@@ -294,7 +294,7 @@
             var word = isDog() ? 'woof' : 'purr';
             b.textContent = wasAsleep ? (isDog() ? 'huh?' : 'mrrp?') : pets === 1 ? word : word + ' ×' + pets;
             /* the first time ever: the cat tells the visitor about the key in the corner that turns the site into play
-               mode (assets/js/play.js); not needed when play mode is on already */
+               mode (assets/js/lab/play.js); not needed when play mode is on already */
             var hint = false;
             try { hint = !localStorage.getItem('cat-key-hint'); localStorage.setItem('cat-key-hint', '1'); } catch (e) { hint = pets === 1; }
             var key = document.getElementById('key-btn');

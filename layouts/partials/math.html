@@ -1,5 +1,5 @@
 {{- /* KaTeX 0.16.47, served from static/katex (no third-party request); the integrity hashes are computed from the files of the npm release (whose own sha512 was checked).
-       assets/js/math-render.js renders the math once, after auto-render (deferred scripts run in order). */ -}}
+       assets/js/site/math-render.js renders the math once, after auto-render (deferred scripts run in order). */ -}}
 {{- /* the two fonts almost every formula needs, asked for at once instead of after KaTeX has run (math stays invisible
        until its fonts arrive) */}}
 <link rel="preload" href="{{ "katex/fonts/KaTeX_Main-Regular.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
@@ -7,5 +7,5 @@
 <link rel="stylesheet" href="{{ "katex/katex.min.css" | relURL }}" integrity="sha384-nH0MfJ44wi1dd7w6jinlyBgljjS8EJAh2JBoRad8a3VDw2K69vfaaqm4WnR+gXtA">
 <script defer src="{{ "katex/katex.min.js" | relURL }}" integrity="sha384-CwjPRVHTvLiMBFjEoij+QZViMV5rhTOIp7CJzl24JEqpRDA1sJFHVXXLURktbYYp"></script>
 <script defer src="{{ "katex/contrib/auto-render.min.js" | relURL }}" integrity="sha384-bjyGPfbij8/NDKJhSGZNP/khQVgtHUE5exjm4Ydllo42FwIgYsdLO2lXGmRBf5Mz"></script>
-{{- $render := resources.Get "js/math-render.js" | minify | fingerprint }}
+{{- $render := resources.Get "js/site/math-render.js" | minify | fingerprint }}
 <script defer src="{{ $render.RelPermalink }}" integrity="{{ $render.Data.Integrity }}"></script>

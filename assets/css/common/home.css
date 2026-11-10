@@ -319,3 +319,12 @@ body:has(.profile.home) .footer {
 /* the lab's page is narrower than the normal home page, so the side margins are wide enough for home-lab.js to float its
    symbols there (it needs about 150 px on each side) */
 .lab-home .home-panel { max-width: 660px; margin-inline: auto; }
+.pn-audience[aria-current="page"] { color: var(--pn-on); font-weight: 700; }
+/* a tool opened on the lab bench (assets/js/lab/lab-bench.js): the Toolbox's own page parts, full width under the box */
+.lab-run { margin-top: 14px; }
+.lab-run[hidden] { display: none; }
+.lab-run .tb-page { padding: 0; max-width: none; }
+.lab-run-bar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 6px; }
+.lab-run-bar h2 { margin: 0; font-size: 20px; }
+.lab-run-bar a, .lab-run-bar button { font: inherit; font-size: 13.5px; color: var(--navy); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 600px) { .lab-chip:nth-child(n+7) { display: none; } }

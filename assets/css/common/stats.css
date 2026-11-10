@@ -1,4 +1,4 @@
-/* "Site stats" (layouts/_default/stats.html, assets/js/stats.js): the visit counter's totals. Plain cards and type in
+/* "Site stats" (layouts/_default/stats.html, assets/js/site/stats.js): the visit counter's totals. Plain cards and type in
    the navy and grays of the tabs, like /you/. (.tl-page.st-page: this file comes before timeline.css in the bundle.) */
 
 .main:has(.tl-page.st-page) { max-width: calc(860px + var(--gap) * 2); }

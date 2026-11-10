@@ -1,4 +1,4 @@
-# Deploys audience mode's Cloudflare Worker (tools/live-worker) whenever its files change on master, or by hand from
+# Deploys audience mode's Cloudflare Worker (tools/workers/live) whenever its files change on master, or by hand from
 # the Actions tab. Needs the repository secret CLOUDFLARE_API_TOKEN (a Cloudflare token that may only edit Workers, for
 # this one account) in the environment "cloudflare". The presenter key is set once in the Cloudflare dashboard and is
 # never touched by this workflow.
@@ -7,7 +7,7 @@ name: Deploy audience mode worker
 on:
   push:
     branches: ["master"]
-    paths: ["tools/live-worker/**", ".github/workflows/live-worker.yml"]
+    paths: ["tools/workers/live/**", ".github/workflows/live-worker.yml"]
   workflow_dispatch:
 
 # the GITHUB_TOKEN can do nothing; this job only needs to read the code
@@ -21,7 +21,7 @@ concurrency:
 defaults:
   run:
     shell: bash
-    working-directory: tools/live-worker
+    working-directory: tools/workers/live
 
 jobs:
   deploy:

@@ -1,24 +1,16 @@
-/* The cat (layouts/partials/cat.html, assets/js/cat-core.js) and its desktop world on the home page (assets/js/home-lab.js) */
+/* The cat (layouts/partials/cat.html, assets/js/lab/cat-core.js) and its desktop world on the home page (assets/js/lab/home-lab.js) */
 
 .world-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
 .cat-layer { position: absolute; top: 0; left: 0; width: 100%; z-index: 5; pointer-events: none; overflow: hidden; }
 /* the page content sits between the world (behind) and the cat (in front) */
 .main:has(.profile.home) { position: relative; z-index: 1; }
-/* on the Bachelor, Master and Papers tabs the cat lives in the window (assets/js/cat-pages.js) */
+/* on the Bachelor, Master and Papers tabs the cat lives in the window (assets/js/lab/cat-pages.js) */
 .cat-layer.cat-viewport { position: fixed; inset: 0; width: auto; height: auto; }
 
 /* ---------- The looks of the cat (the "winter" look is the Santa cat, "bat" the Batcat), chosen with the cat button in the top right corner (baseof.html) ---------- */
-:root, .cat-opt[data-look="ginger"] {
+:root {
     --fur-top: #ffc06e; --fur-bot: #f0932c; --head-top: #ffc479; --fur-dark: #de8a2c; --stripe: #cf7419;
     --tail: #f5a03c; --cream: #ffe9c9; --iris: #8ed383; --tuft: #fff4e2; --whisker: #9a7a60;
-}
-html[data-cat="dino"], .cat-opt[data-look="dino"] {
-    --fur-top: #ffc06e; --fur-bot: #f0932c; --head-top: #ffc479; --fur-dark: #de8a2c; --stripe: #cf7419;
-    --tail: #5fb35a; --cream: #ffe9c9; --iris: #8ed383; --tuft: #fff4e2; --whisker: #9a7a60;
-}
-html[data-cat="dog-dino"], .cat-opt[data-look="dog-dino"] {
-    --fur-top: #f6d79a; --fur-bot: #dca456; --head-top: #f8dda6; --fur-dark: #c98d40; --stripe: #c98d40;
-    --tail: #5fb35a; --cream: #fcefd6; --iris: #6b4423; --tuft: #fff6e4; --whisker: #8a6a48; --ear: #b97a33; --nose: #2b2220;
 }
 html[data-cat="bat"], .cat-opt[data-look="bat"] {
     --fur-top: #a2a9b3; --fur-bot: #6f7681; --head-top: #aab1bb; --fur-dark: #5f6671; --stripe: #6f7681;
@@ -42,7 +34,7 @@ html[data-cat="winter"], .cat-opt[data-look="winter"] {
     --tail: #ecd4af; --cream: #fffaf2; --iris: #6fa8dc; --tuft: #ffffff; --whisker: #a08a70;
 }
 /* ---------- The dogs, chosen with the dog button next to the cat button. A dog look sets data-pet="dog" on <html>
-   (assets/js/cat-look.js) and data-cat to its id; the same variables as the cats, plus --ear (the floppy ears) and
+   (assets/js/lab/cat-look.js) and data-cat to its id; the same variables as the cats, plus --ear (the floppy ears) and
    --nose. The games read these and draw a dog instead of a cat when data-pet is "dog". ---------- */
 html[data-cat="dog-beagle"], .cat-opt[data-look="dog-beagle"] {
     --fur-top: #e8b57a; --fur-bot: #c98546; --head-top: #ecbd86; --fur-dark: #b5743a; --stripe: #3a2e28;
@@ -205,14 +197,6 @@ html[data-cat="calico"] .cat .stripe { display: none; }
 .cat .suit-buckle { fill: none; stroke: #f2c94c; stroke-width: 1.6; }
 .cat .suit-fluff, .cat .suit-collar { fill: #fbf7f0; stroke-width: 1.2; }
 /* the dogs: cat parts out, dog parts in */
-/* Dinocat and Dinodog: a green dinosaur onesie with a spiky hood and little white teeth; the hood hides the ears */
-.cat .dino-only { display: none; }
-html:is([data-cat="dino"], [data-cat="dog-dino"]) .cat .dino-only { display: inline; }
-html:is([data-cat="dino"], [data-cat="dog-dino"])[data-cat] .cat :is(.ears, .dog-ear, .stripe, .tail-stripe) { display: none; }
-.cat .dino-suit { fill: #5fb35a; stroke-width: 1.2; }
-.cat .dino-spike { fill: #3f8f45; stroke-width: 1; stroke-linejoin: round; }
-.cat .dino-belly { fill: #d8ef9a; }
-.cat .dino-tooth { fill: #fff; stroke: #3b2a1e; stroke-width: 0.6; stroke-linejoin: round; }
 .cat .dog-only { display: none; }
 html[data-pet="dog"] .cat .dog-only { display: inline; }
 html[data-pet="dog"] .cat .cat-only, html[data-pet="dog"] .cat .stripe, html[data-pet="dog"] .cat .tail-stripe { display: none; }

@@ -1,0 +1,5 @@
+{{- /* A Toolbox tool's drawing (data/toolbox_art.yaml): (dict "id" "<tool id>" "size" 48). Decorative: the tool's name
+       is always next to it, so screen readers skip it. Styles: .tb-art in assets/css/common/toolbox.css. */ -}}
+{{- with index hugo.Data.toolbox_art .id -}}
+<svg class="tb-art" viewBox="0 0 64 64" width="{{ $.size | default 48 }}" height="{{ $.size | default 48 }}" aria-hidden="true" focusable="false">{{ . | safeHTML }}</svg>
+{{- end -}}

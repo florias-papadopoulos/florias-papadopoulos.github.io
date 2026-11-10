@@ -74,7 +74,7 @@ message budget per connection (40 at once, then one a second; past it the connec
 activity per connection and per phone id; questions at most one per 15 s and 5 per phone (300 per session);
 reactions 5 at once then one per 1.2 s per phone and 12 a second for the whole room; nicknames through the
 leaderboards' filter (Latin letters only, `SHORT` words as whole words, `LONG` ones anywhere: `nameOk` and its lists
-copied unchanged from `tools/stats-worker/worker.js`; the test checks the copy on a list of names) and the presenter's approval. Only `https://florias-papadopoulos.github.io`
+copied unchanged from `tools/workers/stats/worker.js`; the test checks the copy on a list of names) and the presenter's approval. Only `https://florias-papadopoulos.github.io`
 may connect (and localhost when `DEV` is `"1"`). The presenter key is compared in constant time and is only ever sent
 in an `Authorization: Bearer` header or as the first WebSocket message, never in a URL.
 

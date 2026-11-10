@@ -13,7 +13,7 @@
 <meta name="robots" content="noindex">
 <link rel="canonical" href="{{ $tab | absURL }}">
 <meta http-equiv="refresh" content="0; url={{ $to }}">
-{{- $go := resources.Get "js/redirect.js" | minify | fingerprint }}
+{{- $go := resources.Get "js/site/redirect.js" | minify | fingerprint }}
 <script src="{{ $go.RelPermalink }}" integrity="{{ $go.Data.Integrity }}" data-to="{{ $to }}"></script>
 </head>
 <body><p><a href="{{ $to }}">{{ .Title }}</a></p></body>

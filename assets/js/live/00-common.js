@@ -1,6 +1,6 @@
 /* Audience mode for talks (the hidden /live/ pages; README.md in this folder). Shared by all three pages: the page's
    settings, small DOM helpers, the browser token and presenter key, the HTTP calls and the WebSocket to the worker
-   (tools/live-worker), which reconnects by itself but gently, so a broken network can never turn into a flood of
+   (tools/workers/live), which reconnects by itself but gently, so a broken network can never turn into a flood of
    requests. */
 (function () {
     'use strict';
@@ -10,7 +10,7 @@
     LV.end = root ? (root.getAttribute('data-endpoint') || '').replace(/\/+$/, '') : '';
     LV.base = root ? root.getAttribute('data-base') || '' : '';
 
-    /* copies of the worker's limits (tools/live-worker/src/plan.js; its test checks that they agree) */
+    /* copies of the worker's limits (tools/workers/live/src/plan.js; its test checks that they agree) */
     LV.LIMITS = { title: 120, q: 200, opt: 80, minOpts: 2, maxOpts: 6, acts: 60, ask: 200, nick: 20, minSecs: 5, maxSecs: 120 };
     LV.TYPES = ['poll', 'quiz', 'questions', 'reactions', 'leaderboard'];
     LV.TYPE_NAMES = { poll: 'Poll', quiz: 'Quiz question', questions: 'Audience questions', reactions: 'Reactions', leaderboard: 'Quiz ranking' };

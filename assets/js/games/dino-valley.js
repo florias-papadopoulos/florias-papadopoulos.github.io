@@ -464,7 +464,7 @@ Arcade.register('dino-valley', function (api) {
         var cs = null;
         try { cs = getComputedStyle(document.documentElement); } catch (e) { /* ginger */ }
         function v(name, dflt) { var s = cs && cs.getPropertyValue(name).trim(); return s || dflt; }
-        var look = document.documentElement.getAttribute('data-cat') || 'ginger';
+        var look = document.documentElement.getAttribute('data-cat') || 'calico';
         SK.fur = v('--fur-bot', SK.fur); SK.light = v('--fur-top', SK.light); SK.stripe = v('--stripe', SK.stripe);
         SK.calico = look === 'calico';
         SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;

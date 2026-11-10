@@ -1,9 +1,9 @@
 /* "Site stats" (layouts/_default/stats.html): reads the totals of the visit counter (GET <endpoint>/stats?days=N, see
-   tools/stats-worker/worker.js; it covers the days up to yesterday and groups small numbers as "(other)") and draws them: two numbers, a bar chart of views per day (inline SVG) and ranked lists
+   tools/workers/stats/worker.js; it covers the days up to yesterday and groups small numbers as "(other)") and draws them: two numbers, a bar chart of views per day (inline SVG) and ranked lists
    of pages, referring sites, countries, devices and browsers. The 7/30/90 day buttons fetch that period. Owner only:
    the worker answers only with the owner's key (Authorization: Bearer, its STATS_KEY secret), kept in localStorage
    'stats-key'. Without a key the page just says it is private; /stats/?me shows the box to enter it. Also the
-   "Don't count my visits on this browser" box, which sets localStorage 'stats-ignore' (read by assets/js/stats-hit.js). */
+   "Don't count my visits on this browser" box, which sets localStorage 'stats-ignore' (read by assets/js/site/stats-hit.js). */
 (function () {
     'use strict';
     var root = document.getElementById('stats');

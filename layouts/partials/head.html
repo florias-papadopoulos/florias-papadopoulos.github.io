@@ -1,7 +1,12 @@
 <meta charset="utf-8">
 {{- /* Before any script or style: what the page may load (layouts/partials/csp.html), and only the origin as referrer
        to other sites */}}
-<meta http-equiv="Content-Security-Policy" content="{{ partial "csp.html" . }}">
+{{- $csp := partial "csp.html" . }}
+{{- /* the presenter page (/live/admin/) also talks to the audience-mode worker, as in live-head.html */}}
+{{- if eq .Layout "admin" }}{{ with site.Params.liveEndpoint }}{{ with urls.Parse . }}
+{{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' %s://%s wss://%s" .Scheme .Host .Host) }}
+{{- end }}{{ end }}{{ end }}
+<meta http-equiv="Content-Security-Policy" content="{{ $csp }}">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -41,25 +46,32 @@
 
 {{- /* Styles */}}
 
-{{- /* One stylesheet for every page: the colour variables, the reset, the site's styles (assets/css/common, without
-       live.css which audience mode loads on its own pages), then the screen size rules. All of it is this site's own
-       code; reset.css and zmedia.css came from the PaperMod theme (MIT, see LICENSE.md). */}}
-{{- $theme_vars := resources.Get "css/core/theme-vars.css" }}
-{{- $reset := resources.Get "css/core/reset.css" }}
-{{- $media := resources.Get "css/core/zmedia.css" }}
-{{- $common := slice }}
-{{- range resources.Match "css/common/*.css" }}
-{{- if not (in (slice "css/common/archive.css" "css/common/search.css" "css/common/post-single.css" "css/common/live.css") .Name) }}{{ $common = $common | append . }}{{ end }}
-{{- end }}
-{{- $common = $common | resources.Concat "assets/css/common.css" }}
-{{- $stylesheet := slice $theme_vars $reset $common $media | resources.Concat "assets/css/stylesheet.css" | resources.Minify }}
-
-{{- if not site.Params.assets.disableFingerprinting }}
-{{- $stylesheet := $stylesheet | fingerprint }}
-<link crossorigin="anonymous" href="{{ $stylesheet.RelPermalink }}" integrity="{{ $stylesheet.Data.Integrity }}" rel="preload stylesheet" as="style">
-{{- else }}
-<link crossorigin="anonymous" href="{{ $stylesheet.RelPermalink }}" rel="preload stylesheet" as="style">
-{{- end }}
+{{- /* Styles: each page carries its own, written into the page (<style>, allowed by the CSP), so nothing has to be
+       fetched before it can be drawn. Every page gets the shared base (colour variables, reset, header, footer, the
+       corner buttons and the lab's navigation); then only what that page uses: home.css on the two home pages, the
+       pet (cat.css) on the lab's pages, timeline.css on the tab pages (Bachelor, Master, Papers, the Toolbox, /you/,
+       Privacy, /stats/), and the page's own file. zmedia.css (screen size rules) comes last. Audience mode has its own
+       head (live-head.html). reset.css and zmedia.css came from the PaperMod theme (MIT, see LICENSE.md). */ -}}
+{{- $base := slice "core/theme-vars" "core/reset" "common/main" "common/header" "common/header-phone" "common/footer" "common/paw" "common/play" "common/color-scheme" "common/profile-mode" "common/post-entry" "common/terms" "common/404" }}
+{{- $extra := slice }}
+{{- $lab := in (slice "lab" "games" "toolbox") .Section }}
+{{- if or .IsHome (eq .Layout "lab") }}{{ $extra = $extra | append "common/home" }}{{ end }}
+{{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/toolbox" "common/timeline" }}{{ end }}
+{{- if eq .Layout "admin" }}{{ $extra = $extra | append "common/cat" "common/live" }}{{ end }}
+{{- if $lab }}{{ $extra = $extra | append "common/cat" }}{{ end }}
+{{- if eq .Section "games" }}{{ $extra = $extra | append "common/arcade" }}{{ end }}
+{{- if or (eq .Section "toolbox") (in (slice "timeline" "you" "privacy" "stats") .Layout) (and (eq .Kind "section") (not $lab)) }}{{ $extra = $extra | append "common/timeline" }}{{ end }}
+{{- if eq .Section "toolbox" }}{{ $extra = $extra | append "common/toolbox" }}{{ end }}
+{{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats") .Layout }}{{ $extra = $extra | append . }}{{ end }}
+{{- /* in the same order as before the split: the core files, then assets/css/common in alphabetical order of the file
+       names (later rules win, e.g. header.css after header-phone.css), then zmedia.css */}}
+{{- $common := slice }}{{ range after 2 ($base | append $extra) }}{{ $common = $common | append (printf "%s.css" .) }}{{ end }}
+{{- $names := slice "core/theme-vars.css" "core/reset.css" | append (sort $common) | append "core/zmedia.css" }}
+{{- $files := slice }}
+{{- range $names }}{{ with resources.Get (printf "css/%s" .) }}{{ $files = $files | append . }}{{ end }}{{ end }}
+{{- $key := delimit $extra "+" | replaceRE "common/" "" | default "base" }}
+{{- $css := $files | resources.Concat (printf "css/page-%s.css" $key) | resources.Minify }}
+<style>{{ $css.Content | safeCSS }}</style>
 
 {{- /* Favicons */}}
 <link rel="icon" href="{{ site.Params.assets.favicon | default "favicon.ico" | absURL }}">
@@ -79,45 +91,6 @@
 <link rel="alternate" hreflang="{{ .Lang }}" href="{{ .Permalink }}">
 {{ end -}}
 
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    {{- if (and (ne site.Params.defaultTheme "light") (ne site.Params.defaultTheme "dark")) }}
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
-            }
-        }
-
-    </style>
-    {{- end }}
-</noscript>
 
 {{- partial "templates/opengraph.html" . }}
 {{- partial "templates/twitter_cards.html" . }}

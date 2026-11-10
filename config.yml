@@ -50,21 +50,12 @@ params:
   defaultTheme: light
   hideFooter: false
   disableThemeToggle: true
-  ShowShareButtons: false
   ShowReadingTime: false
   disableSpecial1stPost: true
-  disableAnchoredHeadings: true
-  ShowPostNavLinks: false
-  ShowBreadCrumbs: false
   ShowCodeCopyButtons: true
-  ShowAllPagesInArchive: false
   MainSections: [projects]
-  ShowToc: false
   disableScrollToTop: true
-  TocOpen: true
   ShowWordCount: false
-  UseHugoToc: true
-  comments: false
   math: false
   profileMode:
     enabled: true
@@ -182,10 +173,10 @@ params:
     favicon32x32: favicon-32x32.png?v=key
     apple_touch_icon: apple-touch-icon.png?v=key
     safari_pinned_tab: safari-pinned-tab.svg?v=key
-  # The visit counter (tools/stats-worker, shown on /stats/). Empty means the counter is off and nothing is sent;
+  # The visit counter (tools/workers/stats, shown on /stats/). Empty means the counter is off and nothing is sent;
   # set it to the Worker URL (e.g. https://site-stats.NAME.workers.dev, no trailing slash) to switch it on.
   statsEndpoint: "https://florias-stats.floriaspapadopoulos.workers.dev"
-  # Audience mode for talks (the hidden /live/ pages, worker in tools/live-worker). Empty means the pages only say
+  # Audience mode for talks (the hidden /live/ pages, worker in tools/workers/live). Empty means the pages only say
   # "not set up yet"; set it to the worker's URL (e.g. https://florias-live.NAME.workers.dev, no trailing slash).
   liveEndpoint: "https://florias-live.floriaspapadopoulos.workers.dev"
   cover:

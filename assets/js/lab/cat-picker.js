@@ -1,6 +1,6 @@
 /* The two pickers next to the paw in the top right corner, the cat looks and the dogs (layouts/_default/baseof.html,
    styles in assets/css/common/paw.css): the choice goes to localStorage "cat-look", read early by
-   assets/js/cat-look.js. A dog also sets data-pet="dog" (warm site colours, the games draw a dog). On the games page,
+   assets/js/lab/cat-look.js. A dog also sets data-pet="dog" (warm site colours, the games draw a dog). On the games page,
    switching between a cat and a dog reloads the page, since the games read the look when they start. */
 (function () {
     var root = document.documentElement;
@@ -9,7 +9,7 @@
         if (!picker) return;
         var btn = picker.querySelector('.cat-pick'), menu = picker.querySelector('.cat-menu');
         function mark() {
-            var cur = root.dataset.cat || 'ginger';
+            var cur = root.dataset.cat || 'calico';
             Array.prototype.forEach.call(menu.querySelectorAll('.cat-opt'), function (o) { o.setAttribute('aria-checked', o.dataset.look === cur); });
         }
         function open(on) { menu.hidden = !on; btn.setAttribute('aria-expanded', on); if (on) mark(); }

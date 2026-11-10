@@ -1,7 +1,7 @@
 /* "What this site knows about you" (layouts/_default/you.html): shows the visitor exactly what the visit counter
-   records about this visit. The values come from window.StatsDetect (assets/js/stats-detect.js, bundled before this
-   file), the same code that assets/js/stats-hit.js uses to send them, so the two always agree. The country is asked
-   from GET <endpoint>/whoami (tools/stats-worker/worker.js), only when the visit is counted; nothing is stored here.
+   records about this visit. The values come from window.StatsDetect (assets/js/site/stats-detect.js, bundled before this
+   file), the same code that assets/js/site/stats-hit.js uses to send them, so the two always agree. The country is asked
+   from GET <endpoint>/whoami (tools/workers/stats/worker.js), only when the visit is counted; nothing is stored here.
    Values appear one by one, typed in quickly (at once with reduced motion). */
 (function () {
     'use strict';

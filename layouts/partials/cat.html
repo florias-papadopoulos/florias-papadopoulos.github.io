@@ -1,6 +1,6 @@
-{{- /* The cat (drawing in cat-svg.html, styles in assets/css/common/cat.css). Its behaviour is assets/js/cat-core.js,
-       bundled with the world it lives in: on the home page assets/js/home-lab.js (letters of the name, floating
-       symbols, a floor of bits and a reset button), on the Bachelor, Master and Papers tabs assets/js/cat-pages.js
+{{- /* The cat (drawing in cat-svg.html, styles in assets/css/common/cat.css). Its behaviour is assets/js/lab/cat-core.js,
+       bundled with the world it lives in: on the home page assets/js/lab/home-lab.js (letters of the name, floating
+       symbols, a floor of bits and a reset button), on the Bachelor, Master and Papers tabs assets/js/lab/cat-pages.js
        (entries, rail labels and the bottom of the window). The tabs call it with (dict "world" "pages"); the home page
        (index_profile.html) calls it with its profileMode settings. */ -}}
 {{- $home := not (and (reflect.IsMap .) (eq (index . "world") "pages")) }}
@@ -18,6 +18,6 @@
     </div>
 </div>
 
-{{- $world := cond $home "js/home-lab.js" "js/cat-pages.js" }}
-{{- $js := slice (resources.Get "js/cat-core.js") (resources.Get $world) | resources.Concat (cond $home "js/cat-home.bundle.js" "js/cat-pages.bundle.js") | minify | fingerprint }}
+{{- $world := cond $home "js/lab/home-lab.js" "js/lab/cat-pages.js" }}
+{{- $js := slice (resources.Get "js/lab/cat-core.js") (resources.Get $world) | resources.Concat (cond $home "js/cat-home.bundle.js" "js/cat-pages.bundle.js") | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>

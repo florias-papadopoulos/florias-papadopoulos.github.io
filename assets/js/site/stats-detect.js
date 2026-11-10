@@ -1,5 +1,5 @@
 /* What the visit counter records about a page view, and whether it counts it at all, worked out in one place. Bundled
-   before assets/js/stats-hit.js (which sends it, from layouts/_default/baseof.html) and before assets/js/you.js
+   before assets/js/site/stats-hit.js (which sends it, from layouts/_default/baseof.html) and before assets/js/site/you.js
    (which shows it to the visitor on /you/), so both always agree. */
 window.StatsDetect = window.StatsDetect || (function () {
     'use strict';

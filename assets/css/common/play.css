@@ -1,4 +1,4 @@
-/* Play mode: html[data-mode="play"], set by the key in the top right corner (assets/js/play.js, applied before the
+/* Play mode: html[data-mode="play"], set by the key in the top right corner (assets/js/lab/play.js, applied before the
    first paint: baseof.html sets html[data-mode="play"] on the Games and Toolbox pages). The academic menu gives way to the play navigation
    (layouts/partials/play-nav.html): a tab bar at the bottom below 900 px, a slim sidebar on the left from 900 px.
    The colours turn slightly warmer (a dog's warm colours, cat.css, stay as they are). Corner positions: paw.css. */
@@ -22,11 +22,11 @@ html[data-mode="play"] .key-btn svg { transform: rotateX(180deg); }
 html[data-mode="play"] .key-btn { background: #1e3a8a; border-color: #1e3a8a; color: #fff; }
 html[data-pet="dog"][data-mode="play"] .key-btn { background: #8a5a2b; border-color: #8a5a2b; color: #fff; }
 
-/* the key with its name: a wider button than the others, "The Lab" on the normal site and "Normal site" in the lab
+/* the key with its name: a wider button than the others, "The Lab" on the normal site and "About me" in the lab
    (only the key on phones in the lab, where the corner also holds the pet pickers); --key-w is its width, which the
    other corner buttons (paw.css) keep clear of */
 :root { --key-w: 104px; }
-html[data-mode="play"] { --key-w: 122px; }
+html[data-mode="play"] { --key-w: 110px; }
 .key-btn { width: var(--key-w); grid-auto-flow: column; gap: 6px; padding: 0 12px 0 9px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 650; white-space: nowrap; }
 .key-btn:hover { transform: translateY(-1px); }
 .key-btn .key-label { line-height: 1; }
@@ -180,3 +180,13 @@ html:not([data-mode="play"]) .home-reset { display: none !important; }
 
 /* the eye ("What this site knows about you") belongs to the normal site */
 html[data-mode="play"] .you-link { display: none; }
+
+/* the home pages' reset button (layouts/partials/cat.html) sits with the cat and dog pickers: in the sidebar's
+   "Your pet" row from 900 px, next to them in the top right corner below */
+@media (min-width: 900px) {
+    html[data-mode="play"] .home-reset { top: auto; right: auto; bottom: 77px; left: 108px; }
+    .pn-label { white-space: nowrap; }
+}
+@media (max-width: 899px) {
+    html[data-mode="play"] .home-reset { left: auto; right: calc(94px + var(--key-w, 34px)); }
+}

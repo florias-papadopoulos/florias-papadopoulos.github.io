@@ -1,10 +1,10 @@
 {{- /* "What this site knows about you" (content/you/_index.md), reached from the eye button in the top right corner
-       (baseof.html): exactly what the visit counter (assets/js/stats-hit.js, tools/stats-worker/worker.js) records
-       about this visit, filled in for the visitor by assets/js/you.js with the same detection code
-       (assets/js/stats-detect.js), and what I, the owner, never keep. The country comes from GET <endpoint>/whoami,
+       (baseof.html): exactly what the visit counter (assets/js/site/stats-hit.js, tools/workers/stats/worker.js) records
+       about this visit, filled in for the visitor by assets/js/site/you.js with the same detection code
+       (assets/js/site/stats-detect.js), and what I, the owner, never keep. The country comes from GET <endpoint>/whoami,
        asked only when the visit is counted. While params.statsEndpoint is empty the counter is off and the page says
        that nothing is recorded. Styles: assets/css/common/you.css. The wrapper also has the class tl-page so the cat
-       of the tabs (assets/js/cat-pages.js) lives here too and sits on the title. */ -}}
+       of the tabs (assets/js/lab/cat-pages.js) lives here too and sits on the title. */ -}}
 {{- define "main" }}
 {{- $end := site.Params.statsEndpoint }}
 {{- $rec := slice
@@ -75,7 +75,7 @@
 
 </div>
 {{- if $end }}
-{{- $js := slice (resources.Get "js/stats-detect.js") (resources.Get "js/you.js") | resources.Concat "js/you.bundle.js" | minify | fingerprint }}
+{{- $js := slice (resources.Get "js/site/stats-detect.js") (resources.Get "js/site/you.js") | resources.Concat "js/you.bundle.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{- end }}
 {{- end }}

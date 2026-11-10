@@ -1,4 +1,4 @@
-/* Tests of the visit counter worker: node tools/stats-worker/test/run.js [filter]
+/* Tests of the visit counter worker: node tools/workers/stats/test/run.js [filter]
    Node 12 has no ES modules by default, so worker.js is read as text, its "export default" turned into a variable,
    and the whole file run inside a function with the few globals a Worker has (Response, crypto, btoa) made up here.
    The D1 database is an in-memory mock (mockdb.js) that understands exactly the SQL the worker sends; an unknown
@@ -112,7 +112,7 @@ test('M2 tracks: only the game\'s real tracks', async function () {
     assert.strictEqual((await w.call('POST', '/scores', { json: { g: 'garden-defender', l: 'hard', b: 'tour', n: 'Milo', s: 4200 } })).status, 200);
 });
 test('M2 tracks match content/games/_index.md', function () {
-    var w = worker(), md = fs.readFileSync(path.join(__dirname, '../../../content/games/_index.md'), 'utf8');
+    var w = worker(), md = fs.readFileSync(path.join(__dirname, '../../../../content/games/_index.md'), 'utf8');
     var line = md.split('\n').filter(function (l) { return /tracks: \[/.test(l); });
     var kk = (/tracks: \[(.*)\]/.exec(line[0])[1].match(/id: ([a-z]+)/g) || []).map(function (s) { return s.slice(4); });
     assert.deepStrictEqual(w.i.BOARDS.get('kitty-kart').tracks, kk);

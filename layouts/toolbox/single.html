@@ -1,7 +1,7 @@
 {{- /* One Toolbox tool (pages made by content/toolbox/_content.gotmpl from data/toolbox/*.yaml). The form, result
        and procedure are built by the tool's scripts: assets/js/calc/core.js + lib/*.js (one shared file),
        data/*.js when needed, then tools/<id>.js + boot.js. "How it works" is the tool's about text. Styles: assets/css/common/toolbox.css.
-       The class tl-page lets the pet of the tabs (assets/js/cat-pages.js) live here too. */ -}}
+       The class tl-page lets the pet of the tabs (assets/js/lab/cat-pages.js) live here too. */ -}}
 {{- define "main" }}
 {{- $id := .Params.tool }}
 {{- /* Three files, so the browser keeps what tools share: (1) the engine and every library, the same file on every
@@ -19,7 +19,7 @@
 {{- $js := $own | resources.Concat (printf "js/calc/%s.bundle.js" $id) | minify | fingerprint }}
 <div class="tl-page tb-page" id="tb-tool" data-tool="{{ $id }}">
     <nav class="tb-crumbs" aria-label="Breadcrumb"><a href="{{ "toolbox/" | relURL }}">Toolbox</a><span aria-hidden="true">/</span><a href="{{ "toolbox/" | relURL }}#{{ .Params.catid }}">{{ .Params.category }}</a></nav>
-    <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+    <div class="tb-titlebar">{{ partial "tool-art.html" (dict "id" $id "size" 72) }}<h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1></div>
     <p class="tb-lede">{{ .Params.short }}</p>
 
     <form class="tb-form" id="tb-form" novalidate autocomplete="off"></form>

@@ -25,7 +25,7 @@
                                  site has its server, it also shows the game's leaderboard (top 10 this week and all
                                  time, per difficulty) and, if the score makes it in, a box to add it under a nickname;
                                  board: an optional sub-board, e.g. the Kitty Kart track. Games of the "two" group have
-                                 no leaderboard (the server lists the games that have one: tools/stats-worker/worker.js)
+                                 no leaderboard (the server lists the games that have one: tools/workers/stats/worker.js)
      api.cat(mood)               the cat in the corner: 'happy', 'sad', 'wow', 'think' or 'idle'
      api.say(text, ms)           a speech bubble from the cat
      api.sfx(name)               'tap', 'pop', 'point', 'hit', 'jump', 'move', 'win', 'lose'
@@ -39,7 +39,7 @@
    (for a game that a restart would break, like one linked to another player).
 
    Likes: every card has a like button (a paw print, "paws up") with the total of all visitors (GET and POST /likes on the site's
-   server, tools/stats-worker/worker.js). When the page loads, the cards of each tab are ordered by likes (most first,
+   server, tools/workers/stats/worker.js). When the page loads, the cards of each tab are ordered by likes (most first,
    then the order of content/games/_index.md). A browser's own like is kept in localStorage 'arcade-votes' ({id: 1});
    pressing it again takes it back.
 
@@ -307,7 +307,7 @@
         document.head.appendChild(s);
     }
 
-    /* ---------- leaderboards (end of a game; server side: /scores in tools/stats-worker/worker.js) ---------- */
+    /* ---------- leaderboards (end of a game; server side: /scores in tools/workers/stats/worker.js) ---------- */
     var boardEl = msg.querySelector('.stage-board'), boardSeq = 0;
     var LEVEL_NAME = { easy: 'Easy', normal: 'Normal', hard: 'Hard' };
     function hideBoard() { boardSeq++; if (boardEl) { boardEl.hidden = true; boardEl.innerHTML = ''; } }

@@ -10,7 +10,7 @@
     var h = LV.h, $ = LV.$, app = $('lv-app');
     var A = LV.A = { plan: null, saved: '', sel: 0, fresh: false, list: [] };
 
-    if (!LV.end) { app.appendChild(h('p.lv-plain', { text: 'Audience mode is not set up yet: set params.liveEndpoint in config.yml to the worker’s address (tools/live-worker/README.md).' })); return; }
+    if (!LV.end) { app.appendChild(h('p.lv-plain', { text: 'Audience mode is not set up yet: set params.liveEndpoint in config.yml to the worker’s address (tools/workers/live/README.md).' })); return; }
     if (!LV.key()) LV.keyForm(app, '', boot); else boot();
 
     var bar, edit, side, status, saveBtn;

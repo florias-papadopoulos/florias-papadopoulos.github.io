@@ -1,6 +1,6 @@
 /* QR codes for the live links, drawn with the vendored encoder (vendor/qrcode-generator.js, MIT, loaded before this
    file): error correction M (survives a projector's glare and a bit of a slide's frame), the smallest version that
-   fits, a quiet zone of 4 modules. Also used by tools/live-worker/test/qr.cjs, which decodes the codes again. */
+   fits, a quiet zone of 4 modules. Also used by tools/workers/live/test/qr.cjs, which decodes the codes again. */
 (function (LV, qrcode) {
     'use strict';
     var QUIET = 4;

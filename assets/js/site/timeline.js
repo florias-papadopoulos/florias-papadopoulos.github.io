@@ -7,7 +7,7 @@
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var DUR = 300;
 
-    /* tells the cat (assets/js/cat-pages.js) that the page moved under it */
+    /* tells the cat (assets/js/lab/cat-pages.js) that the page moved under it */
     function changed() { window.dispatchEvent(new Event('tl-change')); }
 
     function isOpen(entry) { return entry.querySelector('.tl-toggle').getAttribute('aria-expanded') === 'true'; }

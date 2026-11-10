@@ -36,6 +36,7 @@
             {{- range .tools }}
             {{- $id := .id }}{{ $tasks := slice }}{{ range hugo.Data.toolbox_tasks }}{{ if in .tools $id }}{{ $tasks = $tasks | append .id }}{{ end }}{{ end }}
             <li class="tb-tool" data-id="{{ .id }}" data-tasks="{{ delimit $tasks " " }}" data-q="{{ lower (printf "%s %s %s" .title .short (delimit (.keywords | default slice) " ")) }}">
+                {{ partial "tool-art.html" (dict "id" .id "size" 44) }}
                 <a href="{{ printf "toolbox/%s/" .id | relURL }}">{{ .title }}</a>
                 <span>{{ .short }}</span>
             </li>

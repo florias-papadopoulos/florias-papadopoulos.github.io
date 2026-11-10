@@ -44,7 +44,7 @@
         /* numbers (binary first: 0s and 1s in groups of 8 are bytes, not a list of numbers) */
         var compact = s.replace(/\s+/g, '');
         if (/^[01]+$/.test(compact) && compact.length >= 8 && compact.length % 8 === 0)
-            return { what: 'Looks like binary', tools: [['binary', 'Decode the bits as text', { input: s }], ['base-conversion', 'As a number', { num: compact, from: '2', to: '10' }]] };
+            return { what: 'Looks like binary', tools: [['binary', 'Decode the bits as text', { input: s, 'do': 'dec' }], ['base-conversion', 'As a number', { num: compact, from: '2', to: '10' }]] };
         nums = one.split(/\s*[,;]\s*|\s+/).filter(Boolean);
         if (nums.length >= 2 && nums.length <= 12 && nums.every(function (x) { return INT.test(x); })) {
             var t = [['gcd', 'GCD and LCM', { nums: nums.join(', ') }]];
@@ -66,13 +66,13 @@
 
         /* codes */
         if (/^[.\-\/\s·•_]+$/.test(s) && /[.·•]/.test(s) && /[-_]/.test(s))
-            return { what: 'Looks like Morse code', tools: [['morse', 'Decode the Morse code', { input: s }]] };
+            return { what: 'Looks like Morse code', tools: [['morse', 'Decode the Morse code', { input: s, 'do': 'dec' }]] };
         if (/%[0-9a-f]{2}/i.test(s) && !/\s/.test(s.trim()))
-            return { what: 'Looks URL-encoded', tools: [['url-encoding', 'Decode it', { input: s }]] };
+            return { what: 'Looks URL-encoded', tools: [['url-encoding', 'Decode it', { input: s, 'do': 'dec' }]] };
         if ((/^(0x)?[0-9a-f]+$/i.test(compact) && compact.replace(/^0x/i, '').length % 2 === 0 && /[a-f]/i.test(compact) && compact.length >= 4) || /^([0-9a-f]{2}[\s:])+[0-9a-f]{2}$/i.test(s))
-            return { what: 'Looks like hexadecimal', tools: [['hex', 'Decode the bytes as text', { input: s }], ['base-conversion', 'As a number', { num: compact.replace(/^0x/i, ''), from: '16', to: '10' }], ['decoder-guesser', 'Try every decoder', { text: s }]] };
+            return { what: 'Looks like hexadecimal', tools: [['hex', 'Decode the bytes as text', { input: s, 'do': 'dec' }], ['base-conversion', 'As a number', { num: compact.replace(/^0x/i, ''), from: '16', to: '10' }], ['decoder-guesser', 'Try every decoder', { text: s }]] };
         if (/^[A-Za-z0-9+\/_-]+={0,2}$/.test(compact) && compact.length >= 8 && (compact.length % 4 === 0 || /=$/.test(compact)) && /[a-z]/.test(compact) && /[A-Z]/.test(compact) && !looksEnglish(s))
-            return { what: 'Looks like Base64', tools: [['base64', 'Decode it', { input: compact }], ['decoder-guesser', 'Try every decoder', { text: s }]] };
+            return { what: 'Looks like Base64', tools: [['base64', 'Decode it', { input: compact, 'do': 'dec' }], ['decoder-guesser', 'Try every decoder', { text: s }]] };
 
         /* text */
         var letters = s.replace(/[^A-Za-z]/g, '').length;

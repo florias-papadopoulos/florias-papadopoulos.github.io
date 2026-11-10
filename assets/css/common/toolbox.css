@@ -158,3 +158,28 @@
 @media (pointer: coarse) {
     .tb-task, .tb-search input, .tb-field input[type="text"], .tb-field select, .tb-field textarea, .tb-btn { font-size: 16px; }
 }
+
+/* the tools' drawings (data/toolbox_art.yaml, layouts/partials/tool-art.html): navy lines on a pale tile, one pink accent */
+.tb-art { flex: none; display: block; border-radius: 12px; background: #eef2fa; color: var(--tl-navy, #1e3a8a);
+    fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.tb-art .f { fill: #dbe4f6; }
+.tb-art .s { fill: currentColor; stroke: none; }
+.tb-art .k { stroke: #db2777; }
+.tb-art .kf { fill: #f472b6; stroke: none; }
+.tb-art .k.f { fill: #fce7f3; }
+.tb-art text { fill: currentColor; stroke: none; text-anchor: middle; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
+.tb-art .t { font-size: 15px; }
+.tb-art .ts { font-size: 10px; font-weight: 600; }
+.tb-art .tl { font-size: 26px; }
+.tb-art text.k { fill: #db2777; stroke: none; }
+/* in the list: the drawing, then the name and the short text */
+.tb-tool { grid-template-columns: 44px minmax(160px, 230px) minmax(0, 1fr); align-items: center; }
+.tb-tool .tb-art { grid-row: span 1; }
+/* on a tool's page: the drawing beside the title */
+.tb-titlebar { display: flex; align-items: center; gap: 16px; }
+.tb-titlebar .tl-h1 { margin: 0; }
+@media (max-width: 640px) {
+    .tb-tool { grid-template-columns: 44px minmax(0, 1fr); column-gap: 12px; }
+    .tb-tool .tb-art { grid-row: span 2; align-self: start; }
+    .tb-titlebar .tb-art { width: 56px; height: 56px; }
+}

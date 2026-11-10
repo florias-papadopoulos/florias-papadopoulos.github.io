@@ -4,7 +4,7 @@ Live polls, quiz, audience questions and reactions during talks. Hidden: no link
 sitemap, `noindex`. The audience reaches `/live/#<code>/<join secret>` (e.g. `/live/#pkc27/k3x9mn2p`) only through the
 QR code or the link on the speaker's slides (the part after `#` never reaches any server). The join secret is made by
 the worker when a talk is first saved (another one for its rehearsal); without it no phone can join, so knowing or
-guessing a talk code is not enough. The worker is `tools/live-worker/` (its README has the setup, the design and the
+guessing a talk code is not enough. The worker is `tools/workers/live/` (its README has the setup, the design and the
 cost per talk); the pages are `layouts/live/` (standalone pages: no menu, footer, corner buttons, visit counter or
 pet), the styles `assets/css/common/live.css` (all under `.lv`). The worker address is `params.liveEndpoint` in
 `config.yml`; while it is empty the pages say "not set up yet".
@@ -30,7 +30,7 @@ pet), the styles `assets/css/common/live.css` (all under `.lv`). The worker addr
 
 Keep each file under about 600 lines (as in `assets/js/games/README.md`). Check the syntax of a page's bundle with
 e.g. `cat assets/js/live/{00-common,10-render,30-audience}.js | node --check -`. The limits in `LV.LIMITS` copy the
-worker's (`tools/live-worker/src/plan.js`); `node tools/live-worker/test/run.js` checks that they agree.
+worker's (`tools/workers/live/src/plan.js`); `node tools/workers/live/test/run.js` checks that they agree.
 
 Keys on the projector: right arrow or Page Down next (or start), left or Page Up back, R reveal (Shift+R hides), Q QR
 code, L ranking, Escape close the activity, P quick poll, F full screen, ? help. The controls fade out after 3 s

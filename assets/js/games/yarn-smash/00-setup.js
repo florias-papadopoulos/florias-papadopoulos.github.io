@@ -106,7 +106,7 @@ Arcade.register('yarn-smash', function (api) {
         var cs = null;
         try { cs = getComputedStyle(document.documentElement); } catch (e) { /* ginger */ }
         function v(name, dflt) { var s = cs && cs.getPropertyValue(name).trim(); return s || dflt; }
-        var look = document.documentElement.getAttribute('data-cat') || 'ginger';
+        var look = document.documentElement.getAttribute('data-cat') || 'calico';
         SK.fur = v('--fur-bot', FUR); SK.light = v('--fur-top', '#ffc06e'); SK.stripe = v('--stripe', STRIPE);
         SK.toe = look === 'tuxedo' ? v('--cream', '#f6f6f4') : SK.fur;
         SK.line = look === 'tuxedo' || look === 'bat' || look === 'dog-bat' || look === 'hacker' ? '#17181c' : OL;

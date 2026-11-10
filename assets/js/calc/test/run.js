@@ -166,6 +166,14 @@ pending.push(function () {
         if (/[\u2013\u2014]/.test(ts)) fail('data/toolbox_tasks.yaml', 'contains an em or en dash');
         (ts.match(/tools: *\[([^\]]*)\]/g) || []).forEach(function (r) { r.replace(/.*\[|\]/g, '').split(',').map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (id) { if (!allIds[id]) fail('data/toolbox_tasks.yaml', 'unknown tool ' + id); }); });
     }
+    /* every tool has a drawing (data/toolbox_art.yaml: one "id: |" block each), and no drawing is left over */
+    var af = path.join(SITE, 'data/toolbox_art.yaml');
+    if (!CAT && fs.existsSync(af)) {
+        var art = {};
+        fs.readFileSync(af, 'utf8').split('\n').forEach(function (l) { var m = /^([a-z0-9-]+): \|\s*$/.exec(l); if (m) art[m[1]] = true; });
+        Object.keys(allIds).forEach(function (id) { if (!art[id]) fail('data/toolbox_art.yaml', 'no drawing for ' + id); });
+        Object.keys(art).forEach(function (id) { if (!allIds[id]) fail('data/toolbox_art.yaml', 'drawing for an unknown tool ' + id); });
+    }
     pass();
 });
 

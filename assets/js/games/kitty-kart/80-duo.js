@@ -1,5 +1,5 @@
     /* ---------- Kitty Kart Duo: a race with a friend on another device ----------
-       One player hosts and gets a four letter code from the site's counter (api.server, tools/stats-worker/worker.js);
+       One player hosts and gets a four letter code from the site's counter (api.server, tools/workers/stats/worker.js);
        the friend types it in. The counter only passes the two WebRTC offers on, then forgets them; from then on the two
        devices talk directly over two data channels: "fast" (unordered, never resent) for the friend's keys and the
        host's snapshots, "sure" (reliable, in order) for what must arrive: start, go, sounds and speech, leaving.
