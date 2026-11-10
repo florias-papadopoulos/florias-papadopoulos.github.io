@@ -328,3 +328,12 @@ body:has(.profile.home) .footer {
 .lab-run-bar h2 { margin: 0; font-size: 20px; }
 .lab-run-bar a, .lab-run-bar button { font: inherit; font-size: 13.5px; color: var(--navy); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 600px) { .lab-chip:nth-child(n+7) { display: none; } }
+
+/* ---------- dark mode (palette: color-scheme.css) ---------- */
+@media (prefers-color-scheme: dark) {
+    :root { --ink: var(--dk-ink); --muted: var(--dk-muted); --navy: var(--dk-navy); --pink: var(--dk-pink); --line: var(--dk-line); }
+    .lab-paste { border-color: var(--dk-field); background: var(--dk-card); }
+    .lab-guess { background: var(--dk-raise); }
+    .lab-guess-what, .lab-chips-label { color: var(--dk-muted); }
+    .lab-guess-link, .lab-chip { border-color: var(--dk-field); background: var(--dk-card); }
+}

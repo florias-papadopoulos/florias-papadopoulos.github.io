@@ -1,6 +1,6 @@
 /* The home page (layouts/partials/index_profile.html): the band, "Latest" (the news) and "Work" (the projects strip).
-   The band follows the visitor's browser: light by default, ink blue when the browser is set to dark
-   (prefers-color-scheme: dark); the rest of the page stays light, like every other page of the site. */
+   The page follows the visitor's browser: light by default, dark when the browser is set to dark
+   (prefers-color-scheme: dark), the band then ink blue (the rest of the page: the dark block at the end). */
 
 .home3 {
     --h3-ink: #0f172a;
@@ -146,3 +146,25 @@ body:has(.home3) .you-link { right: calc(24px + var(--key-w)); }
 /* the CV: the word instead of a document icon, in a slightly wider button */
 .hb .social-icons a.si-cv { width: auto; padding: 0 11px; }
 .hb .si-text { font-size: 14px; font-weight: 700; letter-spacing: .02em; line-height: 1; }
+
+/* ---------- dark mode (palette: color-scheme.css): Latest and Work on the ink page under the band ---------- */
+@media (prefers-color-scheme: dark) {
+    .home3 {
+        --h3-ink: var(--dk-ink);
+        --h3-text: var(--dk-text);
+        --h3-mute: var(--dk-muted);
+        --h3-line: var(--dk-line);
+        --h3-navy: var(--dk-navy);
+    }
+    .h3-h { color: var(--dk-muted); }
+    a.hn-text:hover { text-decoration-color: var(--dk-navy-soft); }
+    .hn-pic, .hw-noimg { background: var(--dk-raise); }
+    .hn-in { color: #4b9be6; }                 /* LinkedIn's blue, lighter */
+    .hn-in:hover { background: var(--dk-raise); }
+    .hw-chip { background: var(--dk-card); box-shadow: inset 0 0 0 1px var(--dk-field); }
+    .hw-chip[aria-pressed="true"] { background: var(--dk-navy); box-shadow: none; color: var(--dk-on-navy); }
+    .hw-chip[aria-pressed="true"] span { color: rgba(11, 18, 32, 0.7); }
+    .hw-wrap::after { background: linear-gradient(90deg, rgba(15, 23, 42, 0), var(--dk-bg) 80%); }
+    .hw-next { background: var(--dk-card); box-shadow: 0 1px 4px var(--dk-shadow), inset 0 0 0 1px var(--dk-field); }
+    .hw-next:hover { box-shadow: 0 2px 8px var(--dk-shadow), inset 0 0 0 1px var(--h3-navy); }
+}

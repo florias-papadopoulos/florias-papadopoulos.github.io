@@ -183,3 +183,28 @@
     .tb-tool .tb-art { grid-row: span 2; align-self: start; }
     .tb-titlebar .tb-art { width: 56px; height: 56px; }
 }
+
+/* ---------- dark mode (palette: color-scheme.css; the text colours follow the --tl-* tokens, timeline.css) ---------- */
+@media (prefers-color-scheme: dark) {
+    .tb-search input, .tb-guess-link, .tb-copy { border-color: var(--dk-field); background: var(--dk-card); }
+    .tb-guess, .tb-result, .tb-pre, .tb-table tr.is-hl td, .tb-table td.is-hl { background: var(--dk-raise); }
+    .tb-task, .tb-form { background: var(--dk-card); }
+    .tb-task[aria-pressed="true"] { background: var(--dk-raise); }
+    /* the fields sit a little deeper than their card */
+    .tb-field input[type="text"], .tb-field select, .tb-field textarea { border-color: var(--dk-field); background: var(--dk-bg); }
+    .tb-field.is-bad input, .tb-field.is-bad select, .tb-field.is-bad textarea { border-color: var(--dk-bad); }
+    .tb-ferr { color: var(--dk-bad); }
+    .tb-btn { border-color: var(--dk-field); background: var(--dk-card); }
+    .tb-btn.is-primary, .tb-btn.is-primary:hover { color: var(--dk-on-navy); }
+    .tb-btn.is-primary:hover { background: color-mix(in srgb, var(--dk-navy), #fff 20%); }
+    .tb-error { border-left-color: var(--dk-bad); background: var(--dk-bad-soft); color: #fecdd3; }
+    .tb-check.is-ok .tb-check-mark { color: var(--dk-good); }
+    .tb-check.is-bad .tb-check-mark { color: var(--dk-bad); }
+    /* the drawings: light blue lines on a dark tile, the pink a little lighter */
+    .tb-art { background: var(--dk-raise); color: var(--tl-navy, var(--dk-navy)); }
+    .tb-art .f { fill: color-mix(in srgb, currentColor 22%, var(--dk-raise)); }
+    .tb-art .k, .tb-art text.k { stroke: #f472b6; }
+    .tb-art text.k { fill: #f472b6; stroke: none; }
+    .tb-art .kf { fill: #f9a8d4; }
+    .tb-art .k.f { fill: #4a1d36; }
+}
