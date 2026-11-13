@@ -1,11 +1,9 @@
 {{- /* "Signal in two browsers" (content/phd/signal/index.md, layout: signal): the Signal protocol (X3DH and
-       the Double Ratchet) running with real WebCrypto keys, on one device or between two phones through the relay
-       of the audience-mode worker (tools/workers/live, route /relay/<room>). Scripts: assets/js/signal/ (README.md
-       there), joined into one file with the vendored QR encoder of audience mode; styles: assets/css/phd/signal.css.
-       The page text under "What is happening" is the page's own markdown. The worker's address (params.liveEndpoint)
-       must be in this page's connect-src (head.html, as for the presenter page). */ -}}
+       the Double Ratchet) running with real WebCrypto keys, Alice and Bob side by side in this tab, Eve on the
+       network. Nothing leaves the tab. Scripts: assets/js/signal/ (README.md there), joined into one file; styles:
+       assets/css/phd/signal.css. The page text under "What is happening" is the page's own markdown. */ -}}
 {{- define "main" }}
-<div class="tl-page sg-page" id="sg" data-endpoint="{{ site.Params.liveEndpoint }}" data-base="{{ .Permalink }}">
+<div class="tl-page sg-page" id="sg">
     <header class="sg-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
         <p class="sg-lede">{{ .Params.lede | default .Params.blurb }} It builds on my Master project <a href="{{ "master/" | relURL }}#signal-protocol">Overview of the Signal Protocol</a>.</p>
@@ -18,10 +16,10 @@
             <p id="sg-engine" class="sg-engine"></p>
         </div>
     </details>
-    <p class="sg-privacy">Nothing is kept: the keys live only in this browser tab. With two phones, the relay only passes public keys and ciphertext along and forgets the room when you leave.</p>
+    <p class="sg-privacy">Nothing leaves this browser tab: the keys live only here and are gone when you close it.</p>
 </div>
 {{- $files := slice }}
-{{- range slice "live/vendor/qrcode-generator.js" "live/20-qr.js" "signal/00-crypto.js" "signal/10-ratchet.js" "signal/20-view.js" "signal/22-gears.js" "signal/24-chain.js" "signal/26-x3dh.js" "signal/28-player.js" "signal/30-local.js" "signal/40-pair.js" "signal/50-main.js" }}{{ $files = $files | append (resources.Get (printf "js/%s" .)) }}{{ end }}
+{{- range slice "signal/00-crypto.js" "signal/10-ratchet.js" "signal/20-view.js" "signal/22-gears.js" "signal/24-chain.js" "signal/26-x3dh.js" "signal/28-player.js" "signal/30-local.js" "signal/50-main.js" }}{{ $files = $files | append (resources.Get (printf "js/%s" .)) }}{{ end }}
 {{- $js := $files | resources.Concat "js/signal.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{- end }}

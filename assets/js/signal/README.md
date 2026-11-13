@@ -4,35 +4,31 @@ The Signal protocol (X3DH, then the Double Ratchet, as in signal.org/docs) with 
 Page: `content/phd/signal/index.md` (its text is the "What is happening" part), layout `layouts/phd/signal.html`,
 styles `assets/css/phd/signal.css`. It builds on the Master project "Overview of the Signal Protocol" (/master/#signal-protocol).
 
-Two modes:
+Alice and Bob side by side in this tab (stacked on phones), each with a machine of ratchet gears, Eve on the network
+reading the wire. Steal one side's keys: earlier messages stay locked (forward secrecy); Eve reads on until that side
+makes a fresh ratchet key, then she is locked out again (post-compromise security). Nothing leaves the tab: no server,
+no third-party request. The steps play by themselves (chat) or one per click (step by step), each with a one line
+caption.
 
-- **One device** (default, no server): Alice and Bob side by side, Eve under them reading the wire. Steal one side's
-  keys: earlier messages stay locked (forward secrecy); Eve reads on until that side makes a fresh ratchet key, then
-  she is locked out again (post-compromise security).
-- **Two phones**: the first phone (Bob) shows a QR code with a link to this page ending in `#<room>/<secret>` (12
-  letters a-z, 2-7, then 16 random bytes in base64url). The other phone opens it and is Alice; it removes the secret
-  from the address bar at once. The relay of the audience-mode worker (`tools/workers/live`, route `/relay/<room>`)
-  forwards public keys and ciphertexts and keeps nothing; the secret never reaches it, and each phone authenticates the
-  keys it sends with an HMAC under a key from that secret, so the relay cannot swap them. Both phones show the same
-  number from both identity keys. Without `params.liveEndpoint`, or with a worker deployed before the relay existed
-  (`GET /relay` does not answer `{"relay": true}`), the page says so in one line and stays on one device.
+The look, in short (assets/css/phd/signal.css has the details): Alice blue and Bob violet for what they write and for
+their sending chains (a1, a2 ... and b1, b2 ...; a small gear has the colour of its chain, so Alice's sending gear and
+Bob's receiving gear match), amber for the DH ratchet and its root keys, red for Eve, green for the same key on both
+sides and for Eve locked out. Every key is a chip with 6 hex digits (the whole value in its title); a shredded key stays
+in place, grey and struck through.
 
 | File | What is in it |
 | --- | --- |
 | `00-crypto.js` | Bytes helpers, HKDF, HMAC, SHA-256, AES-GCM, X25519 and signatures, all WebCrypto; X25519 in plain JavaScript (BigInt, RFC 7748) where WebCrypto has none or fails the RFC test vector; ECDSA P-256 where there is no Ed25519. `SG.ready` says which |
 | `10-ratchet.js` | X3DH, the Double Ratchet (skipped message keys, state rolled back when a message fails), the wire format, Eve |
-| `20-view.js` | A person's card (chat, input, a slot for the gears) and the wire list |
+| `20-view.js` | A person's card (chat, input, a slot for the gears), the wire list, the key chip (`SG.hexCode`) |
 | `22-gears.js` | The machine of each person: the big DH gear (root chain) and the send and recv gears (symmetric ratchets), each step one tooth, with columns of numbered keys; Eve's red copy that jams. Driven by the ratchet's events (10-ratchet.js) |
 | `24-chain.js` | The chain view: a tapped gear or key as a KDF ladder with the real values |
-| `26-x3dh.js` | The X3DH picture (four DH lines into one KDF), and `SG.Lines`, lines between elements |
+| `26-x3dh.js` | The X3DH picture (four DH lines into one KDF), and `SG.Lines`, curves between elements, placed again on scroll and resize |
 | `28-player.js` | Plays the steps with one line captions: by themselves (chat) or one per click (step by step); the speed; the flying key |
-| `30-local.js` | One device |
-| `40-pair.js` | Two phones, through the relay (signatures with ECDSA P-256 on both phones; the algorithm's name and every key, each with its length, are in the HMAC) |
-| `50-main.js` | The start: mode switch, fallbacks |
+| `30-local.js` | The demo: Alice, Bob, Eve and the wire, the player's controls |
+| `50-main.js` | The start: the bar with the controls and "Start again", the fallback without WebCrypto |
 
-The page's script is these files after `assets/js/live/vendor/qrcode-generator.js` and `assets/js/live/20-qr.js` (the
-QR code of audience mode), joined in that order. Check with
-`cat assets/js/live/vendor/qrcode-generator.js assets/js/live/20-qr.js assets/js/signal/*.js | node --check -`
+The page's script is these files joined in that order. Check with `cat assets/js/signal/*.js | node --check -`
 and test the JavaScript X25519 with `node assets/js/signal/test/x25519.cjs`. Keep each file under about 600 lines.
 
 Differences from the specifications, all small: the identity key signs with a separate Ed25519 key (not XEdDSA),

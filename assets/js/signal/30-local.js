@@ -12,7 +12,8 @@
     var DH_TEXT = ['Alice’s identity key with Bob’s signed prekey.', 'Alice’s ephemeral key with Bob’s identity key.',
         'Alice’s ephemeral key with Bob’s signed prekey.', 'Alice’s ephemeral key with Bob’s one-time prekey.'];
 
-    SG.local = function (app) {
+    /* app: where the demo goes; tools: a place in the bar above it for the player's controls */
+    SG.local = function (app, tools) {
         var R = { A: new SG.Ratchet(), B: new SG.Ratchet() }, eve = new SG.Eve(), ghost = null;
         var busy = false, agreed = false, said = { A: 0, B: 0 }, lastPub = {}, log = [], held = [];
         var bob = null, ikA = null;
@@ -25,8 +26,8 @@
         });
 
         /* ---------- controls: chat or step by step, Next, speed ---------- */
-        var modes = { chat: h('button.sg-tab', { type: 'button', text: 'Chat', 'aria-pressed': 'true', onclick: function () { mode(false); } }),
-            step: h('button.sg-tab', { type: 'button', text: 'Step by step', 'aria-pressed': 'false', onclick: function () { mode(true); } }) };
+        var modes = { chat: h('button.sg-segbtn', { type: 'button', text: 'Chat', 'aria-pressed': 'true', onclick: function () { mode(false); } }),
+            step: h('button.sg-segbtn', { type: 'button', text: 'Step by step', 'aria-pressed': 'false', onclick: function () { mode(true); } }) };
         var nextBtn = h('button.sg-btn.sg-main', { type: 'button', text: 'Next', disabled: true, onclick: function () { player.next(); } });
         var speed = h('input.sg-speed', { type: 'range', min: '0.5', max: '3', step: '0.25', value: '1', 'aria-label': 'Animation speed',
             oninput: function () { player.speed = +speed.value; } });
@@ -50,20 +51,22 @@
         var agreeRow = h('div.sg-agree', {}, [agreeBtn]);
         var pair = h('div.sg-pair', {}, [cards.A.el, cards.B.el]);
         var lines = new SG.Lines(pair);
-        var wire = new SG.Wire({ eve: true });
+        var wire = new SG.Wire();
         var thief = { A: h('button.sg-btn', { type: 'button', text: 'Steal Alice’s keys', disabled: true, onclick: function () { steal('A'); } }),
             B: h('button.sg-btn', { type: 'button', text: 'Steal Bob’s keys', disabled: true, onclick: function () { steal('B'); } }) };
-        var eveSay = h('p.sg-eve-say', { text: 'Eve sees every message on the network, as ciphertext.' });
+        var eveSay = h('p.sg-eve-say', { text: 'Eve sees every message, as ciphertext.' });
         var ghostSlot = h('div.sg-ghostslot');
-        app.appendChild(h('div.sg-controls', {}, [say, h('div.sg-ctl', {}, [h('span.sg-seg', {}, [modes.chat, modes.step]), nextBtn,
-            h('label.sg-speedl', {}, ['speed ', speed])])]));
+        var ctl = h('span.sg-ctl', {}, [h('span.sg-seg', { role: 'group', 'aria-label': 'How the steps play' }, [modes.chat, modes.step]),
+            h('label.sg-speedl', {}, ['Speed', speed])]);
+        if (tools) tools.appendChild(ctl); else app.appendChild(ctl);
+        app.appendChild(h('div.sg-bar', {}, [say, nextBtn]));
         app.appendChild(x3.el);
         app.appendChild(agreeRow);
         app.appendChild(pair);
         app.appendChild(view.el);
-        app.appendChild(h('section.sg-eve', { 'aria-label': 'Eve' }, [
-            h('div.sg-eve-head', {}, [h('h2.sg-name', { text: 'Eve, on the network' }), h('span.sg-thieves', {}, [thief.A, thief.B])]),
-            eveSay, ghostSlot, wire.el]));
+        app.appendChild(h('section.sg-net', { 'aria-label': 'The network, and Eve' }, [
+            h('div.sg-net-head', {}, [h('h2.sg-name', { text: 'The network' }), h('span.sg-thieves', {}, [thief.A, thief.B])]),
+            eveSay, h('div.sg-net-body', {}, [ghostSlot, wire.el])]));
 
         function buttons() {
             var free = !busy && agreed;
@@ -73,6 +76,7 @@
                 if (can && !cards[s].input.value) cards[s].input.value = LINES[s][said[s]] || '';
                 thief[s].disabled = !free;
             });
+            held = held.filter(function (b) { return b.isConnected; });
             held.forEach(function (b) { b.disabled = !free; });
         }
         function after() {
@@ -81,6 +85,20 @@
             view.refresh();
         }
         function step(cap, fn, ms) { player.add(cap, async function () { if (fn) await fn(); after(); }, ms); }
+        /* the same key on both sides: a green line between the two chips, kept until the next message */
+        var match = null;
+        function same(a, b) {
+            unmatch();
+            if (!a || !b) return;
+            a.classList.add('sg-match'); b.classList.add('sg-match');
+            match = { a: a, b: b, line: lines.add(a, b, 'sg-line-match') };
+        }
+        function unmatch() {
+            if (!match) return;
+            match.a.classList.remove('sg-match'); match.b.classList.remove('sg-match');
+            lines.fade(match.line);
+            match = null;
+        }
         function play() { return player.go(); }
 
         /* Bob's keys on the server, Alice's identity key */
@@ -125,6 +143,7 @@
             busy = true; buttons();
             try {
                 var m = await R[X].encrypt(text), ev = m.trace[0], chip = null, row = null;
+                unmatch();
                 var step0 = lastPub[X] !== SG.hex(m.h.dh);
                 lastPub[X] = SG.hex(m.h.dh);
                 said[X]++;
@@ -149,16 +168,21 @@
                     SG.say(eveSay, e.text !== null ? 'Eve reads the new messages with the stolen keys.' : 'Eve is locked out: a fresh DH key healed the session.', e.text !== null ? 'sg-bad' : 'sg-good');
                 }, 1000);
                 if (later) step(function () { return lab() + ' waits on the network. Send more, then deliver it.'; }, function () {
-                    held.push(wire.hold(row, function () { deliverLater(X, m, row, lab()); }));
+                    var b = wire.hold(row, function () { return deliverLater(X, m); });
+                    b.disabled = true;    // until the steps are played (buttons())
+                    held.push(b);
                 }, 600);
                 else await receive(X, m, function () { return chip; });
                 await play();
             } catch (err) { fail(err); }
         }
-        async function deliverLater(X, m, row, label) {
-            if (busy) return;
+        /* false while the steps of another message play: the message stays held */
+        function deliverLater(X, m) {
+            if (busy) return false;
             busy = true; buttons();
-            try { await receive(X, m, function () { return mach[X].chips[SG.hex(m.h.dh) + ':' + m.h.n]; }); await play(); } catch (err) { fail(err); }
+            unmatch();
+            (async function () { await receive(X, m, function () { return mach[X].chips[SG.hex(m.h.dh) + ':' + m.h.n]; }); await play(); })().catch(fail);
+            return true;
         }
 
         /* the receiver's steps, from the events of its ratchet */
@@ -171,13 +195,11 @@
                 else if (ev.k === 'gen') { step(N[Y] + ' makes a new DH key pair; the DH gear turns again for a fresh sending chain.', function () { mach[Y].apply(ev); mach[Y].apply(nx); }, 1300); i++; }
                 else if (ev.k === 'ck') step(function () { return N[Y] + '’s recv gear clicks the same tooth: the same key ' + mach[Y].label('recv', ev.n) + '.'; }, function () {
                     got = mach[Y].apply(ev);
-                    var s = sentChip();
-                    if (s && got) lines.add(s, got, 'sg-line-match', 2600);
+                    same(sentChip(), got);
                 }, 1000);
                 else if (ev.k === 'useSkip') step(function () { return 'The late message opens with the key kept for it.'; }, function () {
                     got = mach[Y].apply(ev);
-                    var s = sentChip();
-                    if (s && got) lines.add(s, got, 'sg-line-match', 2600);
+                    same(sentChip(), got);
                 }, 900);
             })(tr[i], tr[i + 1]);
             step(function () { return N[Y] + ' decrypts and shreds ' + (got ? got.label : 'the key') + '.'; }, async function () {
@@ -195,7 +217,7 @@
                 ghostSlot.textContent = '';
                 ghost = new SG.Machine({ side: side, mirror: side === 'B', ghost: true, onTap: function (k, id) { view.show(ghost, k, id); } });
                 ghost.base = { send: mach[side].base.send, recv: mach[side].base.recv };
-                ghostSlot.appendChild(h('p.sg-ghost-title', { text: 'Eve’s copy of ' + N[side] + '’s gears' }));
+                ghostSlot.appendChild(h('h3.sg-ghost-title', { text: 'Eve’s copy of ' + N[side] + '’s gears' }));
                 ghostSlot.appendChild(ghost.el);
                 tr.forEach(function (e) { ghost.apply(e); });
                 mach.A.stolenBy(side === 'A'); mach.B.stolenBy(side === 'B');
