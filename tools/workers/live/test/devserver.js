@@ -1,5 +1,5 @@
 // A local stand-in for Cloudflare, for testing on a machine without wrangler (node 12 is enough): runs the real
-// src/index.js (Worker, Plans and Session) on node's http server, with small emulations of the Durable Object APIs
+// src/index.js (Worker, Plans, Session and Relay) on node's http server, with small emulations of the Durable Object APIs
 // it uses (storage, acceptWebSocket, getWebSockets, attachments, the ping auto-response) and a minimal WebSocket
 // server. With HIBERNATE=1 every Session is thrown away after each event and rebuilt from its storage, as Cloudflare
 // does when an object hibernates, so state kept only in memory shows up as a bug.
@@ -109,7 +109,7 @@ globalThis.__DO = class DurableObject { constructor(ctx, env) { this.ctx = ctx; 
 /* src/index.js with its two imports pointed at this machine */
 const code = fs.readFileSync(path.join(src, 'index.js'), 'utf8')
     .replace("import { DurableObject } from 'cloudflare:workers';", 'const DurableObject = globalThis.__DO;')
-    .replace(/from '\.\/(plan|session)\.js'/g, (m, f) => "from '" + url.pathToFileURL(path.join(src, f + '.js')).href + "'");
+    .replace(/from '\.\/(plan|session|relay)\.js'/g, (m, f) => "from '" + url.pathToFileURL(path.join(src, f + '.js')).href + "'");
 const patched = path.join(scratch, 'index.dev.mjs');
 fs.writeFileSync(patched, code);
 
@@ -141,9 +141,10 @@ function namespace(Cls, isSession) {
 const env = { DEV: '1', PRESENTER_KEY: process.env.LIVE_DEV_KEY || '' };
 env.SESSION = namespace(mod.Session, true);
 env.PLANS = namespace(mod.Plans, false);
+env.RELAY = namespace(mod.Relay, true);
 
 /* ---------- a minimal WebSocket server ---------- */
-function bind(ws, raw, name) {
+function bind(ws, raw, name, ns) {
     ws.raw = raw;
     ws.queue.splice(0).forEach((t) => ws.send(t));
     if (ws.pendingClose) ws.pendingClose();
@@ -160,14 +161,14 @@ function bind(ws, raw, name) {
             buf = buf.slice(off + 4 + n);
             if (op === 1) {
                 const text = data.toString();
-                const ctx = env.SESSION.inst(name).ctx;
+                const ctx = ns.inst(name).ctx;
                 if (ctx.auto && text === ctx.auto.a) { stats.auto++; ws.send(ctx.auto.b); continue; }  // answered without waking the object
                 stats.msgs++;
-                env.SESSION.call(name, (o) => o.webSocketMessage(ws, text)).catch((e) => console.error('webSocketMessage', e));
+                ns.call(name, (o) => o.webSocketMessage(ws, text)).catch((e) => console.error('webSocketMessage', e));
             } else if (op === 8) {
                 const c = data.length >= 2 ? data.readUInt16BE(0) : 1005;
                 if (!ws.closed) { ws.closed = true; try { raw.write(frame(8, data.slice(0, 2))); raw.end(); } catch (e) { /* gone */ } }
-                env.SESSION.call(name, (o) => o.webSocketClose(ws, c, '', true)).catch((e) => console.error('webSocketClose', e));
+                ns.call(name, (o) => o.webSocketClose(ws, c, '', true)).catch((e) => console.error('webSocketClose', e));
                 return;
             } else if (op === 9) raw.write(frame(10, data));
         }
@@ -175,7 +176,7 @@ function bind(ws, raw, name) {
     raw.on('close', () => {
         if (ws.gone) return;
         ws.gone = true;
-        if (!ws.closed) { ws.closed = true; env.SESSION.call(name, (o) => o.webSocketClose(ws, 1006, '', false)).catch(() => {}); }
+        if (!ws.closed) { ws.closed = true; ns.call(name, (o) => o.webSocketClose(ws, 1006, '', false)).catch(() => {}); }
     });
 }
 
@@ -207,8 +208,8 @@ server.on('upgrade', async (req, raw) => {
         stats.sockets++;
         const accept = crypto.createHash('sha1').update(req.headers['sec-websocket-key'] + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
         raw.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ' + accept + '\r\n\r\n');
-        const name = /^\/ws\/([^/?]+)/.exec(req.url)[1];
-        bind(r.webSocket.peer, raw, name);
+        const m = /^\/(ws|relay)\/([^/?]+)/.exec(req.url);
+        bind(r.webSocket.peer, raw, m[2], m[1] === 'relay' ? env.RELAY : env.SESSION);
     } catch (e) { console.error(e); raw.destroy(); }
 });
 server.listen(PORT, '127.0.0.1', () => console.log('live dev server on http://localhost:' + PORT + (HIBERNATE ? ' (hibernating after every event)' : '')));

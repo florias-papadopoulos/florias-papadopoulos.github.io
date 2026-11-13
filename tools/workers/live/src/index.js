@@ -4,11 +4,15 @@
 //            the remote keep one WebSocket each to it (Hibernation API: the object sleeps between messages and its
 //            state lives in its storage), and it pushes every change to them, so nobody polls.
 //   Plans    one object ("owner") with the presenter's talk plans (quiz answers included), never in the public repo.
+//   Relay    one per room of the Signal demo (/phd/projects/signal/, two phones): forwards messages between its two
+//            WebSockets and stores nothing but its closing alarm (relay.js).
 // The logic is in plan.js and session.js (pure functions, tested in node by test/run.js); this file only connects
 // them to Cloudflare's APIs.
 //
 // HTTP (all but / and /ws need "Authorization: Bearer <PRESENTER_KEY>"):
 //   GET    /                        {"service": "florias-live", "presenterKey": "set" | "missing or too weak"}
+//   GET    /relay                   {"relay": true} (the Signal demo checks that this worker has the relay)
+//   GET    /relay/<room>            WebSocket into a room of the Signal demo (12 letters a-z, 2-7), two phones at most
 //   GET    /ws/<session>?r=a|p      WebSocket for a phone (a, which sends the join secret first) or the presenter
 //                                   (p, who sends the key first)
 //   GET    /plans                   {"plans": [{code, title, n, updated}]}
@@ -22,6 +26,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { LIMITS, SITE, bearer, checkPlan, codeOk, ipKey, keyOk, originOk, secret, sessionOk, strong, summary, withJoin } from './plan.js';
 import * as S from './session.js';
+import { RELAY, fresh, judge, roomOk, spend } from './relay.js';
 
 /* the presenter key, compared in constant time (crypto.subtle.timingSafeEqual is a Workers extension) */
 function presenterKey(env, k) {
@@ -54,6 +59,14 @@ export default {
                 if (!allowed) return reply(403, { error: 'origin' });
                 if (!sessionOk(m[1])) return reply(404, { error: 'code' });
                 return env.SESSION.get(env.SESSION.idFromName(m[1])).fetch(req);
+            }
+            if (path === '/relay' && method === 'GET') return reply(200, { relay: true });
+            m = /^\/relay\/([^/]{1,40})$/.exec(path);
+            if (m) {
+                if ((req.headers.get('Upgrade') || '').toLowerCase() !== 'websocket') return reply(426, { error: 'websocket' });
+                if (!allowed) return reply(403, { error: 'origin' });
+                if (!roomOk(m[1])) return reply(404, { error: 'room' });
+                return env.RELAY.get(env.RELAY.idFromName(m[1])).fetch(req);
             }
             if (path === '/' && method === 'GET') return reply(200, { service: 'florias-live', presenterKey: strong(env.PRESENTER_KEY) ? 'set' : 'missing or too weak' });
 
@@ -279,5 +292,61 @@ export class Session extends DurableObject {
             self.pending = {}; self.timer = null;
             self.deliver(Object.keys(p).map(function (k) { return { to: p[k].to, m: p[k].m }; }), null);
         }, 1000);
+    }
+}
+
+/* ---------- one room of the Signal demo ----------
+   Two WebSockets at most; each message from one goes unchanged to the other. Nothing is stored but the alarm that
+   closes the room after RELAY.life; the message budget of each phone rides in its socket's attachment, so the object
+   can hibernate between messages. When the last phone leaves, the alarm and everything else are deleted. */
+export class Relay extends DurableObject {
+    constructor(ctx, env) {
+        super(ctx, env);
+        ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'));
+    }
+    /* the phones in the room (a socket refused as the third has no attachment) */
+    phones(not) { return this.ctx.getWebSockets().filter(function (w) { return w !== not && attOf(w).ok; }); }
+    count(not) {
+        const list = this.phones(not);
+        for (const w of list) send(w, 'peers:' + list.length);
+    }
+    async fetch(req) {
+        if ((req.headers.get('Upgrade') || '').toLowerCase() !== 'websocket') return new Response('Expected a WebSocket', { status: 426 });
+        const now = Date.now(), full = this.phones().length >= RELAY.peers;
+        const pair = new WebSocketPair();
+        const client = pair[0], server = pair[1];
+        this.ctx.acceptWebSocket(server);
+        if (full) {
+            server.close(4003, 'full');
+        } else {
+            server.serializeAttachment(fresh(now));
+            if (!(await this.ctx.storage.getAlarm())) await this.ctx.storage.setAlarm(now + RELAY.life);
+            this.count(null);
+        }
+        return new Response(null, { status: 101, webSocket: client });
+    }
+    async webSocketMessage(ws, message) {
+        const att = attOf(ws);
+        if (!att.ok) return;
+        const j = judge(message);
+        if (j === 'big') { ws.close(1009, 'too big'); return; }
+        const s = spend(att, Date.now());
+        if (!s.ok) { ws.close(4029, 'slow down'); return; }
+        ws.serializeAttachment(s.att);
+        if (j === 'forward') for (const w of this.phones(ws)) send(w, message);
+    }
+    async webSocketClose(ws) { await this.left(ws); }
+    async webSocketError(ws) { await this.left(ws); }
+    async left(ws) {
+        const was = attOf(ws).ok;
+        try { ws.serializeAttachment({}); } catch (e) { /* closed */ }
+        try { ws.close(1000, 'bye'); } catch (e) { /* already closed */ }
+        if (!was) return;
+        if (this.phones(ws).length) this.count(ws);
+        else { await this.ctx.storage.deleteAlarm(); await this.ctx.storage.deleteAll(); }
+    }
+    async alarm() {
+        for (const w of this.ctx.getWebSockets()) { try { w.serializeAttachment({}); w.close(4008, 'time'); } catch (e) { /* gone */ } }
+        await this.ctx.storage.deleteAll();
     }
 }

@@ -1,0 +1,153 @@
+/* "Signal in two browsers" (layouts/phd/signal.html, assets/js/signal/): Alice and Bob side by side (stacked on
+   phones), Eve and the wire under them. Plain: thin lines, the site's navy, monospace for keys. A key that the
+   ratchet deletes stays a moment, struck through and fading. Colours: the --tl-* tokens (timeline.css) and the dark
+   palette (color-scheme.css). */
+.main:has(.sg-page) { max-width: calc(1040px + var(--gap) * 2); }
+.sg-page {
+    --sg-card: #fff;
+    --sg-line: #d5dce8;
+    --sg-mine: #eef2fb;
+    --sg-theirs: #f4f5f7;
+    --sg-good: #15803d;
+    --sg-bad: #be123c;
+    --sg-flash: #fde68a;
+    --sg-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    color: var(--tl-text);
+}
+.sg-head { margin: 10px 0 14px; }
+.sg-lede { max-width: 720px; margin: 0; font-size: 16px; line-height: 1.6; }
+.sg-page a { color: var(--tl-navy); text-decoration: underline; text-underline-offset: 2px; }
+.sg-page code { font-family: var(--sg-mono); font-size: 0.92em; }
+
+/* the mode switch: two words, the chosen one underlined */
+.sg-modes { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px; margin: 18px 0 10px; border-bottom: 1px solid var(--tl-line); }
+.sg-tab, .sg-link { padding: 6px 0; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; color: var(--tl-muted); font: inherit; font-size: 15.5px; cursor: pointer; }
+.sg-tab[aria-pressed="true"] { border-bottom-color: var(--tl-navy); color: var(--tl-ink); font-weight: 600; }
+.sg-tab:hover, .sg-link:hover { color: var(--tl-navy); }
+.sg-link { margin-left: auto; font-size: 14px; text-decoration: underline; text-underline-offset: 2px; }
+.sg-mode-note { margin: 6px 0; color: var(--tl-muted); font-size: 14.5px; }
+
+.sg-say { min-height: 1.5em; margin: 10px 0 12px; color: var(--tl-ink); font-size: 16px; font-weight: 500; }
+.sg-say.sg-good { color: var(--sg-good); }
+.sg-say.sg-bad { color: var(--sg-bad); }
+
+/* buttons: outlined, the main one filled */
+.sg-btn { padding: 7px 14px; border: 1px solid #c7d2e8; border-radius: 6px; background: var(--sg-card); color: var(--tl-navy); font: inherit; font-size: 14.5px; cursor: pointer; }
+.sg-btn:hover:not(:disabled) { border-color: var(--tl-navy); }
+.sg-btn:disabled { opacity: 0.45; cursor: default; }
+.sg-btn.sg-main { border-color: var(--tl-navy); background: var(--tl-navy); color: #fff; font-weight: 600; }
+.sg-tab:focus-visible, .sg-link:focus-visible, .sg-btn:focus-visible, .sg-input:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: 2px; }
+
+/* ---------- Alice and Bob ---------- */
+.sg-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.sg-party { display: flex; flex-direction: column; min-width: 0; padding: 12px 14px; border: 1px solid var(--sg-line); border-radius: 8px; background: var(--sg-card); }
+.sg-name { margin: 0 0 6px; color: var(--tl-ink); font-size: 17px; font-weight: 700; }
+.sg-agree { margin: 14px 0 0; text-align: center; }
+
+.sg-keys { margin: 0 0 8px; font-size: 13.5px; }
+.sg-k { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--tl-line); }
+.sg-k dt { color: var(--tl-muted); }
+.sg-k dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.sg-now { color: var(--tl-ink); }
+.sg-new { animation: sg-flash 1.6s ease-out; }
+.sg-old { margin-right: 6px; color: var(--tl-muted); font-family: var(--sg-mono); font-size: 0.92em; text-decoration-thickness: 2px; animation: sg-fade 2.4s ease-out forwards; }
+.sg-gone { animation-duration: 1.2s; }
+.sg-note { margin-left: 6px; color: var(--tl-muted); font-size: 12.5px; }
+.sg-none { color: var(--tl-muted); font-style: italic; }
+.sg-match .sg-now { padding: 0 3px; border-radius: 3px; background: var(--sg-flash); color: #0f172a; }
+@keyframes sg-flash { from { background: var(--sg-flash); } to { background: transparent; } }
+@keyframes sg-fade { from { opacity: 1; } to { opacity: 0.45; } }
+
+.sg-chat { flex: 1; min-height: 64px; max-height: 260px; margin: 4px 0 10px; padding: 0; overflow-y: auto; list-style: none; }
+.sg-msg { width: fit-content; max-width: 85%; margin: 6px 0; padding: 6px 10px; border-radius: 8px; line-height: 1.35; overflow-wrap: anywhere; }
+.sg-mine { margin-left: auto; background: var(--sg-mine); }
+.sg-theirs { background: var(--sg-theirs); }
+.sg-text { display: block; color: var(--tl-ink); font-size: 15px; }
+.sg-mk { display: block; margin-top: 2px; color: var(--tl-muted); font-size: 12px; transition: opacity 1.2s; }
+.sg-mk code { font-size: 12px; }
+.sg-mk.sg-del { text-decoration: line-through; text-decoration-thickness: 2px; opacity: 0.5; }
+.sg-turn { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--tl-navy); font-size: 12.5px; }
+.sg-turn::before, .sg-turn::after { content: ""; flex: 1; border-top: 1px solid currentColor; opacity: 0.35; }
+.sg-turn.sg-quiet { color: var(--tl-muted); }
+
+.sg-form { display: flex; gap: 8px; }
+.sg-input { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid #c7d2e8; border-radius: 6px; background: var(--sg-card); color: var(--tl-ink); font: inherit; font-size: 15px; }
+.sg-input:disabled { background: transparent; }
+
+/* ---------- Eve and the wire ---------- */
+.sg-eve, .sg-relay { margin-top: 22px; padding-top: 12px; border-top: 2px solid var(--tl-rule); }
+.sg-eve-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.sg-thieves { display: flex; flex-wrap: wrap; gap: 8px; }
+.sg-eve-say { margin: 6px 0 8px; font-size: 15px; font-weight: 500; }
+.sg-eve-say.sg-good { color: var(--sg-good); }
+.sg-eve-say.sg-bad { color: var(--sg-bad); }
+.sg-stolen:not(:empty) { max-width: 520px; padding: 6px 10px; border: 1px dashed var(--sg-bad); border-radius: 6px; }
+
+.sg-wire { max-height: 320px; margin: 8px 0 0; padding: 0; overflow-y: auto; list-style: none; font-size: 13.5px; }
+.sg-w { display: grid; grid-template-columns: 7.5em 12em 13em minmax(0, 1fr); gap: 4px 14px; align-items: baseline; padding: 5px 4px 5px 8px; border-bottom: 1px solid var(--tl-line); border-left: 3px solid transparent; }
+.sg-wire:not(.sg-with-eve) .sg-w { grid-template-columns: 7.5em 12em minmax(0, 1fr); }
+.sg-w-dir { color: var(--tl-ink); font-weight: 600; }
+.sg-w-h, .sg-w-ct { color: var(--tl-muted); white-space: nowrap; }
+.sg-step-key code { padding: 0 3px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--tl-navy); color: var(--tl-navy); }
+.sg-w-eve { color: var(--tl-muted); font-style: italic; overflow-wrap: anywhere; }
+.sg-w-eve.sg-read { color: var(--sg-bad); font-style: normal; font-weight: 600; }
+.sg-w.sg-leak { border-left-color: var(--sg-bad); }
+.sg-w-mark { padding: 6px 8px; color: var(--sg-bad); font-size: 13px; font-weight: 600; border-bottom: 1px dashed var(--sg-bad); }
+
+/* ---------- two phones ---------- */
+.sg-qr { text-align: center; }
+.sg-qr-img { display: block; width: min(280px, 80vw); height: auto; margin: 8px auto; border: 1px solid var(--sg-line); border-radius: 6px; }
+.sg-qr-link { margin: 6px 0; font-size: 13px; overflow-wrap: anywhere; }
+.sg-qr-link code { color: var(--tl-muted); }
+.sg-safety { margin: 0 0 12px; font-size: 15px; }
+.sg-safety strong { margin-left: 4px; color: var(--tl-ink); font-family: var(--sg-mono); font-size: 18px; letter-spacing: 0.04em; }
+.sg-talk .sg-party { max-width: 560px; }
+
+/* ---------- below ---------- */
+.sg-what { margin: 26px 0 0; padding-top: 10px; border-top: 1px solid var(--tl-line); }
+.sg-what summary { color: var(--tl-navy); font-size: 15.5px; cursor: pointer; }
+.sg-what-body { max-width: 760px; font-size: 15px; line-height: 1.6; }
+.sg-what-body ul { padding-left: 20px; }
+.sg-what-body li { margin: 6px 0; }
+.sg-engine { color: var(--tl-muted); font-size: 14px; }
+.sg-privacy { margin: 14px 0 0; color: var(--tl-muted); font-size: 14px; }
+
+@media (max-width: 700px) {
+    /* the title wraps before the corner buttons (light switch, the lab) */
+    .sg-head .tl-h1 { padding-right: 170px; }
+}
+@media (max-width: 760px) {
+    .sg-pair { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .sg-chat { max-height: 200px; }
+    .sg-w, .sg-wire:not(.sg-with-eve) .sg-w { grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; }
+    .sg-w-ct { grid-column: 2; }
+    .sg-w-eve { grid-column: 1 / -1; }
+    .sg-k { grid-template-columns: 8.5em minmax(0, 1fr); }
+}
+@media (max-width: 400px) {
+    .sg-party { padding: 10px; }
+    .sg-k { grid-template-columns: 7.8em minmax(0, 1fr); gap: 6px; }
+    .sg-w-h, .sg-w-ct { white-space: normal; }
+}
+@media (pointer: coarse) {
+    .sg-input { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sg-new, .sg-old { animation: none; }
+}
+
+/* ---------- dark mode (palette: color-scheme.css; text colours follow the --tl-* tokens, timeline.css) ---------- */
+@media (prefers-color-scheme: dark) {
+    .sg-page {
+        --sg-card: var(--dk-card);
+        --sg-line: var(--dk-line);
+        --sg-mine: #2e3d5c;
+        --sg-theirs: var(--dk-raise);
+        --sg-good: var(--dk-good);
+        --sg-bad: var(--dk-bad);
+        --sg-flash: #7c6a2a;
+    }
+    .sg-btn, .sg-input { border-color: var(--dk-field); }
+    .sg-btn.sg-main { color: var(--dk-on-navy); }
+    .sg-match .sg-now { color: var(--dk-ink); }
+}
