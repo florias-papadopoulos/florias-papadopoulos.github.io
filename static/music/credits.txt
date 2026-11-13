@@ -2,72 +2,91 @@ Music in the games: credits
 ===========================
 
 The music button on the Games page (florias-papadopoulos.github.io/games/) plays
-four mixes. Each mix joins several tracks from OpenGameArt.org, all released
-under CC0 1.0, a public domain dedication:
-https://creativecommons.org/publicdomain/zero/1.0/
-CC0 allows any use, change and hosting, with no payment and no credit required.
-The authors are credited here anyway. Thank you to all of them!
+six mixes, one per mood. Each mix joins four or five tracks from Jamendo
+(jamendo.com), all released by their artists under Creative Commons licences.
+Thank you to all of them!
+
+Licences used (no track here has a "no derivatives" licence):
+  CC BY 3.0         https://creativecommons.org/licenses/by/3.0/
+  CC BY-SA 3.0      https://creativecommons.org/licenses/by-sa/3.0/
+  CC BY-NC 3.0      https://creativecommons.org/licenses/by-nc/3.0/
+  CC BY-NC-SA 3.0   https://creativecommons.org/licenses/by-nc-sa/3.0/
+BY asks for credit and a note of what was changed, which is this file. SA asks
+that a changed version is shared under the same licence, so each mix that holds
+an SA track is offered under that licence (given under each mix below). NC
+forbids commercial use: this is a personal, non-commercial website, with no ads,
+no payments and nothing for sale, and the music is only played on it.
 
 What was changed: leading and trailing silence cut, loudness evened out
 (ffmpeg loudnorm, -16 LUFS), mixed down to mono, joined with 3 second
 crossfades, 1.5 second fade in and out at the ends of each mix, encoded as
-MP3 at 72 kbps. Nothing else was edited. Times are where each track starts.
+MP3 at 64 kbps. Nothing else was edited. Times are where each track starts.
+The source files are the free MP3 downloads from each track's Jamendo page.
 
-EDM mix (mix-edm.mp3, 12:14)
-  0:00  Funky House, by Of Far Different Nature
-        https://opengameart.org/content/funky-house
-  1:05  Technomania101, by Fupi
-        https://opengameart.org/content/technomania101-2000s-europop-electronic-dance-music
-  3:10  Sky Trance, by MintoDog
-        https://opengameart.org/content/sky-trance
-  5:04  Slampe (Synthwave House), by Fupi
-        https://opengameart.org/content/slampe-synthwave-house
-  7:35  Espelhar (LOUD Melodic EDM), by Fupi
-        https://opengameart.org/content/espelhar-loud-melodic-edm
- 10:37  Party Sector, by Joth
-        https://opengameart.org/content/party-sector
+Lo-fi mix (mix-chillhop.mp3, 11:51), offered under CC BY-NC 3.0
+  0:00  Popoi - Madrugada, by Popoi (CC BY 3.0)
+        https://www.jamendo.com/track/1903842
+  2:21  Georgetown Cafe, by Popoi (CC BY 3.0)
+        https://www.jamendo.com/track/1892348
+  4:46  Crazy Cat Lady, by Popoi (CC BY 3.0)
+        https://www.jamendo.com/track/1932845
+  7:19  Cozy Environment, by LEXMusic (CC BY-NC 3.0)
+        https://www.jamendo.com/track/2063623
+  9:08  Dorila y Mello, by Popoi (CC BY 3.0)
+        https://www.jamendo.com/track/1917024
 
-Rock mix (mix-rock.mp3, 11:46)
-  0:00  Bravery Run, by MintoDog
-        https://opengameart.org/content/bravery-run
-  1:48  Fast Cheerful punk rock lo-fi, by annandistance
-        https://opengameart.org/content/fast-cheerful-punk-rock-lo-fi
-  2:58  Hot Roadway [Remake], by MintoDog
-        https://opengameart.org/content/hot-roadway-remake
-  4:55  Unchained Destiny [Rock], by nene
-        https://opengameart.org/content/unchained-destiny-rock
-  7:08  Bravery Cheer, by MintoDog
-        https://opengameart.org/content/bravery-cheer
-  9:00  Race of the Wasp, by OwlishMedia
-        https://opengameart.org/content/race-of-the-wasp
- 10:15  Bravery Beats, by MintoDog
-        https://opengameart.org/content/bravery-beats
+Piano mix (mix-piano.mp3, 11:12), offered under CC BY-NC 3.0
+  0:00  Relaxing and dreamy piano in forest, by Nerevarin (CC BY 3.0)
+        https://www.jamendo.com/track/1477369
+  2:54  Sense of Music, by Borrtex (CC BY-NC 3.0)
+        https://www.jamendo.com/track/1529656
+  5:53  Autumn Impression, by DHDMusic (CC BY-NC 3.0)
+        https://www.jamendo.com/track/2207707
+  7:51  Silver_tears, by Christian Petermann (CC BY 3.0)
+        https://www.jamendo.com/track/1375001
 
-Chiptune mix (mix-chiptune.mp3, 11:48)
-  0:00  Flowerbed Fields [Loop], by Zane Little Music
-        https://opengameart.org/content/flowerbed-fields-loop
-  1:42  Stumble Around, by Zane Little Music
-        https://opengameart.org/content/stumble-around
-  3:59  Puppy Playing in the Garden (version without woof), by Spring Spring
-        https://opengameart.org/content/puppy-playing-in-the-garden
-  5:26  Mom's Workout CD, by Zane Little Music
-        https://opengameart.org/content/moms-workout-cd
-  7:03  It Takes A Hero, by Zane Little Music
-        https://opengameart.org/content/it-takes-a-hero
-  9:33  Dizzy Racing, by Zane Little Music (album A Bag of Chips)
-        https://opengameart.org/content/10-free-chiptune-tracks-a-bag-of-chips
+Dreamy mix (mix-dreamy.mp3, 14:49), offered under CC BY-SA 3.0
+  0:00  The Dream Is Now, by Tonepoet (CC BY-SA 3.0)
+        https://www.jamendo.com/track/1530545
+  3:46  Sky_dream, by Christian Petermann (CC BY 3.0)
+        https://www.jamendo.com/track/1375002
+  7:35  Wonderful_romance, by Christian Petermann (CC BY 3.0)
+        https://www.jamendo.com/track/1375004
+ 11:09  White_beach, by Christian Petermann (CC BY 3.0)
+        https://www.jamendo.com/track/1375003
 
-Lo-fi mix (mix-lofi.mp3, 11:11)
-  0:00  Cat caffe, by TAD (lofi Compilation)
-        https://opengameart.org/content/lofi-compilation
-  2:06  Chill lofi inspired [loop edit], by omfgdude, loop edit by qubodup
-        https://opengameart.org/content/chill-lofi-inspired-loop-edit
-        original: https://opengameart.org/content/chill-lofi-inspired
-  3:40  happy lofi day, by Tarush Singhal
-        https://opengameart.org/content/happy-lofi-day
-  5:33  A cup of tea, by TAD (lofi Compilation)
-        https://opengameart.org/content/lofi-compilation
-  8:18  Blue Skies, by Holizna (Happy Lo-Fi collection)
-        https://opengameart.org/content/happy-lo-fi-lofi-collection
+Jazz mix (mix-jazz.mp3, 15:15), offered under CC BY-NC-SA 3.0
+  0:00  After All, by Boom Boom Beckett (CC BY-NC 3.0)
+        https://www.jamendo.com/track/1247371
+  3:08  C est pareil, by Boom Boom Beckett (CC BY-NC 3.0)
+        https://www.jamendo.com/track/1247374
+  7:17  Sandu, by Hugo 'Droopy' Contini (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/159012
+ 11:08  Uncle Dave, by Boom Boom Beckett (CC BY-NC 3.0)
+        https://www.jamendo.com/track/878028
 
-Licences checked on 1 November 2026: every source page above shows CC0.
+Funk mix (mix-funk.mp3, 12:02), offered under CC BY-NC-SA 3.0
+  0:00  Martini Shake, by Infraction (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/1978606
+  2:25  Riega's Bad Habit, by Professor Kliq (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/443383
+  5:12  Soulful Clouds, by LEXMusic (CC BY-NC 3.0)
+        https://www.jamendo.com/track/1846710
+  6:51  Background Flow, by LEXMusic (CC BY-NC 3.0)
+        https://www.jamendo.com/track/2112448
+  9:53  Against All Odds, by Infraction (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/1951624
+
+Electronic mix (mix-electronic.mp3, 14:52), offered under CC BY-NC-SA 3.0
+  0:00  Wire & Flashing Lights, by Professor Kliq (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/1072431
+  3:34  Superimposed, by Peyo (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/1411248
+  7:02  Traffic Cars, by Professor Kliq (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/443368
+ 10:49  Syberia, by GroovyVoxx (CC BY-NC-SA 3.0)
+        https://www.jamendo.com/track/1860781
+
+Licences checked on 13 November 2026: each track's own Jamendo page shows the
+licence above (its download panel lists the BY, NC and SA terms), and the
+version (3.0) is the one Jamendo writes into the downloaded file.

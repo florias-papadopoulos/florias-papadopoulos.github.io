@@ -63,8 +63,9 @@
 
    Sound: short effects generated with the Web Audio API (nothing downloaded). The note button (in the list header, and
    in the top bar while a game runs) opens the sound menu: an Effects volume (0 is off; localStorage 'arcade-sfx',
-   also read by games with sounds of their own through Arcade.sfxLevel()), then the music, which picks one of four looping background mixes of 11 to 12 minutes, files
-   in static/music (CC0 tracks joined, credits in static/music/credits.txt), listed in the layout. One <audio>, quieter
+   also read by games with sounds of their own through Arcade.sfxLevel()), then the music, which picks one of six looping background mixes (one per mood, 11 to 15
+   minutes each), files in static/music (Creative Commons tracks from Jamendo joined, credits and licences in
+   static/music/credits.txt), listed in the layout. One <audio>, quieter
    than the effects, which play on top; a file loads only once its mix is picked. The choice and volume are kept in
    localStorage 'arcade-music'; after a reload the music starts again at the first click or key (browsers only allow
    sound after one). */
@@ -239,7 +240,7 @@
             musicBtn.classList.toggle('on', mix !== 'off');
             musicBtn.setAttribute('aria-label', mix === 'off' ? 'Music' : 'Music: ' + MIXES[mix].parentNode.querySelector('.mm-name').textContent);
             var a = document.createElement('a');
-            credit.textContent = mix === 'off' ? 'Free CC0 tracks from OpenGameArt.org, ' : 'Mix of ' + MIXES[mix].dataset.tracks + ' CC0 tracks, ';
+            credit.textContent = mix === 'off' ? 'Creative Commons tracks from Jamendo, ' : 'Mix of ' + MIXES[mix].dataset.tracks + ' Creative Commons tracks, ';
             a.href = credit.dataset.credits; a.textContent = 'see credits'; a.target = '_blank'; a.rel = 'noopener';
             credit.appendChild(a);
         }
