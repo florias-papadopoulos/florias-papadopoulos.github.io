@@ -1,0 +1,38 @@
+{{- /* Simple Crypto (/simple-crypto/, a tab of the lab): short animated stories without words, where the cat sends a
+       secret to the dog and the fox listens in. Made for school visits (projected in a classroom) and visitors.
+       Each story is a player (assets/js/simple-crypto/: a folder of numbered parts joined here into one script, see its
+       README.md); the characters are the site's own cat and dog drawing (cat-svg.html, copied by the script from the
+       hidden .sc-sprites below) and a fox drawn in the same style. Styles: assets/css/common/simple-crypto.css. */ -}}
+{{- define "main" }}
+{{- $stories := slice
+    (dict "id" "key-exchange" "title" "Key exchange" "alt" "The cat and the dog each mix a secret colour into a shared colour, swap the mixes while the fox copies them, and both end with the same colour, which locks a box only they can open."
+          "cap" "Paint mixing as Diffie-Hellman: mixing is easy, unmixing is not, so the fox saw every pot sent and still cannot make the shared colour.")
+    (dict "id" "signature" "title" "Signature" "alt" "The cat seals letters with a stamp only it has; the dog checks each seal with a see-through pattern everyone has. The fox's fake seal does not match, and a letter the fox changed has a broken seal."
+          "cap" "Only the cat has the stamp (private key), everyone has the see-through pattern (public key), and changing a signed letter breaks its seal.")
+    (dict "id" "hash" "title" "Fingerprint (hash)" "alt" "A letter goes into a grinder and a row of coloured blocks comes out. The same letter gives the same blocks, a letter with one mark changed gives completely different blocks, and running the machine backwards only gives crumbs."
+          "cap" "A hash: the same letter always gives the same fingerprint, one small change gives a completely different one, and nothing turns a fingerprint back into the letter.") }}
+<div class="tl-page sc-page">
+    <header class="lab-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        <p class="sc-lede">Three short films without words, about half a minute each. The cat has a secret for the dog, and the fox sees everything they send.</p>
+        <p class="sc-keys">For a class: full screen, then space to play or pause and the arrow keys to go a scene back or forward.</p>
+    </header>
+    {{- range $i, $s := $stories }}
+    <section class="sc-story" id="{{ $s.id }}" aria-labelledby="sc-h-{{ $s.id }}">
+        <h2 class="sc-h2" id="sc-h-{{ $s.id }}"><a href="#{{ $s.id }}"><span class="sc-num">{{ add $i 1 }}</span> {{ $s.title }}</a></h2>
+        <div class="sc-player" data-story="{{ $s.id }}" role="region" aria-label="{{ $s.title }}: animation">
+            <div class="sc-screen">
+                <svg class="sc-stage" viewBox="0 0 800 450" role="img" aria-label="{{ $s.alt }}"></svg>
+            </div>
+        </div>
+        <p class="sc-cap">{{ $s.cap }}</p>
+    </section>
+    {{- end }}
+    {{- /* the cat and dog drawing, copied by the script for the stories (never shown itself) */}}
+    <div class="sc-sprites" hidden aria-hidden="true">{{ partial "cat-svg.html" (dict "idp" "sc-") }}</div>
+</div>
+{{- $parts := sort (resources.Match "js/simple-crypto/*.js") "Name" }}
+{{- $js := $parts | resources.Concat "js/simple-crypto.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}
