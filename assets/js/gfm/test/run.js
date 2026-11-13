@@ -1,4 +1,4 @@
-/* Checks of the geometry of /phd/projects/gfm/ (assets/js/gfm/10-core.js): node assets/js/gfm/test/run.js
+/* Checks of the geometry of /phd/gfm/ (assets/js/gfm/10-core.js): node assets/js/gfm/test/run.js
    Partitioner: at every resolution, the rectangles are disjoint and inside the region, no two of them could still be
    fused, and every lattice point of the region is covered exactly once by a rectangle or a residual point.
    DASA: Alice's strings are exactly the maximal complete subtries of the interval, and one of Bob's strings matches

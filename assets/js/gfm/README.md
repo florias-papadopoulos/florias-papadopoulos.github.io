@@ -1,6 +1,6 @@
-# Geometric Fuzzy Matching, to play with (/phd/projects/gfm/)
+# Geometric Fuzzy Matching, to play with (/phd/gfm/)
 
-The page `layouts/phd/gfm.html` (content `content/phd/projects/gfm/index.md`, styles `assets/css/phd/gfm.css`) joins
+The page `layouts/phd/gfm.html` (content `content/phd/gfm/index.md`, styles `assets/css/phd/gfm.css`) joins
 these files in this order into one script:
 
 | File | What is in it |

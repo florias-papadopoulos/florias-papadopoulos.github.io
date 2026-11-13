@@ -1,4 +1,4 @@
-/* The made-up town of /phd/projects/gfm/ (128 x 128 drawing units, one unit = 4 m), drawn once into the map, and
+/* The made-up town of /phd/gfm/ (128 x 128 drawing units, one unit = 4 m), drawn once into the map, and
    the three ready regions on it: the park (a polygon), the town hall (overlapping rectangles), the café (100 m). */
 (function (G) {
     'use strict';

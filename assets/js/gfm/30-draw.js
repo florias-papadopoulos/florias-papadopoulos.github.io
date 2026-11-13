@@ -1,4 +1,4 @@
-/* Drawing on the map of /phd/projects/gfm/: the layers (town, region, the Partitioner's stages, Bob) and the paths
+/* Drawing on the map of /phd/gfm/: the layers (town, region, the Partitioner's stages, Bob) and the paths
    for them. Lattice point (x, y) is the unit square [x, x + 1] x [y, y + 1] of the drawing, its centre (x + .5, y + .5). */
 (function (G) {
     'use strict';

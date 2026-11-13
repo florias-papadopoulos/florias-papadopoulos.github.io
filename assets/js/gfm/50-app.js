@@ -1,4 +1,4 @@
-/* /phd/projects/gfm/: the state and the controls. Alice's region (a ready one or drawn), the Partitioner shown step by
+/* /phd/gfm/: the state and the controls. Alice's region (a ready one or drawn), the Partitioner shown step by
    step, the resolution slider and the cost chart, Bob dragged around (or moved with the arrow keys), and the three
    views. */
 (function (G) {

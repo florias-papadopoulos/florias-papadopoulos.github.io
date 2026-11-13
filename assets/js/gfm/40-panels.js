@@ -1,4 +1,4 @@
-/* The side of /phd/projects/gfm/: the cost chart (one line, the chosen cost per r, with r* and the chosen r marked;
+/* The side of /phd/gfm/: the cost chart (one line, the chosen cost per r, with r* and the chosen r marked;
    r* glides to its new place when the choice changes; hover for the value, tap to choose), the counts, the answer per view, and the DASA strings of the rectangle that holds Bob. */
 (function (G) {
     'use strict';

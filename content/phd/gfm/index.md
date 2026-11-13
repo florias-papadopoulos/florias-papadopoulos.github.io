@@ -7,4 +7,4 @@ preview: "img/phd/gfm.svg"
 weight: 3
 layout: gfm
 ---
-Alice picks a region, Bob has a location, and Alice should learn only whether Bob is inside. Here is how [our paper](/phd/papers/#gfm-asiaccs26) ([ACM](https://dl.acm.org/doi/10.1145/3779208.3785374)) cuts any region into pieces it can test privately.
+Alice picks a region, Bob has a location, and Alice should learn only whether Bob is inside. Here is how [our paper](/papers/#gfm-asiaccs26) ([ACM](https://dl.acm.org/doi/10.1145/3779208.3785374)) cuts any region into pieces it can test privately.

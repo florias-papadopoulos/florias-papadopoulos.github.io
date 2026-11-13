@@ -1,4 +1,4 @@
-/* The geometry of /phd/projects/gfm/ (no drawing here, so node can test it: assets/js/gfm/test/run.js).
+/* The geometry of /phd/gfm/ (no drawing here, so node can test it: assets/js/gfm/test/run.js).
    Written from the paper "Privacy-preserving Proximity Testing from Geometric Fuzzy Matching" (ASIA CCS 2026):
    the region on a 128 x 128 lattice (7-bit coordinates), Partitioner / CutAndFuse (Section 3), the cost of a
    resolution counted from the protocol (Section 4), and DASA (Section 2). Lattice point (x, y) is index y * N + x. */
