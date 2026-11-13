@@ -35,7 +35,7 @@
                     {{- range . }}
                     {{- $id := .Params.anchor | default (urlize .File.ContentBaseName) }}
                     {{- $to := cond (eq $g.key "PhD") .RelPermalink (printf "%s#%s" $g.url $id | relURL) }}
-                    <li><a href="{{ $to }}" title="{{ .Title }}"{{ if eq $here .RelPermalink }} aria-current="page"{{ end }}><span>{{ .Title }}</span></a></li>
+                    <li><a href="{{ $to }}" title="{{ .Title }}"{{ if eq $here .RelPermalink }} aria-current="page"{{ end }}><span>{{ .Title }}{{ partial "wip.html" . }}</span></a></li>
                     {{- end }}
                 </ul>
             </details>

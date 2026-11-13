@@ -5,6 +5,8 @@ blurb: "Fifteen thousand satellites and pieces of debris on a live globe, and wh
 lede: "Where they are right now: every object of a few public catalogues, from space stations to the fragments of two disasters."
 preview: "img/phd/satellites.svg"
 weight: 1
+# not yet approved by the owner: shows a 🚧 next to the title everywhere (remove the line once approved)
+wip: true
 layout: satellites
 ---
 

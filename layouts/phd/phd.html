@@ -11,7 +11,7 @@
         {{- range .RegularPages.ByWeight }}
         <li><a class="phd-card" href="{{ .RelPermalink }}">
             {{- with .Params.preview }}<img src="{{ . | relURL }}" alt="" width="320" height="200" loading="lazy" decoding="async">{{ end }}
-            <span class="phd-card-title">{{ .Title }}</span>
+            <span class="phd-card-title">{{ .Title }}{{ partial "wip.html" . }}</span>
             {{- with .Params.blurb }}<span class="phd-card-sub">{{ . | markdownify }}</span>{{ end }}
         </a></li>
         {{- end }}

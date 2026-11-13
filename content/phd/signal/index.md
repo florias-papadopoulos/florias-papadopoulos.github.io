@@ -5,6 +5,8 @@ blurb: "Watch the Signal ratchet turn, steal a key, and see the session heal."
 lede: "The Signal protocol running in your browser with real keys: watch the ratchet turn, steal a key, and see the session heal."
 preview: "img/phd/signal.svg"
 weight: 2
+# not yet approved by the owner: shows a 🚧 next to the title everywhere (remove the line once approved)
+wip: true
 layout: signal
 ---
 

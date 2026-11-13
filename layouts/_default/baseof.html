@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 {{- /* two sides: the lab home, Games and the Toolbox are the playful side (html[data-mode="play"]: play navigation, pet, warm colours),
        every other page is the normal, serious site. The key (assets/js/lab/play.js) is the door between them. */ -}}
-<html lang="{{ site.Language }}" dir="{{ .Language.Direction | default "auto" }}"{{ if or (in (slice "lab" "games" "toolbox" "simple-crypto") .Section) (eq .Layout "admin") }} data-mode="play" data-side="play"{{ end }}>
+<html lang="{{ site.Language }}" dir="{{ .Language.Direction | default "auto" }}"{{ if .Params.wip }} data-wip{{ end }}{{ if or (in (slice "lab" "games" "toolbox" "simple-crypto") .Section) (eq .Layout "admin") }} data-mode="play" data-side="play"{{ end }}>
 
 <head>
     {{- partial "head.html" . }}

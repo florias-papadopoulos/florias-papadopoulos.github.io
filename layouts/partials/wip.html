@@ -1,0 +1,3 @@
+{{- /* the "work in progress" sign after a title, for pages with wip: true in their front matter (not yet approved by the
+       owner); styles in assets/css/common/main.css (.wip) */ -}}
+{{- if .Params.wip }} <span class="wip" title="Work in progress" aria-label="(work in progress)">🚧</span>{{ end -}}

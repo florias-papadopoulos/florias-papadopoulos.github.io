@@ -112,7 +112,7 @@
                 <li class="hw-tile" data-g="{{ $g.key }}">
                     <a href="{{ .href }}">
                         {{- with .p.Params.preview }}<img src="{{ . | relURL }}" alt="" width="128" height="76" loading="lazy" decoding="async" draggable="false">{{ else }}<span class="hw-noimg" aria-hidden="true"></span>{{ end }}
-                        <span class="hw-title">{{ .p.Title }}</span>
+                        <span class="hw-title">{{ .p.Title }}{{ partial "wip.html" .p }}</span>
                         <span class="hw-sub">{{ .sub }}</span>
                     </a>
                 </li>
