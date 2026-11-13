@@ -6,6 +6,9 @@ talks on `/live/admin/` and runs them from
 `/live/present/#pkc27` (projector, and the same page on his phone as a remote). Site code: `assets/js/live/`
 (README there), `layouts/live/`, `assets/css/common/live.css`.
 
+The same worker also runs the **relay** of the Signal demo (`/phd/projects/signal/`, two phones): see "The Signal
+relay" below.
+
 ## One-time setup (on your own computer, not on the server)
 
 Wrangler needs a recent Node (20 or later); the server's node is too old.
@@ -77,6 +80,27 @@ leaderboards' filter (Latin letters only, `SHORT` words as whole words, `LONG` o
 copied unchanged from `tools/workers/stats/worker.js`; the test checks the copy on a list of names) and the presenter's approval. Only `https://florias-papadopoulos.github.io`
 may connect (and localhost when `DEV` is `"1"`). The presenter key is compared in constant time and is only ever sent
 in an `Authorization: Bearer` header or as the first WebSocket message, never in a URL.
+
+## The Signal relay
+
+Route `/relay/<room>` (a WebSocket; `GET /relay` answers `{"relay": true}` so the page knows this deploy has it). One
+**Relay** Durable Object per room (`idFromName(room)`, 12 letters a-z and 2-7 from the QR code). Rules in
+`src/relay.js`, the object in `src/index.js`:
+
+- At most 2 phones per room; a third is closed with 4003. Each message from one phone goes to the other unchanged.
+- The relay's own messages are plain words (`peers:1`, `peers:2`), the phones' must be JSON objects (start with `{`):
+  anything else is dropped, so a phone cannot fake the relay. 4096 characters per message (longer: closed with 1009);
+  30 messages at once, then 2 a second (past it: closed with 4029). The budget lives in the socket's attachment, so
+  the object hibernates between messages (`ping` is answered by the auto-response without waking it).
+- It stores nothing but its alarm: a room is closed (4008) 30 minutes after its first phone came, and when the last
+  phone leaves the alarm and everything else are deleted. The phones send only public keys and ciphertext; the
+  secret in the QR code stays on the phones.
+- Only the site's origin may connect (and localhost when `DEV` is `"1"`), as for audience mode.
+
+**To turn it on: run `npx wrangler deploy` once more from this folder.** The deploy applies the new migration `v2`
+(the `Relay` class); nothing else changes, audience mode and its stored plans stay as they are. Check it with
+`https://<the worker's address>/relay`, which should show `{"relay":true}`. Until then the page stays on one device.
+`node test/devserver.js` runs the relay too (`/relay/<room>`), for a local test of the page with two browsers.
 
 ## What a talk costs (Workers Free plan)
 

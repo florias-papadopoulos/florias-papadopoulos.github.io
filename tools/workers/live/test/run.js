@@ -6,6 +6,7 @@ import path from 'path';
 import vm from 'vm';
 import * as P from '../src/plan.js';
 import * as S from '../src/session.js';
+import * as RL from '../src/relay.js';
 
 let passed = 0, failed = 0;
 function test(name, fn) {
@@ -915,6 +916,42 @@ test('the site\'s limits agree with the worker', function () {
     Object.keys(site).forEach(function (k) { assert.strictEqual(site[k], P.LIMITS[k], k); });
     const types = /LV\.TYPES = (\[[^\]]*\])/.exec(src);
     assert.deepStrictEqual(eval(types[1]), P.TYPES);  // eslint-disable-line no-eval
+});
+
+/* ---------- relay.js (the Signal demo's rooms) ---------- */
+test('relay rooms', function () {
+    ['abcdefghijkl', 'a2b3c4d5e6f7', 'zzzzzzzzzzzz'].forEach(function (r) { assert.ok(RL.roomOk(r), r); });
+    ['abcdefghijk', 'abcdefghijklm', 'ABCDEFGHIJKL', 'abcdefghijk1', 'abcdefghijk8', 'abcdefghij-k', '', null, 5].forEach(function (r) { assert.ok(!RL.roomOk(r), String(r)); });
+});
+test('relay forwards JSON objects only, and nothing too long', function () {
+    assert.strictEqual(RL.judge('{"t":"msg"}'), 'forward');
+    assert.strictEqual(RL.judge('peers:2'), 'drop', 'a phone cannot fake the relay\'s own words');
+    assert.strictEqual(RL.judge('ping'), 'drop');
+    assert.strictEqual(RL.judge(new ArrayBuffer(4)), 'drop');
+    assert.strictEqual(RL.judge('{' + 'x'.repeat(RL.RELAY.msg)), 'big');
+    assert.strictEqual(RL.judge('{' + 'x'.repeat(RL.RELAY.msg - 1)), 'forward');
+});
+test('relay message budget', function () {
+    let att = RL.fresh(1000), n = 0;
+    for (let i = 0; i < 100; i++) { const r = RL.spend(att, 1000); if (!r.ok) break; att = r.att; n++; }
+    assert.strictEqual(n, RL.RELAY.burst, 'a burst, then no more at the same moment');
+    assert.ok(!RL.spend(att, 1100).ok, 'a tenth of a second later: still none');
+    const later = RL.spend(att, 1000 + 1000 / RL.RELAY.perSec);
+    assert.ok(later.ok, 'one more after 1/perSec seconds');
+    assert.ok(RL.spend(att, 1000 + 3600 * 1000).att.b <= RL.RELAY.burst - 1, 'the budget never grows past the burst');
+    assert.ok(JSON.stringify(RL.fresh(0)).length < 100, 'the attachment stays tiny');
+    assert.ok(RL.spend({}, 5).ok, 'an old attachment without a budget');
+});
+test('the relay is wired up', function () {
+    const top = path.join(path.dirname(new URL(import.meta.url).pathname), '..');
+    const idx = fs.readFileSync(path.join(top, 'src/index.js'), 'utf8'), toml = fs.readFileSync(path.join(top, 'wrangler.toml'), 'utf8');
+    assert.ok(/export class Relay extends DurableObject/.test(idx));
+    assert.ok(/env\.RELAY\.get\(env\.RELAY\.idFromName/.test(idx));
+    assert.ok(/name = "RELAY"\s*\nclass_name = "Relay"/.test(toml));
+    assert.ok(/tag = "v1"\s*\nnew_sqlite_classes = \["Session", "Plans"\]/.test(toml), 'the applied migration is unchanged');
+    assert.ok(/tag = "v2"\s*\nnew_sqlite_classes = \["Relay"\]/.test(toml));
+    /* the relay route is checked before the presenter key, and with the origin */
+    assert.ok(idx.indexOf("path === '/relay'") < idx.indexOf('presenterKey(env, bearer'));
 });
 
 console.log(passed + ' passed, ' + failed + ' failed');
