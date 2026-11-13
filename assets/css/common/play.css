@@ -130,10 +130,20 @@ html[data-mode="play"] body > .world-layer, html[data-mode="play"] .cat-layer:no
     html[data-mode="play"] .cat-menu { top: auto; right: auto; bottom: 14px; left: calc(var(--pn-w) + 8px); }
 }
 
-/* ---------- the switch: the key opens the other side as a normal page; where the browser supports it, the two
-   pages cross-fade (cross-document view transitions; elsewhere the new page just appears) ---------- */
+/* ---------- the switch: the key opens the other side as a normal page; where the browser supports it (cross-document
+   view transitions: Chrome, Edge, Brave, Safari 18.2+; elsewhere the new page just appears), pages cross-fade, and a
+   page opened by the key opens like a door: a circle growing from the key over the old page (type "door", set by
+   assets/js/site/door.js), while the key itself glides from its old place to its new one ---------- */
 @view-transition { navigation: auto; }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+.key-btn { view-transition-name: site-key; }
+html:active-view-transition-type(door)::view-transition-old(root) { animation: none; }
+html:active-view-transition-type(door)::view-transition-new(root) { animation: door-open 0.6s cubic-bezier(0.32, 0.72, 0.2, 1) both; }
+html:active-view-transition-type(door)::view-transition-group(site-key) { animation-duration: 0.6s; animation-timing-function: cubic-bezier(0.32, 0.72, 0.2, 1); }
+@keyframes door-open {
+    from { clip-path: circle(0 at calc(100% - 70px) 32px); }
+    to { clip-path: circle(150vmax at calc(100% - 70px) 32px); }
+}
 
 /* the pet perks up: a little hop (on the whole drawing, not inside it: see the Safari note in cat.css) */
 .cat.perk .cat-flip svg { transform-origin: 50% 100%; animation: cat-perk 0.6s ease-out; }

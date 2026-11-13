@@ -86,6 +86,10 @@
 <link rel="preload" href="{{ printf "fonts/lmsans/%s.woff2" . | relURL }}" as="font" type="font/woff2" crossorigin>
 {{- end }}{{ end }}
 
+{{- /* the key's door effect between the two sides: before the first paint, so without defer (assets/js/site/door.js) */}}
+{{- $door := resources.Get "js/site/door.js" | minify | fingerprint }}
+<script src="{{ $door.RelPermalink }}" integrity="{{ $door.Data.Integrity }}"></script>
+
 {{- /* Favicons */}}
 <link rel="icon" href="{{ site.Params.assets.favicon | default "favicon.ico" | absURL }}">
 <link rel="icon" type="image/png" sizes="16x16" href="{{ site.Params.assets.favicon16x16 | default "favicon-16x16.png" | absURL }}">

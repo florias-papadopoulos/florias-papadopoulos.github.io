@@ -3,7 +3,8 @@
    play navigation of layouts/partials/play-nav.html, the pet and warm colours, all in assets/css/common/play.css), every
    other page is the normal site. Turning the key on a normal page opens the
    lab's home page (/lab/); turning it back ("About me") opens the normal home page. No animation of
-   its own (play.css cross-fades the two pages where the browser can). No sound. Bundled after
+   its own: the next page opens with a door effect, a circle growing from the key (play.css, assets/js/site/door.js),
+   where the browser can, and the other side's page is fetched ahead so it opens at once. No sound. Bundled after
    assets/js/lab/cat-picker.js. */
 (function () {
     'use strict';
@@ -20,7 +21,26 @@
     /* the lab opens on its own home page (data-play), leaving it always goes to the normal home page (data-home) */
     function remember() { try { sessionStorage.removeItem('side-play'); localStorage.removeItem('site-mode'); } catch (e) { /* no storage */ } }
     function destination(on) { return key.getAttribute(on ? 'data-play' : 'data-home'); }
-    function go(on) { location.href = destination(on); }
+    /* the key's page opens with the door effect (assets/js/site/door.js reads this on the next page) */
+    function go(on) {
+        try { sessionStorage.setItem('door', '1'); } catch (e) { /* no storage: a plain cross-fade */ }
+        location.href = destination(on);
+    }
+    /* the other side's page fetched ahead, quietly, so the key opens it from the cache: once the page is idle, and
+       again when a pointer or finger comes to the key (each address once; not when the visitor saves data) */
+    var fetched = {};
+    function ahead() {
+        var c = navigator.connection, url = destination(!isOn());
+        if (!url || fetched[url] || !window.fetch || (c && (c.saveData || /2g/.test(c.effectiveType || '')))) return;
+        fetched[url] = true;
+        fetch(url, { credentials: 'same-origin', priority: 'low' }).catch(function () { delete fetched[url]; });
+    }
+    key.addEventListener('pointerenter', ahead);
+    key.addEventListener('touchstart', ahead, { passive: true });
+    key.addEventListener('focus', ahead);
+    window.addEventListener('load', function () {
+        if (window.requestIdleCallback) requestIdleCallback(ahead, { timeout: 4000 }); else setTimeout(ahead, 2000);
+    });
     /* the pet and its world (cat-pages.js, home-lab.js) only start in play mode: they wait for "playmode-on";
        "playmode-off" lets the home page put its letters back */
     function set(on) {
