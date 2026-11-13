@@ -2,9 +2,8 @@
 {{- /* Before any script or style: what the page may load (layouts/partials/csp.html), and only the origin as referrer
        to other sites */}}
 {{- $csp := partial "csp.html" . }}
-{{- /* the presenter page (/live/admin/) and the Signal project (/phd/projects/signal/, its two-phone relay) also talk to
-       the audience-mode worker, as in live-head.html */}}
-{{- if or (eq .Layout "admin") (eq .Layout "signal") }}{{ with site.Params.liveEndpoint }}{{ with urls.Parse . }}
+{{- /* the presenter page (/live/admin/) also talks to the audience-mode worker, as in live-head.html */}}
+{{- if eq .Layout "admin" }}{{ with site.Params.liveEndpoint }}{{ with urls.Parse . }}
 {{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' %s://%s wss://%s" .Scheme .Host .Host) }}
 {{- end }}{{ end }}{{ end }}
 <meta http-equiv="Content-Security-Policy" content="{{ $csp }}">
