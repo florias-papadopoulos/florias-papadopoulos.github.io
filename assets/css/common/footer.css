@@ -72,10 +72,3 @@
     font: inherit; font-weight: 600; cursor: pointer; }
 .mail-pop a { color: #1e3a8a; text-decoration: underline; text-underline-offset: 2px; }
 
-
-/* ---------- dark mode (palette: color-scheme.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .mail-pop { border-color: var(--dk-line); background: var(--dk-card); box-shadow: 0 6px 20px var(--dk-shadow); color: var(--dk-ink); }
-    .mail-pop button { border-color: var(--dk-navy); background: var(--dk-navy); color: var(--dk-on-navy); }
-    .mail-pop a { color: var(--dk-navy); }
-}

@@ -25,7 +25,6 @@
 .cat-pick { right: calc(18px + var(--key-w, 34px)); }
 .cat-pick svg { width: 22px; height: 20px; }
 .dog-pick { right: calc(60px + var(--key-w, 34px)); }
-.theme-btn { right: calc(18px + var(--key-w, 34px)); }
 /* the pickers only in play mode */
 .cat-picker { display: none; }
 html[data-mode="play"] .cat-picker { display: block; }
@@ -96,21 +95,6 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
     .key-btn { right: 8px; }
     .cat-pick { right: calc(14px + var(--key-w, 34px)); }
     .dog-pick { right: calc(54px + var(--key-w, 34px)); }
-    .theme-btn { right: calc(14px + var(--key-w, 34px)); }
     .home-reset { left: 48px; }
 }
 
-/* ---------- dark mode (palette: color-scheme.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .corner-btn { border-color: var(--dk-field); background: var(--dk-card); color: var(--dk-text); box-shadow: 0 1px 4px var(--dk-shadow); }
-    .corner-btn:hover { color: var(--dk-ink); }
-    .cat-menu { border-color: var(--dk-field); background: var(--dk-card); box-shadow: 0 10px 30px var(--dk-shadow); }
-    .cat-menu-title { color: var(--dk-muted); }
-    .cat-opt { color: var(--dk-ink); }
-    .cat-opt:hover { background: var(--dk-raise); }
-    .cat-opt[aria-checked="true"] { border-color: var(--dk-field); background: var(--dk-raise); }
-    /* the faces look exactly as in light mode: each on white, as on the light menu (the drawings have dark outlines
-       and some faces are dark, hacker cat and batcat, which vanish on the dark menu) */
-    .cat-pick, html[data-pet="dog"] .cat-pick { background: #fff; }
-    .cat-opt svg { padding: 5px; border-radius: 50%; background: #fff; box-sizing: content-box; }
-}

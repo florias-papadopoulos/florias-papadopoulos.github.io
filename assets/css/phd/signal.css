@@ -113,7 +113,7 @@
 .sg-privacy { margin: 14px 0 0; color: var(--tl-muted); font-size: 14px; }
 
 @media (max-width: 700px) {
-    /* the title wraps before the corner buttons (light switch, the lab) */
+    /* the title wraps before the corner buttons (the lab) */
     .sg-head .tl-h1 { padding-right: 170px; }
 }
 @media (max-width: 760px) {
@@ -136,18 +136,3 @@
     .sg-new, .sg-old { animation: none; }
 }
 
-/* ---------- dark mode (palette: color-scheme.css; text colours follow the --tl-* tokens, timeline.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .sg-page {
-        --sg-card: var(--dk-card);
-        --sg-line: var(--dk-line);
-        --sg-mine: #2e3d5c;
-        --sg-theirs: var(--dk-raise);
-        --sg-good: var(--dk-good);
-        --sg-bad: var(--dk-bad);
-        --sg-flash: #7c6a2a;
-    }
-    .sg-btn, .sg-input { border-color: var(--dk-field); }
-    .sg-btn.sg-main { color: var(--dk-on-navy); }
-    .sg-match .sg-now { color: var(--dk-ink); }
-}

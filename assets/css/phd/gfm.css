@@ -166,34 +166,6 @@
     .gfm-btn, .gfm-goal .gfm-btn { padding: 8px 12px; font-size: 16px; }
 }
 
-/* ---------- dark mode (palette: color-scheme.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .gfm-page {
-        --gfm-ground: #26324a;
-        --gfm-street: #34425e;
-        --gfm-park: #2f4a3a;
-        --gfm-tree: #3c5c47;
-        --gfm-water: #2b4a6b;
-        --gfm-house: #3a4660;
-        --gfm-hall: #4a5674;
-        --gfm-field: #2e3a4c;
-        --gfm-label: #aab6c8;
-        --gfm-region: rgba(157, 186, 245, 0.16);
-        --gfm-edge: #9dbaf5;
-        --gfm-rect: rgba(157, 186, 245, 0.45);
-        --gfm-rect1: rgba(157, 186, 245, 0.62);
-        --gfm-rect2: rgba(157, 186, 245, 0.30);
-        --gfm-rect-edge: #1f2a40;
-        --gfm-res: #4ade80;
-        --gfm-lit: #f38bb4;
-        --gfm-bob: #f5f1e8;
-        --gfm-bob-eye: #1b2539;
-        --gfm-halo: rgba(27, 37, 57, 0.85);
-        --gfm-btn-bg: var(--dk-card);
-    }
-    .gd-strs mark { color: #1b2539; }
-    .gfm-note a, .gfm-intro a { border-bottom-color: var(--dk-navy-soft); }
-}
 /* phones: the title starts below the corner buttons */
 @media (max-width: 600px) {
     .gfm-intro { padding-top: 40px; }

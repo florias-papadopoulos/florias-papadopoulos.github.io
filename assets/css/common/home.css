@@ -206,7 +206,6 @@ body:has(.profile.home) .footer {
     opacity: 0.75;
 }
 
-
 /* ---------- Narrow screens ---------- */
 @media (max-width: 760px) {
     .route { grid-template-columns: 1fr; padding: 14px; }
@@ -345,11 +344,3 @@ body:has(.profile.home) .footer {
     .main:has(.lab-home) { display: flex; flex-direction: column; justify-content: center; }
 }
 
-/* ---------- dark mode (palette: color-scheme.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    :root { --ink: var(--dk-ink); --muted: var(--dk-muted); --navy: var(--dk-navy); --pink: var(--dk-pink); --line: var(--dk-line); }
-    .lab-paste { border-color: var(--dk-field); background: var(--dk-card); }
-    .lab-guess { background: var(--dk-raise); }
-    .lab-guess-what, .lab-chips-label { color: var(--dk-muted); }
-    .lab-guess-link, .lab-chip { border-color: var(--dk-field); background: var(--dk-card); }
-}

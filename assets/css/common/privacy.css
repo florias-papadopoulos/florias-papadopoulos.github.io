@@ -20,8 +20,3 @@
     .pv-body h2 { font-size: 17.5px; }
 }
 
-/* ---------- dark mode (palette: color-scheme.css; the text colours follow the --tl-* tokens, timeline.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .pv-short { border-color: var(--dk-field); background: var(--dk-card); }
-    .pv-body code { background: var(--dk-raise); }
-}

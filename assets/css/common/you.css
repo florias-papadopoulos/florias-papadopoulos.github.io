@@ -65,10 +65,3 @@
 .you-link[aria-current="page"] { border-color: #9fb0d8; color: var(--navy, #1e3a8a); }
 .you-head .you-sub a { color: var(--tl-navy); text-decoration: underline; text-underline-offset: 2px; }
 
-/* ---------- dark mode (palette: color-scheme.css; the text colours follow the --tl-* tokens, timeline.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .you-sec { background: var(--dk-card); }
-    .you-verdict { border-color: var(--dk-field); }
-    .you-wait { color: var(--dk-muted); }
-    .you-link[aria-current="page"] { border-color: #5a73a8; color: var(--dk-navy); }
-}

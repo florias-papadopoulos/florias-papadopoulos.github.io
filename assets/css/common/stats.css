@@ -133,18 +133,3 @@
     .st-page.is-loading .st-body { transition: none; }
 }
 
-/* ---------- dark mode (palette: color-scheme.css; the text colours follow the --tl-* tokens, timeline.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .st-note, .st-msg, .st-tile, .st-sec, .st-tip { background: var(--dk-card); }
-    .st-tip { box-shadow: 0 2px 8px var(--dk-shadow); }
-    .st-range, .st-key input { border-color: var(--dk-field); background: var(--dk-card); }
-    .st-range-btn + .st-range-btn { border-left-color: var(--dk-field); }
-    .st-range-btn:hover { background: var(--dk-raise); }
-    .st-range-btn[aria-pressed="true"], .st-key button { color: var(--dk-on-navy); }
-    .st-status.is-bad, .st-key-why.is-bad { color: var(--dk-bad); }
-    .st-bar.is-on { fill: color-mix(in srgb, var(--dk-navy), #fff 30%); }
-    .st-grid-line { stroke: var(--dk-line); }
-    .st-row { border-top-color: var(--dk-line); }
-    .st-track { background: var(--dk-raise); }
-    .st-row.is-muted .st-fill { background: #64748b; }
-}
