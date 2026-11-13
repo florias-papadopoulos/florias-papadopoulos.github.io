@@ -109,6 +109,7 @@
             step('Alice makes her first DH key pair.', function () { mach.A.apply(trA[1]); mach.A.apply(trA[2]); }, 900);
             step('Her DH gear turns one tooth: DH with Bob’s prekey starts her sending chain.', function () { mach.A.apply(trA[3]); }, 1100);
             step('', function () {
+                x3.fold(true);
                 lastPub.B = SG.hex(bob.spk.pub);
                 agreed = true;
                 cards.A.input.value = LINES.A[0];

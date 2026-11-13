@@ -73,6 +73,16 @@
             h('div.sg-x3col.sg-x3mid', {}, this.chips.concat([this.box, this.out])),
             h('div.sg-x3col.sg-x3b', {}, [h('h3', { text: 'Bob, published' }), blob('ikB'), blob('spkB'), blob('opkB')])]);
         this.lines = new SG.Lines(this.el);
+        /* folded once the key is agreed: one line, the picture on request */
+        this.sumKey = h('code');
+        this.toggle = h('button.sg-link.sg-x3toggle', { type: 'button', text: 'show', onclick: function () { self.fold(!self.el.classList.contains('sg-folded')); } });
+        this.el.appendChild(h('p.sg-x3sum', {}, [h('b', { text: 'X3DH' }), ' four DH results, one KDF: first root key ', this.sumKey, ' ', this.toggle]));
+    };
+    SG.X3dh.prototype.fold = function (on) {
+        this.el.classList.add('sg-agreed');
+        this.el.classList.toggle('sg-folded', on);
+        this.toggle.textContent = on ? 'show' : 'fold';
+        if (!on) this.lines.redraw();
     };
     var X = SG.X3dh.prototype;
     function fill(code, bytes) { code.textContent = SG.short(bytes); code.title = SG.hex(bytes); code.setAttribute('data-hex', SG.hex(bytes)); }
@@ -97,6 +107,7 @@
     X.kdf = function (sk) {
         this.box.hidden = false;
         fill(this.out.querySelector('code'), sk);
+        fill(this.sumKey, sk);
         this.out.hidden = false;
         this.out.classList.add('sg-dropin');
         this.lines.redraw();

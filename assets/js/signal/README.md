@@ -21,9 +21,13 @@ Two modes:
 | --- | --- |
 | `00-crypto.js` | Bytes helpers, HKDF, HMAC, SHA-256, AES-GCM, X25519 and signatures, all WebCrypto; X25519 in plain JavaScript (BigInt, RFC 7748) where WebCrypto has none or fails the RFC test vector; ECDSA P-256 where there is no Ed25519. `SG.ready` says which |
 | `10-ratchet.js` | X3DH, the Double Ratchet (skipped message keys, state rolled back when a message fails), the wire format, Eve |
-| `20-view.js` | A person's card (keys with the old value struck through, chat, input) and the wire list |
+| `20-view.js` | A person's card (chat, input, a slot for the gears) and the wire list |
+| `22-gears.js` | The machine of each person: the big DH gear (root chain) and the send and recv gears (symmetric ratchets), each step one tooth, with columns of numbered keys; Eve's red copy that jams. Driven by the ratchet's events (10-ratchet.js) |
+| `24-chain.js` | The chain view: a tapped gear or key as a KDF ladder with the real values |
+| `26-x3dh.js` | The X3DH picture (four DH lines into one KDF), and `SG.Lines`, lines between elements |
+| `28-player.js` | Plays the steps with one line captions: by themselves (chat) or one per click (step by step); the speed; the flying key |
 | `30-local.js` | One device |
-| `40-pair.js` | Two phones, through the relay |
+| `40-pair.js` | Two phones, through the relay (signatures with ECDSA P-256 on both phones; the algorithm's name and every key, each with its length, are in the HMAC) |
 | `50-main.js` | The start: mode switch, fallbacks |
 
 The page's script is these files after `assets/js/live/vendor/qrcode-generator.js` and `assets/js/live/20-qr.js` (the
