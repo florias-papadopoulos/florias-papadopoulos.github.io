@@ -230,7 +230,7 @@
 .sg-privacy { margin: 14px 0 0; color: var(--tl-muted); font-size: 14px; }
 
 @media (max-width: 700px) {
-    /* the title wraps before the corner buttons (light switch, the lab) */
+    /* the title wraps before the corner buttons (the lab) */
     .sg-head .tl-h1 { padding-right: 170px; }
 }
 @media (max-width: 860px) {

@@ -47,16 +47,6 @@ html:not([data-mode="play"]) .site-nav { display: flex; }
 html:has(.sn-group > .pn-tab[aria-current]) .tl-page { --tl-navy: var(--aura); }
 body:has(.sn-group > .pn-tab[aria-current]) { background-image: radial-gradient(1000px 420px at 35% -160px, var(--aura-glow), transparent 72%); background-repeat: no-repeat; }
 
-/* dark (palette: color-scheme.css) */
-@media (prefers-color-scheme: dark) {
-    .site-nav { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); background: var(--dk-bg); }
-    .sn-more > summary:hover, .sn-list a:hover { background: rgba(255, 255, 255, 0.06); }
-    .sn-group[data-g="Bachelor"], html:has(.sn-group[data-g="Bachelor"] > .pn-tab[aria-current]) { --aura: #5eead4; --aura-glow: rgba(45, 212, 191, 0.12); }
-    .sn-group[data-g="Master"], html:has(.sn-group[data-g="Master"] > .pn-tab[aria-current]) { --aura: #c4b5fd; --aura-glow: rgba(167, 139, 250, 0.13); }
-    .sn-group[data-g="Paper"], html:has(.sn-group[data-g="Paper"] > .pn-tab[aria-current]) { --aura: #fbbf24; --aura-glow: rgba(251, 191, 36, 0.11); }
-    .sn-group[data-g="PhD"], html:has(.sn-group[data-g="PhD"] > .pn-tab[aria-current]) { --aura: #fda4af; --aura-glow: rgba(251, 113, 133, 0.12); }
-}
-
 /* ---------- calm dots behind the page, like the home page and the lab: in the colour of the page's kind (Bachelor teal,
    Master violet, Papers gold; navy elsewhere, e.g. the CV), fixed so they stay while scrolling; behind the texts they
    fade away (a veil of the page's colour with a soft edge, as in the lab, play.css) ---------- */
@@ -80,7 +70,4 @@ body:has(.site-nav) :is(.tl-page, .cv-page)::before {
     background: var(--veil);
     border-radius: 12px;
     box-shadow: 0 0 16px 10px var(--veil);
-}
-@media (prefers-color-scheme: dark) {
-    body:has(.site-nav) { --sn-dot: color-mix(in srgb, var(--aura, #9dbaf5) 58%, transparent); --sn-dot-r: 1.5px; }
 }

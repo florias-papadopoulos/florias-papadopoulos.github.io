@@ -173,8 +173,3 @@ html[data-mode="play"] :is(.sc-h2, .sc-cap)::before {
     .sc-track { gap: 3px; margin: 0 4px; }
 }
 
-/* ---------- dark (palette: color-scheme.css and play.css's lab dark): the page around the pictures ---------- */
-@media (prefers-color-scheme: dark) {
-    .sc-page { --tl-ink: var(--dk-ink); --tl-text: var(--dk-text); --tl-muted: var(--dk-muted); --tl-line: var(--dk-line); --tl-rule: var(--dk-field); --sc-bar-bg: var(--dk-card); }
-    html[data-mode="play"] body:has(.sc-page) { --sec: #c4b5fd; --sec-glow: rgba(167, 139, 250, 0.12); }
-}

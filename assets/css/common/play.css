@@ -154,7 +154,6 @@ html:not([data-mode="play"]) .cat-layer,
 html:not([data-mode="play"]) body > .world-layer,
 html:not([data-mode="play"]) .home-reset { display: none !important; }
 
-
 /* the home pages' reset button (layouts/partials/cat.html) sits with the cat and dog pickers: in the sidebar's
    "Your pet" row from 900 px, next to them in the top right corner below */
 @media (min-width: 900px) {
@@ -162,31 +161,23 @@ html:not([data-mode="play"]) .home-reset { display: none !important; }
     .pn-label { white-space: nowrap; }
 }
 
-/* ---------- the light switch and the key ---------- */
-/* 40 px tall (44 px on phones, a comfortable finger size); --sw-w is the light switch's width */
-:root { --key-h: 40px; --sw-w: 40px; --key-w: 112px; }
+/* ---------- the key ---------- */
+/* 40 px tall (44 px on phones, a comfortable finger size) */
+:root { --key-h: 40px; --key-w: 112px; }
 html[data-mode="play"] { --key-w: 120px; }
 @media (max-width: 899px) { html[data-mode="play"] { --key-w: 44px; } }   /* the key alone, round, in the lab on phones */
-.key-btn, .theme-btn { top: 8px; height: var(--key-h); }
+.key-btn { top: 8px; height: var(--key-h); }
 .key-btn { font-size: 15px; }
 .key-btn svg { width: 24px; height: 24px; }
-.theme-btn { width: var(--sw-w); padding: 0; border-radius: 10px; }
-.theme-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
-.theme-btn .sw-knob { fill: currentColor; stroke: none; transition: transform 0.2s; }
-html[data-theme="dark"] .theme-btn .sw-knob { transform: translateY(6px); }   /* the rocker down: lights off */
-.theme-btn { right: calc(18px + var(--key-w)); }
 /* pills do not tilt like the round buttons: they lift a little */
-.key-btn:hover, .theme-btn:hover { transform: translateY(-1px); }
+.key-btn:hover { transform: translateY(-1px); }
 @media (max-width: 600px) {
-    :root { --key-h: 44px; --sw-w: 44px; --key-w: 112px; }
-    .key-btn, .theme-btn { top: 6px; }
-    .theme-btn { padding: 0; border-radius: 50%; right: calc(14px + var(--key-w)); }
+    :root { --key-h: 44px; --key-w: 112px; }
+    .key-btn { top: 6px; }
 }
 /* in the lab the switch sits next to the key, top right; below 900 px the cat, the dog and the home page's reset
    button sit together top left (from 900 px they are in the sidebar's "Your pet" row) */
-html[data-mode="play"] .theme-btn { right: calc(18px + var(--key-w)); left: auto; }
 @media (max-width: 899px) {
-    html[data-mode="play"] .theme-btn { right: calc(14px + var(--key-w)); }
     html[data-mode="play"] .cat-pick { left: 8px; right: auto; }
     html[data-mode="play"] .dog-pick { left: 48px; right: auto; }
     html[data-mode="play"] .home-reset { left: 88px; right: auto; }
@@ -206,11 +197,6 @@ html[data-mode="play"] .theme-btn { right: calc(18px + var(--key-w)); left: auto
 html[data-mode="play"] { --sec: #d97706; --sec-glow: rgba(217, 119, 6, 0.16); }
 html[data-mode="play"] body:has(.arcade) { --sec: #e11d48; --sec-glow: rgba(225, 29, 72, 0.12); }
 html[data-mode="play"] body:has(.tb-page) { --sec: #0d9488; --sec-glow: rgba(13, 148, 136, 0.15); }
-@media (prefers-color-scheme: dark) {
-    html[data-mode="play"] { --sec: #fbbf24; --sec-glow: rgba(251, 191, 36, 0.11); --dot-mix: 62%; --dot-r: 1.5px; }   /* the dots stronger and a little bigger on the dark page */
-    html[data-mode="play"] body:has(.arcade) { --sec: #fb7185; --sec-glow: rgba(251, 113, 133, 0.11); }
-    html[data-mode="play"] body:has(.tb-page) { --sec: #2dd4bf; --sec-glow: rgba(45, 212, 191, 0.11); }
-}
 html[data-mode="play"] body::before {
     content: "";
     position: fixed;
@@ -266,22 +252,3 @@ html[data-mode="play"] .tb-task[aria-pressed="true"] { border-color: var(--sec);
     .lab-head h1::after, .lab-head .tl-h1::after, .lab-home .name-block::after { width: 52px; height: 5px; margin-top: 10px; }
 }
 
-@media (prefers-color-scheme: dark) {
-    :root { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); }
-    html[data-mode="play"]:not([data-pet="dog"]) {
-        --dk-bg: #24211d; --dk-page: #272420; --dk-card: #302c27; --dk-raise: #38342e; --dk-line: #47413a; --dk-field: #5a534a;
-        --dk-ink: #efebe4; --dk-text: #d6d0c6; --dk-muted: #a69e92;
-        --theme: var(--dk-page); --code-bg: var(--dk-bg); --pn-line: var(--dk-line);
-    }
-    html[data-pet="dog"] { --pn-ink: var(--dk-text); --pn-on: var(--dk-navy); --pn-line: var(--dk-line); }
-    /* a softer dark in the lab: a few shades lighter than the rest of the site's */
-    html[data-mode="play"][data-pet="dog"] { --dk-bg: #26201a; --dk-page: #29231d; --dk-card: #322a22; --dk-raise: #3a3128; --dk-line: #4a3e32; --dk-field: #5f5143; }
-    .pn-head svg { color: var(--dk-on-navy); }
-    .pn-audience, .pn-label { color: var(--dk-muted); }
-    /* the key, lit while in the lab: a navy that still stands out from the dark */
-    html[data-mode="play"] .key-btn { background: #2a4594; border-color: #3d5aad; }
-}
-@media (prefers-color-scheme: dark) and (min-width: 900px) {
-    .pn-tab:hover, .pn-audience:hover { background: rgba(255, 255, 255, 0.05); }
-    .pn-tab[aria-current="page"] { background: rgba(255, 255, 255, 0.06); }
-}

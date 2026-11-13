@@ -157,10 +157,10 @@ body.arcade-playing { overflow: hidden; }
 .music { position: relative; }
 .music[hidden] { display: none; }
 .arcade-head .music { position: absolute; right: 0; top: 1.3rem; z-index: 10; transform: translateY(-50%); }
-/* in the lab's row of corner buttons, next to the light switch (paw.css, play.css): the same height and corners */
-html[data-mode="play"] .arcade-head .music { position: fixed; top: 8px; right: calc(26px + var(--key-w) + var(--sw-w)); z-index: 90; transform: none; }
+/* in the lab's row of corner buttons, next to the key (paw.css, play.css): the same height and corners */
+html[data-mode="play"] .arcade-head .music { position: fixed; top: 8px; right: calc(26px + var(--key-w)); z-index: 90; transform: none; }
 html[data-mode="play"] .arcade-head .music-btn { display: grid; place-items: center; height: var(--key-h); min-width: var(--key-h); padding: 0 10px; border-radius: 10px; }
-@media (max-width: 899px) { html[data-mode="play"] .arcade-head .music { right: calc(20px + var(--key-w) + var(--sw-w)); } }
+@media (max-width: 899px) { html[data-mode="play"] .arcade-head .music { right: calc(20px + var(--key-w)); } }
 @media (max-width: 600px) { html[data-mode="play"] .arcade-head .music { top: 6px; } html[data-mode="play"] .arcade-head .music-btn { border-radius: 50%; padding: 0; } }
 .music-btn { display: block; padding: 6px 10px; color: var(--muted); }
 .music-btn svg { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -0.2em; }   /* a text line tall, like the restart button */
@@ -447,33 +447,7 @@ html[data-pet="dog"] .arcade .for-dog { display: inline; }
 /* the roaming cat (or dog) of the page (cat-pages.js) stays out of the way while a game is open */
 body.arcade-playing .cat-layer { display: none; }
 
-/* ---------- dark mode (palette: color-scheme.css) ---------- */
-@media (prefers-color-scheme: dark) {
-    .arcade { --ink: var(--dk-ink); --muted: var(--dk-muted); --navy: var(--dk-navy); --pink: var(--dk-pink); --line: var(--dk-line); }
-    .ab-view, .ab-table, .ab-card, .ab-pick select, .arcade-btn, .game-card, .music-menu, .gc-vote { background: var(--dk-card); }
-    .ab-table thead th, .ab-na { background: var(--dk-raise); }
-    .ab-card, .game-card { box-shadow: 0 6px 20px var(--dk-shadow); }
-    .game-card:hover:not(:disabled) { box-shadow: 0 12px 28px var(--dk-shadow); }
-    .ab-first { color: var(--dk-muted); }
-    .music-mix:hover { background: var(--dk-raise); }
-    .gc-paw { fill: #6b7a90; }
-    .gc-vote[aria-pressed="true"] { border-color: #8a3d5a; color: #f9a8c4; background: #3a1a28; }
-    .gc-vote[aria-pressed="true"] .gc-paw { fill: #f0789a; }
-    /* a running game keeps the light screen it was drawn for: its own colours and the light ones of the page */
-    .arcade-stage {
-        color-scheme: light;
-        --ink: #0f172a; --muted: #5b6b80; --navy: #1e3a8a; --pink: #d6336c; --line: #e2e8f0;
-        --dk-card: #fff; --dk-raise: #f1f5f9; --dk-on-navy: #fff; --dk-shadow: rgba(15, 23, 42, 0.15);
-        --primary: rgb(30, 30, 30); --secondary: rgb(108, 108, 108); --theme: #fff;
-        color: var(--ink);
-    }
-    html[data-pet="dog"] .arcade-stage { --ink: #2b1d12; --muted: #7a6450; --navy: #8a3b12; --pink: #c27c0e; --line: #eadccb; }
-}
 /* phones: the Champions table has no box of its own there, every row is a card */
-@media (prefers-color-scheme: dark) and (max-width: 640px) {
-    .ab-table, .ab-na { background: none; }
-    .ab-table tr { background: var(--dk-card); }
-}
 
 /* closed hours (Wednesdays 14:00 to 18:00, arcade.js): a note under the intro, the game cards faded and off */
 .arcade-closed { max-width: 40em; margin: 0 0 18px; padding: 12px 16px; border-left: 4px solid var(--sec, #e11d48); border-radius: 8px; background: color-mix(in srgb, var(--sec, #e11d48) 9%, transparent); color: var(--ink); font-size: 0.95rem; line-height: 1.45; }

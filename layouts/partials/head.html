@@ -85,9 +85,6 @@
 {{- if eq .Layout "cv" }}{{ range slice "lmsans12-regular" "lmsans12-oblique" "lmsans10-regular" "lmsans10-oblique" "lmsans10-bold" "lmsans17-regular" "lmsans17-oblique" }}
 <link rel="preload" href="{{ printf "fonts/lmsans/%s.woff2" . | relURL }}" as="font" type="font/woff2" crossorigin>
 {{- end }}{{ end }}
-{{- /* the light switch: right after the styles and without defer, so a chosen look is there before the first paint */}}
-{{- $theme := resources.Get "js/site/theme.js" | minify | fingerprint }}
-<script src="{{ $theme.RelPermalink }}" integrity="{{ $theme.Data.Integrity }}"></script>
 
 {{- /* Favicons */}}
 <link rel="icon" href="{{ site.Params.assets.favicon | default "favicon.ico" | absURL }}">
@@ -96,9 +93,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="{{ site.Params.assets.apple_touch_icon | default "apple-touch-icon.png" | absURL }}">
 {{- /* Safari: pinned tabs and its start page use this one */}}
 <link rel="mask-icon" href="{{ site.Params.assets.safari_pinned_tab | default "safari-pinned-tab.svg" | absURL }}" color="#1e3a8a">
-{{- /* the colour of the browser's bar on phones: the page's own, light or dark (the light switch picks one, theme.js) */}}
-<meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" data-scheme="light">
-<meta name="theme-color" content="#1b2539" media="(prefers-color-scheme: dark)" data-scheme="dark">
+{{- /* the colour of the browser's bar on phones: the page's own */}}
+<meta name="theme-color" content="#f5f5f5">
 <meta name="msapplication-TileColor" content="{{ site.Params.assets.msapplication_TileColor | default "#2e2e33" }}">
 
 {{- /* RSS */}}

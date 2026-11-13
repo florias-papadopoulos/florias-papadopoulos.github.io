@@ -11,3 +11,6 @@ _slides-pptx/
 # Claude Code session files and agent worktrees
 .claude/
 
+
+# dark mode, removed on 2026-11-13: its old rules kept locally for reference, never committed
+/darkmode/

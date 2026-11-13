@@ -282,9 +282,6 @@ var SATPAGE = (function () {
         try { globe = GLOBE.create(canvas); } catch (e) { globe = null; }
         if (!globe) { status('This browser cannot draw the globe (WebGL is off or not supported).'); return; }
         readBg();
-        var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-        if (mq && mq.addEventListener) mq.addEventListener('change', readBg);
-        new MutationObserver(readBg).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         var img = new Image();
         img.onload = function () { globe.setEarthImage(img); };
         img.src = app.getAttribute('data-earth');
