@@ -1,0 +1,88 @@
+{{- /* /phd/projects/gfm/ (content/phd/projects/gfm/index.md): the paper on Geometric Fuzzy Matching (ASIA CCS 2026) to
+       play with. Alice draws a region on a small made-up town, watches it cut into rectangles and residual points
+       (Partitioner), and Bob moves around. Scripts: assets/js/gfm/ (joined in this order; README there), styles:
+       assets/css/phd/gfm.css (added by head.html). */ -}}
+{{- define "main" }}
+<div class="tl-page gfm-page" id="gfm">
+    <header class="tl-intro gfm-intro">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        {{- with .Content }}<div class="tl-lede">{{ . }}</div>{{ end }}
+    </header>
+
+    <div class="gfm-app" id="gfm-app" hidden>
+        <div class="gfm-bar" role="group" aria-label="Alice's region">
+            <span class="gfm-bar-label">Alice's region</span>
+            <button type="button" class="gfm-btn" data-preset="park">The park</button>
+            <button type="button" class="gfm-btn" data-preset="hall">A building</button>
+            <button type="button" class="gfm-btn" data-preset="cafe">Within 100 m</button>
+            <span class="gfm-bar-sep" aria-hidden="true"></span>
+            <span class="gfm-bar-label">or draw</span>
+            <button type="button" class="gfm-btn" data-tool="ball">Ball</button>
+            <button type="button" class="gfm-btn" data-tool="poly">Polygon</button>
+            <button type="button" class="gfm-btn" data-tool="boxes">Rectangles</button>
+        </div>
+        <div class="gfm-bar gfm-sub" id="gfm-sub" hidden>
+            <span class="gfm-p" id="gfm-p" role="group" aria-label="Norm">
+                <span class="gfm-bar-label">ℓ<sub>p</sub>, p =</span>
+                <button type="button" class="gfm-btn" data-p="1">1</button>
+                <button type="button" class="gfm-btn" data-p="2">2</button>
+                <button type="button" class="gfm-btn" data-p="4">4</button>
+                <button type="button" class="gfm-btn" data-p="inf">∞</button>
+            </span>
+            <span class="gfm-hint" id="gfm-hint"></span>
+            <button type="button" class="gfm-btn" id="gfm-done" hidden>Done</button>
+        </div>
+
+        <div class="gfm-stage">
+            <figure class="gfm-mapbox">
+                <svg class="gfm-map" id="gfm-map" viewBox="0 0 128 128" role="img" aria-label="A small town, Alice's region and Bob"></svg>
+                <figcaption class="gfm-step" id="gfm-step" aria-live="polite">&nbsp;</figcaption>
+            </figure>
+
+            <div class="gfm-side">
+                <div class="gfm-views" role="group" aria-label="Whose view">
+                    <button type="button" class="gfm-btn" data-view="god">God view</button>
+                    <button type="button" class="gfm-btn" data-view="alice">Alice's view</button>
+                    <button type="button" class="gfm-btn" data-view="bob">Bob's view</button>
+                </div>
+                <p class="gfm-result" id="gfm-result" aria-live="polite">&nbsp;</p>
+                <p class="gfm-learns" id="gfm-learns"></p>
+
+                <div class="gfm-res-block">
+                    <label class="gfm-r-label" for="gfm-r">Resolution <var>r</var> = <output id="gfm-r-out">1</output></label>
+                    <input type="range" id="gfm-r" min="1" max="32" step="1" value="1">
+                    <p class="gfm-counts" id="gfm-counts"></p>
+                    <svg class="gfm-chart" id="gfm-chart" viewBox="0 0 300 120" role="img" aria-label="Cost for each resolution"></svg>
+                    <div class="gfm-row">
+                        <button type="button" class="gfm-btn" id="gfm-best">Best r</button>
+                        <button type="button" class="gfm-btn" id="gfm-replay">Show the steps</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="gfm-dasa" id="gfm-dasa" aria-live="polite"></section>
+
+        <details class="gfm-how">
+            <summary>How it works</summary>
+            <ol>
+                <li><strong>Partitioner</strong> (Section 3). Take the bounding box of the region, cut it into cells of <var>r</var> &times; <var>r</var> lattice points, keep the cells that lie wholly inside, and fuse neighbours that share a whole side until none do. The <var>N<sub>r</sub></var> rectangles and the <var>L<sub>r</sub></var> points of the region they miss (the residual points) together hold every lattice point of the region exactly once.</li>
+                <li><strong>Cost</strong> (Section 4). Each rectangle becomes its own small ℓ<sub>∞</sub> test, which costs Bob work for every one of them; a residual point costs Alice one entry. Counting the protocol's steps:
+                    <span class="gfm-formula">Cost(<var>r</var>) = &Sigma;<sub><var>k</var>,<var>i</var></sub> 2&lfloor;log<sub>2</sub>(2<var>&delta;</var><sub><var>k</var>,<var>i</var></sub>+1)&rfloor; + <var>L<sub>r</sub></var> + (<var>d</var>+1)&middot;<var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var>,
+                    &nbsp; <var>J<sub>S</sub></var> = &Pi;<sub><var>i</var></sub>(&lfloor;log<sub>2</sub>(2<var>&delta;</var><sub>max,<var>i</var></sub>+1)&rfloor;+1)</span>
+                    that is, Alice's padded strings per rectangle side, her residual points, and the <var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var> answers Bob computes (<var>d</var> = 2 lookups each) and Alice checks: the terms of the paper's complexity theorem. <var>r</var>* is the <var>r</var> with the smallest cost.</li>
+                <li><strong>DASA</strong> (Section 2). Along each axis a rectangle is an interval of 7-bit numbers. Alice writes it as the few prefixes whose subtrees fit wholly inside (the rest of the bits are wildcards <code>*</code>). Bob writes his coordinate with 0, 1, 2, &hellip; of its last bits as wildcards, as many as the widest rectangle needs. He is inside a rectangle exactly when one of his strings equals one of Alice's, in <var>x</var> and in <var>y</var>. A residual point is matched as a whole.</li>
+                <li><strong>Who learns what.</strong> Alice learns one bit: inside or not (the answers come shuffled, so not even which rectangle). Bob learns the rectangle sizes he needs for his strings, not where they are, and no answer.</li>
+            </ol>
+        </details>
+
+        <p class="gfm-note">This page shows the geometry in the clear. In the protocol Alice's strings travel inside an oblivious key-value store and Bob answers with re-randomised Diffie-Hellman pairs, so the matching above happens under encryption, in two messages, with no server in between.
+            From <a href="{{ "phd/papers/#gfm-asiaccs26" | relURL }}">I. Katis, K. Mitrokotsa, F. Papadopoulos, <i>Privacy-preserving Proximity Testing from Geometric Fuzzy Matching</i>, ACM ASIA CCS 2026</a> (<a href="https://dl.acm.org/doi/10.1145/3779208.3785374">ACM Digital Library</a>).</p>
+    </div>
+    <noscript><p class="gfm-note">This page needs JavaScript.</p></noscript>
+</div>
+{{- $files := slice }}
+{{- range slice "10-core.js" "20-map.js" "30-draw.js" "40-panels.js" "50-app.js" }}{{ $files = $files | append (resources.Get (printf "js/gfm/%s" .)) }}{{ end }}
+{{- $js := $files | resources.Concat "js/gfm.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{- end }}
