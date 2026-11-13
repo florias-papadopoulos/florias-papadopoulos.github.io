@@ -1,0 +1,81 @@
+{{- /* "Satellites, live" (content/phd/satellites/index.md, /phd/satellites/): a globe with the
+       satellites of a few CelesTrak groups, moved in time with SGP4 in the browser, the picked object's facts, and a
+       rough screening for close approaches; then the page's short text and sources (the markdown).
+       The orbit data is static/data/sat/ (downloaded daily by .github/workflows/hugo.yml with tools/sat-data/fetch.sh,
+       a committed snapshot otherwise), so visitors only ever talk to this site. The Earth is NASA's Blue Marble
+       (public domain), static/img/phd/earth-blue-marble.jpg. Scripts: assets/js/sat/ (README.md there), satellite.js
+       vendored and bundled by Hugo; styles: assets/css/phd/satellites.css. */ -}}
+{{- define "main" }}
+{{- $sgp := resources.Get "js/sat/sgp4-entry.js" | js.Build (dict "format" "iife" "target" "es2017" "minify" true "targetPath" "js/sat-sgp4.js") }}
+{{- $parts := slice $sgp }}
+{{- range slice "00-core" "10-globe" "20-page" "30-approach" }}{{ $parts = $parts | append (resources.Get (printf "js/sat/%s.js" .)) }}{{ end }}
+{{- $js := $parts | resources.Concat "js/satellites.js" | minify | fingerprint }}
+{{- $worker := slice $sgp (resources.Get "js/sat/00-core.js") (resources.Get "js/sat/50-worker.js") | resources.Concat "js/satellites-worker.js" | minify | fingerprint }}
+{{- /* the groups: [file at CelesTrak, label, colour on the globe, "own" (pairs inside the group are not screened)] */}}
+{{- $groups := slice
+    (slice "stations" "Space stations" "#ffd166" false)
+    (slice "gnss" "Navigation (GPS, Galileo, ...)" "#5ad1f0" false)
+    (slice "weather" "Weather" "#8fd694" false)
+    (slice "geo" "Geostationary" "#f4a261" false)
+    (slice "starlink" "Starlink" "#9aa7c0" true)
+    (slice "fengyun-1c-debris" "Debris of Fengyun-1C (2007 missile test)" "#ff5d73" false)
+    (slice "cosmos-2251-debris" "Debris of Cosmos 2251 (2009 collision)" "#ff9a8a" false)
+    (slice "iridium-33-debris" "Debris of Iridium 33 (2009 collision)" "#e879c6" false) }}
+<article class="tl-page sat-page">
+    <header class="sat-head">
+        <h1 class="tl-h1">{{ .Title }}</h1>
+        {{- with .Params.lede }}<p class="sat-lede">{{ . | markdownify }}</p>{{ end }}
+    </header>
+
+    <div class="sat-app" id="sat-app" data-base="{{ "data/sat/" | relURL }}" data-earth="{{ "img/phd/earth-blue-marble.jpg" | relURL }}" data-worker="{{ $worker.RelPermalink }}">
+        <div class="sat-stage">
+            <canvas id="sat-canvas" class="sat-canvas" role="img" aria-label="A globe with satellites and debris around it; drag to turn it, click a dot for details"></canvas>
+            <p class="sat-loading" id="sat-loading">The globe needs JavaScript.</p>
+            <div class="sat-zoom">
+                <button type="button" id="sat-zoom-in" aria-label="Zoom in">+</button>
+                <button type="button" id="sat-zoom-out" aria-label="Zoom out">&minus;</button>
+            </div>
+        </div>
+        <div class="sat-time" role="group" aria-label="Time">
+            <p class="sat-clock"><span id="sat-clock">&nbsp;</span> <span class="sat-offset" id="sat-offset"></span></p>
+            <div class="sat-speeds">
+                <button type="button" data-speed="0" aria-pressed="false">Pause</button>
+                <button type="button" data-speed="1" aria-pressed="true" title="Real time">1&times;</button>
+                <button type="button" data-speed="60" aria-pressed="false" title="One minute per second">60&times;</button>
+                <button type="button" data-speed="600" aria-pressed="false" title="Ten minutes per second">600&times;</button>
+                <button type="button" data-speed="3600" aria-pressed="false" title="One hour per second">3600&times;</button>
+                <button type="button" id="sat-now" aria-pressed="true">Now</button>
+            </div>
+        </div>
+        <div class="sat-side">
+            <fieldset class="sat-groups">
+                <legend>Shown</legend>
+                {{- range $groups }}
+                <label><input type="checkbox" checked data-group="{{ index . 0 }}" data-label="{{ index . 1 }}" data-color="{{ index . 2 }}"{{ if index . 3 }} data-own{{ end }}><span class="sat-swatch" style="background:{{ index . 2 | safeCSS }}"></span><span class="sat-gname">{{ index . 1 }}</span> <span class="sat-count"></span></label>
+                {{- end }}
+            </fieldset>
+            <div class="sat-info" id="sat-info" aria-live="polite"></div>
+        </div>
+        <p class="sat-help">Drag to turn the globe, scroll or pinch to zoom, click or tap a dot. <span id="sat-fetched"></span></p>
+    </div>
+
+    <section class="sat-ca" aria-labelledby="sat-ca-h">
+        <h2 class="sat-h2" id="sat-ca-h">Close approaches</h2>
+        <p class="sat-note">Your browser screens the objects shown for pairs that pass close to each other. A rough approximation from public orbit data, not a collision warning: these orbits are often off by a kilometre or more, and operators work with better orbits and collision probabilities. Pairs that move together (docked, or fragments still side by side) and pairs of two Starlink satellites are left out.</p>
+        <div class="sat-ca-form">
+            <label>Within <select id="sat-ca-km"><option>1</option><option>2</option><option selected>5</option><option>10</option></select> km</label>
+            <label>in the next <select id="sat-ca-hours"><option>1</option><option selected>3</option><option>6</option><option>12</option></select> hours</label>
+            <button type="button" id="sat-ca-run" disabled>Screen</button>
+        </div>
+        <p class="sat-ca-status" id="sat-ca-status" aria-live="polite"></p>
+        <p class="sat-ca-stale" id="sat-ca-stale" hidden>The objects shown have changed: screen again to include them.</p>
+        <ol class="sat-ca-list" id="sat-ca-list"></ol>
+        <button type="button" class="sat-ca-more" id="sat-ca-more" hidden>Show more</button>
+    </section>
+
+    <div class="sat-text">
+        {{ .Content }}
+    </div>
+</article>
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+{{- end }}
