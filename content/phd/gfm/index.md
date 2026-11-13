@@ -3,7 +3,7 @@ aliases: [/phd/projects/gfm/]
 title: "Find Nearby Friends"
 description: "Geometric Fuzzy Matching to play with: draw a region, watch it cut into rectangles, and move Bob around to see what Alice learns."
 blurb: "Draw a region, watch it cut into rectangles, move Bob around: our ASIA CCS 2026 paper on Geometric Fuzzy Matching, to play with."
-preview: "img/phd/nearby-friends.jpg"
+preview: "img/phd/nearby-friends-v2.jpg"
 weight: 3
 # not yet approved by the owner: shows a 🚧 next to the title everywhere (remove the line once approved)
 wip: true

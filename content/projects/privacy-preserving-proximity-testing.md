@@ -7,7 +7,7 @@ weight: -1
 # The Papers tab shows all of the following when the entry is opened (#anchor opens it directly).
 # venue, abstract, keywords and bibtex are taken from the camera-ready version (main.tex).
 anchor: "gfm-asiaccs26"
-preview: "img/papers/pppt-gfm.jpg"
+preview: "img/papers/pppt-gfm-v2.jpg"
 previewAlt: "Two overlapping 3D balls, each split into coloured boxes"
 venue: "ACM Asia Conference on Computer and Communications Security (ASIA CCS '26), Bangalore, India"
 keywords: [Fuzzy Private Set Intersection, Fuzzy Matching, Proximity Tracking]
