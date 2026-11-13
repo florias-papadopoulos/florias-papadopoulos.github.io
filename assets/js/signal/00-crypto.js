@@ -153,6 +153,8 @@
         };
     }
     SG.sig = signer({ name: 'ECDSA', namedCurve: 'P-256' }, { name: 'ECDSA', hash: 'SHA-256' });
+    /* the signers this browser has, by name; a bundle says which one signed it (SG.sig is the best one here) */
+    SG.sigs = { 'ECDSA P-256': SG.sig };
 
     /* ---------- what this browser can do ---------- */
     var V = {   // RFC 7748, section 6.1
@@ -180,7 +182,7 @@
         if (await tryWebCryptoDH()) DH = wcDH;
         else if (SG.hex(ladder(SG.unhex(V.a), SG.unhex(V.Bp))) !== V.K) throw new Error('X25519 fails its test');
         var ed = await tryEd25519();
-        if (ed) SG.sig = ed;
+        if (ed) { SG.sig = ed; SG.sigs.Ed25519 = ed; }
         return { dh: DH === wcDH ? 'X25519 from WebCrypto' : 'X25519 in JavaScript (this browser\'s WebCrypto has none)', sig: SG.sig.name };
     })();
 })();

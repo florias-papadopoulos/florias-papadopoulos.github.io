@@ -37,10 +37,20 @@
 
         var say = h('p.sg-say');
         var card = new SG.Card({ side: me, me: true, onSend: send });
+        var view = new SG.ChainView();
+        var mach = new SG.Machine({ side: me, mirror: me === 'B', onTap: function (k, id) { view.show(mach, k, id); } });
+        card.slot.appendChild(mach.el);
+        /* the gears turn here at once, step after step (no captions) */
+        function draw(trace) {
+            var chip = null;
+            trace.forEach(function (ev) { chip = mach.apply(ev) || chip; });
+            view.refresh();
+            return chip;
+        }
         var wire = new SG.Wire({});
         var safety = h('p.sg-safety');
         var qr = h('div.sg-qr');
-        var talk = h('div.sg-talk', { hidden: true }, [safety, card.el,
+        var talk = h('div.sg-talk', { hidden: true }, [safety, card.el, view.el,
             h('section.sg-relay', { 'aria-label': 'What the relay forwards' }, [h('h2.sg-name', { text: 'What the relay forwards' }), wire.el])]);
         app.appendChild(say);
         app.appendChild(qr);
@@ -51,7 +61,10 @@
                 if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { copy.textContent = 'Copied'; }, function () { /* no clipboard */ });
             } });
             qr.appendChild(window.LV && LV.qrImg ? LV.qrImg(link, 'sg-qr-img', 'QR code that opens this page on the other phone') : h('span'));
-            qr.appendChild(h('p.sg-qr-link', {}, [h('code', { text: link.replace(/^https?:\/\//, '') }), ' ', copy]));
+            /* the link holds the secret: hidden until asked for (screen shares) */
+            var shown = h('code', { hidden: true, text: link.replace(/^https?:\/\//, '') });
+            var show = h('button.sg-btn', { type: 'button', text: 'Show link', onclick: function () { shown.hidden = !shown.hidden; show.textContent = shown.hidden ? 'Show link' : 'Hide link'; } });
+            qr.appendChild(h('p.sg-qr-link', {}, [show, ' ', copy, h('br'), shown]));
             SG.say(say, 'Scan this with the other phone’s camera.');
         } else {
             /* the secret is in memory now; take it out of the address bar and the history */
@@ -61,7 +74,8 @@
 
         (async function () {
             macKey = await SG.hkdf(SG.unb64u(secret), Z32, 'florias.signal.demo.pair', 32);
-            if (me === 'B') bob = await SG.makeBob(); else ikA = await SG.genDH();
+            /* two phones sign with ECDSA P-256, which every browser has (Ed25519 is still missing in some) */
+            if (me === 'B') bob = await SG.makeBob(SG.sigs['ECDSA P-256']); else ikA = await SG.genDH();
             connect();
         })().catch(fail);
 
@@ -89,7 +103,12 @@
             ping = setInterval(function () { if (ws && ws.readyState === 1) ws.send('ping'); }, 30000);
         }
         function out(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
-        function mac(tag, parts) { return SG.hmac(macKey, SG.cat.apply(null, [SG.utf8(tag)].concat(parts))); }
+        /* HMAC over the tag and each part with its length in front, so no two different lists give the same input */
+        function mac(tag, parts) {
+            var all = [SG.utf8(tag)];
+            parts.forEach(function (p) { all.push(SG.u32(p.length), p); });
+            return SG.hmac(macKey, SG.cat.apply(null, all));
+        }
 
         async function got(d) {
             if (dead) return;
@@ -113,15 +132,16 @@
         async function sendBundle() {
             var b = SG.bundleOf(bob);
             SG.say(say, 'The other phone is here. Agreeing a key…');
-            out({ t: 'bundle', ik: SG.b64u(b.ik), sk: SG.b64u(b.sk), spk: SG.b64u(b.spk), sig: SG.b64u(b.sig), opk: SG.b64u(b.opk),
-                mac: SG.b64u(await mac('B', [b.ik, b.sk, b.spk, b.opk])) });
+            out({ t: 'bundle', alg: b.alg, ik: SG.b64u(b.ik), sk: SG.b64u(b.sk), spk: SG.b64u(b.spk), sig: SG.b64u(b.sig), opk: SG.b64u(b.opk),
+                mac: SG.b64u(await mac('B', [SG.utf8(b.alg), b.ik, b.sk, b.spk, b.opk])) });
         }
         async function gotBundle(o) {
-            var b = { ik: SG.unb64u(o.ik), sk: SG.unb64u(o.sk), spk: SG.unb64u(o.spk), sig: SG.unb64u(o.sig), opk: SG.unb64u(o.opk) };
-            if (!SG.same(SG.unb64u(o.mac), await mac('B', [b.ik, b.sk, b.spk, b.opk]))) return end('These keys did not come from the phone with the QR code. Start again.');
+            if (typeof o.alg !== 'string') return end('These keys came in an old format. Reload both phones and start again.');
+            var b = { alg: o.alg, ik: SG.unb64u(o.ik), sk: SG.unb64u(o.sk), spk: SG.unb64u(o.spk), sig: SG.unb64u(o.sig), opk: SG.unb64u(o.opk) };
+            if (!SG.same(SG.unb64u(o.mac), await mac('B', [SG.utf8(b.alg), b.ik, b.sk, b.spk, b.opk]))) return end('These keys did not come from the phone with the QR code. Start again.');
             var a;
-            try { a = await SG.x3dhAlice(ikA, b); } catch (e) { return end('Bob’s signature does not check out. Start again.'); }
-            await R.initAlice(a.sk, a.ad, b.spk);
+            try { a = await SG.x3dhAlice(ikA, b); } catch (e) { if (e.message === 'alg') return end('This browser cannot check a ' + b.alg + ' signature. Try another browser.'); return end('Bob’s signature does not check out. Start again.'); }
+            draw(await R.initAlice(a.sk, a.ad, b.spk));
             out({ t: 'init', ik: SG.b64u(ikA.pub), ek: SG.b64u(a.ek.pub), mac: SG.b64u(await mac('A', [ikA.pub, a.ek.pub, b.ik])) });
             await ready(ikA.pub, b.ik);
         }
@@ -129,7 +149,7 @@
             var ik = SG.unb64u(o.ik), ek = SG.unb64u(o.ek);
             if (!SG.same(SG.unb64u(o.mac), await mac('A', [ik, ek, bob.ik.pub]))) return end('These keys did not come from the phone that scanned the code. Start again.');
             var b = await SG.x3dhBob(bob, ik, ek);
-            R.initBob(b.sk, b.ad, bob.spk);
+            draw(R.initBob(b.sk, b.ad, bob.spk));
             bob.opk = null;   // the one-time prekey is used up
             await ready(ik, bob.ik.pub);
         }
@@ -140,7 +160,6 @@
             safety.appendChild(h('span', { text: 'Both phones show ' }));
             safety.appendChild(h('strong', { text: await SG.safety(ikAlice, ikBob) }));
             talk.hidden = false;
-            card.ratchet(R.view());
             SG.say(say, 'Key agreed. Only these two phones have it.', 'sg-good');
             canWrite();
             if (me === 'A') card.input.value = 'Hi Bob';
@@ -155,12 +174,12 @@
             try { m = SG.unpack(o); } catch (e) { return; }
             var step = lastPub[other] !== SG.hex(m.h.dh);
             lastPub[other] = SG.hex(m.h.dh);
-            wire.add(other, m, step);
             var d;
             try { d = await R.decrypt(m.h, m.ct); } catch (e) { card.note('a message that does not decrypt was dropped'); return; }
-            if (d.step) card.turn();
-            card.msg(false, d.text, d.mk);
-            card.ratchet(R.view());
+            var chip = draw(d.trace);
+            wire.add(other, m, step, chip && chip.label);
+            card.msg(false, d.text, chip && chip.label);
+            SG.later(900, function () { mach.shred(d.id); });
             canWrite();
         }
         var sending = false;
@@ -172,9 +191,10 @@
                 out(SG.pack(m));
                 var step = lastPub[me] !== SG.hex(m.h.dh);
                 lastPub[me] = SG.hex(m.h.dh);
-                card.msg(true, text, m.mk);
-                card.ratchet(R.view());
-                wire.add(me, m, step);
+                var chip = draw(m.trace), id = SG.hex(m.h.dh) + ':' + m.h.n;
+                card.msg(true, text, chip && chip.label);
+                SG.later(900, function () { mach.shred(id); });
+                wire.add(me, m, step, chip && chip.label);
                 card.input.value = '';
             } catch (e) { fail(e); }
             sending = false;
