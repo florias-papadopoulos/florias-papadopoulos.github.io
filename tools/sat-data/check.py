@@ -70,9 +70,11 @@ def check(path, limits):
         if not 0 < float(o["MEAN_MOTION"]) < 20 or not 0 <= float(o["ECCENTRICITY"]) < 1:
             raise ValueError("implausible elements for " + o["NORAD_CAT_ID"])
         epoch = datetime.fromisoformat(o["EPOCH"][:26])
+        if epoch.tzinfo is not None:                # a time zone written out: compare in UTC, without it
+            epoch = epoch.astimezone(timezone.utc).replace(tzinfo=None)
         newest = epoch if newest is None or epoch > newest else newest
     # elements older than two months mean something is off at the source
-    if (datetime.now() - newest).days > 60:
+    if (datetime.now(timezone.utc).replace(tzinfo=None) - newest).days > 60:
         raise ValueError("newest elements from " + newest.isoformat())
     out = io.StringIO()
     w = csv.writer(out, lineterminator="\n")
@@ -109,7 +111,7 @@ def main(argv):
             os.replace(target + ".tmp", target)
             meta["groups"][g] = {"rows": n, "fetched": now_iso()}
             print(f"{g}: {n} objects, {len(text.encode())} bytes")
-        except (ValueError, OSError) as e:
+        except Exception as e:                      # anything odd in one group: that group keeps its snapshot
             if os.path.exists(target):
                 meta["groups"][g] = dict(old.get(g, {}), snapshot=True)
                 print(f"::warning::{g}: {e}; using the committed snapshot")

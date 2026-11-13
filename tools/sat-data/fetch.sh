@@ -11,7 +11,7 @@ out=${1:-static/data/sat}
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 for g in $(python3 -I tools/sat-data/check.py --groups); do
-    if ! curl -sS --fail --proto '=https' --max-time 90 -A "static-site-build (daily)" \
+    if ! curl -sS --fail --proto '=https' --max-time 90 --max-filesize 5000000 -A "static-site-build (daily)" \
         -o "$tmp/$g.csv" "https://celestrak.org/NORAD/elements/gp.php?GROUP=$g&FORMAT=csv"; then
         echo "::warning::$g: download failed"
         rm -f "$tmp/$g.csv"

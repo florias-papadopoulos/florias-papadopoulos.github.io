@@ -63,6 +63,8 @@ jobs:
       # objects, values, size) and only then put over the committed snapshot in static/data/sat/; a group that fails
       # keeps the snapshot, so the build goes on
       - name: Fetch satellite orbits
+        # never blocks a deploy: if anything goes wrong here, the build uses the committed snapshot
+        continue-on-error: true
         run: tools/sat-data/fetch.sh static/data/sat
       - name: Build with Hugo
         env:
