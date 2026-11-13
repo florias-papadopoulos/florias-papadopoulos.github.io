@@ -1,6 +1,6 @@
 {{- /* Play mode's navigation (shown only under html[data-mode="play"], see assets/js/lab/play.js; styles in
        assets/css/common/play.css): a tab bar at the bottom on phones and tablets, a slim sidebar on the left on wider
-       screens. Three items: the lab's home page, Games and Toolbox (the owner did not want a combined search). The sidebar
+       screens. Four items: the lab's home page, Games, Toolbox and Simple Crypto (the cat's animated stories) (the owner did not want a combined search). The sidebar
        also has a place for the cat and dog pickers at the bottom (the buttons themselves are the corner buttons of
        baseof.html, placed over it by play.css); the way back to the normal site is the "About me" key, top right. Pets and leaderboards are
        deliberately not tabs: the pickers live here, the leaderboards stay on the Games page. */ -}}
@@ -12,7 +12,9 @@
     (dict "name" "Games" "url" ("games/" | relURL) "on" (eq $here ("games/" | relURL))
           "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7.5h10a4.5 4.5 0 0 1 4.4 3.6l1 5.2a2.6 2.6 0 0 1-4.5 2.2L15.6 16H8.4l-2.3 2.5a2.6 2.6 0 0 1-4.5-2.2l1-5.2A4.5 4.5 0 0 1 7 7.5z"/><path d="M7.6 10.2v3.6M5.8 12h3.6"/><circle cx="15.4" cy="11" r="0.6" class="pn-dot"/><circle cx="17.6" cy="13.2" r="0.6" class="pn-dot"/></svg>`)
     (dict "name" "Toolbox" "url" ("toolbox/" | relURL) "on" (eq .Section "toolbox")
-          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="11.5" rx="1.8"/><path d="M9 8V6.2C9 5.5 9.5 5 10.2 5h3.6c.7 0 1.2.5 1.2 1.2V8M3 13h18M10.5 13v2.2h3V13"/></svg>`) }}
+          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="11.5" rx="1.8"/><path d="M9 8V6.2C9 5.5 9.5 5 10.2 5h3.6c.7 0 1.2.5 1.2 1.2V8M3 13h18M10.5 13v2.2h3V13"/></svg>`)
+    (dict "name" "Simple Crypto" "url" ("simple-crypto/" | relURL) "on" (eq .Section "simple-crypto")
+          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="1.8"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7M12 14.5v2.5"/></svg>`) }}
 <nav class="play-nav" id="play-nav" aria-label="The lab">
     <p class="pn-head pm-card">{{ $key }}<span>The lab</span></p>
     <ul class="pn-tabs">

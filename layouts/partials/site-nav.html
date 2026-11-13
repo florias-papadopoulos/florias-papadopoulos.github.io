@@ -1,6 +1,6 @@
 {{- /* The normal side's navigation, on every page of it except the home page (which has its band): the same shape as
        the lab's (layouts/partials/play-nav.html, styles shared from play.css, the rest in assets/css/common/site-nav.css).
-       From 900 px a sidebar on the left: the name (to the home page), then Home, PhD, Master, Bachelor, Teaching and CV; each of
+       From 900 px a sidebar on the left: the name (to the home page), then Home, PhD, Master, Bachelor and CV; each of
        PhD, Master and Bachelor has an arrow that opens a list underneath (PhD: its Papers and Projects pages; the others:
        their projects) (a <details>, so it works by touch and
        without scripts; open on its own page), and each project opens its entry on that page (url#anchor, as on the home
@@ -49,8 +49,6 @@
             {{- end }}{{ end }}
         </li>
         {{- end }}
-        {{- $tu := "teaching/" | relURL }}
-        <li class="sn-group" data-g="Teaching"><a class="pn-tab" href="{{ $tu }}"{{ if hasPrefix $here $tu }} aria-current="page"{{ end }}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="11" rx="1.5"/><path d="M8 20l4-4.5 4 4.5M7.5 8.5h6M7.5 11.5h9"/></svg><span>Teaching</span></a></li>
         <li><a class="pn-tab" href="{{ "cv/" | relURL }}"{{ if eq .Layout "cv" }} aria-current="page"{{ end }}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4M14 13.5h4"/></svg><span>CV</span></a></li>
     </ul>
 </nav>
