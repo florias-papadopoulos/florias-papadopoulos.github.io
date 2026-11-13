@@ -109,7 +109,7 @@ a.hn-text:hover { color: var(--h3-navy); text-decoration: underline; text-decora
 .hw-tile a { display: block; color: var(--h3-ink); text-decoration: none; }
 .hw-tile img, .hw-noimg { display: block; width: 128px; height: 76px; border-radius: 8px; object-fit: cover; background: #f1f4f9; outline: 1px solid var(--h3-line); outline-offset: -1px; }
 /* each kind of project has its colour (--aura): a soft glow around the picture, the line under the title, the filter's dot */
-.hw-tile[data-g="Paper"], .hw-chip[data-g="Paper"] { --aura: #b45309; --aura-glow: rgba(217, 119, 6, .3); }
+.hw-tile[data-g="PhD"], .hw-chip[data-g="PhD"] { --aura: #b45309; --aura-glow: rgba(217, 119, 6, .3); }
 .hw-tile[data-g="Master"], .hw-chip[data-g="Master"] { --aura: #6d28d9; --aura-glow: rgba(124, 58, 237, .26); }
 .hw-tile[data-g="Bachelor"], .hw-chip[data-g="Bachelor"] { --aura: #0f766e; --aura-glow: rgba(13, 148, 136, .28); }
 .hw-tile img, .hw-tile .hw-noimg { box-shadow: 0 0 0 2px var(--aura-glow), 0 6px 16px -6px var(--aura-glow); }
@@ -119,7 +119,7 @@ a.hn-text:hover { color: var(--h3-navy); text-decoration: underline; text-decora
 .hw-chip[aria-pressed="true"][data-g]:not([data-g=""]) { background: var(--aura); }
 .hw-chip[aria-pressed="true"][data-g]:not([data-g=""])::before { background: currentColor; }
 @media (prefers-color-scheme: dark) {
-    .hw-tile[data-g="Paper"], .hw-chip[data-g="Paper"] { --aura: #fbbf24; --aura-glow: rgba(251, 191, 36, .3); }
+    .hw-tile[data-g="PhD"], .hw-chip[data-g="PhD"] { --aura: #fbbf24; --aura-glow: rgba(251, 191, 36, .3); }
     .hw-tile[data-g="Master"], .hw-chip[data-g="Master"] { --aura: #c4b5fd; --aura-glow: rgba(167, 139, 250, .32); }
     .hw-tile[data-g="Bachelor"], .hw-chip[data-g="Bachelor"] { --aura: #5eead4; --aura-glow: rgba(45, 212, 191, .3); }
 }
