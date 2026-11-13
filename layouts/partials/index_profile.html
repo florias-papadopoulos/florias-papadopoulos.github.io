@@ -78,7 +78,7 @@
 
     {{- /* the projects, newest first: the papers, then the master projects (by weight: 1 is the newest, the thesis),
            then the bachelor thesis; each tile links to its entry on its page (#anchor) */ -}}
-    {{- $groups := slice (dict "key" "Paper" "name" "Papers" "url" "papers/" "sub" "Paper") (dict "key" "Master" "name" "Master" "url" "master/" "sub" "Master project") (dict "key" "Bachelor" "name" "Bachelor" "url" "bachelor/" "sub" "Bachelor") }}
+    {{- $groups := slice (dict "key" "Paper" "name" "Papers" "url" "phd/papers/" "sub" "Paper") (dict "key" "Master" "name" "Master" "url" "master/" "sub" "Master project") (dict "key" "Bachelor" "name" "Bachelor" "url" "bachelor/" "sub" "Bachelor") }}
     {{- $total := 0 }}{{ range $groups }}{{ $total = add $total (len (where $projects "Params.context" "like" (printf "^%s" .key))) }}{{ end }}
     <section class="hw" aria-labelledby="hw-h">
         <div class="hw-top">

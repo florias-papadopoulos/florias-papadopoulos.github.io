@@ -2,8 +2,9 @@
 {{- /* Before any script or style: what the page may load (layouts/partials/csp.html), and only the origin as referrer
        to other sites */}}
 {{- $csp := partial "csp.html" . }}
-{{- /* the presenter page (/live/admin/) also talks to the audience-mode worker, as in live-head.html */}}
-{{- if eq .Layout "admin" }}{{ with site.Params.liveEndpoint }}{{ with urls.Parse . }}
+{{- /* the presenter page (/live/admin/) and the Signal project (/phd/projects/signal/, its two-phone relay) also talk to
+       the audience-mode worker, as in live-head.html */}}
+{{- if or (eq .Layout "admin") (eq .Layout "signal") }}{{ with site.Params.liveEndpoint }}{{ with urls.Parse . }}
 {{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' %s://%s wss://%s" .Scheme .Host .Host) }}
 {{- end }}{{ end }}{{ end }}
 <meta http-equiv="Content-Security-Policy" content="{{ $csp }}">
@@ -65,11 +66,14 @@
 {{- if not (or .IsHome $lab (eq .Layout "admin")) }}{{ $extra = $extra | append "common/site-nav" }}{{ end }}
 {{- if or (eq .Section "toolbox") (in (slice "timeline" "you" "privacy" "stats") .Layout) (and (eq .Kind "section") (not $lab)) }}{{ $extra = $extra | append "common/timeline" }}{{ end }}
 {{- if eq .Section "toolbox" }}{{ $extra = $extra | append "common/toolbox" }}{{ end }}
+{{- /* the PhD section (/phd/, its Papers and Projects lists, each project's page): the tab styles, and a project page
+       its own file assets/css/phd/<layout>.css */}}
+{{- if eq .Section "phd" }}{{ $extra = $extra | append "common/phd" }}{{ if .IsPage }}{{ $extra = $extra | append "common/timeline" (printf "phd/%s" .Layout) }}{{ end }}{{ end }}
 {{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats" "cv" "common/cv") .Layout }}{{ $extra = $extra | append . }}{{ end }}
 {{- /* in the same order as before the split: the core files, then assets/css/common in alphabetical order of the file
        names (later rules win, e.g. site-nav.css after play.css), then zmedia.css */}}
 {{- $common := slice }}{{ range after 2 ($base | append $extra) }}{{ $common = $common | append (printf "%s.css" .) }}{{ end }}
-{{- $names := slice "core/theme-vars.css" "core/reset.css" | append (sort $common) | append "core/zmedia.css" }}
+{{- $names := slice "core/theme-vars.css" "core/reset.css" | append (sort $common | uniq) | append "core/zmedia.css" }}
 {{- $files := slice }}
 {{- range $names }}{{ with resources.Get (printf "css/%s" .) }}{{ $files = $files | append . }}{{ end }}{{ end }}
 {{- $key := delimit $extra "+" | replaceRE "common/" "" | default "base" }}

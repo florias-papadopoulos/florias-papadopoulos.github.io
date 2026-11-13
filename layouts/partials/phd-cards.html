@@ -1,0 +1,13 @@
+{{- /* The PhD projects as cards (each project is a page of its own under content/phd/projects/<name>/index.md, with
+       title, blurb, preview and weight in its front matter): used by /phd/ and /phd/projects/. Styles: phd.css. */ -}}
+{{- with site.GetPage "/phd/projects" }}
+<ul class="phd-cards">
+    {{- range .Pages.ByWeight }}
+    <li><a class="phd-card" href="{{ .RelPermalink }}">
+        {{- with .Params.preview }}<img src="{{ . | relURL }}" alt="" width="320" height="200" loading="lazy" decoding="async">{{ end }}
+        <span class="phd-card-title">{{ .Title }}</span>
+        {{- with .Params.blurb }}<span class="phd-card-sub">{{ . | markdownify }}</span>{{ end }}
+    </a></li>
+    {{- end }}
+</ul>
+{{- end }}

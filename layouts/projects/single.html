@@ -1,7 +1,7 @@
-{{- /* Projects have no pages of their own: they open in place on the Bachelor, Master or Papers tab
+{{- /* Projects have no pages of their own: they open in place on the Bachelor, Master or Papers tab (Papers: /phd/papers/)
        (layouts/_default/timeline.html). An old project address forwards to its entry there, opened. */ -}}
 {{- $tab := "master/" }}
-{{- if hasPrefix .Params.context "Bachelor" }}{{ $tab = "bachelor/" }}{{ else if hasPrefix .Params.context "Paper" }}{{ $tab = "papers/" }}{{ end }}
+{{- if hasPrefix .Params.context "Bachelor" }}{{ $tab = "bachelor/" }}{{ else if hasPrefix .Params.context "Paper" }}{{ $tab = "phd/papers/" }}{{ end }}
 {{- $to := printf "%s#%s" ($tab | relURL) (.Params.anchor | default (urlize .File.ContentBaseName)) -}}
 <!DOCTYPE html>
 <html lang="{{ site.Language.Lang }}">
