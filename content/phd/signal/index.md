@@ -15,5 +15,4 @@ layout: signal
 - **Late messages.** A message delivered later is skipped by the receiver's gear, which keeps its key (dashed) until the message arrives.
 - **Forward secrecy.** Stolen keys cannot open earlier messages: the chain only runs forward, and the old keys are gone.
 - **Healing.** With one side's keys Eve can follow the chat until that side makes a fresh ratchet key. Its private half was never stolen, so Eve loses the root key and is locked out again.
-- **Two phones.** The relay sees only public keys and ciphertext. The secret in the QR code stays on the phones (the part of a link after `#` is never sent to a server); each phone uses it to authenticate the keys it sends, so the relay cannot slip in its own.
 - **Close to the specification.** Messages use AES-256-GCM with key and nonce from HKDF; the identity key signs with a separate Ed25519 key instead of XEdDSA. Everything else follows [X3DH](https://signal.org/docs/specifications/x3dh/) and [the Double Ratchet](https://signal.org/docs/specifications/doubleratchet/).
