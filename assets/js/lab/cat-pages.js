@@ -22,10 +22,11 @@
     function rel(el) { return api.rel(el); }
     function rnd(a, b) { return a + Math.random() * (b - a); }
 
-    /* the parts of opened entries in view, in layer coordinates */
+    /* the parts of opened entries in view, in layer coordinates (and the players of Simple Crypto, so the cat never
+       sits on a story: the page sends tl-change when one starts) */
     function openRects() {
         var out = [];
-        Array.prototype.forEach.call(document.querySelectorAll('.tl-entry.open .tl-more'), function (m) {
+        Array.prototype.forEach.call(document.querySelectorAll('.tl-entry.open .tl-more, .sc-player'), function (m) {
             if (!m.hidden) out.push(rel(m));
         });
         return out;
