@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 5: the chain view. Tapping a gear (or a key) shows that KDF chain as a ladder with
+/* Signal's Double Ratchet, part 5: the chain view. Tapping a gear (or a key) shows that KDF chain as a ladder with
    the real values, as in the figures of the Double Ratchet specification: a key goes into a KDF box, the next chain
    key comes out below and a message key (or, for the root chain, a new sending or receiving chain key) to the side;
    into the root chain's KDF a DH output comes in from the side. Keys that are already deleted are shown quiet, as

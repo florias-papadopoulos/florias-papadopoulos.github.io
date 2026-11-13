@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 4: the ratchets as gears. Each person has a machine: one big toothed gear for the DH
+/* Signal's Double Ratchet, part 4: the ratchets as gears. Each person has a machine: one big toothed gear for the DH
    ratchet (the root chain, amber) and two small ones for the symmetric ratchets (the sending and the receiving
    chain), each held by a pawl so it turns one way only. A small gear has the colour of the person whose messages its
    chain encrypts: Alice's sending gear and Bob's receiving gear are the same chain, the same colour, and click the same

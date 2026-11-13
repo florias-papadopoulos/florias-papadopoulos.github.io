@@ -1,4 +1,4 @@
-# Signal in two browsers (/phd/signal/)
+# Signal's Double Ratchet (/phd/signal/)
 
 The Signal protocol (X3DH, then the Double Ratchet, as in signal.org/docs) with real keys in the visitor's browser.
 Page: `content/phd/signal/index.md` (its text is the "What is happening" part), layout `layouts/phd/signal.html`,

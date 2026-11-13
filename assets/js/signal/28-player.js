@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 7: the player. Every step of the protocol is queued with a one line caption and
+/* Signal's Double Ratchet, part 7: the player. Every step of the protocol is queued with a one line caption and
    played one after the other: by itself at the chosen speed (chat mode), or one step per click on "Next" (step by
    step mode). Also the flying key: a message key moving from its column to the message it encrypts. With
    prefers-reduced-motion the steps are quick and nothing flies. */

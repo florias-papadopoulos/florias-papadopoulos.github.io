@@ -1,4 +1,4 @@
-/* Signal in two browsers (/phd/signal/, README.md in this folder), part 1: the primitives, all from the
+/* Signal's Double Ratchet (/phd/signal/, README.md in this folder), part 1: the primitives, all from the
    browser's WebCrypto: X25519 (Diffie-Hellman), Ed25519 (signatures), HKDF and HMAC with SHA-256, AES-256-GCM.
    A browser whose WebCrypto has no X25519 (or gets the RFC 7748 test vector wrong) uses the small X25519 written
    below in plain JavaScript instead; one without Ed25519 signs with ECDSA P-256. SG.ready says which is in use. */

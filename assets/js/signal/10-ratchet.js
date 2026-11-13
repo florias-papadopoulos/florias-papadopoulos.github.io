@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 2: the protocol, as in Signal's public specifications (signal.org/docs):
+/* Signal's Double Ratchet, part 2: the protocol, as in Signal's public specifications (signal.org/docs):
    X3DH (the key agreement) and the Double Ratchet (the messages), plus Eve, the eavesdropper who steals one side's
    keys. Differences from the specs, all small: the identity key signs with its own Ed25519 key instead of XEdDSA,
    public keys are encoded raw (no type byte), and messages use AES-256-GCM (an AEAD, which the spec allows) with key

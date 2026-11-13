@@ -1,6 +1,6 @@
 ---
 aliases: [/phd/projects/signal/]
-title: "Signal in two browsers"
+title: "Signal's Double Ratchet"
 blurb: "Watch the Signal ratchet turn, steal a key, and see the session heal."
 lede: "The Signal protocol running in your browser with real keys: watch the ratchet turn, steal a key, and see the session heal."
 preview: "img/phd/signal.svg"

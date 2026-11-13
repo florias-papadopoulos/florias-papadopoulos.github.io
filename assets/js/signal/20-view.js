@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 3: drawing. One card per person (name, chat, the box to write in, a slot for the
+/* Signal's Double Ratchet, part 3: drawing. One card per person (name, chat, the box to write in, a slot for the
    gears) and the list of what travels on the wire. Every key on the page is the same chip: the first 6 hex digits in
    monospace, the whole value in its title (SG.hexCode). Each person has one colour, used for the bubbles they write,
    the keys of their sending chain (a1, a2 ... Alice; b1, b2 ... Bob) and their rows on the wire. Used by

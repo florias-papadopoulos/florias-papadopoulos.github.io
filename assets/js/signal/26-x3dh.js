@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 6: the X3DH picture. Alice's keys on the left, Bob's published keys on the right, and
+/* Signal's Double Ratchet, part 6: the X3DH picture. Alice's keys on the left, Bob's published keys on the right, and
    in the middle the four DH computations, each drawn as two lines from the keys it combines, all feeding one KDF
    that makes the first root key. Also the lines layer used across the page (SG.Lines): soft curves between two
    elements, measured from the page and placed again when anything moves. */

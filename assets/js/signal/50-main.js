@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 9: the start. A bar with the player's controls (filled by 30-local.js) and "Start
+/* Signal's Double Ratchet, part 9: the start. A bar with the player's controls (filled by 30-local.js) and "Start
    again", then the demo. Without WebCrypto the page says so in one line. */
 (function (SG) {
     'use strict';

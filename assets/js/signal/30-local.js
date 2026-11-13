@@ -1,4 +1,4 @@
-/* Signal in two browsers, part 8: one device. Alice and Bob side by side in this tab, each with a machine of
+/* Signal's Double Ratchet, part 8: one device. Alice and Bob side by side in this tab, each with a machine of
    ratchet gears (22-gears.js), Eve under them reading the wire. The visitor watches the X3DH picture make the first
    root key, then chats: every KDF step turns a gear by one tooth, drops a numbered message key that flies to its
    message and is shredded; the receiver's gear turns the same tooth and gets the same key. A change of direction

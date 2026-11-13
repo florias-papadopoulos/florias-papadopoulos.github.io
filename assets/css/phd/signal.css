@@ -1,4 +1,4 @@
-/* "Signal in two browsers" (layouts/phd/signal.html, assets/js/signal/): the X3DH picture, then Alice and Bob side
+/* "Signal's Double Ratchet" (layouts/phd/signal.html, assets/js/signal/): the X3DH picture, then Alice and Bob side
    by side (stacked on phones), each with a machine of ratchet gears (22-gears.js), the chain view (24-chain.js), and
    the network with Eve. One small palette, used the same way everywhere:
      Alice blue, Bob violet: the bubbles they write, the keys of their sending chains (a1 ... and b1 ...), the small
