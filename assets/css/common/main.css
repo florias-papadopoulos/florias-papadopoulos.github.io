@@ -85,5 +85,5 @@ pre:hover .copy-code {
 
 /* "work in progress": a 🚧 after the title of a page not yet approved by the owner (front matter wip: true;
    layouts/partials/wip.html for lists, data-wip on <html> for the page's own title) */
-.wip { font-weight: 400; font-size: 0.9em; margin-left: 0.2em; }
-html[data-wip] .tl-h1-text::after, html[data-wip] .tl-h1:not(:has(.tl-h1-text))::after { content: "\1F6A7"; margin-left: 0.3em; font-size: 0.8em; font-weight: 400; vertical-align: 0.05em; }
+.wip { font-weight: 400; font-size: 0.9em; white-space: nowrap; }
+html[data-wip] .tl-h1-text::after, html[data-wip] .tl-h1:not(:has(.tl-h1-text))::after { content: "\00A0\1F6A7"; font-size: 0.8em; font-weight: 400; vertical-align: 0.05em; }
