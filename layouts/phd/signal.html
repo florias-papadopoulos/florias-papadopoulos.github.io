@@ -21,7 +21,7 @@
     <p class="sg-privacy">Nothing is kept: the keys live only in this browser tab. With two phones, the relay only passes public keys and ciphertext along and forgets the room when you leave.</p>
 </div>
 {{- $files := slice }}
-{{- range slice "live/vendor/qrcode-generator.js" "live/20-qr.js" "signal/00-crypto.js" "signal/10-ratchet.js" "signal/20-view.js" "signal/30-local.js" "signal/40-pair.js" "signal/50-main.js" }}{{ $files = $files | append (resources.Get (printf "js/%s" .)) }}{{ end }}
+{{- range slice "live/vendor/qrcode-generator.js" "live/20-qr.js" "signal/00-crypto.js" "signal/10-ratchet.js" "signal/20-view.js" "signal/22-gears.js" "signal/24-chain.js" "signal/26-x3dh.js" "signal/28-player.js" "signal/30-local.js" "signal/40-pair.js" "signal/50-main.js" }}{{ $files = $files | append (resources.Get (printf "js/%s" .)) }}{{ end }}
 {{- $js := $files | resources.Concat "js/signal.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{- end }}
