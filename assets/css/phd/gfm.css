@@ -61,6 +61,18 @@
 .gfm-counts { margin: 0 0 6px; color: var(--tl-text); font-size: 14px; line-height: 1.45; }
 .gfm-chart { display: block; width: 100%; height: auto; overflow: visible; }
 .gfm-row { display: flex; gap: 8px; margin-top: 8px; }
+/* "Best for": what r* minimises; its formula under the chart */
+.gfm-goal { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 8px; }
+.gfm-goal .gfm-btn { padding: 4px 8px; font-size: 13.5px; }
+.gfm-goal-f { margin: 4px 0 0; min-height: 4.4em; color: var(--tl-text); font-size: 13.5px; line-height: 1.5; }
+.gc-bestg.is-ready { transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.3, 1); }
+.gc-ping { fill: none; stroke: var(--tl-navy); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.gc-ping.is-on { animation: gc-ping 1.1s ease-out 0.5s; }
+@keyframes gc-ping { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(4); } }
+@media (prefers-reduced-motion: reduce) {
+    .gc-bestg.is-ready { transition: none; }
+    .gc-ping.is-on { animation: none; }
+}
 
 /* the map's pieces */
 .gm-ground { fill: var(--gfm-ground); }
@@ -151,7 +163,7 @@
     .gfm-bar-sep { display: none; }
 }
 @media (pointer: coarse) {
-    .gfm-btn { padding: 8px 12px; font-size: 16px; }
+    .gfm-btn, .gfm-goal .gfm-btn { padding: 8px 12px; font-size: 16px; }
 }
 
 /* ---------- dark mode (palette: color-scheme.css) ---------- */

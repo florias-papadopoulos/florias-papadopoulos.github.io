@@ -125,27 +125,45 @@ var GFM = (function () {
        2 floor(log2(2 delta + 1)) padded strings per box and axis into her OKVS (GetList), plus the L residual points
        (GetList_res); Bob makes J_S = prod_i (floor(log2(2 delta_max,i + 1)) + 1) string vectors (SndStrings), does d
        lookups for each of them in every box (GetTuples), and Alice checks the K * J_S answers. These are the terms of
-       the paper's complexity theorem: 2dK log delta + K (log delta)^d + L for Alice and dK (log delta)^d for Bob. */
+       the paper's complexity theorem: 2dK log delta + K (log delta)^d + L for Alice and dK (log delta)^d for Bob.
+       The message size follows the protocol figure: msg1 holds the OKVS of Alice's strings and E_res of her residual
+       points, one pair (h, h^r) of group elements per entry (2 lambda bits); msg2 holds K * J_S + 1 pairs (u, v), a
+       group element and a hash of kappa' = kappa + log K + d log log delta_max bits (the correctness theorem). The
+       paper fixes neither lambda nor kappa: here lambda = 256, kappa = 40. Constant terms (the one residual lookup,
+       R_info, the OKVS expansion factor) are left out. */
+    var LAMBDA = 256, KAPPA = 40;
+    function ceilLog2(x) { return x <= 1 ? 0 : Math.ceil(Math.log2(x)); }
     function cost(part) {
-        var d = 2, alice = 0, wmx = 1, wmy = 1;
+        var d = 2, strs = 0, wmx = 1, wmy = 1;
         part.rects.forEach(function (h) {
             var wx = h.x1 - h.x0 + 1, wy = h.y1 - h.y0 + 1;
-            alice += Math.max(1, 2 * log2floor(wx)) + Math.max(1, 2 * log2floor(wy));
+            strs += Math.max(1, 2 * log2floor(wx)) + Math.max(1, 2 * log2floor(wy));
             if (wx > wmx) wmx = wx;
             if (wy > wmy) wmy = wy;
         });
         var JS = (log2floor(wmx) + 1) * (log2floor(wmy) + 1);
         var answers = part.K * JS;
-        return { total: alice + part.L + answers + d * answers, alice: alice + part.L + answers, bob: d * answers, JS: JS, wmax: [wmx, wmy] };
+        var dmax = (Math.max(wmx, wmy) - 1) / 2;
+        var kp = KAPPA + ceilLog2(part.K) + d * ceilLog2(Math.max(1, Math.log2(Math.max(dmax, 1))));
+        var alice = strs + part.L + answers, bob = d * answers;
+        return {
+            total: alice + bob, alice: alice, bob: bob, bits: 2 * LAMBDA * (strs + part.L) + (LAMBDA + kp) * answers,
+            strs: strs, JS: JS, kappa: kp, wmax: [wmx, wmy]
+        };
     }
+    /* what each "Best for" choice minimises (the page's chart and r*) */
+    var GOALS = ['total', 'alice', 'bob', 'bits'];
     var RMAX = 32;
     function sweep(m) {
-        var S = sums(m), list = [], best = 1;
+        var S = sums(m), list = [], best = {};
         for (var r = 1; r <= RMAX; r++) {
             var p = partition(m, r, S), c = cost(p);
-            list.push({ r: r, K: p.K, L: p.L, cost: c.total });
-            if (c.total < list[best - 1].cost) best = r;
+            list.push({ r: r, K: p.K, L: p.L, total: c.total, alice: c.alice, bob: c.bob, bits: c.bits });
         }
+        GOALS.forEach(function (g) {
+            best[g] = 1;
+            list.forEach(function (e) { if (e[g] < list[best[g] - 1][g]) best[g] = e.r; });
+        });
         return { list: list, best: best, S: S };
     }
 
@@ -181,7 +199,7 @@ var GFM = (function () {
     }
 
     return {
-        N: N, BITS: BITS, RMAX: RMAX, mask: mask, bbox: bbox, sums: sums, partition: partition, cost: cost, sweep: sweep,
+        N: N, BITS: BITS, RMAX: RMAX, mask: mask, bbox: bbox, sums: sums, partition: partition, cost: cost, sweep: sweep, GOALS: GOALS, LAMBDA: LAMBDA, KAPPA: KAPPA,
         recStrings: recStrings, sndStrings: sndStrings, bits: bits, locate: locate, inPoly: inPoly, log2floor: log2floor
     };
 })();

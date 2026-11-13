@@ -1,5 +1,5 @@
-/* The side of /phd/projects/gfm/: the cost chart (one line, Cost(r), with r* and the chosen r marked; hover for the
-   value, tap to choose), the counts, the answer per view, and the DASA strings of the rectangle that holds Bob. */
+/* The side of /phd/projects/gfm/: the cost chart (one line, the chosen cost per r, with r* and the chosen r marked;
+   r* glides to its new place when the choice changes; hover for the value, tap to choose), the counts, the answer per view, and the DASA strings of the rectangle that holds Bob. */
 (function (G) {
     'use strict';
     var el = G.el;
@@ -14,12 +14,15 @@
 
     /* svg: the chart; onPick(r) when a resolution is tapped */
     G.chart = function (svg, onPick) {
-        var data = [], top = 1, best = 1, cur = 1, ymax = 1;
+        var data = [], top = 1, best = 0, cur = 1, ymax = 1, vf = fmt;
         var gAxis = el('g', { 'class': 'gc-axis' }, svg);
         var line = el('path', { 'class': 'gc-line' }, svg);
         var curLine = el('path', { 'class': 'gc-cur' }, svg);
-        var bestDot = el('circle', { r: 4, 'class': 'gc-best' }, svg);
-        var bestLab = el('text', { 'class': 'gc-lab', 'text-anchor': 'middle' }, svg);
+        /* r*: a group moved by a CSS transform, so a change of choice is seen as a move */
+        var gBest = el('g', { 'class': 'gc-bestg' }, svg);
+        var ping = el('circle', { r: 4, 'class': 'gc-ping' }, gBest);
+        el('circle', { r: 4, 'class': 'gc-best' }, gBest);
+        var bestLab = el('text', { 'class': 'gc-lab', 'text-anchor': 'middle' }, gBest);
         var curDot = el('circle', { r: 4, 'class': 'gc-curdot' }, svg);
         var tip = el('text', { x: W - MR, y: MT - 1, 'class': 'gc-tip', 'text-anchor': 'end' }, svg);
         var hit = el('rect', { x: ML - 6, y: 0, width: W - ML - MR + 12, height: H, 'class': 'gc-hit' }, svg);
@@ -32,7 +35,7 @@
         }
         function say(r) {
             var d = data[r - 1];
-            tip.textContent = d ? 'r = ' + r + ': cost ' + fmt(d.cost) : '';
+            tip.textContent = d ? 'r = ' + r + ': ' + vf(d.cost) : '';
         }
         hit.addEventListener('pointermove', function (e) { say(rAt(e)); });
         hit.addEventListener('pointerleave', function () { say(cur); });
@@ -43,7 +46,7 @@
             el('path', { d: 'M' + ML + ' ' + Y(ymax) + 'H' + (W - MR) + 'M' + ML + ' ' + Y(ymax / 2) + 'H' + (W - MR), 'class': 'gc-grid' }, gAxis);
             [[0, Y(0)], [ymax / 2, Y(ymax / 2)], [ymax, Y(ymax)]].forEach(function (t) {
                 var tx = el('text', { x: ML - 6, y: t[1] + 4, 'class': 'gc-tick', 'text-anchor': 'end' }, gAxis);
-                tx.textContent = fmt(t[0]);
+                tx.textContent = vf(t[0]);
             });
             var step = top > 20 ? 5 : top > 10 ? 2 : 1, ticks = [1];
             for (var r = step; r <= top; r += step) if (r - 1 >= step * 0.6) ticks.push(r);
@@ -55,15 +58,24 @@
             lab.textContent = 'r';
         }
         return {
-            set: function (list, rTop, rBest) {
-                data = list.slice(0, rTop); top = rTop; best = rBest;
+            /* list: [{r, cost}], the value to show per resolution; format: how to write a value */
+            set: function (list, rTop, rBest, format) {
+                data = list.slice(0, rTop); top = rTop; vf = format || fmt;
                 ymax = niceMax(Math.max.apply(null, data.map(function (d) { return d.cost; })));
                 axis();
                 line.setAttribute('d', 'M' + data.map(function (d) { return X(d.r).toFixed(1) + ' ' + Y(d.cost).toFixed(1); }).join('L'));
-                bestDot.setAttribute('cx', X(best)); bestDot.setAttribute('cy', Y(data[best - 1].cost));
-                bestLab.setAttribute('x', Math.min(W - MR - 20, Math.max(ML + 20, X(best))));
-                bestLab.setAttribute('y', Y(data[best - 1].cost) + 16);
-                bestLab.textContent = 'r* = ' + best;
+                var bx = X(rBest), by = Y(data[rBest - 1].cost);
+                gBest.style.transform = 'translate(' + bx.toFixed(1) + 'px,' + by.toFixed(1) + 'px)';
+                bestLab.setAttribute('x', (Math.min(W - MR - 20, Math.max(ML + 20, bx)) - bx).toFixed(1));
+                bestLab.textContent = 'r* = ' + rBest;
+                bestLab.setAttribute('y', by > H - MB - 22 ? -9 : 16);     /* above the dot when it sits low */
+                if (best && rBest !== best) {           /* r* moved: a ring once around its new place */
+                    ping.classList.remove('is-on');
+                    void ping.getBBox();
+                    ping.classList.add('is-on');
+                }
+                if (!best) gBest.classList.add('is-ready');
+                best = rBest;
             },
             cur: function (r) {
                 cur = r;

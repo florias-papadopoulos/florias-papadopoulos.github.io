@@ -9,13 +9,37 @@
     var app = $('gfm-app'), svg = $('gfm-map'), slider = $('gfm-r'), rOut = $('gfm-r-out'), stepEl = $('gfm-step');
     app.hidden = false;
     var N = G.N;
-    var S = { region: null, m: null, sw: null, top: G.RMAX, r: 1, part: null, bob: { x: G.bobStart.x, y: G.bobStart.y },
+    var S = { goal: 'total', region: null, m: null, sw: null, top: G.RMAX, r: 1, part: null, bob: { x: G.bobStart.x, y: G.bobStart.y },
         view: 'god', tool: null, p: 2, draft: null, boxes: [], hit: null };
     var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     G.layers(svg);
     svg.setAttribute('tabindex', '0');
     var chart = G.chart($('gfm-chart'), function (r) { setR(r); });
+
+    /* "Best for": what r* minimises, each read off the paper's complexity theorem and protocol figure (Section 4;
+       the sums are in G.cost, 10-core.js). Message size is shown in kB. */
+    var SUM = '&Sigma;2&lfloor;log<sub>2</sub>(2<var>&delta;</var>+1)&rfloor;', LR = '<var>L<sub>r</sub></var>', NJ = '<var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var>';
+    function kB(v) { return v ? (Math.round(v * 10) / 10) + ' kB' : '0'; }
+    var GOALS = {
+        total: { name: 'Cost(r)', scale: 1, fmt: G.fmt,
+            f: 'Cost = ' + SUM + ' + ' + LR + ' + (<var>d</var>+1)&middot;' + NJ + ': all that both sides compute (the complexity theorem).' },
+        alice: { name: 'Alice\u2019s work', scale: 1, fmt: G.fmt,
+            f: 'Alice = ' + SUM + ' + ' + LR + ' + ' + NJ + ': her OKVS entries for the rectangles and the residual points, and one check per answer (the theorem\u2019s receiver bound).' },
+        bob: { name: 'Bob\u2019s work', scale: 1, fmt: G.fmt,
+            f: 'Bob = <var>d</var>&middot;' + NJ + ': <var>d</var> lookups per string vector in every rectangle (the sender bound). Residual points cost him one lookup in all, so he would rather have no rectangles.' },
+        bits: { name: 'Message size', scale: 8000, fmt: kB,
+            f: 'Size = 2<var>&lambda;</var>(' + SUM + ' + ' + LR + ') + (<var>&lambda;</var>+<var>&kappa;&prime;</var>)&middot;' + NJ + ' bits: Alice\u2019s pairs of group elements, Bob\u2019s answers. The theorem leaves out ' + LR + ', the protocol figure sends it; <var>&lambda;</var> = 256 and <var>&kappa;</var> = 40 are chosen here, the paper fixes neither.' }
+    };
+    function best() { return S.sw.best[S.goal]; }
+    function drawChart() {
+        var g = GOALS[S.goal];
+        chart.set(S.sw.list.map(function (e) { return { r: e.r, cost: e[S.goal] / g.scale }; }), S.top, best(), g.fmt);
+        $('gfm-goal-f').innerHTML = g.f;
+        Array.prototype.forEach.call(document.querySelectorAll('[data-goal]'), function (b) {
+            b.setAttribute('aria-pressed', String(b.getAttribute('data-goal') === S.goal));
+        });
+    }
 
     /* ---------- the stages of the Partitioner ---------- */
     var timer = null;
@@ -63,9 +87,9 @@
         S.top = G.RMAX;
         for (var i = 0; i < S.sw.list.length; i++) if (S.sw.list[i].K === 0) { S.top = Math.max(4, i + 1); break; }
         slider.max = S.top;
-        chart.set(S.sw.list, S.top, S.sw.best);
+        drawChart();
         G.drawRegion(rg, S.m);
-        S.r = S.sw.best;
+        S.r = best();
         compute();
         if (animate) play(); else finalView();
         syncBar();
@@ -87,8 +111,9 @@
             counts.appendChild(document.createTextNode(' = ' + G.fmt(x[1]) + ' ' + x[2]));
             counts.appendChild(document.createElement('br'));
         });
-        counts.appendChild(document.createTextNode('Cost(r) = ' + G.fmt(c.total)));
-        $('gfm-best').disabled = S.r === S.sw.best;
+        var g = GOALS[S.goal];
+        counts.appendChild(document.createTextNode(g.name + ' = ' + g.fmt(c[S.goal] / g.scale)));
+        $('gfm-best').disabled = S.r === best();
         moveBob(S.bob.x, S.bob.y);
     }
     function setR(r) {
@@ -237,7 +262,8 @@
             } else syncBar();
         }
         else if (b.id === 'gfm-done') { if (S.tool === 'poly') closePoly(); else finish(S.boxes.length ? { kind: 'boxes', boxes: S.boxes.slice() } : null); }
-        else if (b.id === 'gfm-best') setR(S.sw.best);
+        else if (b.id === 'gfm-best') setR(best());
+        else if (b.hasAttribute('data-goal')) { S.goal = b.getAttribute('data-goal'); drawChart(); setR(best()); compute(); }
         else if (b.id === 'gfm-replay') { if (S.tool) finish(null); play(); }
     });
     slider.addEventListener('input', function () { setR(+slider.value); });

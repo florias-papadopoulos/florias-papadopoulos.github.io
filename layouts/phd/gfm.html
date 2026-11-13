@@ -52,7 +52,15 @@
                     <label class="gfm-r-label" for="gfm-r">Resolution <var>r</var> = <output id="gfm-r-out">1</output></label>
                     <input type="range" id="gfm-r" min="1" max="32" step="1" value="1">
                     <p class="gfm-counts" id="gfm-counts"></p>
+                    <div class="gfm-goal" role="group" aria-label="Best for">
+                        <span class="gfm-bar-label">Best for:</span>
+                        <button type="button" class="gfm-btn" data-goal="total">Balanced</button>
+                        <button type="button" class="gfm-btn" data-goal="alice">Alice&rsquo;s work</button>
+                        <button type="button" class="gfm-btn" data-goal="bob">Bob&rsquo;s work</button>
+                        <button type="button" class="gfm-btn" data-goal="bits">Message size</button>
+                    </div>
                     <svg class="gfm-chart" id="gfm-chart" viewBox="0 0 300 120" role="img" aria-label="Cost for each resolution"></svg>
+                    <p class="gfm-goal-f" id="gfm-goal-f" aria-live="polite"></p>
                     <div class="gfm-row">
                         <button type="button" class="gfm-btn" id="gfm-best">Best r</button>
                         <button type="button" class="gfm-btn" id="gfm-replay">Show the steps</button>
@@ -70,7 +78,7 @@
                 <li><strong>Cost</strong> (Section 4). Each rectangle becomes its own small ℓ<sub>∞</sub> test, which costs Bob work for every one of them; a residual point costs Alice one entry. Counting the protocol's steps:
                     <span class="gfm-formula">Cost(<var>r</var>) = &Sigma;<sub><var>k</var>,<var>i</var></sub> 2&lfloor;log<sub>2</sub>(2<var>&delta;</var><sub><var>k</var>,<var>i</var></sub>+1)&rfloor; + <var>L<sub>r</sub></var> + (<var>d</var>+1)&middot;<var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var>,
                     &nbsp; <var>J<sub>S</sub></var> = &Pi;<sub><var>i</var></sub>(&lfloor;log<sub>2</sub>(2<var>&delta;</var><sub>max,<var>i</var></sub>+1)&rfloor;+1)</span>
-                    that is, Alice's padded strings per rectangle side, her residual points, and the <var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var> answers Bob computes (<var>d</var> = 2 lookups each) and Alice checks: the terms of the paper's complexity theorem. <var>r</var>* is the <var>r</var> with the smallest cost.</li>
+                    that is, Alice's padded strings per rectangle side, her residual points, and the <var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var> answers Bob computes (<var>d</var> = 2 lookups each) and Alice checks: the terms of the paper's complexity theorem. <var>r</var>* is the <var>r</var> with the smallest cost. The paper gives no explicit formula for the cost; &ldquo;Best for&rdquo; lets you minimise both sides&rsquo; work (this one), one side&rsquo;s, or the bytes sent, each read off the same theorem and protocol figure.</li>
                 <li><strong>DASA</strong> (Section 2). Along each axis a rectangle is an interval of 7-bit numbers. Alice writes it as the few prefixes whose subtrees fit wholly inside (the rest of the bits are wildcards <code>*</code>). Bob writes his coordinate with 0, 1, 2, &hellip; of its last bits as wildcards, as many as the widest rectangle needs. He is inside a rectangle exactly when one of his strings equals one of Alice's, in <var>x</var> and in <var>y</var>. A residual point is matched as a whole.</li>
                 <li><strong>Who learns what.</strong> Alice learns one bit: inside or not (the answers come shuffled, so not even which rectangle). Bob learns the rectangle sizes he needs for his strings, not where they are, and no answer.</li>
             </ol>

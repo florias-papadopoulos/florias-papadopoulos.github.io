@@ -59,9 +59,26 @@ regions.forEach(function (rg, ri) {
             ok((h.x1 - h.x0 + 1) % r === 0 && (h.y1 - h.y0 + 1) % r === 0, tag + ': rectangle not made of whole cells');
         });
         ok(p.K === p.rects.length && p.L === p.res.length, tag + ': counts');
-        ok(G.cost(p).total >= 0, tag + ': cost');
+        var c = G.cost(p);
+        ok(c.total === c.alice + c.bob, tag + ': balanced is Alice plus Bob');
+        ok((c.bob === 0) === (p.K === 0), tag + ': Bob works only for rectangles');
+        ok(c.bits >= 2 * G.LAMBDA * (p.L + p.K), tag + ': message holds at least one pair per entry');
     }
+    /* each "Best for" choice: r* is the first resolution with the smallest value */
+    var sw = G.sweep(m);
+    G.GOALS.forEach(function (g) {
+        var b = sw.best[g], v = sw.list[b - 1][g];
+        sw.list.forEach(function (e) { ok(e[g] > v || (e[g] === v && e.r >= b), 'region ' + ri + ' ' + g + ': r* not the first minimum'); });
+    });
 });
+
+/* one rectangle of 8 x 8 points at r = 1, by hand: 2 floor(log2 8) = 6 strings per axis, J_S = 4 * 4 = 16,
+   kappa' = 40 + 0 + 2 ceil(log2(log2 3.5)) = 42 */
+(function () {
+    var c = G.cost(G.partition(G.mask({ kind: 'boxes', boxes: [{ x0: 0, y0: 0, x1: 7, y1: 7 }] }), 1));
+    ok(c.alice === 12 + 16 && c.bob === 32 && c.total === 60, 'hand example: work');
+    ok(c.kappa === 42 && c.bits === 512 * 12 + (256 + 42) * 16, 'hand example: message bits ' + c.bits);
+})();
 
 /* DASA */
 function isPrefixOf(str, v) {           /* does the string with * bits match the 7-bit value v */
