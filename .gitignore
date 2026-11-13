@@ -5,12 +5,9 @@ resources/
 .preview/
 tools/out-key/
 
-# the original PowerPoints (with their animations), kept here only; the site has PDFs of them
-_slides-pptx/
+# kept on this computer only (__NotOnline/README.md): the original PowerPoints, the removed dark mode
+/__NotOnline/
 
 # Claude Code session files and agent worktrees
 .claude/
 
-
-# dark mode, removed on 2026-11-13: its old rules kept locally for reference, never committed
-/darkmode/
