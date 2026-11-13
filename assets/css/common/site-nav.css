@@ -39,6 +39,7 @@ html:not([data-mode="play"]) .site-nav { display: flex; }
 .sn-group[data-g="Bachelor"], html:has(.sn-group[data-g="Bachelor"] > .pn-tab[aria-current]) { --aura: #0f766e; --aura-glow: rgba(13, 148, 136, 0.13); }
 .sn-group[data-g="Master"], html:has(.sn-group[data-g="Master"] > .pn-tab[aria-current]) { --aura: #6d28d9; --aura-glow: rgba(124, 58, 237, 0.11); }
 .sn-group[data-g="Paper"], html:has(.sn-group[data-g="Paper"] > .pn-tab[aria-current]) { --aura: #b45309; --aura-glow: rgba(217, 119, 6, 0.13); }
+.sn-group[data-g="Teaching"], html:has(.sn-group[data-g="Teaching"] > .pn-tab[aria-current]) { --aura: #be123c; --aura-glow: rgba(225, 29, 72, 0.11); }
 .sn-group > .pn-tab svg { color: var(--aura); }
 .site-nav .sn-group > .pn-tab[aria-current="page"] { color: var(--aura); border-left-color: var(--aura); }
 .sn-group .sn-list { border-left-color: var(--aura-glow); }
@@ -53,6 +54,7 @@ body:has(.sn-group > .pn-tab[aria-current]) { background-image: radial-gradient(
     .sn-group[data-g="Bachelor"], html:has(.sn-group[data-g="Bachelor"] > .pn-tab[aria-current]) { --aura: #5eead4; --aura-glow: rgba(45, 212, 191, 0.12); }
     .sn-group[data-g="Master"], html:has(.sn-group[data-g="Master"] > .pn-tab[aria-current]) { --aura: #c4b5fd; --aura-glow: rgba(167, 139, 250, 0.13); }
     .sn-group[data-g="Paper"], html:has(.sn-group[data-g="Paper"] > .pn-tab[aria-current]) { --aura: #fbbf24; --aura-glow: rgba(251, 191, 36, 0.11); }
+    .sn-group[data-g="Teaching"], html:has(.sn-group[data-g="Teaching"] > .pn-tab[aria-current]) { --aura: #fda4af; --aura-glow: rgba(251, 113, 133, 0.12); }
 }
 
 /* ---------- calm dots behind the page, like the home page and the lab: in the colour of the page's kind (Bachelor teal,

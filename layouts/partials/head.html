@@ -69,6 +69,8 @@
 {{- /* the PhD section (/phd/, its Papers and Projects lists, each project's page): the tab styles, and a project page
        its own file assets/css/phd/<layout>.css */}}
 {{- if eq .Section "phd" }}{{ $extra = $extra | append "common/phd" }}{{ if .IsPage }}{{ $extra = $extra | append "common/timeline" (printf "phd/%s" .Layout) }}{{ end }}{{ end }}
+{{- /* Teaching (/teaching/: the cat's animated stories): the tab styles and assets/css/common/teaching.css */}}
+{{- if eq .Section "teaching" }}{{ $extra = $extra | append "common/timeline" "common/teaching" }}{{ end }}
 {{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats" "cv" "common/cv") .Layout }}{{ $extra = $extra | append . }}{{ end }}
 {{- /* in the same order as before the split: the core files, then assets/css/common in alphabetical order of the file
        names (later rules win, e.g. site-nav.css after play.css), then zmedia.css */}}
