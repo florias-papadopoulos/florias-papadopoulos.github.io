@@ -18,11 +18,6 @@ class_name = "Session"
 name = "PLANS"
 class_name = "Plans"
 
-# One Relay object per room of the Signal demo (/phd/projects/signal/, two phones): forwards, stores nothing.
-[[durable_objects.bindings]]
-name = "RELAY"
-class_name = "Relay"
-
 # SQLite-backed Durable Objects: the kind the Workers Free plan allows. Never edit an applied migration; add a new
 # [[migrations]] block with a new tag instead.
 [[migrations]]
@@ -32,6 +27,11 @@ new_sqlite_classes = ["Session", "Plans"]
 [[migrations]]
 tag = "v2"
 new_sqlite_classes = ["Relay"]
+
+# The Signal demo's relay (v2) removed on 2026-11-13: its class and whatever it held are deleted on the next deploy.
+[[migrations]]
+tag = "v3"
+deleted_classes = ["Relay"]
 
 # No request logs (they would hold the audience's IP addresses), as with the visit counter.
 [observability]
