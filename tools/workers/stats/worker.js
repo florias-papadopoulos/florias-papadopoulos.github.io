@@ -55,7 +55,7 @@ const MIN = 3;    // /stats groups pages, referrers, countries... with fewer vie
 const RANGES = [7, 30, 90];
 /* The site's pages. Anything else that is sent (a page added later, or made up) is counted as "(other)", so nobody can
    put words on the /stats/ page. Add new pages here. */
-const PAGES = ['/', '/bachelor/', '/master/', '/papers/', '/phd/', '/phd/papers/', '/phd/projects/', '/phd/projects/satellites/', '/phd/projects/signal/', '/phd/projects/gfm/', '/simple-crypto/', '/games/', '/projects/', '/you/', '/stats/', '/privacy/', '/404/'];
+const PAGES = ['/', '/bachelor/', '/master/', '/papers/', '/phd/', '/phd/satellites/', '/phd/signal/', '/phd/gfm/', '/simple-crypto/', '/games/', '/projects/', '/you/', '/stats/', '/privacy/', '/404/'];
 const MAX_REFS = 50;      // distinct referring sites a day; later new ones are counted as "(other site)"
 const DAY_CAP = 5000;     // page views counted a day; past it nothing is written, so fake hits cannot use up the database quota
 const MAX_BODY = 1000;    // bytes; a real /hit body is under 100

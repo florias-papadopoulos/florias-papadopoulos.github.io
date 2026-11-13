@@ -79,7 +79,7 @@ params:
           - label: PhD, Cybersecurity & Applied Cryptography lab (Prof. Katerina Mitrokotsa)
             projects: Paper
             noun: paper
-            url: /phd/papers/
+            url: /papers/
     # The "Latest" feed on the home page, under the route card: news and LinkedIn posts in one list, newest first
     # (shown in the order written here, so add new entries at the top). On desktop about three rows show and the
     # list scrolls for the rest; phones show every row. Each entry:

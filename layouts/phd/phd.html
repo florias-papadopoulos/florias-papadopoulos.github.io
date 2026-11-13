@@ -1,28 +1,20 @@
-{{- /* /phd/ (content/phd/_index.md): the PhD in two parts, the papers (their own tab /phd/papers/, a timeline) and
-       the projects (/phd/projects/, a page each). Styles: assets/css/common/phd.css. */ -}}
+{{- /* /phd/ (content/phd/_index.md): the projects of my PhD years, as cards; each project is a page of its own,
+       content/phd/<name>/index.md (title, blurb, preview, weight, and its own layout in layouts/phd/). The papers have
+       their own tab, /papers/. Styles: assets/css/common/phd.css. */ -}}
 {{- define "main" }}
 <div class="tl-page phd-page">
     <header class="tl-intro">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
         {{- with .Content }}<div class="tl-lede">{{ . }}</div>{{ end }}
     </header>
-    {{- $papers := sort (where (where site.RegularPages "Section" "projects") "Params.context" "like" "^Paper") "Weight" }}
-    <section class="phd-part" aria-labelledby="phd-h-papers">
-        <h2 class="phd-h2" id="phd-h-papers"><a href="{{ "phd/papers/" | relURL }}">Papers</a></h2>
-        <ul class="phd-papers">
-            {{- range $papers }}
-            {{- $id := .Params.anchor | default (urlize .File.ContentBaseName) }}
-            {{- $parts := split .Params.context " · " }}
-            <li><a href="{{ printf "phd/papers/#%s" $id | relURL }}">
-                <span class="phd-paper-title">{{ .Title }}</span>
-                <span class="phd-card-sub">{{ with index $parts 1 }}{{ . }}{{ end }} {{ replaceRE `^Paper,\s*` "" (index $parts 0) }}</span>
-            </a></li>
-            {{- end }}
-        </ul>
-    </section>
-    <section class="phd-part" aria-labelledby="phd-h-projects">
-        <h2 class="phd-h2" id="phd-h-projects"><a href="{{ "phd/projects/" | relURL }}">Projects</a></h2>
-        {{- partial "phd-cards.html" . }}
-    </section>
+    <ul class="phd-cards">
+        {{- range .RegularPages.ByWeight }}
+        <li><a class="phd-card" href="{{ .RelPermalink }}">
+            {{- with .Params.preview }}<img src="{{ . | relURL }}" alt="" width="320" height="200" loading="lazy" decoding="async">{{ end }}
+            <span class="phd-card-title">{{ .Title }}</span>
+            {{- with .Params.blurb }}<span class="phd-card-sub">{{ . | markdownify }}</span>{{ end }}
+        </a></li>
+        {{- end }}
+    </ul>
 </div>
 {{- end }}
