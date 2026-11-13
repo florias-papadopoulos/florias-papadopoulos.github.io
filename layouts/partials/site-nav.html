@@ -1,17 +1,17 @@
 {{- /* The normal side's navigation, on every page of it except the home page (which has its band): the same shape as
        the lab's (layouts/partials/play-nav.html, styles shared from play.css, the rest in assets/css/common/site-nav.css).
-       From 900 px a sidebar on the left: the name (to the home page), then Home, PhD, Papers, Master, Bachelor and CV; each of
-       PhD, Papers, Master and Bachelor has an arrow that opens the list of its projects underneath (PhD's are pages of
+       From 900 px a sidebar on the left: the name (to the home page), then Home, Papers, PhD, Master, Bachelor and CV; each of
+       Papers, PhD, Master and Bachelor has an arrow that opens the list of its projects underneath (PhD's are pages of
        their own, the others' entries on their tab) (a <details>, so it works by touch and
        without scripts; open on its own page), and each project opens its entry on that page (url#anchor, as on the home
        page). Below 900 px a tab bar at the bottom with the five tabs, without the lists (the pages list the projects). */ -}}
 {{- $here := .RelPermalink }}
 {{- $projects := where site.RegularPages "Section" "projects" }}
 {{- $groups := slice
-    (dict "key" "PhD" "name" "PhD" "url" "phd/"
-          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 3.5h5M10.5 3.5v6L5 19a1.3 1.3 0 0 0 1.1 2h11.8a1.3 1.3 0 0 0 1.1-2l-5.5-9.5v-6M7.2 15.5h9.6"/></svg>`)
     (dict "key" "Paper" "name" "Papers" "url" "papers/"
           "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 15.5h6"/></svg>`)
+    (dict "key" "PhD" "name" "PhD" "url" "phd/"
+          "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 3.5h5M10.5 3.5v6L5 19a1.3 1.3 0 0 0 1.1 2h11.8a1.3 1.3 0 0 0 1.1-2l-5.5-9.5v-6M7.2 15.5h9.6"/></svg>`)
     (dict "key" "Master" "name" "Master" "url" "master/"
           "icon" `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7.5 4.6 3.5 5v13c4-.4 6.5 0 8.5 1.5 2-1.5 4.5-1.9 8.5-1.5V5c-4-.4-6.5 0-8.5 1.5zM12 6.5v13"/></svg>`)
     (dict "key" "Bachelor" "name" "Bachelor" "url" "bachelor/"

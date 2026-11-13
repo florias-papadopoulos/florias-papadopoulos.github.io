@@ -76,15 +76,16 @@
     </section>
     {{- end }}
 
-    {{- /* the projects, newest first, in the sidebar's groups: PhD (pages of their own, content/phd/<name>/, by weight),
-           the papers, the master projects (by weight: 1 is the newest, the thesis), then the bachelor thesis; a PhD
+    {{- /* the projects, newest first, in the sidebar's groups: the papers, PhD (pages of their own, content/phd/<name>/, by
+           weight), the master projects (by weight: 1 is the newest, the thesis), then the bachelor thesis; a PhD
            project's tile opens its page, the others their entry on their tab (#anchor). Items: the page, where its tile
            goes and the line under its title */ -}}
     {{- $phd := slice }}
     {{- with site.GetPage "/phd" }}{{ range .RegularPages.ByWeight }}{{ $phd = $phd | append (dict "p" . "href" .RelPermalink "sub" "PhD project") }}{{ end }}{{ end }}
-    {{- $groups := slice (dict "key" "PhD" "name" "PhD" "items" $phd) }}
-    {{- range slice (dict "key" "Paper" "name" "Papers" "url" "papers/" "sub" "Paper") (dict "key" "Master" "name" "Master" "url" "master/" "sub" "Master project") (dict "key" "Bachelor" "name" "Bachelor" "url" "bachelor/" "sub" "Bachelor thesis") }}
+    {{- $groups := slice }}
+    {{- range slice (dict "key" "Paper" "name" "Papers" "url" "papers/" "sub" "Paper") (dict "key" "PhD") (dict "key" "Master" "name" "Master" "url" "master/" "sub" "Master project") (dict "key" "Bachelor" "name" "Bachelor" "url" "bachelor/" "sub" "Bachelor thesis") }}
     {{- $g := . }}{{ $items := slice }}
+    {{- if eq $g.key "PhD" }}{{ $groups = $groups | append (dict "key" "PhD" "name" "PhD" "items" $phd) }}{{ continue }}{{ end }}
     {{- range sort (where $projects "Params.context" "like" (printf "^%s" $g.key)) "Weight" }}
     {{- $parts := split .Params.context " · " }}
     {{- $sub := $g.sub }}{{ if and (eq $g.key "Paper") (gt (len $parts) 1) }}{{ $sub = printf "Paper · %s" (index $parts 1) }}{{ end }}
