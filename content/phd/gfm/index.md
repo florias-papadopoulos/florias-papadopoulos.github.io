@@ -1,6 +1,6 @@
 ---
 aliases: [/phd/projects/gfm/]
-title: "Geometric Fuzzy Matching"
+title: "Find Nearby Friends"
 description: "Geometric Fuzzy Matching to play with: draw a region, watch it cut into rectangles, and move Bob around to see what Alice learns."
 blurb: "Draw a region, watch it cut into rectangles, move Bob around: our ASIA CCS 2026 paper on Geometric Fuzzy Matching, to play with."
 preview: "img/phd/gfm.svg"
