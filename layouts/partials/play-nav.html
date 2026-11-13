@@ -19,6 +19,7 @@
     <p class="pn-head pm-card">{{ $key }}<span>The lab</span></p>
     <ul class="pn-tabs">
         {{- range $items }}
+        {{- if eq .name "Simple Crypto" }}{{ $sc := site.GetPage "/simple-crypto" }}{{ if or (not $sc) $sc.Draft }}{{ continue }}{{ end }}{{ end }}
         <li class="pm-card"><a class="pn-tab" href="{{ .url }}"{{ if .on }} aria-current="page"{{ end }}>{{ .icon | safeHTML }}<span>{{ .name }}</span></a></li>
         {{- end }}
     </ul>
