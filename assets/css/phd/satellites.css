@@ -1,0 +1,121 @@
+/* "Satellites, live" (layouts/phd/satellites.html): the globe with its time bar and side column, the close
+   approaches, the short text. Text colours are timeline.css's --tl-* tokens (light and dark); the globe's space
+   is dark in both looks (--sat-space, read by assets/js/sat/20-page.js). */
+.sat-page { --sat-space: #0b1322; --sat-btn: #fff; --sat-on: #eef2fb; }
+.sat-head { margin: 10px 0 18px; }
+.sat-lede { margin: 0; max-width: 660px; color: var(--tl-text); font-size: 16px; line-height: 1.6; }
+
+/* ---------- the globe, its time bar and side column ---------- */
+.sat-app {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 290px;
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas: "stage side" "time side" "help side" ". side";
+    column-gap: 22px;
+    align-items: start;
+}
+.sat-stage { grid-area: stage; position: relative; aspect-ratio: 4 / 3; border-radius: 6px; background: var(--sat-space); overflow: hidden; }
+.sat-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.sat-canvas:active { cursor: grabbing; }
+.sat-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; color: #cbd5e1; font-size: 15px; text-align: center; pointer-events: none; }
+.sat-loading[hidden] { display: none; }
+.sat-zoom { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 6px; }
+.sat-zoom button {
+    width: 34px; height: 34px; padding: 0; border: 1px solid rgba(203, 213, 225, 0.35); border-radius: 4px;
+    background: rgba(11, 19, 34, 0.6); color: #e2e8f0; font: inherit; font-size: 20px; line-height: 1; cursor: pointer;
+}
+.sat-zoom button:hover { border-color: rgba(203, 213, 225, 0.7); }
+
+.sat-time { grid-area: time; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 0 4px; }
+.sat-clock { margin: 0; color: var(--tl-ink); font-size: 15px; font-variant-numeric: tabular-nums; }
+.sat-offset { color: var(--tl-muted); }
+.sat-speeds { display: flex; flex-wrap: wrap; }
+.sat-speeds button, .sat-ca-form button {
+    margin: 0 0 0 -1px; padding: 5px 10px; border: 1px solid var(--tl-rule); border-radius: 0; background: var(--sat-btn);
+    color: var(--tl-text); font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.sat-speeds button:first-child { border-radius: 4px 0 0 4px; }
+.sat-speeds button:last-child { margin-left: 8px; border-radius: 4px; }
+.sat-speeds button:nth-last-child(2) { border-radius: 0 4px 4px 0; }
+.sat-speeds button[aria-pressed="true"] { position: relative; border-color: var(--tl-navy); background: var(--sat-on); color: var(--tl-navy); font-weight: 600; }
+.sat-speeds button:focus-visible, .sat-zoom button:focus-visible, .sat-ca-item:focus-visible, .sat-ca-form button:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: 2px; position: relative; }
+
+.sat-side { grid-area: side; min-width: 0; }
+.sat-groups { margin: 0 0 16px; padding: 0; border: 0; }
+.sat-groups legend, .sat-info-kicker { padding: 0; margin: 0 0 6px; color: var(--tl-muted); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.sat-groups label { display: flex; align-items: center; gap: 8px; padding: 3px 0; color: var(--tl-text); font-size: 14px; line-height: 1.35; cursor: pointer; }
+.sat-groups input { flex: none; width: 15px; height: 15px; margin: 0; accent-color: var(--tl-navy); }
+.sat-swatch { flex: none; display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.sat-gname { flex: 1 1 auto; min-width: 0; }
+.sat-count { white-space: nowrap; color: var(--tl-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.sat-info { padding-top: 12px; border-top: 1px solid var(--tl-line); color: var(--tl-text); font-size: 14px; line-height: 1.45; }
+.sat-info p { margin: 0; }
+.sat-info-empty { color: var(--tl-muted); }
+.sat-info-big { color: var(--tl-ink); font-size: 16px; font-weight: 600; }
+.sat-info-line { margin: 2px 0 10px !important; color: var(--tl-muted); }
+.sat-obj + .sat-obj { margin-top: 12px; }
+.sat-info-name { display: flex; align-items: center; gap: 8px; color: var(--tl-ink); font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.sat-info-sub { color: var(--tl-muted); font-size: 13px; }
+.sat-dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+.sat-dl dt { color: var(--tl-muted); }
+.sat-dl dd { margin: 0; color: var(--tl-text); }
+
+.sat-help { grid-area: help; margin: 6px 0 0; color: var(--tl-muted); font-size: 13.5px; line-height: 1.5; }
+
+/* ---------- close approaches ---------- */
+.sat-ca { margin-top: 34px; }
+.sat-h2, .sat-text h2 { margin: 0 0 6px; color: var(--tl-ink); font-size: 19px; font-weight: 700; line-height: 1.3; }
+.sat-note { max-width: 720px; margin: 0 0 12px; color: var(--tl-muted); font-size: 14px; line-height: 1.55; }
+.sat-ca-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; color: var(--tl-text); font-size: 15px; }
+.sat-ca-form select { padding: 3px 4px; border: 1px solid var(--tl-rule); border-radius: 4px; background: var(--sat-btn); color: var(--tl-ink); font: inherit; }
+.sat-ca-form button { margin: 0; border-radius: 4px; }
+.sat-ca-form button:disabled { opacity: 0.55; cursor: default; }
+.sat-ca-status, .sat-ca-stale { max-width: 720px; margin: 12px 0 6px; color: var(--tl-text); font-size: 14px; line-height: 1.5; }
+.sat-ca-stale { margin-top: 0; color: var(--tl-muted); }
+.sat-ca-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--tl-line); }
+.sat-ca-list li { border-bottom: 1px solid var(--tl-line); }
+.sat-ca-list li[hidden] { display: none; }
+.sat-ca-more { margin: 8px 0 0; padding: 4px 0; border: 0; background: none; color: var(--tl-navy); font: inherit; font-size: 14px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.sat-ca-more[hidden] { display: none; }
+.sat-ca-item {
+    display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 12px; width: 100%; padding: 7px 4px;
+    border: 0; background: none; color: var(--tl-text); font: inherit; font-size: 14px; line-height: 1.4; text-align: left; cursor: pointer;
+}
+.sat-ca-item:hover, .sat-ca-item[aria-current="true"] { background: var(--sat-on); }
+.sat-ca-d { grid-row: span 2; color: var(--tl-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sat-ca-names { color: var(--tl-ink); overflow-wrap: anywhere; }
+.sat-ca-and { color: var(--tl-muted); }
+.sat-ca-when { color: var(--tl-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* ---------- the text ---------- */
+.sat-text { max-width: 720px; margin-top: 36px; color: var(--tl-text); font-size: 15.5px; line-height: 1.65; }
+.sat-text h2 { margin-top: 26px; }
+.sat-text p { margin: 0 0 12px; text-wrap: pretty; }
+.sat-text a, .sat-note a { color: var(--tl-navy); text-decoration: underline; text-underline-offset: 2px; }
+.sat-text strong { color: var(--tl-ink); font-weight: 600; }
+.sat-text .sat-credits { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--tl-line); color: var(--tl-muted); font-size: 13.5px; line-height: 1.55; }
+.sat-text .sat-credits strong { color: var(--tl-text); }
+
+/* ---------- smaller screens ---------- */
+@media (max-width: 860px) {
+    .sat-app { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "stage" "time" "help" "side"; }
+    .sat-side { margin-top: 16px; }
+    .sat-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); column-gap: 16px; }
+}
+@media (max-width: 600px) {
+    .sat-stage { aspect-ratio: 1 / 1; margin: 0 -8px; border-radius: 0; }
+    .sat-speeds button { padding: 6px 8px; }
+    .sat-ca-item { grid-template-columns: 64px minmax(0, 1fr); }
+    .sat-text { font-size: 15px; }
+}
+/* phones zoom into a field whose text is under 16px when it is tapped */
+@media (pointer: coarse) {
+    .sat-ca-form select { font-size: 16px; }
+}
+
+/* ---------- dark mode (palette: assets/css/common/color-scheme.css) ---------- */
+@media (prefers-color-scheme: dark) {
+    .sat-page { --sat-space: #0a101d; --sat-btn: var(--dk-card); --sat-on: var(--dk-raise); }
+    .sat-stage { box-shadow: inset 0 0 0 1px var(--dk-line); }
+}

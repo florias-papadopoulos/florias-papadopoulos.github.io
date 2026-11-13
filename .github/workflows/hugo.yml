@@ -9,6 +9,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+  # Once a day, so the satellites page (/phd/satellites/) has fresh orbits (tools/sat-data/fetch.sh)
+  schedule:
+    - cron: "23 4 * * *"
+
 # The GITHUB_TOKEN can do nothing by default; each job gets only what it needs (only deploy can publish)
 permissions: {}
 
@@ -55,6 +59,11 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d   # v6.0.0
       - name: Install Node.js dependencies
         run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
+      # the orbits of the satellites page, from CelesTrak: each group downloaded once, checked (header, number of
+      # objects, values, size) and only then put over the committed snapshot in static/data/sat/; a group that fails
+      # keeps the snapshot, so the build goes on
+      - name: Fetch satellite orbits
+        run: tools/sat-data/fetch.sh static/data/sat
       - name: Build with Hugo
         env:
           HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
