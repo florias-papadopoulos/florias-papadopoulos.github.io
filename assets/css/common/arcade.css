@@ -173,6 +173,8 @@ html[data-mode="play"] .arcade-head .music-btn { display: grid; place-items: cen
     width: max-content;                    /* as wide as the longest row, within the window */
     min-width: 240px;
     max-width: min(360px, calc(100vw - 16px));
+    max-height: calc(100vh - 90px);        /* six mixes: scrolls inside on a short (landscape phone) screen */
+    overflow-y: auto;
     padding: 10px 12px 12px;
     border: 1px solid var(--line);
     border-radius: 12px;

@@ -20,14 +20,17 @@
     <header class="arcade-head lab-head">
         <h1>Games</h1>
         {{- with .Params.intro }}<p class="arcade-intro"><span class="for-cat">{{ . }}</span><span class="for-dog">{{ $.Params.dogIntro | default . }}</span></p>{{ end }}
-        {{- /* The music button: a menu of four background mixes (10+ minutes each, several CC0 tracks joined), files in
-               static/music, every track credited in static/music/credits.txt. It sits here on the list and moves into
-               the top bar of a running game. */}}
+        {{- /* The music button: a menu of six background mixes, one per mood (11 to 15 minutes each, four or five
+               Creative Commons tracks from Jamendo joined), files in static/music, every track credited with its
+               licence in static/music/credits.txt. It sits here on the list and moves into the top bar of a running
+               game. */}}
         {{- $mixes := slice
-            (dict "id" "edm" "name" "EDM" "tracks" 6 "min" 12 "file" "mix-edm.mp3")
-            (dict "id" "rock" "name" "Rock" "tracks" 7 "min" 12 "file" "mix-rock.mp3")
-            (dict "id" "chiptune" "name" "Chiptune" "tracks" 6 "min" 12 "file" "mix-chiptune.mp3")
-            (dict "id" "lofi" "name" "Lo-fi" "tracks" 5 "min" 11 "file" "mix-lofi.mp3") }}
+            (dict "id" "lofi" "name" "Lo-fi" "tracks" 5 "min" 12 "file" "mix-chillhop.mp3")
+            (dict "id" "piano" "name" "Piano" "tracks" 4 "min" 11 "file" "mix-piano.mp3")
+            (dict "id" "dreamy" "name" "Dreamy" "tracks" 4 "min" 15 "file" "mix-dreamy.mp3")
+            (dict "id" "jazz" "name" "Jazz" "tracks" 4 "min" 15 "file" "mix-jazz.mp3")
+            (dict "id" "funk" "name" "Funk" "tracks" 5 "min" 12 "file" "mix-funk.mp3")
+            (dict "id" "electronic" "name" "Electronic" "tracks" 4 "min" 15 "file" "mix-electronic.mp3") }}
         <div class="music" hidden>
             <button class="arcade-btn music-btn" type="button" title="Sound and music" aria-label="Sound and music" aria-expanded="false" aria-controls="music-menu">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 17.5V5.5l11-2.5v12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.2" cy="17.5" r="2.9" fill="currentColor"/><circle cx="17.2" cy="15" r="2.9" fill="currentColor"/></svg>
