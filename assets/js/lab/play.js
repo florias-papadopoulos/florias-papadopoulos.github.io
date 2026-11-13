@@ -3,8 +3,8 @@
    play navigation of layouts/partials/play-nav.html, the pet and warm colours, all in assets/css/common/play.css), every
    other page is the normal site. Turning the key on a normal page opens the
    lab's home page (/lab/); turning it back ("About me") opens the normal home page. No animation of
-   its own: the next page opens with a door effect, a circle growing from the key (play.css, assets/js/site/door.js),
-   where the browser can, and the other side's page is fetched ahead so it opens at once. No sound. Bundled after
+   its own: the other side's page is fetched ahead and appears at once, with no page transition (assets/js/site/door.js).
+   No sound. Bundled after
    assets/js/lab/cat-picker.js. */
 (function () {
     'use strict';
@@ -21,7 +21,7 @@
     /* the lab opens on its own home page (data-play), leaving it always goes to the normal home page (data-home) */
     function remember() { try { sessionStorage.removeItem('side-play'); localStorage.removeItem('site-mode'); } catch (e) { /* no storage */ } }
     function destination(on) { return key.getAttribute(on ? 'data-play' : 'data-home'); }
-    /* the key's page opens with the door effect (assets/js/site/door.js reads this on the next page) */
+    /* the key's page appears at once, without the cross-fade (assets/js/site/door.js reads this on the next page) */
     function go(on) {
         try { sessionStorage.setItem('door', '1'); } catch (e) { /* no storage: a plain cross-fade */ }
         location.href = destination(on);

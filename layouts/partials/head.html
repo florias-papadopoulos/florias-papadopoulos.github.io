@@ -86,7 +86,7 @@
 <link rel="preload" href="{{ printf "fonts/lmsans/%s.woff2" . | relURL }}" as="font" type="font/woff2" crossorigin>
 {{- end }}{{ end }}
 
-{{- /* the key's door effect between the two sides: before the first paint, so without defer (assets/js/site/door.js) */}}
+{{- /* the key's switch between the two sides appears at once: before the first paint, so without defer (assets/js/site/door.js) */}}
 {{- $door := resources.Get "js/site/door.js" | minify | fingerprint }}
 <script src="{{ $door.RelPermalink }}" integrity="{{ $door.Data.Integrity }}"></script>
 
