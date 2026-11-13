@@ -1,4 +1,4 @@
-/* Drawing on the map of /phd/gfm/: the layers (town, region, the Partitioner's stages, Bob) and the paths
+/* Drawing on the map of /phd/gfm/: the layers (base map, region, the Partitioner's stages, Bob) and the paths
    for them. Lattice point (x, y) is the unit square [x, x + 1] x [y, y + 1] of the drawing, its centre (x + .5, y + .5). */
 (function (G) {
     'use strict';
@@ -9,7 +9,7 @@
         ['town', 'region', 'box', 'grid', 'cells', 'runs', 'rects', 'lit', 'res', 'litres', 'outline', 'labels', 'draft', 'bob'].forEach(function (n) {
             L[n] = el('g', { 'class': 'g-' + n }, svg);
         });
-        G.drawTown(L.town);
+        G.drawTown(L.town, svg.getAttribute('data-map'));
         G.drawLabels(L.labels);
         L.regionFill = el('path', { 'class': 'gr-fill' }, L.region);
         L.outlinePath = el('path', { 'class': 'gr-line' }, L.outline);
@@ -23,17 +23,19 @@
         L.litResPath = el('path', { 'class': 'gp-litres' }, L.litres);
         L.draftPath = el('path', { 'class': 'gd-line' }, L.draft);
         L.draftDots = el('path', { 'class': 'gd-dots' }, L.draft);
-        /* Bob: a cat's head, centred on his lattice point */
+        /* Bob: his lattice point, and a navy pin with a cat's face whose tip is on the point */
+        L.bobDot = el('rect', { x: -0.5, y: -0.5, width: 1, height: 1, 'class': 'gb-dot' }, L.bob);
         L.bobG = el('g', { 'class': 'gb' }, L.bob);
-        el('circle', { cx: 0, cy: 0, r: 5.2, 'class': 'gb-halo' }, L.bobG);
-        el('path', { d: 'M-3.6-.6L-3.3-5.2-.9-2.6ZM3.6-.6L3.3-5.2.9-2.6Z', 'class': 'gb-cat' }, L.bobG);
-        el('ellipse', { cx: 0, cy: 0, rx: 3.9, ry: 3.3, 'class': 'gb-cat' }, L.bobG);
-        el('circle', { cx: -1.4, cy: -0.4, r: 0.55, 'class': 'gb-eye' }, L.bobG);
-        el('circle', { cx: 1.4, cy: -0.4, r: 0.55, 'class': 'gb-eye' }, L.bobG);
-        el('rect', { x: -0.5, y: -0.5, width: 1, height: 1, 'class': 'gb-dot' }, L.bob);
+        el('ellipse', { cx: 0, cy: 0.1, rx: 1.7, ry: 0.65, 'class': 'gb-shadow' }, L.bobG);
+        el('path', { d: 'M0 0C-.9-2-3.3-4.3-3.3-7.1A3.3 3.3 0 1 1 3.3-7.1C3.3-4.3.9-2 0 0Z', 'class': 'gb-pin' }, L.bobG);
+        el('path', { d: 'M-1.95-7.2L-1.75-9.45-.55-8.3ZM1.95-7.2L1.75-9.45.55-8.3Z', 'class': 'gb-face' }, L.bobG);
+        el('ellipse', { cx: 0, cy: -6.95, rx: 2.05, ry: 1.7, 'class': 'gb-face' }, L.bobG);
+        el('circle', { cx: -0.75, cy: -7.1, r: 0.3, 'class': 'gb-eye' }, L.bobG);
+        el('circle', { cx: 0.75, cy: -7.1, r: 0.3, 'class': 'gb-eye' }, L.bobG);
         return L;
     };
-    G.show = function (name, on) { L[name].style.display = on ? '' : 'none'; };
+    /* a layer shown or hidden: faded by CSS (.is-off in gfm.css) */
+    G.show = function (name, on) { L[name].classList.toggle('is-off', !on); };
 
     /* ---------- paths ---------- */
     function rectD(x, y, w, h) { return 'M' + x + ' ' + y + 'h' + w + 'v' + h + 'h' + (-w) + 'z'; }
@@ -105,18 +107,20 @@
         L.rectsPaths.forEach(function (path, t) {
             path.setAttribute('d', rectsD(p.rects.filter(function (h, i) { return i % 3 === t; })));
         });
-        L.resPath.setAttribute('d', dotsD(p.res, 0.36));
+        L.resPath.setAttribute('d', dotsD(p.res, 0.3));
     };
 
     /* what holds Bob: one rectangle or one residual point, lit */
     G.drawLit = function (p, hit, bob) {
         L.litPath.setAttribute('d', hit && hit.rect !== undefined ? rectsD([p.rects[hit.rect]]) : '');
-        L.litResPath.setAttribute('d', hit && hit.res ? dotsD([bob.y * N + bob.x], 0.5) : '');
+        L.litResPath.setAttribute('d', hit && hit.res ? dotsD([bob.y * N + bob.x], 0.62) : '');
     };
-    G.drawBob = function (bob) {
-        L.bobG.setAttribute('transform', 'translate(' + (bob.x + 0.5) + ' ' + (bob.y + 0.5 - 6.5) + ')');
-        L.bob.lastChild.setAttribute('x', bob.x);
-        L.bob.lastChild.setAttribute('y', bob.y);
+    /* k: the pin's scale, larger when the map is small so that it stays the size of a fingertip */
+    G.PIN_HEAD = 7.1;           /* the pin's head above its tip, in drawing units at k = 1 */
+    G.drawBob = function (bob, k) {
+        L.bobG.setAttribute('transform', 'translate(' + (bob.x + 0.5) + ' ' + (bob.y + 0.5) + ') scale(' + (k || 1).toFixed(3) + ')');
+        L.bobDot.setAttribute('x', bob.x);
+        L.bobDot.setAttribute('y', bob.y);
     };
     /* a region being drawn: its outline so far and the corners placed */
     G.drawDraft = function (d, dots) {

@@ -1,7 +1,8 @@
 {{- /* /phd/gfm/ (content/phd/gfm/index.md): the paper on Geometric Fuzzy Matching (ASIA CCS 2026) to
-       play with. Alice draws a region on a small made-up town, watches it cut into rectangles and residual points
-       (Partitioner), and Bob moves around. Scripts: assets/js/gfm/ (joined in this order; README there), styles:
-       assets/css/phd/gfm.css (added by head.html). */ -}}
+       play with. Alice picks a region on a map of St. Gallen's old town (an OpenStreetMap image rendered once,
+       static/img/phd/gfm-stgallen.webp), watches it cut into rectangles and residual points (Partitioner), and Bob
+       moves around. Desktop: the map on the left, the controls on the right; phones: one column. Scripts:
+       assets/js/gfm/ (joined in this order; README there), styles: assets/css/phd/gfm.css (added by head.html). */ -}}
 {{- define "main" }}
 <div class="tl-page gfm-page" id="gfm">
     <header class="tl-intro gfm-intro">
@@ -9,64 +10,95 @@
         {{- with .Content }}<div class="tl-lede">{{ . }}</div>{{ end }}
     </header>
 
-    <div class="gfm-app" id="gfm-app" hidden>
-        <div class="gfm-bar" role="group" aria-label="Alice's region">
-            <span class="gfm-bar-label">Alice's region</span>
-            <button type="button" class="gfm-btn" data-preset="park">The park</button>
-            <button type="button" class="gfm-btn" data-preset="hall">A building</button>
-            <button type="button" class="gfm-btn" data-preset="cafe">Within 100 m</button>
-            <span class="gfm-bar-sep" aria-hidden="true"></span>
-            <span class="gfm-bar-label">or draw</span>
-            <button type="button" class="gfm-btn" data-tool="ball">Ball</button>
-            <button type="button" class="gfm-btn" data-tool="poly">Polygon</button>
-            <button type="button" class="gfm-btn" data-tool="boxes">Rectangles</button>
-        </div>
-        <div class="gfm-bar gfm-sub" id="gfm-sub" hidden>
-            <span class="gfm-p" id="gfm-p" role="group" aria-label="Norm">
-                <span class="gfm-bar-label">ℓ<sub>p</sub>, p =</span>
-                <button type="button" class="gfm-btn" data-p="1">1</button>
-                <button type="button" class="gfm-btn" data-p="2">2</button>
-                <button type="button" class="gfm-btn" data-p="4">4</button>
-                <button type="button" class="gfm-btn" data-p="inf">∞</button>
-            </span>
-            <span class="gfm-hint" id="gfm-hint"></span>
-            <button type="button" class="gfm-btn" id="gfm-done" hidden>Done</button>
-        </div>
+    {{- /* Alice and Bob as in the talk: Alice pink with long hair, Bob navy in a suit */}}
+    <svg class="gfm-defs" aria-hidden="true" focusable="false">
+        <symbol id="gfm-i-alice" viewBox="0 0 24 24"><path d="M12 1.8c-3.6 0-5.8 2.6-5.8 6.2v6c0 1-.4 1.8-1.1 2.5h13.8c-.7-.7-1.1-1.5-1.1-2.5V8c0-3.6-2.2-6.2-5.8-6.2z"/><circle cx="12" cy="9" r="3.4" style="stroke: var(--gfm-cut, #fff); stroke-width: 1.3px"/><path d="M3.8 23c.3-4.1 3.7-6.7 8.2-6.7s7.9 2.6 8.2 6.7z" style="stroke: var(--gfm-cut, #fff); stroke-width: 1.3px"/></symbol>
+        <symbol id="gfm-i-bob" viewBox="0 0 24 24"><circle cx="12" cy="7.2" r="4.5"/><path d="M3.8 23c.3-4.3 3.7-7 8.2-7s7.9 2.7 8.2 7z"/><path d="M10.2 16.2L12 21l1.8-4.8z" style="fill: var(--gfm-cut, #fff)"/></symbol>
+    </svg>
 
+    <div class="gfm-app" id="gfm-app" hidden>
         <div class="gfm-stage">
+            <section class="gfm-sec gfm-region" aria-label="Alice's region">
+                <h2 class="gfm-h"><svg class="gfm-ico gfm-ico-alice" aria-hidden="true"><use href="#gfm-i-alice"/></svg>Alice&rsquo;s region</h2>
+                <div class="gfm-seg gfm-seg-3" role="group" aria-label="A ready region">
+                    <button type="button" class="gfm-btn" data-preset="park">Park</button>
+                    <button type="button" class="gfm-btn" data-preset="church">Cathedral</button>
+                    <button type="button" class="gfm-btn" data-preset="near">Within 100 m</button>
+                </div>
+                <div class="gfm-draw" role="group" aria-label="Draw your own">
+                    <span class="gfm-k">or draw</span>
+                    <div class="gfm-seg gfm-seg-3">
+                        <button type="button" class="gfm-btn" data-tool="ball">Ball</button>
+                        <button type="button" class="gfm-btn" data-tool="poly">Polygon</button>
+                        <button type="button" class="gfm-btn" data-tool="boxes">Rectangles</button>
+                    </div>
+                </div>
+                <div class="gfm-sub" id="gfm-sub" hidden>
+                    <div class="gfm-p" id="gfm-p" role="group" aria-label="Norm">
+                        <span class="gfm-k">&#8467;<sub>p</sub>, p&nbsp;=</span>
+                        <div class="gfm-seg gfm-seg-4">
+                            <button type="button" class="gfm-btn" data-p="1">1</button>
+                            <button type="button" class="gfm-btn" data-p="2">2</button>
+                            <button type="button" class="gfm-btn" data-p="4">4</button>
+                            <button type="button" class="gfm-btn" data-p="inf">&infin;</button>
+                        </div>
+                    </div>
+                    <p class="gfm-hint" id="gfm-hint"></p>
+                    <button type="button" class="gfm-btn gfm-done" id="gfm-done" hidden>Done</button>
+                </div>
+            </section>
+
             <figure class="gfm-mapbox">
-                <svg class="gfm-map" id="gfm-map" viewBox="0 0 128 128" role="img" aria-label="A small town, Alice's region and Bob"></svg>
-                <figcaption class="gfm-step" id="gfm-step" aria-live="polite">&nbsp;</figcaption>
+                <div class="gfm-mapwrap" id="gfm-mapwrap">
+                    <svg class="gfm-map" id="gfm-map" viewBox="0 0 128 128" role="img" aria-label="St. Gallen's old town, Alice's region and Bob" data-map="{{ "img/phd/gfm-stgallen.webp" | relURL }}"></svg>
+                    <div class="gfm-handle" id="gfm-handle" tabindex="0" role="button" aria-label="Bob: drag him, or move him with the arrow keys"></div>
+                    <a class="gfm-osm" href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap contributors</a>
+                </div>
+                <figcaption class="gfm-cap">
+                    <span class="gfm-steps" id="gfm-steps" aria-hidden="true"></span>
+                    <span class="gfm-step" id="gfm-step" aria-live="polite">&nbsp;</span>
+                    <button type="button" class="gfm-link" id="gfm-replay">Show the steps</button>
+                </figcaption>
+                <ul class="gfm-legend" aria-label="Legend">
+                    <li><i class="gl-region"></i>Alice&rsquo;s region</li>
+                    <li><i class="gl-rect"></i>rectangle</li>
+                    <li><i class="gl-res"></i>residual point</li>
+                    <li><i class="gl-lit"></i>the piece holding Bob</li>
+                </ul>
             </figure>
 
-            <div class="gfm-side">
-                <div class="gfm-views" role="group" aria-label="Whose view">
-                    <button type="button" class="gfm-btn" data-view="god">God view</button>
-                    <button type="button" class="gfm-btn" data-view="alice">Alice's view</button>
-                    <button type="button" class="gfm-btn" data-view="bob">Bob's view</button>
+            <section class="gfm-sec gfm-who" aria-label="Who learns what">
+                <div class="gfm-seg gfm-seg-3 gfm-views" role="group" aria-label="Whose view">
+                    <button type="button" class="gfm-btn" data-view="god">Everything</button>
+                    <button type="button" class="gfm-btn" data-view="alice"><svg class="gfm-ico gfm-ico-alice" aria-hidden="true"><use href="#gfm-i-alice"/></svg>Alice</button>
+                    <button type="button" class="gfm-btn" data-view="bob"><svg class="gfm-ico gfm-ico-bob" aria-hidden="true"><use href="#gfm-i-bob"/></svg>Bob</button>
                 </div>
-                <p class="gfm-result" id="gfm-result" aria-live="polite">&nbsp;</p>
-                <p class="gfm-learns" id="gfm-learns"></p>
+                <div class="gfm-answer" aria-live="polite">
+                    <span class="gfm-who-k" id="gfm-who-k">&nbsp;</span>
+                    <p class="gfm-result" id="gfm-result">&nbsp;</p>
+                    <p class="gfm-learns" id="gfm-learns"></p>
+                </div>
+            </section>
 
-                <div class="gfm-res-block">
-                    <label class="gfm-r-label" for="gfm-r">Resolution <var>r</var> = <output id="gfm-r-out">1</output></label>
-                    <input type="range" id="gfm-r" min="1" max="32" step="1" value="1">
-                    <p class="gfm-counts" id="gfm-counts"></p>
-                    <div class="gfm-goal" role="group" aria-label="Best for">
-                        <span class="gfm-bar-label">Best for:</span>
-                        <button type="button" class="gfm-btn" data-goal="total">Balanced</button>
-                        <button type="button" class="gfm-btn" data-goal="alice">Alice&rsquo;s work</button>
-                        <button type="button" class="gfm-btn" data-goal="bob">Bob&rsquo;s work</button>
-                        <button type="button" class="gfm-btn" data-goal="bits">Message size</button>
-                    </div>
-                    <svg class="gfm-chart" id="gfm-chart" viewBox="0 0 300 120" role="img" aria-label="Cost for each resolution"></svg>
-                    <p class="gfm-goal-f" id="gfm-goal-f" aria-live="polite"></p>
-                    <div class="gfm-row">
-                        <button type="button" class="gfm-btn" id="gfm-best">Best r</button>
-                        <button type="button" class="gfm-btn" id="gfm-replay">Show the steps</button>
+            <section class="gfm-sec gfm-res-block" aria-label="Resolution">
+                <div class="gfm-r-head">
+                    <label class="gfm-h" for="gfm-r">Resolution <var>r</var>&nbsp;=&nbsp;<output id="gfm-r-out">1</output></label>
+                    <button type="button" class="gfm-link" id="gfm-best">Use <var>r</var>*</button>
+                </div>
+                <input type="range" id="gfm-r" min="1" max="32" step="1" value="1">
+                <dl class="gfm-counts" id="gfm-counts"></dl>
+                <div class="gfm-goal">
+                    <span class="gfm-k" id="gfm-goal-k">Best for</span>
+                    <div class="gfm-seg gfm-seg-4" role="group" aria-labelledby="gfm-goal-k">
+                        <button type="button" class="gfm-btn" data-goal="total" title="Both sides' work">Balanced</button>
+                        <button type="button" class="gfm-btn" data-goal="alice" title="Alice's work">Alice</button>
+                        <button type="button" class="gfm-btn" data-goal="bob" title="Bob's work">Bob</button>
+                        <button type="button" class="gfm-btn" data-goal="bits" title="Message size">Bytes</button>
                     </div>
                 </div>
-            </div>
+                <svg class="gfm-chart" id="gfm-chart" viewBox="0 0 320 132" role="img" aria-label="Cost for each resolution"></svg>
+                <p class="gfm-goal-f" id="gfm-goal-f" aria-live="polite"></p>
+            </section>
         </div>
 
         <section class="gfm-dasa" id="gfm-dasa" aria-live="polite"></section>
@@ -75,17 +107,18 @@
             <summary>How it works</summary>
             <ol>
                 <li><strong>Partitioner</strong> (Section 3). Take the bounding box of the region, cut it into cells of <var>r</var> &times; <var>r</var> lattice points, keep the cells that lie wholly inside, and fuse neighbours that share a whole side until none do. The <var>N<sub>r</sub></var> rectangles and the <var>L<sub>r</sub></var> points of the region they miss (the residual points) together hold every lattice point of the region exactly once.</li>
-                <li><strong>Cost</strong> (Section 4). Each rectangle becomes its own small ℓ<sub>∞</sub> test, which costs Bob work for every one of them; a residual point costs Alice one entry. Counting the protocol's steps:
+                <li><strong>Cost</strong> (Section 4). Each rectangle becomes its own small &#8467;<sub>&infin;</sub> test, which costs Bob work for every one of them; a residual point costs Alice one entry. Counting the protocol&rsquo;s steps:
                     <span class="gfm-formula">Cost(<var>r</var>) = &Sigma;<sub><var>k</var>,<var>i</var></sub> 2&lfloor;log<sub>2</sub>(2<var>&delta;</var><sub><var>k</var>,<var>i</var></sub>+1)&rfloor; + <var>L<sub>r</sub></var> + (<var>d</var>+1)&middot;<var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var>,
                     &nbsp; <var>J<sub>S</sub></var> = &Pi;<sub><var>i</var></sub>(&lfloor;log<sub>2</sub>(2<var>&delta;</var><sub>max,<var>i</var></sub>+1)&rfloor;+1)</span>
-                    that is, Alice's padded strings per rectangle side, her residual points, and the <var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var> answers Bob computes (<var>d</var> = 2 lookups each) and Alice checks: the terms of the paper's complexity theorem. <var>r</var>* is the <var>r</var> with the smallest cost. The paper gives no explicit formula for the cost; &ldquo;Best for&rdquo; lets you minimise both sides&rsquo; work (this one), one side&rsquo;s, or the bytes sent, each read off the same theorem and protocol figure.</li>
-                <li><strong>DASA</strong> (Section 2). Along each axis a rectangle is an interval of 7-bit numbers. Alice writes it as the few prefixes whose subtrees fit wholly inside (the rest of the bits are wildcards <code>*</code>). Bob writes his coordinate with 0, 1, 2, &hellip; of its last bits as wildcards, as many as the widest rectangle needs. He is inside a rectangle exactly when one of his strings equals one of Alice's, in <var>x</var> and in <var>y</var>. A residual point is matched as a whole.</li>
+                    that is, Alice&rsquo;s padded strings per rectangle side, her residual points, and the <var>N<sub>r</sub></var>&middot;<var>J<sub>S</sub></var> answers Bob computes (<var>d</var> = 2 lookups each) and Alice checks: the terms of the paper&rsquo;s complexity theorem. <var>r</var>* is the <var>r</var> with the smallest cost. The paper gives no explicit formula for the cost; &ldquo;Best for&rdquo; lets you minimise both sides&rsquo; work (this one), one side&rsquo;s, or the bytes sent, each read off the same theorem and protocol figure.</li>
+                <li><strong>DASA</strong> (Section 2). Along each axis a rectangle is an interval of 7-bit numbers. Alice writes it as the few prefixes whose subtrees fit wholly inside (the rest of the bits are wildcards <code>*</code>). Bob writes his coordinate with 0, 1, 2, &hellip; of its last bits as wildcards, as many as the widest rectangle needs. He is inside a rectangle exactly when one of his strings equals one of Alice&rsquo;s, in <var>x</var> and in <var>y</var>. A residual point is matched as a whole.</li>
                 <li><strong>Who learns what.</strong> Alice learns one bit: inside or not (the answers come shuffled, so not even which rectangle). Bob learns the rectangle sizes he needs for his strings, not where they are, and no answer.</li>
+                <li><strong>The map.</strong> St. Gallen&rsquo;s old town from OpenStreetMap, about 520 m across, as a lattice of 128 &times; 128 points, one every 4 m. The image is part of this page: your browser fetches nothing from OpenStreetMap.</li>
             </ol>
         </details>
 
-        <p class="gfm-note">This page shows the geometry in the clear. In the protocol Alice's strings travel inside an oblivious key-value store and Bob answers with re-randomised Diffie-Hellman pairs, so the matching above happens under encryption, in two messages, with no server in between.
-            From <a href="{{ "papers/#gfm-asiaccs26" | relURL }}">I. Katis, K. Mitrokotsa, F. Papadopoulos, <i>Privacy-preserving Proximity Testing from Geometric Fuzzy Matching</i>, ACM ASIA CCS 2026</a> (<a href="https://dl.acm.org/doi/10.1145/3779208.3785374">ACM Digital Library</a>).</p>
+        <p class="gfm-note">This page shows the geometry in the clear. In the protocol Alice&rsquo;s strings travel inside an oblivious key-value store and Bob answers with re-randomised Diffie-Hellman pairs, so the matching above happens under encryption, in two messages, with no server in between.
+            From <a href="{{ "papers/#gfm-asiaccs26" | relURL }}">I. Katis, K. Mitrokotsa, F. Papadopoulos, <i>Privacy-preserving Proximity Testing from Geometric Fuzzy Matching</i>, ACM ASIA CCS 2026</a> (<a href="https://dl.acm.org/doi/10.1145/3779208.3785374">ACM Digital Library</a>). Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</p>
     </div>
     <noscript><p class="gfm-note">This page needs JavaScript.</p></noscript>
 </div>

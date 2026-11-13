@@ -1,5 +1,9 @@
-/* The made-up town of /phd/gfm/ (128 x 128 drawing units, one unit = 4 m), drawn once into the map, and
-   the three ready regions on it: the park (a polygon), the town hall (overlapping rectangles), the café (100 m). */
+/* The map of /phd/gfm/: St. Gallen's old town from OpenStreetMap, rendered once into
+   static/img/phd/gfm-stgallen.webp (never fetched live): 16 standard tiles at zoom 17 (x 68948 to 68951,
+   y 45872 to 45875), cropped at pixel (290, 170) of that mosaic to 640 x 640, desaturated and lightened.
+   The 128 x 128 lattice lies on it with 5 pixels per unit, one unit about 4.04 m (0.808 m per pixel at
+   47.42 degrees north). The ready regions follow real places: the Kantonsschulpark (a polygon), the cathedral
+   (Stiftskirche, a polygon) and 100 m around St. Laurenzen (a ball). Map data (c) OpenStreetMap contributors. */
 (function (G) {
     'use strict';
     var NS = 'http://www.w3.org/2000/svg';
@@ -10,54 +14,32 @@
         return e;
     }
     G.el = el;
+    G.METRES = 4.04;            /* metres per lattice unit */
 
-    var PARK = [[6, 7], [41, 4], [59, 17], [58, 50], [31, 56], [7, 45]];
-    var HALL = [{ x0: 6, y0: 68, x1: 58, y1: 78 }, { x0: 6, y0: 76, x1: 20, y1: 99 }, { x0: 44, y0: 76, x1: 58, y1: 99 }, { x0: 19, y0: 84, x1: 45, y1: 93 }];
-    var CAFE = { x: 98, y: 83 };
+    var PARK = [[70, 17], [116, 17], [116, 23], [104, 33], [93, 44], [88, 41], [80, 31], [73, 22]];
+    var CHURCH = [[29, 100.75], [41, 97.5], [44.5, 96.5], [53.25, 94.5], [54, 94], [55.5, 96.5], [56, 100], [56, 103.5],
+        [52.5, 105.25], [41.25, 107.75], [31.5, 110], [29, 106]];
+    var LAURENZEN = { x: 48, y: 68 };
     G.presets = {
         park: function () { return { kind: 'poly', pts: PARK.map(function (p) { return p.slice(); }) }; },
-        hall: function () { return { kind: 'boxes', boxes: HALL.map(function (b) { return { x0: b.x0, y0: b.y0, x1: b.x1, y1: b.y1 }; }) }; },
-        cafe: function () { return { kind: 'ball', cx: CAFE.x, cy: CAFE.y, R: 25, p: 2 }; }
+        church: function () { return { kind: 'poly', pts: CHURCH.map(function (p) { return p.slice(); }) }; },
+        near: function () { return { kind: 'ball', cx: LAURENZEN.x, cy: LAURENZEN.y, R: 25, p: 2 }; }
     };
+    G.presetName = { park: 'the Kantonsschulpark', church: 'the cathedral', near: '100 m around St. Laurenzen' };
     /* where Bob stands when a ready region is chosen */
-    G.bobAt = { park: { x: 30, y: 31 }, hall: { x: 13, y: 95 }, cafe: { x: 104, y: 96 } };
+    G.bobAt = { park: { x: 97, y: 25 }, church: { x: 43, y: 102 }, near: { x: 62, y: 78 } };
     G.bobStart = G.bobAt.park;
 
-    /* x, y, width, height */
-    var HOUSES = [
-        [70, 4, 22, 16], [96, 4, 28, 12], [70, 24, 14, 32], [88, 24, 16, 14], [108, 20, 16, 18], [88, 42, 36, 14],
-        [70, 66, 12, 12], [114, 66, 10, 14], [114, 92, 10, 12], [70, 96, 10, 8],
-        [4, 120, 12, 6], [24, 121, 16, 5], [100, 121, 14, 5]
-    ];
-    var TREES = [[14, 14], [36, 10], [50, 22], [52, 42], [18, 40], [34, 48], [12, 28]];
-
-    G.drawTown = function (g) {
+    /* the base map (its address from the svg's data-map) and a 100 m scale bar in the lower left corner */
+    G.drawTown = function (g, src) {
         el('rect', { x: 0, y: 0, width: 128, height: 128, 'class': 'gm-ground' }, g);
-        el('rect', { x: 46, y: 119, width: 46, height: 9, 'class': 'gm-field' }, g);
-        /* streets */
-        el('path', { d: 'M0 62H128M0 107H128M64 0V128', 'class': 'gm-street' }, g);
-        /* the river and its bridge */
-        el('path', { d: 'M-4 115C20 109 40 120 64 114S104 109 132 116', 'class': 'gm-river' }, g);
-        el('path', { d: 'M64 108V122', 'class': 'gm-bridge' }, g);
-        el('path', { d: 'M61.5 109V121M66.5 109V121', 'class': 'gm-rail' }, g);
-        /* the park with its pond and trees */
-        el('path', { d: 'M' + PARK.map(function (p) { return p.join(' '); }).join('L') + 'Z', 'class': 'gm-park' }, g);
-        el('ellipse', { cx: 33, cy: 27, rx: 8, ry: 4.5, 'class': 'gm-pond' }, g);
-        TREES.forEach(function (t) { el('circle', { cx: t[0], cy: t[1], r: 2.4, 'class': 'gm-tree' }, g); });
-        HOUSES.forEach(function (h) { el('rect', { x: h[0], y: h[1], width: h[2], height: h[3], 'class': 'gm-house' }, g); });
-        HALL.forEach(function (b) {
-            el('rect', { x: b.x0, y: b.y0, width: b.x1 - b.x0 + 1, height: b.y1 - b.y0 + 1, 'class': 'gm-hall' }, g);
-        });
-        el('rect', { x: CAFE.x - 4.5, y: CAFE.y - 3, width: 10, height: 7, 'class': 'gm-cafe' }, g);
+        if (src) el('image', { href: src, x: 0, y: 0, width: 128, height: 128, preserveAspectRatio: 'none', 'class': 'gm-base' }, g);
     };
-    /* names and the scale, drawn above the region */
     G.drawLabels = function (g) {
-        [['Park', 33, 37], ['Town hall', 32.5, 74.5], ['Café', 98.5, 78], ['River', 118, 120.5]].forEach(function (l) {
-            var t = el('text', { x: l[1], y: l[2], 'class': 'gm-label' }, g);
-            t.textContent = l[0];
-        });
-        el('path', { d: 'M4 124V125.5H29V124', 'class': 'gm-scale' }, g);
-        var s = el('text', { x: 16.5, y: 122.8, 'class': 'gm-label gm-small' }, g);
+        var w = 100 / G.METRES, x = 3.5, y = 124.5;
+        el('rect', { x: x - 1.2, y: y - 4.4, width: w + 2.4, height: 5.6, rx: 0.6, 'class': 'gm-scale-bg' }, g);
+        el('path', { d: 'M' + x + ' ' + (y - 1) + 'V' + y + 'H' + (x + w) + 'V' + (y - 1), 'class': 'gm-scale' }, g);
+        var s = el('text', { x: x + w / 2, y: y - 1.4, 'class': 'gm-scale-t' }, g);
         s.textContent = '100 m';
     };
 })(GFM);
