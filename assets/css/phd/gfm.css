@@ -1,0 +1,188 @@
+/* /phd/projects/gfm/ (layouts/phd/gfm.html, scripts assets/js/gfm/): the town map, the Partitioner's stages, the
+   side with the answer and the cost chart, the DASA strings. Text in the timeline's tokens (timeline.css); the map
+   and the region in its own few flat colours, with dark values at the end. */
+.gfm-page {
+    --gfm-ground: #f1efe8;
+    --gfm-street: #ffffff;
+    --gfm-park: #cfe2bf;
+    --gfm-tree: #a9cc93;
+    --gfm-water: #b9d5ea;
+    --gfm-house: #dcd5c8;
+    --gfm-hall: #cfc3ad;
+    --gfm-field: #e6e3cf;
+    --gfm-label: #6b6455;
+    --gfm-region: rgba(30, 58, 138, 0.13);
+    --gfm-edge: #1e3a8a;
+    --gfm-rect: rgba(30, 58, 138, 0.42);
+    --gfm-rect1: rgba(30, 58, 138, 0.56);
+    --gfm-rect2: rgba(30, 58, 138, 0.30);
+    --gfm-rect-edge: #f8f8f6;
+    --gfm-res: #15803d;
+    --gfm-lit: #d6336c;
+    --gfm-bob: #0f172a;
+    --gfm-bob-eye: #f8fafc;
+    --gfm-halo: rgba(255, 255, 255, 0.85);
+    --gfm-btn-bg: #fff;
+}
+.gfm-intro { margin-left: 0; }
+.gfm-app { margin-top: 18px; }
+
+/* buttons: plain, a thin border; the chosen one filled */
+.gfm-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 10px; }
+.gfm-bar-label { color: var(--tl-muted); font-size: 14px; }
+.gfm-bar-sep { width: 1px; height: 22px; margin: 0 4px; background: var(--tl-line); }
+.gfm-btn {
+    padding: 5px 10px; border: 1px solid var(--tl-rule); border-radius: 4px; background: var(--gfm-btn-bg);
+    color: var(--tl-ink); font: inherit; font-size: 14px; line-height: 1.3; cursor: pointer;
+}
+.gfm-btn:hover { border-color: var(--tl-muted); }
+.gfm-btn:focus-visible, .gfm-map:focus-visible { outline: 2px solid var(--tl-navy); outline-offset: 2px; }
+.gfm-btn[aria-pressed="true"] { background: var(--tl-ink); border-color: var(--tl-ink); color: var(--gfm-btn-bg); }
+.gfm-btn:disabled { color: var(--tl-muted); cursor: default; border-color: var(--tl-line); }
+.gfm-bar[hidden] { display: none; }
+.gfm-p { display: inline-flex; align-items: center; gap: 6px; }
+.gfm-p[hidden] { display: none; }
+.gfm-p .gfm-btn { min-width: 34px; }
+.gfm-hint { color: var(--tl-text); font-size: 14px; }
+
+/* the map and the side */
+.gfm-stage { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.gfm-mapbox { margin: 0; }
+.gfm-map { display: block; width: 100%; height: auto; aspect-ratio: 1; border: 1px solid var(--tl-line); border-radius: 4px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; }
+.gfm-map.is-drawing { cursor: crosshair; }
+.gfm-step { margin: 8px 0 0; min-height: 1.5em; color: var(--tl-text); font-size: 15px; }
+.gfm-views { display: flex; flex-wrap: wrap; gap: 6px; }
+.gfm-result { margin: 16px 0 2px; color: var(--tl-ink); font-size: 22px; font-weight: 700; line-height: 1.25; }
+.gfm-result.is-in { color: var(--gfm-res); }
+.gfm-learns { margin: 0; min-height: 3em; color: var(--tl-text); font-size: 14.5px; line-height: 1.45; }
+.gfm-res-block { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--tl-line); }
+.gfm-r-label { display: block; color: var(--tl-ink); font-size: 15px; }
+.gfm-res-block input[type="range"] { width: 100%; margin: 8px 0 4px; accent-color: var(--tl-navy); }
+.gfm-counts { margin: 0 0 6px; color: var(--tl-text); font-size: 14px; line-height: 1.45; }
+.gfm-chart { display: block; width: 100%; height: auto; overflow: visible; }
+.gfm-row { display: flex; gap: 8px; margin-top: 8px; }
+
+/* the map's pieces */
+.gm-ground { fill: var(--gfm-ground); }
+.gm-street { fill: none; stroke: var(--gfm-street); stroke-width: 4; }
+.gm-river { fill: none; stroke: var(--gfm-water); stroke-width: 10; }
+.gm-bridge { fill: none; stroke: var(--gfm-street); stroke-width: 4; }
+.gm-rail { fill: none; stroke: var(--gfm-house); stroke-width: 0.6; }
+.gm-park { fill: var(--gfm-park); }
+.gm-pond { fill: var(--gfm-water); }
+.gm-tree { fill: var(--gfm-tree); }
+.gm-house { fill: var(--gfm-house); }
+.gm-hall { fill: var(--gfm-hall); }
+.gm-cafe { fill: var(--gfm-hall); }
+.gm-field { fill: var(--gfm-field); }
+.gm-label { fill: var(--gfm-label); font-size: 3.6px; text-anchor: middle; font-weight: 600; }
+.gm-small { font-size: 3px; font-weight: 400; }
+.gm-scale { fill: none; stroke: var(--gfm-label); stroke-width: 0.5; }
+
+/* the region and the Partitioner's stages (strokes stay thin at any size) */
+.g-region path, .g-outline path, .g-box path, .g-grid path, .g-cells path, .g-runs path, .g-rects path, .g-lit path, .g-draft path { vector-effect: non-scaling-stroke; }
+.gr-fill { fill: var(--gfm-region); }
+.gr-line { fill: none; stroke: var(--gfm-edge); stroke-width: 1.5px; }
+.gp-box { fill: none; stroke: var(--gfm-edge); stroke-width: 1.5px; stroke-dasharray: 5 3; }
+.gp-grid { fill: none; stroke: var(--gfm-edge); stroke-width: 0.5px; opacity: 0.55; }
+.gp-cells, .gp-runs, .gp-rects { fill: var(--gfm-rect); stroke: var(--gfm-rect-edge); stroke-width: 1px; }
+.gp-tone1 { fill: var(--gfm-rect1); }
+.gp-tone2 { fill: var(--gfm-rect2); }
+.gp-lit { fill: var(--gfm-lit); fill-opacity: 0.55; stroke: var(--gfm-lit); stroke-width: 2px; }
+.gp-res { fill: var(--gfm-res); }
+.gp-litres { fill: var(--gfm-lit); }
+.gd-line { fill: none; stroke: var(--gfm-lit); stroke-width: 1.5px; stroke-dasharray: 4 3; }
+.gd-dots { fill: var(--gfm-lit); }
+.gb-halo { fill: var(--gfm-halo); }
+.gb-cat { fill: var(--gfm-bob); }
+.gb-eye { fill: var(--gfm-bob-eye); }
+.gb-dot { fill: var(--gfm-bob); }
+.gfm-map.is-playing .g-lit, .gfm-map.is-playing .g-litres { display: none; }
+
+/* the views: Alice does not see Bob, nor which piece matched; Bob does not see the region */
+.gfm-page[data-view="alice"] .g-bob, .gfm-page[data-view="alice"] .g-lit, .gfm-page[data-view="alice"] .g-litres { display: none; }
+.gfm-page[data-view="bob"] .g-region, .gfm-page[data-view="bob"] .g-outline, .gfm-page[data-view="bob"] .g-box,
+.gfm-page[data-view="bob"] .g-grid, .gfm-page[data-view="bob"] .g-cells, .gfm-page[data-view="bob"] .g-runs,
+.gfm-page[data-view="bob"] .g-rects, .gfm-page[data-view="bob"] .g-lit, .gfm-page[data-view="bob"] .g-res,
+.gfm-page[data-view="bob"] .g-litres { display: none; }
+.gfm-page[data-view="bob"] .gfm-res-block { opacity: 0.35; }
+.gfm-page[data-view="bob"] .gfm-step { visibility: hidden; }
+
+/* the chart */
+.gc-line { fill: none; stroke: var(--tl-navy); stroke-width: 2; stroke-linejoin: round; }
+.gc-base { stroke: var(--tl-rule); stroke-width: 1; }
+.gc-grid { stroke: var(--tl-line); stroke-width: 1; }
+.gc-tick { fill: var(--tl-muted); font-size: 11px; }
+.gc-r { font-style: italic; }
+.gc-cur { stroke: var(--tl-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.gc-curdot { fill: var(--gfm-btn-bg); stroke: var(--tl-navy); stroke-width: 2; }
+.gc-best { fill: var(--tl-navy); }
+.gc-lab { fill: var(--tl-ink); font-size: 11px; font-weight: 600; }
+.gc-tip { fill: var(--tl-text); font-size: 11px; }
+.gc-hit { fill: transparent; cursor: pointer; }
+
+/* the DASA strings */
+.gfm-dasa { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--tl-line); min-height: 4em; }
+.gd-h { margin: 0 0 8px; color: var(--tl-ink); font-size: 16px; font-weight: 700; }
+.gd-axis { display: grid; grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr); gap: 4px 18px; margin: 0 0 10px; }
+.gd-name { color: var(--tl-ink); font-style: italic; font-weight: 600; font-size: 16px; }
+.gd-who { display: block; color: var(--tl-muted); font-size: 13.5px; margin-bottom: 3px; }
+.gd-strs { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.gd-strs code, .gd-strs mark { padding: 1px 3px; border-radius: 3px; background: none; color: var(--tl-text); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
+.gd-strs mark { background: var(--gfm-lit); color: #fff; }
+.gd-line { margin: 4px 0 0; color: var(--tl-text); font-size: 14.5px; line-height: 1.5; }
+
+/* how it works, and the note */
+.gfm-how { margin: 22px 0 0; color: var(--tl-text); font-size: 15px; line-height: 1.6; }
+.gfm-how summary { color: var(--tl-ink); font-weight: 600; cursor: pointer; }
+.gfm-how ol { margin: 10px 0 0; padding-left: 1.3em; }
+.gfm-how li + li { margin-top: 8px; }
+.gfm-formula { display: block; margin: 6px 0; overflow-x: auto; color: var(--tl-ink); }
+.gfm-note { margin: 22px 0 0; color: var(--tl-muted); font-size: 14px; line-height: 1.55; }
+.gfm-note a, .gfm-intro a { color: var(--tl-navy); text-decoration: none; border-bottom: 1px solid #c7d2fe; }
+.gfm-note a:hover, .gfm-intro a:hover { border-bottom-color: var(--tl-navy); }
+
+@media (max-width: 860px) {
+    .gfm-stage { grid-template-columns: 1fr; gap: 14px; }
+}
+@media (max-width: 560px) {
+    .gd-axis { grid-template-columns: 18px minmax(0, 1fr); }
+    .gd-axis .gd-side:last-child { grid-column: 2; }
+    .gfm-bar-sep { display: none; }
+}
+@media (pointer: coarse) {
+    .gfm-btn { padding: 8px 12px; font-size: 16px; }
+}
+
+/* ---------- dark mode (palette: color-scheme.css) ---------- */
+@media (prefers-color-scheme: dark) {
+    .gfm-page {
+        --gfm-ground: #26324a;
+        --gfm-street: #34425e;
+        --gfm-park: #2f4a3a;
+        --gfm-tree: #3c5c47;
+        --gfm-water: #2b4a6b;
+        --gfm-house: #3a4660;
+        --gfm-hall: #4a5674;
+        --gfm-field: #2e3a4c;
+        --gfm-label: #aab6c8;
+        --gfm-region: rgba(157, 186, 245, 0.16);
+        --gfm-edge: #9dbaf5;
+        --gfm-rect: rgba(157, 186, 245, 0.45);
+        --gfm-rect1: rgba(157, 186, 245, 0.62);
+        --gfm-rect2: rgba(157, 186, 245, 0.30);
+        --gfm-rect-edge: #1f2a40;
+        --gfm-res: #4ade80;
+        --gfm-lit: #f38bb4;
+        --gfm-bob: #f5f1e8;
+        --gfm-bob-eye: #1b2539;
+        --gfm-halo: rgba(27, 37, 57, 0.85);
+        --gfm-btn-bg: var(--dk-card);
+    }
+    .gd-strs mark { color: #1b2539; }
+    .gfm-note a, .gfm-intro a { border-bottom-color: var(--dk-navy-soft); }
+}
+/* phones: the title starts below the corner buttons */
+@media (max-width: 600px) {
+    .gfm-intro { padding-top: 40px; }
+}
