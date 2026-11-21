@@ -1,21 +1,31 @@
+    /* Melody Lane: a road over giant sheet music, waving up and down like a tune. Stretches of piano keyboard play a note
+       under every wheel, notes hop across the road, a giant metronome swings its weight over it, and a narrow xylophone
+       bridge from crest to crest is the shortcut. Speakers thump to the beat, little notes dance by the road, a band of
+       cats plays on a stage (and strikes a chord when you pass), and fans wave glow sticks at the start */
     var MUSIC = {
-        id: 'music', name: 'Melody Lane', blurb: 'Singing piano keys, hopping notes, a xylophone bridge',
-        ctrl: [300, 300, 700, 200, 1100, 260, 1400, 180, 1700, 300, 1720, 600, 1500, 700, 1300, 620, 1150, 760, 1300, 940, 1600, 1000,
-               1620, 1250, 1250, 1320, 900, 1200, 700, 1300, 400, 1250, 250, 1000, 450, 820, 300, 600], scale: 0.92, start: 0,
+        id: 'music', name: 'Melody Lane', blurb: 'Singing piano keys, a cat band, a xylophone bridge',
+        ctrl: [350, 330, 750, 150, 1150, 520, 1550, 170, 1950, 520, 2300, 240, 2600, 480, 2480, 900, 2080, 1150, 1720, 820, 1350, 1220,
+               950, 850, 600, 1180, 250, 1050, 130, 650], scale: 1.05, start: 0.025,
         phys: { vmax: 335, vgrass: 100, acc: 370, grip: 8, gripOff: 5, coast: 0.65, turn: 3.15, care: 1 },
         col: { bg: '#f6f0e4', edge: '#2d2a3a', road: '#3a3550', panel: 'rgba(255,255,255,.85)', mini: '#8b86a8' },
-        alt: { a: 246, b: 338, hw: 30, vf: 1, edge: true, ein: 8, via: [[246, 338, 0.5]] }, fallSay: 'Off the xylophone! Back you go.',
-        pads: [[60, 0.5], [250, -0.5]], picks: [30, 200, 420], padCol: ['#f59e0b', '#fff7d6'], gantry: ['#2d2a3a', '#f59e0b'],
-        keys: [[90, 140], [150, 196], [400, 446]],
+        alt: { a: 18, b: 88, hw: 30, vf: 1, edge: true, ein: 8, via: [[18, 88, 0.5]] }, fallSay: 'Off the xylophone! Back you go.',
+        pads: [[140, 0.5], [262, -0.5]], picks: [110, 230, 420], padCol: ['#f59e0b', '#fff7d6'], gantry: ['#2d2a3a', '#f59e0b'],
+        keys: [[96, 136], [236, 276], [398, 438]],
         inKeys: function (i) { for (var s = 0; s < this.keys.length; s++) { var k = this.keys[s]; if (i >= k[0] && i < k[1]) return s * 40 + Math.floor((i - k[0]) / 2); } return -1; },
         prep: function () {
-            this.hops = [[110, 0, 1.25], [124, 2.4, 1.05], [235, 1.1, 1.4], [440, 3, 1.2]].map(function (d) { return { j: d[0], ph: d[1], w: d[2], x: 0, y: 0, z: 0 }; });
-            var mj = 300; this.metro = { j: mj, p: side(mj, -(HW + 76)), a0: A[mj] + Math.PI / 2, L: 2 * HW + 76, x: 0, y: 0, th: 0, last: 0 };
+            this.hops = [[62, 0, 1.25], [150, 2.4, 1.05], [300, 1.1, 1.4], [372, 3, 1.2]].map(function (d) { return { j: d[0], ph: d[1], w: d[2], x: 0, y: 0, z: 0 }; });
+            var mj = 196; this.metro = { j: mj, p: side(mj, -(HW + 76)), a0: A[mj] + Math.PI / 2, L: 2 * HW + 76, x: 0, y: 0, th: 0, last: 0 };
             seed = 31;
-            var sp = spots(3, 420, 230);
+            var st = inner();
+            this.stage = { x: st.x, y: st.y, a: 0, chord: -9 };
+            var sp = spots(3, 420, 230, [this.stage]);
             this.piano = sp[0]; this.drums = sp[1]; this.stand = sp[2];
             var staves = this.staves = [];
-            for (var k = 0; k < 9; k++) staves.push({ y: (k + 0.5) * WH / 9 + (rnd() - 0.5) * 60, a: 30 + rnd() * 50, f: 0.002 + rnd() * 0.002, ph: rnd() * 7 });
+            for (var k = 0; k < 11; k++) staves.push({ y: (k + 0.5) * WH / 11 + (rnd() - 0.5) * 60, a: 30 + rnd() * 50, f: 0.002 + rnd() * 0.002, ph: rnd() * 7 });
+            this.speakers = [[40, 1], [128, -1], [228, 1], [334, -1], [410, -1]].map(function (d) { var q = side(d[0], d[1] * (HW + 64)); return { x: q.x, y: q.y, a: A[d[0]] - d[1] * Math.PI / 2 }; });
+            var dn = this.dance = [];
+            for (k = 6; k < N; k += 22) dn.push({ p: side(k, (k % 44 ? 1 : -1) * (HW + 34)), ph: k * 0.37, c: ['#ef4444', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b'][k % 5] });
+            this.fans = [crowd(N - 24, N - 5, -(HW + 34), 2, { glow: '#a3e635' }), crowd(N - 24, N - 5, HW + 34, 2, { glow: '#f472b6' })];
             this.update(0);
         },
         paint: function (g) {
@@ -41,6 +51,13 @@
                 }
             });
             [this.piano, this.drums, this.stand].forEach(function (q) { if (q) circle(g, q.x + 24, q.y + 30, 150, 'rgba(60,50,80,.12)'); });
+            var sg = this.stage;  /* the band's stage: a round wooden floor with a rim of lights */
+            circle(g, sg.x + 10, sg.y + 14, 120, 'rgba(60,50,80,.18)'); circle(g, sg.x, sg.y, 120, '#2d2a3a'); circle(g, sg.x, sg.y, 110, '#8a5a2b');
+            g.save(); g.beginPath(); g.arc(sg.x, sg.y, 110, 0, 7); g.clip();
+            for (k = 0; k < 9; k++) { g.strokeStyle = 'rgba(60,35,15,.35)'; g.lineWidth = 2; g.beginPath(); g.moveTo(sg.x - 110, sg.y - 100 + k * 25); g.lineTo(sg.x + 110, sg.y - 100 + k * 25); g.stroke(); }
+            g.restore();
+            circle(g, sg.x, sg.y + 20, 52, 'rgba(255,230,160,.18)');
+            this.speakers.forEach(function (q) { g.save(); g.translate(q.x + 8, q.y + 10); g.rotate(q.a); g.fillStyle = 'rgba(60,50,80,.2)'; g.fillRect(-22, -30, 44, 60); g.restore(); });
             /* the xylophone bridge: two wooden rails and bars in rainbow colours, no sides to stop you */
             strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 26, 'rgba(60,50,80,.18)');
             for (k = -1; k <= 1; k += 2) {
@@ -102,6 +119,10 @@
                 var p = side(h.j, Math.sin(clock * h.w * 0.6 + h.ph) * (HW + 16));
                 h.x = p.x; h.y = p.y; h.z = Math.abs(Math.sin(clock * h.w * 2.2 + h.ph)) * 34;
             }
+            var sg = this.stage;
+            if (phase === 'race' && clock - sg.chord > 6 && locals().some(function (c) { return Math.hypot(c.x - sg.x, c.y - sg.y) < 360; })) {  /* the band strikes a chord for you */
+                sg.chord = clock; note(0, 'triangle', 0.7, 0.25); note(2, 'triangle', 0.7, 0.2); note(4, 'triangle', 0.7, 0.2); note(7, 'sine', 0.9, 0.15);
+            }
             var m = this.metro, th = Math.sin(clock * 1.7) * 0.95;
             m.th = th; m.x = m.p.x + Math.cos(m.a0 + th) * m.L; m.y = m.p.y + Math.sin(m.a0 + th) * m.L;
             var sg = Math.cos(clock * 1.7) > 0 ? 1 : -1;
@@ -137,7 +158,60 @@
             }
         },
         over: function () {
-            var k, m = this.metro;
+            var k, m = this.metro, beat = clock * 2, pulse = Math.pow(1 - (beat % 1), 3), self = this;
+            this.dance.forEach(function (d, n) {  /* little notes dancing by the road, to the beat */
+                if (!vis(d.p.x, d.p.y, 30)) return;
+                var hop = Math.abs(Math.sin((beat + n * 0.25) * Math.PI)) * 12, x = d.p.x + Math.sin(clock * 1.3 + d.ph) * 6, y = d.p.y - hop;
+                ctx.fillStyle = 'rgba(30,20,50,.15)'; ctx.beginPath(); ctx.ellipse(d.p.x, d.p.y + 4, 8, 4, 0, 0, 7); ctx.fill();
+                ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(clock * 3 + d.ph) * 0.3);
+                ctx.fillStyle = d.c; ctx.beginPath(); ctx.ellipse(0, 0, 7, 5, -0.35, 0, 7); ctx.fill();
+                ctx.strokeStyle = d.c; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(6, -2); ctx.lineTo(6, -22); ctx.quadraticCurveTo(14, -16, 12, -9); ctx.stroke();
+                ctx.restore();
+            });
+            this.speakers.forEach(function (q) {  /* speaker stacks: the cones thump to the beat, rings go out */
+                if (!vis(q.x, q.y, 80)) return;
+                var tx = liftX(q.x, 0.07), ty = liftY(q.y, 0.07);
+                ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.a); ctx.fillStyle = '#1f1d2b'; rrect(-22, -30, 44, 60, 6); ctx.fill(); ctx.restore();
+                ctx.save(); ctx.translate(tx, ty); ctx.rotate(q.a);
+                ctx.fillStyle = '#2d2a3a'; rrect(-22, -30, 44, 60, 6); ctx.fill(); ctx.strokeStyle = '#f2c14e'; ctx.lineWidth = 2; ctx.stroke();
+                [-14, 12].forEach(function (cy, i) {
+                    var r = (i ? 12 : 8) * (1 + pulse * 0.18);
+                    circle(ctx, 0, cy, r + 2, '#111018'); circle(ctx, 0, cy, r, '#4b4760'); circle(ctx, 0, cy, r * 0.4, '#8b86a8');
+                });
+                if (kartNear(q.x, q.y) < 260) { ctx.strokeStyle = 'rgba(242,193,78,' + (0.6 * pulse).toFixed(2) + ')'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 12, 20 + (1 - pulse) * 40, -1.2, 1.2); ctx.stroke(); }
+                ctx.restore();
+            });
+            this.fans.forEach(fans);
+            var sg = this.stage;
+            if (vis(sg.x, sg.y, 140)) {  /* the band: a drummer, a guitar cat, a singer at the mic, a keyboard cat; they play harder when a kart is near */
+                var hype = clamp(1.6 - kartNear(sg.x, sg.y) / 400, 0.3, 1), CF = DOG ? ['#c8843f', '#ece6dc', '#6b4a32', '#d9a35f'] : ['#45424d', '#f6a23a', '#fbf7ef', '#a3aab5'];
+                [[0, -55, 0], [-55, 18, 1], [0, 40, 2], [58, 14, 3]].forEach(function (b) {
+                    var x = sg.x + b[0], y = sg.y + b[1], bob = Math.abs(Math.sin((beat + b[2] * 0.25) * Math.PI)) * 3 * hype, col = CF[b[2]];
+                    if (b[2] === 0) {  /* drums */
+                        circle(ctx, x - 24, y + 12, 13, '#dc2626'); circle(ctx, x - 24, y + 12, 10, '#f5f5f4');
+                        circle(ctx, x + 24, y + 12, 13, '#dc2626'); circle(ctx, x + 24, y + 12, 10, '#f5f5f4');
+                        circle(ctx, x, y + 22, 16, '#2563eb'); circle(ctx, x, y + 22, 12, '#f5f5f4');
+                        circle(ctx, x + 36, y - 6, 12 + pulse * 2, '#eab308');
+                    }
+                    if (b[2] === 3) { ctx.fillStyle = '#111018'; ctx.fillRect(x - 26, y + 8, 52, 14); ctx.fillStyle = '#fbfaf7'; for (k = 0; k < 7; k++) ctx.fillRect(x - 24 + k * 7, y + 10, 5, 10); }
+                    if (b[2] === 2) { ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y + 26); ctx.lineTo(x, y + 12); ctx.stroke(); circle(ctx, x, y + 11, 3.5, '#9ca3af'); }
+                    circle(ctx, x, y - 7 - bob, 11, col);  /* the cat, from above: body, head, ears */
+                    circle(ctx, x, y + 6 - bob, 8.5, col); ctx.strokeStyle = 'rgba(40,30,20,.4)'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.fillStyle = col;
+                    if (DOG) { ctx.fillStyle = '#5b3a24'; ctx.beginPath(); ctx.ellipse(x - 8, y + 4 - bob, 3, 5, 0.3, 0, 7); ctx.ellipse(x + 8, y + 4 - bob, 3, 5, -0.3, 0, 7); ctx.fill(); }
+                    else { ctx.beginPath(); ctx.moveTo(x - 8, y + 2 - bob); ctx.lineTo(x - 7, y - 6 - bob); ctx.lineTo(x - 2, y + 0 - bob); ctx.moveTo(x + 8, y + 2 - bob); ctx.lineTo(x + 7, y - 6 - bob); ctx.lineTo(x + 2, y - bob); ctx.fill(); }
+                    circle(ctx, x - 3, y + 8 - bob, 1.4, '#1f2937'); circle(ctx, x + 3, y + 8 - bob, 1.4, '#1f2937');
+                    var arm = Math.sin(clock * (8 + 10 * hype) + b[2]) * 5;
+                    if (b[2] === 0) { ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 9, y + 6); ctx.lineTo(x - 22, y + 10 + arm); ctx.moveTo(x + 9, y + 6); ctx.lineTo(x + 22, y + 10 - arm); ctx.stroke(); }
+                    if (b[2] === 1) {  /* the guitar across the body, the paw strumming */
+                        ctx.save(); ctx.translate(x, y + 10 - bob); ctx.rotate(-0.6);
+                        ctx.fillStyle = '#c2410c'; ctx.beginPath(); ctx.ellipse(-4, 0, 9, 7, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#7c2d12'; ctx.fillRect(4, -1.5, 20, 3);
+                        circle(ctx, -4 + arm * 0.4, 0, 2.5, col); ctx.restore();
+                    }
+                    if (b[2] === 2 && Math.sin(beat * Math.PI) > 0.3) { ctx.fillStyle = '#2d2a3a'; ctx.font = '800 14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('\u266a', x + 18, y - 14 - (beat % 1) * 14); }
+                });
+            }
+            void self;
             this.hops.forEach(function (h, n) {  /* the hopping notes: a black head, a stem and a flag, with a face */
                 if (!vis(h.x, h.y, 80)) return;
                 var x = h.x, y = h.y - h.z;
@@ -200,168 +274,3 @@
         },
         thumbDeco: function (g) { seed = 3; for (var i = 0; i < 12; i++) { g.fillStyle = '#3a3550'; g.fillRect(0, rnd() * WH, WW, 8); } }
     };
-
-    /* Prism Skyway: a ribbon of colour high over a sea of clouds at sunset. Fluffy cloud banks guard the bends, the
-       straights have open edges, grumpy storm clouds drift over the road, and the shortcut is a crystal bridge that
-       fades in and out */
-    var RAINBOW = {
-        id: 'rainbow', name: 'Prism Skyway', blurb: 'Open edges, storm clouds, a fading crystal bridge',
-        ctrl: [300, 700, 400, 350, 750, 200, 1100, 320, 1300, 200, 1650, 250, 1800, 550, 1600, 800, 1300, 750, 1100, 900, 1250, 1150,
-               1000, 1350, 600, 1300, 450, 1050, 600, 900], scale: 1, start: 0,
-        phys: { vmax: 350, vgrass: 120, acc: 330, grip: 5.4, gripOff: 3.5, coast: 0.5, turn: 3.0, care: 1.25 },
-        col: { bg: '#3b2f6b', edge: '#ffffff', road: '#c4b5fd', panel: 'rgba(15,23,42,.6)', mini: '#e9d5ff', grid: 'rgba(255,255,255,.85)' },
-        sky: true, G: 300,
-        alt: { a: 318, b: 410, hw: 30, vf: 1, gate: { at: 0.28, open: 4.4, shut: 2.4 }, via: [[318, 410, 0.33], [318, 410, 0.66]] }, gate: 'fade', gateSoft: true,
-        fallSay: 'Off the edge! A cloud carries you back.',
-        pads: [[50, 0.5], [280, -0.5]], picks: [20, 190, 440], padCol: ['#f472b6', '#fdf2f8'], gantry: ['#7c3aed', '#facc15'],
-        BANDS: ['#ff6b6b', '#ffa94d', '#ffd43b', '#69db7c', '#4dabf7', '#748ffc', '#b197fc'],
-        altGood: function (c) { var T = ((ALT.a - c.idx + N) % N * SP + this.s1 * ALT.step) / Math.max(c.vf, 150); return gateOpen(clock + T) > 0.6; },
-        prep: function () {
-            var i, k, g = this.guard = new Uint8Array(N);
-            for (i = 0; i < N; i++) if (Math.abs(K[i]) > 0.0045) for (k = -10; k <= 26; k++) g[ix(i + k)] = 1;  /* longer after the bend, where karts run wide */  /* cloud banks round the bends */
-            this.s0 = Math.round(ALT.n * 0.3); this.s1 = Math.round(ALT.n * 0.72);
-            this.storms = [[100, 0], [215, 2.2], [370, 4.1]].map(function (d) { return { j: d[0], ph: d[1], x: 0, y: 0, p: 0 }; });
-            seed = 81;
-            this.puffs = [];  /* the cloud banks: puffs along the outside of the guarded bends */
-            for (i = 0; i < N; i += 3) if (g[i]) for (k = -1; k <= 1; k += 2) {
-                var q = side(i, k * (HW + 22 + rnd() * 8)), o = { x: q.x, y: q.y }; nearest(o);
-                if (o.dist > HW + 14) this.puffs.push({ x: q.x, y: q.y, r: 16 + rnd() * 10 });
-            }
-            this.balloons = spots(3, 500, 260);
-            this.update(0);
-        },
-        paint: function (g) {
-            var i, k, self = this;
-            g.clearRect(0, 0, WW, WH);  /* see-through: the sky and the cloud sea are drawn behind */
-            g.save(); g.translate(14, 26); strokeLoop(g, 0, N, 2 * HW + 12, 'rgba(40,20,80,.28)'); strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 8, 'rgba(40,20,80,.22)'); g.restore();
-            [[0, this.s0], [this.s1, ALT.n - 1]].forEach(function (e) {
-                strokeAlt(g, e[0], e[1], 2 * ALT.hw + 8, '#e0f2fe', []); strokeAlt(g, e[0], e[1], 2 * ALT.hw - 4, '#bae6fd', []);
-                for (var j = e[0] + 1; j < e[1]; j += 3) { var a = altSide(j, -ALT.hw), b = altSide(j, ALT.hw); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
-            });
-            strokeLoop(g, 0, N, 2 * HW + 12, '#ffffff');  /* the ribbon: a white rim and seven bands of colour */
-            var bw = (2 * HW - 4) / 7;
-            for (k = 0; k < 7; k++) offLine(g, -HW + 2 + bw * (k + 0.5), bw + 0.8, this.BANDS[k]);
-            for (k = 1; k < 7; k++) offLine(g, -HW + 2 + bw * k, 1.2, 'rgba(255,255,255,.35)');
-            seed = 82;
-            for (i = 0; i < 260; i++) {  /* sparkles */
-                var p = side(Math.floor(rnd() * N), (rnd() - 0.5) * 1.8 * HW), r = 1 + rnd() * 1.8;
-                g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.moveTo(p.x, p.y - r * 2); g.lineTo(p.x + r * 0.6, p.y); g.lineTo(p.x, p.y + r * 2); g.lineTo(p.x - r * 0.6, p.y); g.fill();
-            }
-            strokeLoop(g, 0, N, 3, 'rgba(255,255,255,.7)', [10, 30]);
-            this.puffs.forEach(function (q) { circle(g, q.x + 6, q.y + 10, q.r, 'rgba(60,40,110,.25)'); });
-            this.puffs.forEach(function (q) { circle(g, q.x, q.y, q.r, '#f5f3ff'); });
-            this.puffs.forEach(function (q) { circle(g, q.x - q.r * 0.3, q.y - q.r * 0.35, q.r * 0.55, '#ffffff'); });
-            self = null;
-        },
-        effect: function (c) {
-            if (c.z > 0 || c.fall > 0) return;
-            nearest(c);
-            if (c.alt) {
-                if (c.ai >= this.s0 && c.ai <= this.s1 && gateOpen(clock) < 0.5) { stat('fade'); fallOff(c, ALT.a); }
-                return;
-            }
-            if (c.dist <= HW + 6) return;
-            if (!this.guard[c.idx]) { stat('edge'); fallOff(c, c.idx); return; }
-            var rim = HW + 8, nx = (c.x - c.px) / c.dist, ny = (c.y - c.py) / c.dist, vn = c.vx * nx + c.vy * ny;  /* a soft cloud bank: it bounces you back */
-            c.x = c.px + nx * rim; c.y = c.py + ny * rim;
-            if (vn > 0) { c.vx -= nx * vn * 1.5; c.vy -= ny * vn * 1.5; if (mine(c) && vn > 60 && clock - c.hitAt > 0.5) { c.hitAt = clock; sfx(c, 'move'); } }
-        },
-        update: function () {
-            var self = this;
-            this.storms.forEach(function (s) {  /* storm clouds drift across the road and zap, all from the clock */
-                var q = side(s.j + Math.round(Math.sin(clock * 0.21 + s.ph) * 6), Math.sin(clock * 0.45 + s.ph) * HW * 0.9);
-                s.x = q.x; s.y = q.y;
-                var was = s.p; s.p = (clock + s.ph * 1.7) % 5;
-                if (phase !== 'race') return;
-                if (was < 3.8 && s.p >= 3.8) {
-                    hear(s.x, s.y, 520, 'hit');
-                    if (!remote) karts.forEach(function (c) {
-                        if (c.z < 20 && !(c.fall > 0) && Math.hypot(c.x - s.x, c.y - s.y) < 46) { stat('zap'); spinOut(c, 0.9, 'Zap! A grumpy storm cloud!'); }
-                    });
-                }
-            });
-            void self;
-        },
-        under: function () {
-            var o = gateOpen(clock);
-            if (o > 0) {  /* the middle of the crystal bridge, fading in and out (it flickers just before it goes) */
-                var fl = o < 1 && o > 0.3 ? 0.75 + 0.25 * Math.sin(clock * 40) : 1;
-                ctx.globalAlpha = o * fl;
-                strokeAlt(ctx, this.s0, this.s1, 2 * ALT.hw + 8, '#e0f2fe', []); strokeAlt(ctx, this.s0, this.s1, 2 * ALT.hw - 4, '#bae6fd', []);
-                ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2; ctx.beginPath();
-                for (var j = this.s0 + 1; j < this.s1; j += 3) { var a = altSide(j, -ALT.hw), b = altSide(j, ALT.hw); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); }
-                ctx.stroke(); ctx.globalAlpha = 1;
-            }
-            if (o < 1) {  /* where it was: a dotted outline */
-                ctx.globalAlpha = 0.6 * (1 - o); strokeAlt(ctx, this.s0, this.s1, 2 * ALT.hw + 8, 'rgba(255,255,255,.7)', [6, 10]); ctx.globalAlpha = 1; ctx.setLineDash([]);
-            }
-            this.storms.forEach(function (s) {  /* the storm's shadow, and a warning ring while it charges */
-                if (!vis(s.x, s.y, 60)) return;
-                ctx.fillStyle = 'rgba(40,30,80,.22)'; ctx.beginPath(); ctx.ellipse(s.x + 10, s.y + 14, 40, 26, 0, 0, 7); ctx.fill();
-                if (s.p > 2.6 && s.p < 3.8) warnRing({ x: s.x, y: s.y, t: (s.p - 2.6) * 1.17 }, '#facc15');
-            });
-        },
-        over: function () {
-            this.storms.forEach(function (s, n) {  /* grumpy little storm clouds */
-                if (!vis(s.x, s.y - 50, 90)) return;
-                var x = s.x, y = s.y - 46 + Math.sin(clock * 2 + n) * 3, dark = s.p > 2.6 && s.p < 4.2, k;
-                if (s.p >= 3.8 && s.p < 4.2) {  /* the bolt */
-                    ctx.strokeStyle = '#fde047'; ctx.lineWidth = 7; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(x, y + 10);
-                    ctx.lineTo(x - 10, y + 22); ctx.lineTo(x + 6, y + 28); ctx.lineTo(s.x - 4, s.y); ctx.stroke();
-                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
-                    circle(ctx, s.x, s.y, 30, 'rgba(253,224,71,.35)');
-                }
-                var col = dark ? (Math.floor(clock * 12) % 2 ? '#6b6890' : '#4c4970') : '#8f8cb0';
-                [[-22, 4, 18], [0, -6, 24], [22, 2, 19], [8, 10, 18], [-10, 10, 16]].forEach(function (p) { circle(ctx, x + p[0], y + p[1], p[2], col); });
-                circle(ctx, x - 6, y - 12, 10, 'rgba(255,255,255,.18)');
-                ctx.strokeStyle = '#2b2440'; ctx.lineWidth = 2.5; ctx.beginPath();
-                ctx.moveTo(x - 14, y - 4); ctx.lineTo(x - 5, y); ctx.moveTo(x + 14, y - 4); ctx.lineTo(x + 5, y); ctx.stroke();  /* frowning brows */
-                circle(ctx, x - 8, y + 4, 2.4, '#2b2440'); circle(ctx, x + 8, y + 4, 2.4, '#2b2440');
-                ctx.beginPath(); ctx.arc(x, y + 14, 5, 3.6, 5.8); ctx.stroke();
-                for (k = 0; k < 3 && !dark; k++) { var dy = (clock * 60 + k * 13 + n * 7) % 30; ctx.fillStyle = 'rgba(147,197,253,.8)'; ctx.fillRect(x - 12 + k * 12, y + 18 + dy, 2, 6); }
-            });
-            var self = this;
-            this.balloons.forEach(function (b, n) {  /* hot air balloons floating far above */
-                var bx = b.x + Math.sin(clock * 0.2 + n) * 40, by = b.y + Math.cos(clock * 0.17 + n) * 30;
-                if (!vis(bx, by, 260)) return;
-                var x = liftX(bx, 0.28), y = liftY(by, 0.28);
-                ctx.fillStyle = 'rgba(40,20,80,.18)'; ctx.beginPath(); ctx.ellipse(bx + 20, by + 30, 40, 30, 0, 0, 7); ctx.fill();
-                var C = [self.BANDS[n * 2], '#fff', self.BANDS[n * 2 + 1]];
-                for (var k = 0; k < 6; k++) { ctx.fillStyle = C[k % 3]; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, 52, k * 1.047, (k + 1) * 1.047); ctx.fill(); }
-                circle(ctx, x, y, 16, '#fef3c7'); ctx.strokeStyle = '#7c2d12'; ctx.lineWidth = 3; ctx.strokeRect(x - 9, y - 9, 18, 18);
-            });
-        },
-        drawSky: function (cw, ch, k) {
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            if (!this.grad || this.gh !== ch) {
-                this.gh = ch; this.grad = ctx.createLinearGradient(0, 0, 0, ch);
-                this.grad.addColorStop(0, '#5b4b9a'); this.grad.addColorStop(0.55, '#c084b8'); this.grad.addColorStop(1, '#ffb38a');
-            }
-            ctx.fillStyle = this.grad; ctx.fillRect(0, 0, cw, ch);
-            if (!this.cl) {  /* two tiles of clouds, drawn once: far ones small and faint, near ones big */
-                this.cl = [0, 1].map(function (L) {
-                    var t = document.createElement('canvas'), g = t.getContext('2d'), s = 7 + L * 11, i, n = L ? 9 : 16;
-                    t.width = t.height = 512;
-                    for (i = 0; i < n; i++) {
-                        s = (s * 16807) % 2147483647; var x = s % 512; s = (s * 16807) % 2147483647; var y = s % 512;
-                        for (var j = 0; j < 6; j++) {
-                            var r = (L ? 34 : 18) + (j % 3) * (L ? 12 : 6), dx = (j - 2.5) * (L ? 34 : 18), dy = (j % 2) * (L ? 14 : 8);
-                            for (var ox = -512; ox <= 512; ox += 512) for (var oy = -512; oy <= 512; oy += 512) {
-                                circle(g, x + dx + ox, y + dy + oy, r, L ? 'rgba(255,240,250,.75)' : 'rgba(255,230,245,.35)');
-                            }
-                        }
-                    }
-                    return ctx.createPattern(t, 'repeat');
-                });
-            }
-            for (var L = 0; L < 2; L++) {  /* parallax: the far clouds move slower than the near ones */
-                var f = L ? 0.5 : 0.25, ox = ((camX * k * f + (api.reducedMotion ? 0 : clock * (L ? 12 : 6))) % 512 + 512) % 512, oy = ((camY * k * f) % 512 + 512) % 512;
-                ctx.save(); ctx.translate(-ox, -oy); ctx.fillStyle = this.cl[L]; ctx.fillRect(0, 0, cw + 512, ch + 512); ctx.restore();
-            }
-        },
-        thumbDeco: function (g) { seed = 3; for (var i = 0; i < 30; i++) circle(g, rnd() * WW, rnd() * WH, 50, 'rgba(255,240,250,.6)'); }
-    };
-
-    /* Zombie Town: cobbled lanes through a sleepy, spooky village at night. Friendly, clumsy zombies shuffle across the
-       road; bump one and you both go spinning. The shortcut runs through the graveyard, behind an iron gate, where
-       zombies pop up out of the graves now and then */

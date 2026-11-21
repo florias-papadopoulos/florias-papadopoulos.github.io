@@ -9,14 +9,20 @@ function that starts in `00-setup.js` and ends in `90-split.js`.
 | Part | What is in it |
 |---|---|
 | `00-setup.js` | header comment (the whole game described), `Arcade.register` of the three ids, settings and track arrays, `nearest()` (where a kart is on the road), building a track (spline, streets, shortcut path), drawing helpers for the cached track, particles |
-| `10a-track-meadow.js` | culling helpers (`vis`), lively scenery shared by the tracks (cheering fans `fanRow`/`drawFans`, birds that fly off `flock`/`drawFlock`, `kartNear`), then Catnip Meadow |
+| `10a-track-meadow.js` | culling helpers (`vis`), lively scenery shared by the tracks (cheering fans `fanRow`/`drawFans`, birds that fly off `flock`/`drawFlock`, `kartWithin`: the nearest kart), then Catnip Meadow |
 | `10b-track-city.js` | buildings that stand up (`block`, also used by other tracks), Night City |
 | `10c-track-reef.js` | Coral Reef |
 | `11a-track-moon.js` | Moon Rim |
 | `11b-track-volcano.js` | `mainDist`, `strikes`, `warnRing` (also used by other tracks), Lava Peak |
-| `12-tracks-trees-desert-sky.js` | Giant Grove, Red Canyon, Blossom Town |
-| `13-tracks-music-rainbow.js` | Melody Lane, Prism Skyway |
-| `14-tracks-zombie-room.js` | Zombie Town, Living Room Rally, the list of tracks |
+| `12-tracks-shared.js` | helpers for the tracks of parts 12a to 14b: `pillar()`, sounds by the road (`hear()`, `note()`), `kartNear()`, things blowing in the air (`drift()`), little animals that run off when a kart comes (`critters()`, `scare()`), open places for scenery (`inner()`, `innerSpots()`), cheering spectators (`crowd()`, `fans()`, dogs in dog mode) |
+| `12a-track-grove.js` | Giant Grove |
+| `12b-track-canyon.js` | Red Canyon |
+| `12c-track-blossom.js` | Blossom Town |
+| `13a-track-melody.js` | Melody Lane |
+| `13b-track-prism.js` | Prism Skyway |
+| `14a-track-zombie.js` | Zombie Town |
+| `14b-track-room.js` | Living Room Rally |
+| `15-track-list.js` | the list of tracks (`MAPS`, the order of the picker) and `drawParts()` |
 | `20-page.js` | canvas, HUD, countdown, touch buttons, the track and kart skin picker |
 | `30-karts.js` | karts (the player and three computer cats), the player's look (cat or dog, `LOOK`, `dogify()`), kart skins and `dress()`, physics, laps, the off-track warning and the rescues |
 | `35-drift-draft.js` | drifting (Brake while steering at speed: slide, sparks by level, the mini-turbo) and the slipstream behind another kart, with their drawing (`drawSlide`) |

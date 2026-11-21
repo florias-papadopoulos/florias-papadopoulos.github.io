@@ -172,10 +172,10 @@
                 if (f.y < -40) f.y = WH + 30; else if (f.y > WH + 40) f.y = -30;
             });
             this.schools.forEach(function (q) {
-                var k = kartNear(q.x + Math.cos(clock * 0.35 * q.dir + q.ph) * 120, q.y + Math.sin(clock * 0.35 * q.dir + q.ph) * 80, 200);
+                var k = kartWithin(q.x + Math.cos(clock * 0.35 * q.dir + q.ph) * 120, q.y + Math.sin(clock * 0.35 * q.dir + q.ph) * 80, 200);
                 q.sc = k ? Math.min(1, q.sc + dt * 4) : Math.max(0, q.sc - dt * 0.4);
             });
-            this.crabs.forEach(function (q) { q.h = kartNear(q.x, q.y, 120) ? Math.min(1, q.h + dt * 6) : Math.max(0, q.h - dt * 0.6); });
+            this.crabs.forEach(function (q) { q.h = kartWithin(q.x, q.y, 120) ? Math.min(1, q.h + dt * 6) : Math.max(0, q.h - dt * 0.6); });
             this.vents.forEach(function (v) {
                 v.t -= dt;
                 if (v.t <= 0 && vis(v.x, v.y, 60)) { v.t = 0.3 + Math.random() * 0.3; puff('bub', v.x + (Math.random() - 0.5) * 8, v.y, (Math.random() - 0.5) * 14, -14, 1.8, 2 + Math.random() * 4); }

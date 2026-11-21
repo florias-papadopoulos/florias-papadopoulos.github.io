@@ -3,7 +3,7 @@
     function vis(x, y, r) { return x + r > VX0 && x - r < VX1 && y + r > VY0 && y - r < VY1 || !!VB && x + r > VB[0] && x - r < VB[2] && y + r > VB[1] && y - r < VB[3]; }
 
     /* Lively scenery shared by the tracks: fans that cheer, birds that fly off, all moved by the clock and culled */
-    function kartNear(x, y, r) {  /* the closest kart within r of (x, y), or null */
+    function kartWithin(x, y, r) {  /* the closest kart within r of (x, y), or null (kartNear in 12-tracks-shared.js gives the distance instead) */
         var best = null, bd = r * r;
         for (var i = 0; i < 4; i++) {
             var c = karts[i], dx = c.x - x, dy = c.y - y, q = dx * dx + dy * dy;
@@ -11,14 +11,14 @@
         }
         return best;
     }
-    var FUR = ['#f6a23a', '#a3aab5', '#45424d', '#fbf7ef', '#e8c9a0', '#8a5a3c', '#d9822b'];
+    var FANFUR = ['#f6a23a', '#a3aab5', '#45424d', '#fbf7ef', '#e8c9a0', '#8a5a3c', '#d9822b'];
     function fanRow(j0, j1, l, rows, flags, s0) {  /* fans standing along the road from j0 to j1, rows deep, at l from the centre (sign: side) */
         var out = [], s = l > 0 ? 1 : -1, i, k;
         seed = s0;
         for (k = 0; k < rows; k++) for (i = j0; i <= j1; i++) {
             if (rnd() < 0.3) continue;
             var p = side(i, l + s * (k * 17 + rnd() * 5)), f = rnd();
-            out.push({ x: p.x, y: p.y, a: A[ix(i)] + (s > 0 ? -Math.PI / 2 : Math.PI / 2), c: FUR[Math.floor(rnd() * FUR.length)],
+            out.push({ x: p.x, y: p.y, a: A[ix(i)] + (s > 0 ? -Math.PI / 2 : Math.PI / 2), c: FANFUR[Math.floor(rnd() * FANFUR.length)],
                 ph: rnd() * 7, flag: f < 0.35 ? flags[Math.floor(f * 100) % flags.length] : null });
         }
         return out;
@@ -28,7 +28,7 @@
         for (i = 0; i < list.length; i++) {
             f = list[i];
             if (!vis(f.x, f.y, 30)) continue;
-            var hot = all || !!kartNear(f.x, f.y, 240), sp = hot ? 11 : 2.5, b = Math.abs(Math.sin(clock * sp + f.ph)) * (hot ? 5 : 1.2);
+            var hot = all || !!kartWithin(f.x, f.y, 240), sp = hot ? 11 : 2.5, b = Math.abs(Math.sin(clock * sp + f.ph)) * (hot ? 5 : 1.2);
             var ca = Math.cos(f.a), sa = Math.sin(f.a), x = f.x - ca * b * 0.4, y = f.y - b;  /* the head faces the road (away is f.a) */
             circle(ctx, f.x + 2, f.y + 3, 6, 'rgba(15,23,42,.18)');
             var wv = Math.sin(clock * (hot ? 14 : 3) + f.ph) * (hot ? 0.9 : 0.3);
@@ -70,7 +70,7 @@
             if (f < -0.01 || f > 7) { b.t = -1; f = -1; }
             if (!vis(b.x, b.y, f < 0 ? 20 : 420)) continue;
             if (f < 0) {
-                var k = kartNear(b.x, b.y, 130);
+                var k = kartWithin(b.x, b.y, 130);
                 if (k) { b.t = clock; b.a = Math.atan2(b.y - k.y, b.x - k.x) + (Math.random() - 0.5); f = 0; }
             }
             if (f < 0 || f > 6.2) {  /* sitting (fading back in after a flight), now and then pecking */
@@ -252,7 +252,7 @@
                 ctx.strokeStyle = '#f5e6c8'; ctx.lineWidth = 3; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
                 ctx.beginPath(); ctx.moveTo(x0, (y0 + y1) / 2); ctx.lineTo(x1, (y0 + y1) / 2); ctx.stroke();
                 circle(ctx, (x0 + x1) / 2, y0 + 12, 6, '#f5e6c8');
-                var fx = q.x + 20, fy = q.y + 72, wave = Math.sin(clock * (kartNear(fx, fy, 420) ? 9 : 2.5)) * 0.7;  /* the farmer in a straw hat, waving */
+                var fx = q.x + 20, fy = q.y + 72, wave = Math.sin(clock * (kartWithin(fx, fy, 420) ? 9 : 2.5)) * 0.7;  /* the farmer in a straw hat, waving */
                 circle(ctx, fx + 2, fy + 3, 8, 'rgba(15,23,42,.2)'); circle(ctx, fx, fy, 7, '#3b82f6');
                 ctx.strokeStyle = '#f6a23a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
                 ctx.beginPath(); ctx.moveTo(fx + 4, fy - 2); ctx.lineTo(fx + 8 + Math.cos(-1.2 + wave) * 10, fy - 2 + Math.sin(-1.2 + wave) * 10); ctx.stroke();
