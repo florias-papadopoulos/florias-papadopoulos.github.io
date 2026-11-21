@@ -516,7 +516,7 @@ test('storage round trip', function () {
 });
 
 test('secret ballot: key, one encrypted ballot each, no copies, closed by the reveal, tally from the projector', function () {
-    global.crypto = global.crypto || { getRandomValues: function (b) { return crypto.randomFillSync(b); } };
+    if (!global.crypto) global.crypto = { getRandomValues: function (b) { return crypto.randomFillSync(b); } };   // node 12 has none; newer node has one that cannot be replaced
     const B = createRequire(import.meta.url)('../../../../assets/js/live/15-ballot.js');
     const plan = P.checkPlan({ title: 'Teams', acts: [{ type: 'ballot', q: 'Best team?', opts: ['Red', 'Blue', 'Green'] }] }, 'pkc27', seq(5));
     assert.ok(!plan.error, plan.error);

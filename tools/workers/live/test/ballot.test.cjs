@@ -3,7 +3,7 @@
 'use strict';
 const crypto = require('crypto');
 const path = require('path');
-global.crypto = { getRandomValues: function (b) { return crypto.randomFillSync(b); } };
+if (!global.crypto) global.crypto = { getRandomValues: function (b) { return crypto.randomFillSync(b); } };   // node 12 has none; newer node has one that cannot be replaced
 const B = require(path.join(__dirname, '../../../../assets/js/live/15-ballot.js'));
 const _ = B._;
 let fails = 0, checks = 0;
