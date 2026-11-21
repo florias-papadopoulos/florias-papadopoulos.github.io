@@ -107,4 +107,27 @@ module.exports = function (CH, t) {
         }
         t.eq(msolved, 6, 'mary: the climber solves it from 6 of 6 random starts within 400000 steps');
     }
+
+    /* ---------- Zimmermann: the State Department's English decode up to "Arizona" (NARA, ID 302024), "or" put right as "of" ---------- */
+    var zimPlain = 'We intend to begin on the first of February unrestricted submarine warfare. We shall endeavor in spite of this to keep the United States of America neutral. In the event of this not succeeding, we make Mexico a proposal of alliance on the following basis: make war together, make peace together, generous financial support and an understanding on our part that Mexico is to reconquer the lost territory in Texas, New Mexico, and Arizona.';
+    var zimMissing = ['february', 'submarine', 'america', 'neutral', 'mexico', 'alliance', 'together', 'peace', 'texas', 'arizona'];
+    if (S.zimmermann) {
+        var Z = S.zimmermann, zw = zimPlain.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean), zg = Z.groups.split(' ');
+        t.eq(zg.join(' '), zw.map(function (w) { return Z.number(w, Z.PUZZLE); }).join(' '), 'zimmermann: the groups are the words in the puzzle\'s codebook');
+        t.eq(Z.answer, CH.print(zw.join(' ')), 'zimmermann: answer fingerprint');
+        var zbook = {};
+        zw.forEach(function (w, i3) { t.ok(!zbook[zg[i3]] || zbook[zg[i3]] === w, 'zimmermann: one word per group (' + w + ')'); zbook[zg[i3]] = w; });
+        Object.keys(zbook).forEach(function (g) {
+            var w = zbook[g], missing = zimMissing.indexOf(w) >= 0;
+            if (missing) t.eq(Z.prints[g], CH.print(w), 'zimmermann: the fingerprint of the missing ' + w);
+            else t.eq(Z.known[g], w, 'zimmermann: the known word ' + w);
+            t.ok(missing ? Z.known[g] == null : Z.prints[g] == null, 'zimmermann: ' + w + ' is either known or missing');
+        });
+        t.eq(Object.keys(Z.prints).length, zimMissing.length, 'zimmermann: ten missing words');
+        /* the book is alphabetical: sorting the words by group sorts them in alphabetical order */
+        var zsorted = Object.keys(zbook).sort().map(function (g) { return zbook[g]; });
+        t.eq(zsorted.join(' '), zsorted.slice().sort().join(' '), 'zimmermann: the codebook is in alphabetical order');
+        /* the machine's book is another one, so it does not give the puzzle's groups away */
+        zimMissing.forEach(function (w) { t.ok(Z.number(w, Z.MACHINE) !== Z.number(w, Z.PUZZLE), 'zimmermann: the machine\'s group for ' + w + ' differs'); });
+    }
 };

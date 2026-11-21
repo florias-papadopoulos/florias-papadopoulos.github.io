@@ -231,6 +231,26 @@ html[data-mode="play"] body:has(.ch-page) { --sec: #0369a1; --sec-glow: rgba(3, 
 .ch-climb-lab { fill: var(--ch-muted); font: 9px var(--ch-mono); }
 .ch-climb-line { fill: none; stroke: var(--ch-sec); stroke-width: 2; stroke-linejoin: round; }
 
+/* ---------- desk: the codebook ---------- */
+.ch-cb-msg { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 10px; }
+.ch-cb-g { display: inline-flex; flex-direction: column; align-items: center; min-width: 3.6em; padding: 3px 5px; border: 1px solid var(--ch-line); border-radius: 6px; background: #fff; font: inherit; line-height: 1.25; cursor: pointer; }
+.ch-cb-g b { color: var(--ch-red); font: 600 14px var(--ch-mono); font-variant-numeric: tabular-nums; }
+.ch-cb-g i { color: var(--ch-ink); font: 600 13.5px var(--ch-mono); font-style: normal; }
+.ch-cb-g.is-static { cursor: default; }
+.ch-cb-g.is-open { border-color: var(--ch-amber); border-style: dashed; }
+.ch-cb-g.is-open i { color: var(--ch-amber); }
+.ch-cb-g.is-found i { color: #166534; }
+.ch-cb-g.is-on { background: #e0f2fe; }
+.ch-cb-book { columns: 2 220px; column-gap: 18px; margin: 4px 0 0; padding: 0; list-style: none; }
+.ch-cb-row { display: grid; grid-template-columns: 4.2em minmax(0, 1fr); gap: 8px; align-items: center; min-height: 30px; padding: 1px 4px; break-inside: avoid; border-bottom: 1px solid var(--ch-line); }
+.ch-cb-row b { color: var(--ch-red); font: 600 14px var(--ch-mono); font-variant-numeric: tabular-nums; }
+.ch-cb-word { color: var(--ch-ink); font: 14.5px var(--ch-mono); }
+.ch-cb-row.is-open { background: #fffbeb; }
+.ch-cb-row.is-found { background: #f0fdf4; }
+.ch-cb-row.is-on { background: #e0f2fe; }
+.ch-page .ch-cb-in { width: 100%; min-width: 0; box-sizing: border-box; margin: 2px 0; padding: 3px 6px; border: 1px solid var(--ch-amber); border-radius: 6px; color: var(--ch-ink); font: 16px var(--ch-mono); }
+.ch-cb-row.is-found .ch-cb-in { border-color: #16a34a; color: #166534; }
+
 @media (max-width: 600px) {
     .ch-page { font-size: 16px; }
     .ch-machine-box, .ch-puzzle-box { padding: 12px 10px; }
