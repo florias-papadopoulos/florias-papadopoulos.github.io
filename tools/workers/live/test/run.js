@@ -7,6 +7,7 @@ import vm from 'vm';
 import { createRequire } from 'module';
 import * as P from '../src/plan.js';
 import * as S from '../src/session.js';
+import * as C from '../src/cipher.js';
 
 let passed = 0, failed = 0;
 function test(name, fn) {
@@ -580,6 +581,67 @@ test('secret ballot: key, one encrypted ballot each, no copies, closed by the re
     assert.strictEqual(S.presenterView(b.st, b.now).act.n, undefined);
     r = S.purge(b.st);
     assert.ok(r.del.indexOf('b:' + act.id + ':' + x.id) >= 0, 'ballots are deleted with the audience data');
+});
+
+test('shared cipher: plan, key, guesses that fade, locking by agreement, hint, solve, points', function () {
+    assert.ok(P.checkPlan({ title: 'T', acts: [{ type: 'cipher', text: 'short' }] }, 'pkc27').error, 'too short');
+    assert.ok(P.checkPlan({ title: 'T', acts: [{ type: 'cipher', text: 'aaaa bbbb aaaa' }] }, 'pkc27').error, 'too few letters');
+    const plan = P.checkPlan({ title: 'Crack it', acts: [{ type: 'cipher', text: 'Señor, meet me at the café: 10 PM!' }] }, 'pkc27', seq(5));
+    assert.ok(!plan.error, plan.error);
+    assert.strictEqual(plan.plan.acts[0].text, 'SENOR, MEET ME AT THE CAFE: 10 PM!');
+    assert.strictEqual(plan.plan.acts[0].q, 'Crack the secret message together');
+    for (let i = 0; i < 50; i++) { const k = C.makeKey(rnd); assert.ok(C.keyOk(k)); for (let j = 0; j < 26; j++) assert.notStrictEqual(k[j], String.fromCharCode(65 + j)); }
+    const b = setup();
+    S.setPlan(b.st, P.withJoin(plan.plan, null, rnd));
+    const p = b.pres(), toks = ['tokentokentoken1aaaa', 'tokentokentoken2bbbb', 'tokentokentoken3cccc', 'tokentokentoken4dddd', 'tokentokentoken5eeee', 'tokentokentoken6ffff', 'tokentokentoken7gggg', 'tokentokentoken8hhhh'];
+    const ph = toks.map(function (t) { return b.phone(t); });
+    b.send(p, { t: 'start' }); b.send(p, { t: 'next' });
+    const a = b.st.meta.acts[0], key = b.st.meta.ckey[a.id];
+    assert.ok(C.keyOk(key));
+    let v = S.audienceView(b.st, ph[0].id, b.now);
+    assert.strictEqual(v.act.ct, C.encrypt(a.text, key));
+    assert.ok(!JSON.stringify(v).includes('MEET'), 'phones never get the message before it is solved');
+    assert.strictEqual(v.act.done, false);
+    const E = key[4], M = key[12], O = key[14];   // the cipher letters of E, M and O
+    /* a wrong guess: kept, no answer about right or wrong, never locks */
+    let r = b.send(ph[0], { t: 'guess', a: a.id, x: E, y: 'A' });
+    assert.deepStrictEqual(mine(r)[0], { t: 'guessed', a: a.id, x: E, y: 'A' });
+    assert.ok(r.out.some(function (o) { return o.to === 'pres' && o.m.t === 'lean' && o.coalesce; }));
+    for (let i = 1; i < 8; i++) b.send(ph[i], { t: 'guess', a: a.id, x: E, y: 'A' });
+    assert.ok(!b.st.meta.lock[a.id][E], 'a wrong majority never locks');
+    assert.deepStrictEqual(S.presenterView(b.st, b.now).act.lean[E], ['A', 8]);
+    /* the guesses fade: after FADE they no longer count */
+    b.now += C.FADE + 1;
+    assert.strictEqual(S.presenterView(b.st, b.now).act.active, 0);
+    /* right guesses: 8 phones guessing, need = max(2, 25% of 8) = 2 */
+    b.send(ph[0], { t: 'guess', a: a.id, x: M, y: 'M' });
+    assert.ok(!b.st.meta.lock[a.id][M], 'one phone alone cannot lock');
+    for (let i = 2; i < 8; i++) b.send(ph[i], { t: 'guess', a: a.id, x: O, y: 'E' });   // six guessing something wrong
+    r = b.send(ph[1], { t: 'guess', a: a.id, x: M, y: 'M' });
+    assert.strictEqual(C.need(8), 2);
+    assert.strictEqual(b.st.meta.lock[a.id][M], 'M', 'two of eight agree on the right letter: it locks');
+    assert.ok(r.out.some(function (o) { return o.to === 'aud' && o.view; }), 'every phone sees the lock');
+    v = S.audienceView(b.st, ph[1].id, b.now);
+    assert.strictEqual(v.act.lock[M], 'M');
+    assert.strictEqual(v.me.p, C.POINTS, 'points for the phones that locked it');
+    assert.strictEqual(S.audienceView(b.st, ph[5].id, b.now).me.p, 0);
+    assert.strictEqual(mine(b.send(ph[3], { t: 'guess', a: a.id, x: 'é', y: 'E' }))[0].e, 'bad');
+    /* hint: the most frequent open cipher letter (E, then T in this text) */
+    b.send(p, { t: 'hint' });
+    assert.strictEqual(b.st.meta.lock[a.id][E], 'E');
+    /* storage round trip */
+    const store = new Map();
+    ['meta', 'plan'].concat(S.audienceKeys(b.st)).forEach(function (k) { store.set(k, JSON.parse(JSON.stringify(S.part(b.st, k)))); });
+    const st2 = S.fromStorage(b.st.meta.name, store);
+    assert.deepStrictEqual(S.audienceView(st2, ph[1].id, b.now), S.audienceView(b.st, ph[1].id, b.now));
+    /* reveal solves it */
+    b.send(p, { t: 'reveal' });
+    v = S.audienceView(b.st, ph[0].id, b.now);
+    assert.ok(v.act.done); assert.strictEqual(v.act.pt, a.text);
+    assert.strictEqual(mine(b.send(ph[0], { t: 'guess', a: a.id, x: O, y: 'O' }))[0].e, 'closed');
+    const ex = S.exportResults(b.st, b.now).activities[0];
+    assert.ok(ex.solved && ex.message === a.text && ex.guessers === 8);
+    assert.ok(S.purge(b.st).del.some(function (k) { return k.indexOf('g:') === 0; }), 'guesses are deleted with the audience data');
 });
 
 test('points', function () {

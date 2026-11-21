@@ -67,7 +67,8 @@
         LV.stopTicks();
         mineBallot(view.act);
         if (view.act && view.act.end) view.act.left = Math.max(0, view.act.end - Date.now());
-        LV.clear(main).appendChild(LV.phoneMain(view, { vote: vote, timeUp: timeUp }));
+        if (!view.act || view.act.type !== 'cipher' || (view.act.lock || {})[sel]) sel = '';
+        LV.clear(main).appendChild(LV.phoneMain(view, { vote: vote, timeUp: timeUp, sel: sel, pick: pick, guess: guess }));
         document.title = view.title ? view.title + ' · live' : 'Live';
         var a = view.act;
         ask.hidden = !(view.ask || (a && a.type === 'questions'));
@@ -86,6 +87,19 @@
     }
     function timeUp() {
         if (view && view.act && view.act.left !== 0) { view.act.left = 0; setTimeout(draw, 0); }
+    }
+
+    /* ---------- the shared cipher: tap a letter (sel), then what it stands for ---------- */
+    var sel = '';
+    function pick(x) { sel = sel === x ? '' : x; draw(); }
+    function guess(x, y) {
+        var a = view && view.act;
+        if (!a || a.type !== 'cipher') return;
+        if (!conn.send({ t: 'guess', a: a.id, x: x, y: y })) { flash('Not connected right now. Try again in a moment.'); return; }
+        a.mine = a.mine || {};
+        if (y) a.mine[x] = y; else delete a.mine[x];
+        sel = '';
+        draw();
     }
 
     /* ---------- secret ballots ---------- */
@@ -175,7 +189,8 @@
         if (m.t === 'state') { if (m.act && m.act.left !== undefined) m.act.end = Date.now() + m.act.left; view = m; draw(); return; }
         if (!view) return;
         var a = view.act;
-        if (m.t === 'voted' && a && a.id === m.a && a.type === 'ballot') { a.cast = true; a.pending = false; draw(); }
+        if (m.t === 'guessed' && a && a.id === m.a) { a.mine = a.mine || {}; if (m.y) a.mine[m.x] = m.y; else delete a.mine[m.x]; draw(); }
+        else if (m.t === 'voted' && a && a.id === m.a && a.type === 'ballot') { a.cast = true; a.pending = false; draw(); }
         else if (m.t === 'voted' && a && a.id === m.a) { if (m.c !== undefined) a.mine = m.c; a.pending = false; draw(); }
         else if (m.t === 'votes' && a && a.id === m.a && a.type === 'ballot') { a.total = m.total; if (!a.pending) draw(); }
         else if (m.t === 'votes' && a && a.id === m.a) { a.n = m.n; a.total = m.total; if (a.mine !== undefined || a.shown) draw(); }

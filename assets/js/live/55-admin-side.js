@@ -130,6 +130,16 @@
         var x = { id: 'preview', type: a.type, q: a.q || '(no question yet)', opts: opts, shown: after && !!opts };
         if (a.type === 'quiz') { x.secs = a.secs; x.left = after ? 0 : a.secs * 600; }
         if (a.type === 'ballot') { x.pk = 'preview'; x.total = total; }
+        if (a.type === 'cipher') {
+            /* a fixed shift stands in for the random key, with the two most frequent letters locked */
+            var pt = (a.text || 'MEET ME AT NOON').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9 .,!?'\-:;]/g, ' ');
+            x.ct = pt.replace(/[A-Z]/g, function (c) { return String.fromCharCode(65 + (c.charCodeAt(0) - 65 + 7) % 26); });
+            var lk = {}, fr = {};
+            Array.from(pt).forEach(function (c) { if (c >= 'A' && c <= 'Z') fr[c] = (fr[c] || 0) + 1; });
+            Object.keys(fr).sort(function (p1, p2) { return fr[p2] - fr[p1]; }).slice(0, 2).forEach(function (c) { lk[String.fromCharCode(65 + (c.charCodeAt(0) - 65 + 7) % 26)] = c; });
+            x.lock = lk; x.active = 12; x.need = 3;
+            if (after) { x.done = true; x.pt = pt; }
+        }
         var phone = JSON.parse(JSON.stringify(x));
         if (after && opts) {
             phone.n = n; phone.total = total; phone.mine = a.type === 'quiz' && a.correct.length ? a.correct[0] : 0;

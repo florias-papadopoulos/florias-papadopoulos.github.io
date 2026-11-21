@@ -92,6 +92,13 @@ after `reveal` closed the ballot, and only if counts plus rejected ballots equal
 checked here: one 5 answer ballot takes some 25 ms of CPU, more than the Free plan allows a request. Ballots are
 audience data: deleted with the rest 24 hours after the talk.
 
+## Shared cipher
+
+Activity type `cipher`, the room cracks a substitution cipher together. Logic in `src/cipher.js` (key, encryption,
+the crowd, the lock rule), wired into `src/session.js` (`guess`, `hint`, `reveal` solves it). Each phone's guesses and
+points are one small key `g:<activity>:<id>`; the key and the locked letters are in `meta`. The message itself stays
+in the plan and reaches phones only once every letter is locked. Guesses are audience data: deleted with the rest.
+
 ## The Signal relay (removed)
 
 A relay for a two-phone version of the Signal demo (`/relay/<room>`, a `Relay` Durable Object, migration `v2`) ran here

@@ -13,7 +13,8 @@
 //            join: the join secret, copied from the plan at the start; wdue: when nicknames given before the start
 //            are deleted if the talk has not started by then; bkey[id]: a secret ballot's public key (made on the
 //            projector, which keeps the secret key); tally[id]: { n: [count per answer], bad } as the projector
-//            decrypted it (bad: ballots whose proofs failed)
+//            decrypted it (bad: ballots whose proofs failed); ckey[id]: a shared cipher's key (cipher.js);
+//            lock[id]: { cipher letter: plain letter } locked so far
 //   plan     the latest saved plan (pushed by the Worker whenever the presenter saves it), with its join secrets
 //   players  { id: { tok, n, s } }        key "ph:<tok>" = { id, n, s }: a phone that has kept something
 //            n: its nickname ("" for none), s: "new" (waiting for the presenter), "ok" (shown), "no" (not shown)
@@ -23,24 +24,31 @@
 //   res      { activity id: { n: [count per answer], by: { id: answer }, p: { id: points } } }
 //            key "v:<activity>:<id>" = [answer] or [answer, points]; the counts are added up when the state is loaded
 //   bal      { activity id: { by: { id: ballot } } }   key "b:<activity>:<id>" = the encrypted ballot { c, p, s }
+//   cg       { activity id: { by: { id: { g: { X: [Y, t] }, p } } } }   key "g:<activity>:<id>": a phone's guesses in a
+//            shared cipher (cipher letter X is plain Y, guessed at t) and its points
 // Ids are 16 random characters the worker gives a phone when it first says hello. The phone's own random token (in
 // its localStorage) only finds its id again after a reload; it never decides who voted. No IP addresses: index.js
 // counts connections per address in memory only.
 //
 // Messages (JSON, at most LIMITS.msg characters). From a phone:
 //   {t:"hi", tok, k: join secret}  {t:"nick", n}  {t:"vote", a: id, c: answer}  {t:"ask", x}  {t:"up", q: id}
-//   {t:"react", e: 0..5}   a secret ballot: {t:"vote", a: id, c: { c, p, s }} (15-ballot.js)
+//   {t:"react", e: 0..5}   a shared cipher: {t:"guess", a, x: cipher letter, y: plain letter or "" (take back)}
+//   a secret ballot: {t:"vote", a: id, c: { c, p, s }} (15-ballot.js)
 // From the presenter (projector, remote): {t:"hi", key} first, then
 //   {t:"start"} {t:"next"} {t:"prev"} {t:"go", i} {t:"close"} {t:"reveal"} {t:"hide"} {t:"qr", on} {t:"board", on}
 //   {t:"live", on} {t:"quick", q, opts} {t:"qset", q: id, st} {t:"qbig", q: id} {t:"name", n, s: "ok" | "no"}
 //   {t:"names"} (show every waiting nickname) {t:"end"} {t:"reset"}
 //   secret ballots: {t:"bkey", a, pk} (the public key, while no ballot is in) {t:"bget", a} (all ballots, in parts)
 //   {t:"tally", a, n: [counts], bad} (after "reveal" closed the ballot)
+//   shared cipher: {t:"hint"} (locks the most frequent open letter); "reveal" solves it all
 // To phones: {t:"state", ...audienceView}, {t:"voted", a, c}, {t:"votes", a, n, total} (live polls), {t:"qup", q, up},
 //   {t:"asked", q}, {t:"nick", ok, n, s, e}, {t:"err", e}
 // To presenters: {t:"pstate", ...presenterView}, {t:"votes", a, n, total}, {t:"n", n} (people connected),
 //   {t:"q", q} (a new question), {t:"qup", q, up}, {t:"react", e}, {t:"bal", a, b, total} (a new ballot),
-//   {t:"bals", a, list: [ballots], last} (an answer to "bget")
+//   {t:"bals", a, list: [ballots], last} (an answer to "bget"), {t:"lean", a, lean, active, need} (a shared cipher's
+//   crowd, at most once a second)
+// To phones also: {t:"guessed", a, x, y} (a guess kept; nothing says whether it is right)
+import * as C from './cipher.js';
 import { LIMITS, VOTE_TYPES, EMOJI, checkAct, clean, nameOk, newId, planCode, secret, same, ballotShape, b64Ok } from './plan.js';
 
 export const IDLE = 12 * 3600e3;  // a live session with no presenter command for this long ends by itself
@@ -63,8 +71,8 @@ export function blank(name) {
     return {
         meta: { name: name, code: planCode(name), test: name.slice(-5) === '.test', s: 'none', title: '', ask: false, react: false,
             acts: [], cur: -1, ph: 'idle', opened: {}, shown: {}, live: {}, qr: false, board: false, started: 0, ended: 0, last: 0,
-            join: '', wdue: 0, bkey: {}, tally: {} },
-        plan: null, players: map(), toks: map(), qs: [], res: map(), bal: map()
+            join: '', wdue: 0, bkey: {}, tally: {}, ckey: {}, lock: {} },
+        plan: null, players: map(), toks: map(), qs: [], res: map(), bal: map(), cg: map()
     };
 }
 
@@ -89,6 +97,9 @@ export function fromStorage(name, entries) {
         else if (k.indexOf('b:') === 0) {
             const ks = k.split(':');
             if (v && typeof v === 'object') (st.bal[ks[1]] || (st.bal[ks[1]] = { by: map() })).by[ks[2]] = v;
+        } else if (k.indexOf('g:') === 0) {
+            const ks = k.split(':');
+            if (v && typeof v === 'object') (st.cg[ks[1]] || (st.cg[ks[1]] = { by: map() })).by[ks[2]] = { g: v.g || {}, p: v.p || 0 };
         }
         else if (k.indexOf('u:') === 0) ups.push(k.split(':'));
     }
@@ -130,6 +141,10 @@ export function part(st, key) {
         if (!res || res.by[id] === undefined) return undefined;
         return res.p[id] === undefined ? [res.by[id]] : [res.by[id], res.p[id]];
     }
+    if (kind === 'g') {
+        const j = rest.indexOf(':'), c = st.cg[rest.slice(0, j)], e = c && c.by[rest.slice(j + 1)];
+        return e ? { g: e.g, p: e.p } : undefined;
+    }
     if (kind === 'b') {
         const j = rest.indexOf(':'), b = st.bal[rest.slice(0, j)];
         return b && b.by[rest.slice(j + 1)] || undefined;
@@ -147,6 +162,7 @@ export function audienceKeys(st) {
     for (const q of st.qs) { keys.push('q:' + q.id); for (const u of q.up) keys.push('u:' + q.id + ':' + u); }
     for (const a of Object.keys(st.res)) for (const id of Object.keys(st.res[a].by)) keys.push('v:' + a + ':' + id);
     for (const a of Object.keys(st.bal)) for (const id of Object.keys(st.bal[a].by)) keys.push('b:' + a + ':' + id);
+    for (const a of Object.keys(st.cg)) for (const id of Object.keys(st.cg[a].by)) keys.push('g:' + a + ':' + id);
     return keys;
 }
 
@@ -215,6 +231,16 @@ export function points(ok, ms, secs) {
 export function ranking(st) {
     const by = map(), m = st.meta;
     for (const a of m.acts) {
+        if (a.type === 'cipher' && st.cg[a.id]) {
+            /* a shared cipher: its points count at once (they are given when a letter locks) */
+            const cb = st.cg[a.id].by;
+            for (const id of Object.keys(cb)) {
+                if (!cb[id].p) continue;
+                const e = by[id] || (by[id] = { id: id, p: 0, c: 0 });
+                e.p += cb[id].p; e.c++;
+            }
+            continue;
+        }
         if (a.type !== 'quiz' || !m.shown[a.id] || !st.res[a.id]) continue;
         const p = st.res[a.id].p;
         for (const id of Object.keys(p)) {
@@ -232,7 +258,7 @@ export function ranking(st) {
 /* the top n; a phone sees its own nickname in its own row even before the presenter shows it to everyone */
 function top(rank, n, self) { return rank.slice(0, n).map(function (e) { return { n: e.id === self && e.own ? e.own : e.n, p: e.p }; }); }
 function boardOn(st) { const a = onScreen(st); return st.meta.board || !!(a && a.type === 'leaderboard') || st.meta.s === 'ended'; }
-function hasQuiz(st) { return st.meta.acts.some(function (a) { return a.type === 'quiz' && st.meta.shown[a.id]; }); }
+function hasQuiz(st) { return st.meta.acts.some(function (a) { return (a.type === 'quiz' && st.meta.shown[a.id]) || (a.type === 'cipher' && st.meta.opened[a.id]); }); }
 function askNow(st) { const a = onScreen(st); return st.meta.s === 'live' && (st.meta.ask || !!(a && a.type === 'questions')); }
 function reactNow(st) { const a = onScreen(st); return st.meta.s === 'live' && (st.meta.react || !!(a && a.type === 'reactions')); }
 function left(st, a, now) {
@@ -250,7 +276,7 @@ export function audienceView(st, id, now, memo) {
     const pl = st.players[id];
     v.me = { n: pl ? pl.n : '', ns: pl && pl.n ? pl.s : '', guest: guest(id) };
     /* does this talk have quiz questions (then phones offer a nickname for the ranking)? */
-    v.quiz = (m.s === 'waiting' && st.plan ? st.plan.acts : m.acts).some(function (a) { return a.type === 'quiz'; });
+    v.quiz = (m.s === 'waiting' && st.plan ? st.plan.acts : m.acts).some(function (a) { return a.type === 'quiz' || a.type === 'cipher'; });
     const a = onScreen(st);
     if (a) {
         const x = { id: a.id, type: a.type, q: a.q, shown: !!m.shown[a.id] };
@@ -260,6 +286,7 @@ export function audienceView(st, id, now, memo) {
             if (res.by[id] !== undefined) x.mine = res.by[id];
             if (x.shown || (a.type === 'poll' && m.live[a.id])) { x.n = res.n; x.total = total(res.n); }
         }
+        if (a.type === 'cipher') Object.assign(x, cipherView(st, a), { mine: myGuesses(st, a, id) });
         if (a.type === 'ballot') {
             /* the phone needs the key to encrypt; it sees the counts only once the projector has decrypted them */
             x.pk = m.bkey[a.id] || '';
@@ -316,6 +343,11 @@ export function presenterView(st, now, aud) {
         x.live = !!m.live[a.id];
         const r = st.res[a.id];
         if (r) { x.n = r.n; x.total = total(r.n); }
+        if (a.type === 'cipher') {
+            Object.assign(x, cipherView(st, a));
+            const cr = C.crowd(st.cg[a.id] ? st.cg[a.id].by : {}, m.lock[a.id] || {}, now);
+            x.lean = cr.lean; x.active = cr.active; x.need = C.need(cr.active);
+        }
         if (a.type === 'ballot') {
             x.pk = m.bkey[a.id] || '';
             x.total = balCount(st, a.id);
@@ -376,7 +408,7 @@ function start(st, now) {
     const p = st.plan;
     Object.assign(m, { s: 'live', title: p.title, ask: p.ask, react: p.react, acts: copy(p.acts), cur: -1, ph: 'idle',
         opened: {}, shown: {}, live: {}, qr: false, board: false, started: now, ended: 0, last: now,
-        join: (m.test ? p.tjoin : p.join) || '', wdue: 0, bkey: {}, tally: {} });
+        join: (m.test ? p.tjoin : p.join) || '', wdue: 0, bkey: {}, tally: {}, ckey: {}, lock: {} });
     for (const a of m.acts) if (a.type === 'poll' && a.live) m.live[a.id] = true;
     r.dirty.push('meta');
     r.alarm = now + IDLE;
@@ -385,7 +417,7 @@ function start(st, now) {
 /* the audience data goes (votes, questions, nicknames); the plan stays */
 function wipe(st, r) {
     r.del = r.del.concat(audienceKeys(st));
-    st.res = map(); st.players = map(); st.toks = map(); st.qs = []; st.bal = map();
+    st.res = map(); st.players = map(); st.toks = map(); st.qs = []; st.bal = map(); st.cg = map();
 }
 export function end(st, now) {
     const r = result(), m = st.meta;
@@ -425,12 +457,13 @@ export function alarmStep(st, now) {
 }
 
 /* ---------- moving through the activities ---------- */
-function go(st, i, now) {
+function go(st, i, now, bytes) {
     const m = st.meta;
     if (!(Number.isInteger(i) && i >= 0 && i < m.acts.length)) return false;
     const a = m.acts[i];
     m.cur = i; m.ph = 'open'; m.qr = false; m.board = false;
     if (!m.opened[a.id]) m.opened[a.id] = now;
+    if (a.type === 'cipher' && !C.keyOk(m.ckey[a.id])) { m.ckey[a.id] = C.makeKey(bytes); m.lock[a.id] = {}; }
     if (VOTE_TYPES.indexOf(a.type) >= 0) resOf(st, a);
     return true;
 }
@@ -445,17 +478,35 @@ function presenter(st, att, msg, info) {
     case 'next':
         if (!live) return err('notlive');
         /* past the last activity: nothing on screen, "prev" comes back to the last one */
-        if (!go(st, m.cur + 1, now)) { m.ph = 'idle'; m.cur = m.acts.length; }
+        if (!go(st, m.cur + 1, now, info.bytes)) { m.ph = 'idle'; m.cur = m.acts.length; }
         break;
     case 'prev':
         if (!live) return err('notlive');
-        if (!go(st, Math.min(m.cur, m.acts.length) - 1, now)) return views(r);
+        if (!go(st, Math.min(m.cur, m.acts.length) - 1, now, info.bytes)) return views(r);
         break;
     case 'go':
-        if (!live || !go(st, msg.i, now)) return err('bad');
+        if (!live || !go(st, msg.i, now, info.bytes)) return err('bad');
         break;
     case 'close': if (!live) return err('notlive'); m.ph = 'idle'; m.board = false; break;
+    case 'hint': {
+        const a = onScreen(st);
+        if (!a || a.type !== 'cipher') return err('bad');
+        const ct = cipherText(st, a), lock = m.lock[a.id] || (m.lock[a.id] = {});
+        const x = C.cipherLetters(ct).filter(function (c) { return !lock[c]; })[0];
+        if (!x) return err('bad');
+        lock[x] = C.plainOf(m.ckey[a.id], x);
+        break;
+    }
     case 'reveal': case 'hide': {
+        const a0 = onScreen(st);
+        if (a0 && a0.type === 'cipher') {
+            /* "reveal" solves the whole message (no points); "hide" does nothing */
+            if (msg.t === 'hide') return err('bad');
+            const lock = m.lock[a0.id] || (m.lock[a0.id] = {});
+            for (const x of C.cipherLetters(cipherText(st, a0))) lock[x] = C.plainOf(m.ckey[a0.id], x);
+            m.shown[a0.id] = true;
+            break;
+        }
         const a = onScreen(st);
         if (!a || (VOTE_TYPES.indexOf(a.type) < 0 && a.type !== 'ballot')) return err('bad');
         /* a ballot: "reveal" closes it (the projector then counts and sends "tally"); "hide" opens it again, and a new
@@ -511,7 +562,7 @@ function presenter(st, att, msg, info) {
         const at = Math.min(Math.max(m.cur + 1, 0), m.acts.length);
         m.acts.splice(at, 0, c.act);
         m.live[c.act.id] = true;
-        go(st, at, now);
+        go(st, at, now, info.bytes);
         break;
     }
     case 'qset': case 'qbig': {
@@ -612,6 +663,7 @@ function audience(st, att, msg, info) {
         if (a.type === 'poll' && m.live[a.id]) r.out.push({ to: 'aud', m: up, coalesce: 'votes' });
         return r;
     }
+    case 'guess': return guess(st, att, msg, info, r);
     case 'ask': {
         if (!askNow(st)) return err('closed');
         const x = clean(msg.x, LIMITS.ask);
@@ -660,6 +712,53 @@ function audience(st, att, msg, info) {
     }
     default: return err('unknown');
     }
+}
+
+/* ---------- the giant shared cipher (cipher.js) ---------- */
+function cipherText(st, a) { return C.keyOk(st.meta.ckey[a.id]) ? C.encrypt(a.text, st.meta.ckey[a.id]) : ''; }
+/* what everyone may see: the ciphertext, the locked letters, and the message once all is locked */
+function cipherView(st, a) {
+    const ct = cipherText(st, a), lock = st.meta.lock[a.id] || {};
+    const v = { ct: ct, lock: lock, done: !!ct && C.solved(ct, lock) };
+    if (v.done) v.pt = a.text;
+    return v;
+}
+function myGuesses(st, a, id) {
+    const e = st.cg[a.id] && st.cg[a.id].by[id], out = {};
+    if (e) for (const x of Object.keys(e.g)) out[x] = e.g[x][0];
+    return out;
+}
+function guess(st, att, msg, info, r) {
+    const m = st.meta, a = onScreen(st), now = info.now;
+    if (!a || a.type !== 'cipher' || a.id !== msg.a || !C.keyOk(m.ckey[a.id])) return err('closed');
+    const ct = cipherText(st, a), lock = m.lock[a.id] || (m.lock[a.id] = {});
+    if (C.solved(ct, lock)) return err('closed');
+    const x = msg.x, y = msg.y;
+    if (typeof x !== 'string' || !/^[A-Z]$/.test(x) || ct.indexOf(x) < 0 || typeof y !== 'string' || !/^[A-Z]?$/.test(y)) return err('bad');
+    if (lock[x]) return me(r, { t: 'guessed', a: a.id, x: x, y: lock[x] });
+    adopt(st, att);
+    const p = own(st, att, r);
+    if (!p) return err('full');
+    const cg = st.cg[a.id] || (st.cg[a.id] = { by: map() });
+    const e = cg.by[att.id] || (cg.by[att.id] = { g: {}, p: 0 });
+    if (y) e.g[x] = [y, now]; else delete e.g[x];
+    r.dirty.push('g:' + a.id + ':' + att.id);
+    /* enough phones agree on the right letter: it locks for everyone, and each of them gets the points */
+    if (y && y === C.plainOf(m.ckey[a.id], x)) {
+        const who = C.agreeing(cg.by, x, y, now), cr = C.crowd(cg.by, lock, now);
+        if (who.length >= C.need(cr.active)) {
+            lock[x] = y;
+            for (const id of who) { cg.by[id].p += C.POINTS; r.dirty.push('g:' + a.id + ':' + id); }
+            r.dirty.push('meta');
+            r.att = att;
+            return views(r);
+        }
+    }
+    r.att = att;
+    me(r, { t: 'guessed', a: a.id, x: x, y: y });
+    const cr = C.crowd(cg.by, lock, now);
+    r.out.push({ to: 'pres', m: { t: 'lean', a: a.id, lean: cr.lean, active: cr.active, need: C.need(cr.active) }, coalesce: 'lean' });
+    return r;
 }
 
 /* a secret ballot: kept as it is (the projector checks its proofs), one per phone; a copy of someone else's
@@ -788,6 +887,13 @@ export function exportResults(st, now) {
         activities: m.acts.map(function (a, i) {
             const x = { n: i + 1, type: a.type, question: a.q };
             if (a.quick) x.quick = true;
+            if (a.type === 'cipher') {
+                const cv = cipherView(st, a), c = st.cg[a.id] ? st.cg[a.id].by : {};
+                x.message = a.text;
+                x.solved = cv.done;
+                x.lettersLocked = Object.keys(cv.lock).length + ' of ' + C.cipherLetters(cv.ct).length;
+                x.guessers = Object.keys(c).length;
+            }
             if (a.type === 'ballot') {
                 const t = m.tally[a.id];
                 x.secret = true;

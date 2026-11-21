@@ -41,6 +41,14 @@ the number of rejected ballots, which the worker checks add up to the ballots it
 sees a vote; the projector's browser could decrypt a single ballot (it holds the key), but its code only ever
 decrypts the sums. A second, independent key holder (threshold decryption) would remove that; not built.
 
+**Shared cipher** (activity type `cipher`): the presenter writes a message (10 to 240 characters, accents dropped);
+when it first opens, the worker makes a random substitution key (CSPRNG, no letter stays itself) and phones get only
+the ciphertext (capitals) and the locked letters. A phone taps a capital and picks a small letter; a guess counts for
+90 s. A letter locks for everyone when at least 2 phones, and a quarter of those guessing, agree on the right letter;
+wrong guesses never lock and fade by themselves, and a phone hears nothing about a single guess. The projector shows
+the crowd's leading guess for each open letter in grey. Each phone that helps lock a letter gets 100 points on the
+quiz ranking. Keys: H a hint (the most frequent open letter), R solve it all. Logic: `tools/workers/live/src/cipher.js`.
+
 Keep each file under about 600 lines (as in `assets/js/games/README.md`). Check the syntax of a page's bundle with
 e.g. `cat assets/js/live/{00-common,10-render,30-audience}.js | node --check -`. The limits in `LV.LIMITS` copy the
 worker's (`tools/workers/live/src/plan.js`); `node tools/workers/live/test/run.js` checks that they agree.

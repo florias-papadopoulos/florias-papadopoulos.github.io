@@ -133,6 +133,7 @@
             if ((a.type === 'poll' || a.type === 'quiz' || a.type === 'ballot') && !a.q.trim()) return w + 'the question is empty.';
             if (a.opts && a.opts.some(function (o) { return !o.trim(); })) return w + 'an answer is empty.';
             if (a.type === 'quiz' && !a.correct.length) return w + 'mark the right answer.';
+            if (a.type === 'cipher' && (a.text || '').replace(/[^A-Za-z]/g, '').length < 6) return w + 'write the secret message.';
             if (a.type === 'quiz' && a.correct.length === a.opts.length) return w + 'not every answer can be right.';
         }
         return '';
@@ -166,11 +167,12 @@
     A.changed = changed;
 
     /* ---------- the form ---------- */
-    var ADD = [['poll', '+ Poll'], ['quiz', '+ Quiz question'], ['questions', '+ Audience questions'], ['reactions', '+ Reactions'], ['leaderboard', '+ Quiz ranking'], ['ballot', '+ Secret ballot']];
+    var ADD = [['poll', '+ Poll'], ['quiz', '+ Quiz question'], ['questions', '+ Audience questions'], ['reactions', '+ Reactions'], ['leaderboard', '+ Quiz ranking'], ['ballot', '+ Secret ballot'], ['cipher', '+ Shared cipher']];
     function blankAct(type) {
         if (type === 'poll') return { type: 'poll', q: '', opts: ['', ''], live: false };
         if (type === 'quiz') return { type: 'quiz', q: '', opts: ['', '', '', ''], correct: [], secs: 20 };
         if (type === 'ballot') return { type: 'ballot', q: '', opts: ['', ''] };
+        if (type === 'cipher') return { type: 'cipher', q: 'Crack the secret message together', text: '' };
         return { type: type, q: { questions: 'Questions for the speaker', reactions: 'How is it going?', leaderboard: 'Quiz ranking' }[type] };
     }
     /* a new type keeps the question and the answers */
@@ -255,6 +257,12 @@
                 var ins = edit.querySelectorAll('.lv-actcard')[i].querySelectorAll('.lv-aopts .lv-in');
                 ins[ins.length - 1].focus();
             } }));
+        }
+        if (a.type === 'cipher') {
+            var tid = 'lv-text-' + i;
+            kids.push(h('label', { for: tid, text: 'The secret message (letters A to Z are encrypted; accents are dropped)' }));
+            kids.push(h('textarea.lv-in', { id: tid, rows: '3', maxlength: '240', value: a.text || '', oninput: function () { a.text = this.value; changed(); } }));
+            kids.push(h('p.lv-sub', { text: 'When it opens, the worker makes a random substitution key. Phones see only the ciphertext and guess letters; a letter locks when enough people agree on the right one (wrong guesses fade after 90 seconds). Points for the people who lock letters. 10 to 240 characters, at least 6 different letters.' }));
         }
         if (a.type === 'ballot') kids.push(h('p.lv-sub', { text: 'Each phone encrypts its vote. The projector page makes the key, checks every ballot and decrypts only the total. The secret key stays in that browser (deleted after two days), so count the result on the same laptop and browser. At most ' + LV.LIMITS.ballotOpts + ' answers.' }));
         if (a.type === 'poll') kids.push(check2('lv-live-' + i, 'Show the bars live while people vote (else after the reveal)', a.live, function (v) { a.live = v; }));

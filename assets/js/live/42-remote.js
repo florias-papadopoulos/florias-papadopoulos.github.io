@@ -28,6 +28,9 @@
             cur.push(h('p.lv-kicker', { text: LV.TYPE_NAMES[a.type] + '  ·  ' + (pv.cur + 1) + ' of ' + pv.acts.length + (a.shown ? '  ·  revealed' : '') }));
             cur.push(h('h2.lv-q', { text: a.q }));
             if (a.type === 'quiz' && !a.shown) cur.push(LV.timer(a.left, a.secs));
+            if (a.type === 'cipher') {
+                cur.push(h('p.lv-sub', { text: a.done ? 'Solved: ' + a.pt : Object.keys(a.lock || {}).length + ' letters locked, ' + (a.active || 0) + ' people guessing. The message: ' + a.text }));
+            }
             if (a.type === 'ballot') {
                 if (a.n) cur.push(LV.bars(a.opts, a.n, a.counted, null));
                 cur.push(h('p.lv-sub', { text: LV.plural(a.total || 0, 'secret ballot', 'secret ballots') + (a.n ? '  ·  ' + a.counted + ' counted' + (a.bad ? ', ' + a.bad + ' rejected' : '') : a.shown ? '  ·  the projector is counting' : '  ·  “Close and count” ends the voting; the projector tab counts') }));
@@ -40,14 +43,15 @@
 
         /* the pad */
         if (live) {
-            var votes = a && a.opts;
+            var votes = a && (a.opts || a.type === 'cipher');
             kids.push(h('div.lv-rpad', {}, [
                 big('← Back', function () { send({ t: 'prev' }); }),
                 big('Next →', function () { send({ t: 'next' }); }, 'is-main'),
-                big(a && a.shown ? (a.type === 'ballot' ? 'Open the ballot again' : 'Hide results') : a && a.type === 'ballot' ? 'Close and count' : 'Reveal results', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }, '', !votes),
+                big(a && a.type === 'cipher' ? 'Solve it' : a && a.shown ? (a.type === 'ballot' ? 'Open the ballot again' : 'Hide results') : a && a.type === 'ballot' ? 'Close and count' : 'Reveal results', function () { send({ t: a.type !== 'cipher' && a.shown ? 'hide' : 'reveal' }); }, '', !votes || (a.type === 'cipher' && a.done)),
                 big('Close', function () { send({ t: 'close' }); }, '', !a),
                 big(pv.qr ? 'Hide QR' : 'Show QR', function () { send({ t: 'qr' }); }),
                 big(pv.board ? 'Hide ranking' : 'Ranking', function () { send({ t: 'board' }); }),
+                a && a.type === 'cipher' && !a.done ? big('Give a hint', function () { send({ t: 'hint' }); }) : null,
                 a && a.type === 'poll' ? big(a.live ? 'Live bars: on' : 'Live bars: off', function () { send({ t: 'live', on: !a.live }); }) : null,
                 big('Quick poll', function () { LV.P.quick(); })
             ]));

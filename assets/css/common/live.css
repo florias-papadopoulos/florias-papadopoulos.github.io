@@ -379,3 +379,42 @@ body:has(.lv-in-lab) { background: var(--code-bg); }
 /* ---------- dark mode, on the presenter page only (palette: color-scheme.css) ---------- */
 /* .lv-in-lab: the presenter page inside the lab. The audience's phone page and the projector stay light (their head,
    live-head.html, does not load the palette), and so do the presenter page's previews of them. */
+
+/* ---------- the shared cipher: the message as tiles (cipher letter above, plain letter below) ---------- */
+.lv-ct { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 14px; }
+.lv-ct-word { display: inline-flex; flex-wrap: wrap; gap: 3px; }
+.lv-ct-tile { display: inline-flex; flex-direction: column; align-items: center; min-width: 24px; padding: 2px 1px; border: none;
+    border-radius: 6px; background: none; color: var(--lv-ink); font: inherit; line-height: 1.15; cursor: default; }
+button.lv-ct-tile { cursor: pointer; touch-action: manipulation; }
+button.lv-ct-tile:hover { background: var(--lv-navy-soft); }
+.lv-ct-c { color: var(--lv-muted); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; }
+.lv-ct-p { min-width: 20px; min-height: 1.3em; border-bottom: 2px solid var(--lv-field); font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 19px; font-weight: 700; text-align: center; text-transform: lowercase; }
+.lv-ct-tile.is-mark .lv-ct-c { visibility: hidden; }
+.lv-ct-tile.is-mark .lv-ct-p { border-color: transparent; min-width: 8px; text-transform: none; }
+.lv-ct-tile.is-locked .lv-ct-p { color: var(--lv-right); border-color: var(--lv-right); }
+.lv-ct-tile.is-guess .lv-ct-p { color: var(--lv-navy); font-weight: 600; font-style: italic; }
+.lv-ct-tile.is-lean .lv-ct-p { color: var(--lv-muted); font-weight: 500; font-style: italic; opacity: .7; }
+.lv-ct-tile.is-sel { background: var(--lv-navy); }
+.lv-ct-tile.is-sel .lv-ct-c, .lv-ct-tile.is-sel .lv-ct-p { color: #fff; border-color: #fff; }
+.lv-ct-plain { margin-top: 10px !important; color: var(--lv-ink); font-size: 22px; font-weight: 700; line-height: 1.35; }
+.lv-pick { margin-top: 16px; }
+.lv-pick-keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 6px; }
+.lv-key { text-transform: lowercase; min-height: 44px; border: 1.5px solid var(--lv-field); border-radius: 10px; background: #fff; color: var(--lv-ink);
+    font: 700 17px/1 inherit; cursor: pointer; touch-action: manipulation; }
+.lv-key.is-on { border-color: var(--lv-navy); background: var(--lv-navy); color: #fff; }
+.lv-key.is-wide { grid-column: span 2; font-size: 15px; font-weight: 600; text-transform: none; }
+.lv-freq { margin-top: 18px; }
+.lv-freq-bars { display: flex; align-items: flex-end; gap: 3px; height: 70px; margin: 0; padding: 0; list-style: none; }
+.lv-freq-bars li { display: flex; flex: 1; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.lv-freq-bar { display: block; width: 100%; min-height: 2px; border-radius: 3px 3px 0 0; background: var(--lv-field); }
+.lv-freq-bars li.is-locked .lv-freq-bar { background: var(--lv-right); opacity: .55; }
+.lv-freq-c { margin-top: 2px; color: var(--lv-muted); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; }
+/* on the projector */
+.lv-ct.is-big { gap: 1.4cqw 2.2cqw; margin-top: 2cqw; }
+.lv-ct.is-big .lv-ct-word { gap: .5cqw; }
+.lv-ct.is-big .lv-ct-tile { min-width: 3cqw; }
+.lv-ct.is-big .lv-ct-c { font-size: 1.6cqw; }
+.lv-ct.is-big .lv-ct-p { min-width: 2.4cqw; font-size: 3cqw; border-bottom-width: .25cqw; }
+.lv-scr-solved { margin-top: 2cqw !important; color: var(--lv-right); font-size: 2.4cqw; font-weight: 700; }
+.lv-scr-plain { margin-top: 1cqw !important; color: var(--lv-ink); font-size: 4cqw; font-weight: 800; line-height: 1.25; }

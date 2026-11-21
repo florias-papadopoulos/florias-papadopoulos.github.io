@@ -12,8 +12,8 @@
 
     /* copies of the worker's limits (tools/workers/live/src/plan.js; its test checks that they agree) */
     LV.LIMITS = { title: 120, q: 200, opt: 80, minOpts: 2, maxOpts: 6, ballotOpts: 5, acts: 60, ask: 200, nick: 20, minSecs: 5, maxSecs: 120 };
-    LV.TYPES = ['poll', 'quiz', 'questions', 'reactions', 'leaderboard', 'ballot'];
-    LV.TYPE_NAMES = { poll: 'Poll', quiz: 'Quiz question', questions: 'Audience questions', reactions: 'Reactions', leaderboard: 'Quiz ranking', ballot: 'Secret ballot' };
+    LV.TYPES = ['poll', 'quiz', 'questions', 'reactions', 'leaderboard', 'ballot', 'cipher'];
+    LV.TYPE_NAMES = { poll: 'Poll', quiz: 'Quiz question', questions: 'Audience questions', reactions: 'Reactions', leaderboard: 'Quiz ranking', ballot: 'Secret ballot', cipher: 'Shared cipher' };
     LV.EMOJI = ['👏', '❤️', '😂', '😮', '🤔', '🎉'];
     LV.EMOJI_NAMES = ['Applause', 'Love it', 'Funny', 'Wow', 'Hmm', 'Party'];
     LV.LETTERS = 'ABCDEF';

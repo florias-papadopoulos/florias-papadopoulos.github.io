@@ -54,7 +54,7 @@
             h('h2', { text: 'Keys' }),
             h('dl', {}, [['→  or  Page Down', 'Next activity (or start)'], ['←  or  Page Up', 'Back'], ['R', 'Reveal the results (Shift+R hides them)'],
                 ['Q', 'Show or hide the QR code'], ['L', 'Quiz ranking'], ['Esc', 'Close the activity: phones show “next question coming”'],
-                ['P', 'Quick poll'], ['F', 'Full screen'], ['?', 'This list']].reduce(function (a, r) { return a.concat([h('dt', { text: r[0] }), h('dd', { text: r[1] })]); }, [])),
+                ['H', 'Shared cipher: give a hint'], ['P', 'Quick poll'], ['F', 'Full screen'], ['?', 'This list']].reduce(function (a, r) { return a.concat([h('dt', { text: r[0] }), h('dd', { text: r[1] })]); }, [])),
             h('p.lv-sub', { text: 'On your phone, open this same page for the remote, with the questions to approve.' })])]);
         stage = h('div.lv-stage', {}, [screen, corner, overlay, floats, bar, toast, help]);
         remoteBox = h('div.lv-remote-box');
@@ -118,6 +118,10 @@
             bar.appendChild(btn('Back', '←', function () { send({ t: 'prev' }); }));
             bar.appendChild(btn('Next', '→', function () { send({ t: 'next' }); }, 'is-main'));
             if (votes) bar.appendChild(btn(a.shown ? 'Hide results' : 'Reveal', 'R', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }));
+            if (a && a.type === 'cipher' && !a.done) {
+                bar.appendChild(btn('Hint', 'H', function () { send({ t: 'hint' }); }));
+                bar.appendChild(btn('Solve it', 'R', function () { if (confirm('Show the whole message?')) send({ t: 'reveal' }); }));
+            }
             if (ballot) bar.appendChild(btn(a.shown ? 'Open the ballot again' : 'Close and count', 'R', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }));
             if (a && a.type === 'poll') bar.appendChild(btn(a.live ? 'Live bars: on' : 'Live bars: off', '', function () { send({ t: 'live', on: !a.live }); }));
             if (a) bar.appendChild(btn('Close', 'Esc', function () { send({ t: 'close' }); }));
@@ -291,7 +295,9 @@
         var k = e.key, live = pv.s === 'live', did = true;
         if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { if (live) send({ t: 'next' }); else if (k !== ' ') startSession(); }
         else if (k === 'ArrowLeft' || k === 'PageUp') { if (live) send({ t: 'prev' }); }
+        else if ((k === 'r' || k === 'R') && pv.act && pv.act.type === 'cipher') { if (!pv.act.done && confirm('Show the whole message?')) send({ t: 'reveal' }); }
         else if (k === 'r' || k === 'R') send({ t: e.shiftKey ? 'hide' : 'reveal' });
+        else if ((k === 'h' || k === 'H') && pv.act && pv.act.type === 'cipher') send({ t: 'hint' });
         else if (k === 'q' || k === 'Q') send({ t: 'qr' });
         else if (k === 'l' || k === 'L') send({ t: 'board' });
         else if (k === 'Escape') { if (!help.hidden) help.hidden = true; else if (pv.qr) send({ t: 'qr', on: false }); else if (pv.board) send({ t: 'board', on: false }); else if (live) send({ t: 'close' }); }
@@ -328,6 +334,8 @@
             take(m.b);
             if (mode === 'remote') draw();
             else { var c = screen.querySelector('.lv-scr-count'); if (c) c.textContent = LV.plural(m.total, 'secret ballot', 'secret ballots') + '  ·  encrypted on each phone, only the total is decrypted'; updateBallotLine(); }
+        } else if (m.t === 'lean' && pv.act && pv.act.id === m.a) {
+            pv.act.lean = m.lean; pv.act.active = m.active; pv.act.need = m.need; draw();
         } else if (m.t === 'bals' && bs && bs.id === m.a) {
             (m.list || []).forEach(take);
             if (m.last) { bs.fetched = true; if (!bs.queue.length) maybeCount(); }

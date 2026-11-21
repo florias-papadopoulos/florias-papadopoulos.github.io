@@ -120,6 +120,9 @@
             if (a.type === 'quiz' && v.me) kids.push(playing(v.me));
         } else if (a.type === 'ballot') {
             kids = kids.concat(ballotPhone(a, on));
+        } else if (a.type === 'cipher') {
+            kids = kids.concat(cipherPhone(a, on));
+            if (v.me && v.me.p) kids.push(playing(v.me));
         } else if (a.type === 'questions') {
             kids.push(h('p.lv-sub', { text: 'Write your question below. The speaker picks which ones go on the screen; tap ▲ on the ones you want answered.' }));
         } else if (a.type === 'reactions') {
@@ -160,6 +163,57 @@
             h('p', { text: 'Each ballot carries a zero knowledge proof that it holds exactly one vote for one answer, so nobody can sneak in five votes. The laptop checks every proof.' })]));
         return kids;
     }
+    /* ---------- the shared cipher ---------- */
+    /* the message as tiles, word by word: each cipher letter with what goes under it (locked: the plain letter;
+       otherwise this phone's own guess, or the crowd's on the projector). o: { lock, mine, lean, sel, pick(x), big } */
+    var ENGLISH = 'ETAOINSHRDLUCMFWYPGBVKXJQZ';
+    LV.cipherText = function (ct, o) {
+        var lock = o.lock || {}, mine = o.mine || {}, lean = o.lean || {};
+        var words = ct.split(' ');
+        return h('div.lv-ct' + (o.big ? '.is-big' : ''), { 'aria-label': 'The secret message' }, words.map(function (w) {
+            return h('span.lv-ct-word', {}, Array.from(w).map(function (c) {
+                if (c < 'A' || c > 'Z') return h('span.lv-ct-tile.is-mark', {}, [h('span.lv-ct-c', { text: c }), h('span.lv-ct-p', { text: c })]);
+                var p = lock[c] || '', g = !p && mine[c] ? mine[c] : '', l = !p && !g && lean[c] ? lean[c] : null;
+                var cls = 'span.lv-ct-tile' + (p ? '.is-locked' : g ? '.is-guess' : l ? '.is-lean' : '') + (o.sel === c ? '.is-sel' : '');
+                var kids = [h('span.lv-ct-c', { text: c }), h('span.lv-ct-p', { text: p || g || (l ? l[0] : '') })];
+                if (o.pick && !p) return h('button' + cls.slice(4), { type: 'button', 'aria-label': 'Cipher letter ' + c, onclick: function () { o.pick(c); } }, kids);
+                return h(cls, {}, kids);
+            }));
+        }));
+    };
+    /* how often each cipher letter occurs, most frequent first, next to English's order */
+    LV.cipherFreq = function (ct, lock) {
+        var n = {}, max = 0;
+        Array.from(ct).forEach(function (c) { if (c >= 'A' && c <= 'Z') { n[c] = (n[c] || 0) + 1; if (n[c] > max) max = n[c]; } });
+        var ks = Object.keys(n).sort(function (x, y) { return n[y] - n[x] || (x < y ? -1 : 1); });
+        return h('div.lv-freq', {}, [
+            h('ol.lv-freq-bars', { 'aria-label': 'How often each letter appears' }, ks.map(function (c) {
+                return h('li' + (lock && lock[c] ? '.is-locked' : ''), {}, [h('span.lv-freq-bar', { style: 'height:' + Math.round(100 * n[c] / max) + '%' }), h('span.lv-freq-c', { text: c })]);
+            })),
+            h('p.lv-sub', { text: 'In English the most common letters are ' + ENGLISH.slice(0, 6).split('').join(' ') + ', then ' + ENGLISH.slice(6, 12).split('').join(' ') + '.' })
+        ]);
+    };
+    function cipherPhone(a, on) {
+        var kids = [];
+        if (a.done) {
+            kids.push(h('p.lv-note.is-right', { text: 'Solved together!' }));
+            kids.push(h('p.lv-ct-plain', { text: a.pt }));
+            return kids;
+        }
+        kids.push(LV.cipherText(a.ct, { lock: a.lock, mine: a.mine, sel: on.sel, pick: on.preview ? null : on.pick }));
+        if (on.sel && !(a.lock || {})[on.sel]) {
+            var cur = (a.mine || {})[on.sel] || '';
+            kids.push(h('div.lv-pick', { role: 'group', 'aria-label': 'What is ' + on.sel + '?' }, [
+                h('p.lv-flabel', { text: 'What could ' + on.sel + ' stand for?' }),
+                h('div.lv-pick-keys', {}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(function (y) {
+                    return h('button.lv-key' + (cur === y ? '.is-on' : ''), { type: 'button', text: y, onclick: function () { if (on.guess) on.guess(on.sel, y); } });
+                }).concat([h('button.lv-key.is-wide', { type: 'button', text: 'Clear', onclick: function () { if (on.guess) on.guess(on.sel, ''); } })]))
+            ]));
+        } else kids.push(h('p.lv-note', { text: 'Capitals are the secret message, small letters your guesses. Tap a capital and guess what it stands for: when enough people agree on the right one, it locks for everyone.' }));
+        kids.push(LV.cipherFreq(a.ct, a.lock));
+        return kids;
+    }
+
     function playing(me) {
         var who = me.n || me.guest;
         return h('p.lv-playing', { text: 'Playing as ' + who + (me.p !== undefined ? ', ' + plural(me.p, 'point', 'points') : '') + (me.rank ? ', ' + ordinal(me.rank) + ' of ' + me.of : '') });
@@ -205,6 +259,15 @@
                 kids.push(h('p.lv-scr-count', { text: plural(a.total || 0, 'secret ballot', 'secret ballots') + (a.shown ? '  ·  counting…' : '  ·  encrypted on each phone, only the total is decrypted') }));
             }
             if (o.ballot) kids.push(h('p.lv-scr-sub.lv-scr-ballot', { text: o.ballot }));
+        } else if (a.type === 'cipher') {
+            if (a.done) {
+                kids.push(h('p.lv-scr-solved', { text: 'Solved together!' }));
+                kids.push(h('p.lv-scr-plain', { text: a.pt }));
+            } else {
+                kids.push(LV.cipherText(a.ct || '', { lock: a.lock, lean: a.lean, big: true }));
+                var nl = Object.keys(a.lock || {}).length, all = new Set((a.ct || '').replace(/[^A-Z]/g, '').split('')).size;
+                kids.push(h('p.lv-scr-count', { text: nl + ' of ' + all + ' letters cracked  ·  ' + LV.plural(a.active || 0, 'person', 'people') + ' guessing  ·  a letter locks when ' + (a.need || 2) + ' agree on the right one' }));
+            }
         } else if (a.type === 'questions') {
             var shown = (pv.qs || []).filter(function (q) { return q.st === 'shown'; }).sort(function (x, y) { return y.up - x.up || x.id - y.id; });
             var big = shown.filter(function (q) { return q.big; })[0];

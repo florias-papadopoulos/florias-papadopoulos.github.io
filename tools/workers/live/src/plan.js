@@ -1,6 +1,7 @@
 // Audience mode: talk plans, codes, limits, nicknames and the presenter key. Pure functions only (no Cloudflare APIs),
 // tested in node by test/run.js. The site's copies of a few limits are in assets/js/live/00-common.js (LV.LIMITS);
 // the test checks that both agree.
+import { normText, distinct, TEXT_MIN, TEXT_MAX, LETTERS_MIN } from './cipher.js';
 
 /* ---------- limits ---------- */
 export const LIMITS = {
@@ -34,8 +35,9 @@ export const LIMITS = {
 /* the activity types. 'ballot' is a secret ballot: each phone encrypts its vote (exponential ElGamal on P-256, with
    proofs that it is a vote for exactly one answer; assets/js/live/15-ballot.js) to a key made on the projector, which
    checks the proofs and decrypts only the sum of all ballots. The worker only keeps the encrypted ballots (checking
-   the proofs costs more CPU than a Worker request may use). Later: 'zkguard'. */
-export const TYPES = ['poll', 'quiz', 'questions', 'reactions', 'leaderboard', 'ballot'];
+   the proofs costs more CPU than a Worker request may use). 'cipher' is the giant shared cipher (cipher.js): the
+   room cracks a substitution cipher together. Later: 'zkguard'. */
+export const TYPES = ['poll', 'quiz', 'questions', 'reactions', 'leaderboard', 'ballot', 'cipher'];
 export const VOTE_TYPES = ['poll', 'quiz'];
 export const EMOJI = 6;  // reactions are sent as an index 0..5 (the site draws the faces)
 
@@ -189,7 +191,13 @@ export function checkAct(a, n) {
         const secs = Number(a.secs);
         out.secs = Number.isFinite(secs) ? Math.round(Math.min(LIMITS.maxSecs, Math.max(LIMITS.minSecs, secs))) : 20;
     }
-    if (!out.q) out.q = { questions: 'Questions for the speaker', reactions: 'How is it going?', leaderboard: 'Quiz ranking' }[a.type];
+    if (a.type === 'cipher') {
+        const t = normText(a.text);
+        if (Array.from(t).length < TEXT_MIN) return { error: where + 'write a secret message of at least ' + TEXT_MIN + ' characters (at most ' + TEXT_MAX + ').' };
+        if (distinct(t) < LETTERS_MIN) return { error: where + 'the message needs at least ' + LETTERS_MIN + ' different letters.' };
+        out.text = t;
+    }
+    if (!out.q) out.q = { questions: 'Questions for the speaker', reactions: 'How is it going?', leaderboard: 'Quiz ranking', cipher: 'Crack the secret message together' }[a.type];
     return { act: out };
 }
 
