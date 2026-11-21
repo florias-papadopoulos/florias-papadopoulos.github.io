@@ -168,4 +168,38 @@ module.exports = function (CH, t) {
         var ekey = EM.make({ order: eord, pos: epos, plugs: En.plugs }).text(elist[0]).slice(0, 3);
         t.eq(EM.make({ order: eord, pos: ekey, plugs: En.plugs }).text(En.body), 'PATROLSSEENNEARTHERIVERCROSSINGATDAWNREPORTSTRENGTHBYNOON', 'enigma: the first message');
     }
+
+    /* ---------- Venona: two messages of ours on the same pad page (codebook, messages and key made up) ---------- */
+    var venA = 'FROM STATION SOURCE MET COURIER ON FRIDAY DOCUMENTS FOLLOW BY POUCH';
+    var venB = 'URGENT REPLY MONEY RECEIVED SEND NEW INSTRUCTIONS FOR NEXT WEEK STOP';
+    var venKey = '1357 5445 5057 8874 0262 3985 9308 4085 9719 3773 8990';
+    if (S.venona) {
+        var V = S.venona, VD = CH.depth, vk = venKey.split(' '), va = V.a.split(' '), vb = V.b.split(' ');
+        var vwA = venA.split(' '), vwB = venB.split(' ');
+        t.eq(V.a, vwA.map(function (w, i4) { return VD.add(V.book[w], vk[i4]); }).join(' '), 'venona: message A is its code plus the key');
+        t.eq(V.b, vwB.map(function (w, i4) { return VD.add(V.book[w], vk[i4]); }).join(' '), 'venona: message B is its code plus the same key');
+        t.eq(V.answer, CH.print(venA + ' ' + venB), 'venona: answer fingerprint');
+        t.eq(VD.sub(VD.add('7777', '5555'), '5555'), '7777', 'venona: adding and subtracting without carrying undo each other');
+        t.eq(VD.add('0007', '0005'), '0002', 'venona: 7 + 5 gives 2');
+        /* subtracting removes the key: A - B is code A - code B */
+        va.forEach(function (x, i4) { t.eq(VD.sub(x, vb[i4]), VD.sub(V.book[vwA[i4]], V.book[vwB[i4]]), 'venona: the key cancels at place ' + (i4 + 1)); });
+        /* no place has the same word in both messages (a difference of 0000 would fit every word) */
+        vwA.forEach(function (w, i4) { t.ok(w !== vwB[i4], 'venona: different words at place ' + (i4 + 1)); });
+        /* dragging any word of the book along gives a book word in the other message only where it is right */
+        var vword = {}, vfalse = 0;
+        Object.keys(V.book).forEach(function (w) { t.ok(!vword[V.book[w]], 'venona: one word per group (' + w + ')'); vword[V.book[w]] = w; });
+        Object.keys(V.book).forEach(function (w) {
+            va.forEach(function (x, i4) {
+                var d = VD.sub(x, vb[i4]), ob = vword[VD.sub(V.book[w], d)], oa = vword[VD.add(V.book[w], d)];
+                if (ob && !(w === vwA[i4] && ob === vwB[i4])) vfalse++;
+                if (oa && !(w === vwB[i4] && oa === vwA[i4])) vfalse++;
+            });
+        });
+        t.eq(vfalse, 0, 'venona: the crib dragger gives no false hits');
+        /* the machine: book words get their group, other words are spelled between two SPELL groups */
+        var venc = V.encode('Courier met Zorro');
+        t.eq(venc.map(function (c) { return c.g; }).slice(0, 2).join(' '), V.book.COURIER + ' ' + V.book.MET, 'venona: book words in code');
+        t.eq(venc.length, 2 + 2 + 5, 'venona: a word not in the book is spelled');
+        venc.slice(3, 8).forEach(function (c) { t.ok(!vword[c.g], 'venona: the spell group of ' + c.w + ' is not a book group'); });
+    }
 };
