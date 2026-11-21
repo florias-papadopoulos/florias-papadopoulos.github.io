@@ -1,0 +1,41 @@
+{{- /* Cipher History (/cipher-history/, a tab of the lab): the front page, a corridor of eras from antiquity to the Cold
+       War. Each story (content/cipher-history/<id>.md) is a card with its date, place and one line, in the era named by
+       its front matter (era:, one of the eras listed in content/cipher-history/_index.md), sorted by order:. A stamp
+       marks the stories the visitor has cracked in this browser (assets/js/cipher-history/45-front.js). Eras without
+       a story yet are left out. Styles: assets/css/common/cipher-history.css. */ -}}
+{{- define "main" }}
+{{- $stories := sort .Pages "Params.order" }}
+<div class="tl-page ch-page ch-front">
+    <header class="lab-head ch-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        <div class="ch-lede">{{ .Content }}</div>
+        <p class="ch-notebook" aria-live="polite"></p>
+    </header>
+    <div class="ch-corridor">
+        {{- range .Params.eras }}
+        {{- $era := . }}
+        {{- $in := where $stories "Params.era" $era.id }}
+        {{- if $in }}
+        <section class="ch-era" id="{{ $era.id }}" aria-labelledby="ch-era-{{ $era.id }}">
+            <h2 class="ch-era-h" id="ch-era-{{ $era.id }}">{{ $era.name }} <span>{{ $era.span }}</span></h2>
+            <ol class="ch-room">
+                {{- range $in }}
+                <li class="ch-card-li">
+                    <a class="ch-room-card" href="{{ .RelPermalink }}" data-ch-card="{{ .File.ContentBaseName }}">
+                        <span class="ch-room-when">{{ .Params.when }}<span aria-hidden="true"> · </span><span class="ch-room-place">{{ .Params.place }}</span></span>
+                        <span class="ch-room-title">{{ .Title }}{{ with .Params.label }} <span class="ch-label">{{ . }}</span>{{ end }}</span>
+                        <span class="ch-room-line">{{ .Params.line }}</span>
+                        <span class="ch-stamp" hidden>Cracked</span>
+                    </a>
+                </li>
+                {{- end }}
+            </ol>
+        </section>
+        {{- end }}
+        {{- end }}
+    </div>
+    <p class="ch-foot">Every story lists its sources. Where historians disagree, the page says so.</p>
+</div>
+{{ partial "cipher-history/script.html" . }}
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}
