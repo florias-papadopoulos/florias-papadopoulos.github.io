@@ -23,9 +23,10 @@ the method of the time, three hints, a check that says when it is solved) and **
 | `20-desk-bench.js` | Desk tool: the frequency bench (English bars, a card per sign with its count and a box for its letter or word, the message with the letters found so far; letters swap, nulls and a doubling sign are supported; `many: true` lets several signs share a letter, `setAll` fills a whole key) |
 | `25-desk-codebook.js` | Desk tool: the codebook rebuilder (`CH.desk.codebook`): the message as number groups with their words, the book sorted by number with a box for each missing word (green when right, checked by fingerprint) |
 | `30-desk-kasiski.js` | Desk tools: Kasiski repeats (coloured, gaps, divisors, key length buttons) and the column splitter (one slider per key letter, bars against English) |
+| `35-desk-enigma.js` | Desk tool: the Enigma I (`CH.enigma.make`: rotors I to V, reflector B, rings, plugboard, the double step) and Rejewski's characteristic (`CH.enigma.characteristic`, `CH.enigma.search`: the catalogue of 6 rotor orders x 17,576 start positions, made on the fly in chunks); `CH.desk.enigma` draws the machine |
 | `40-desk-turn.js` | The frame of Your turn: hints one at a time, the status line, the stamp |
 | `45-front.js` | The front page: stamps and the notebook line |
-| `51-caesar.js` ... `56-zimmermann.js` | The stories (machine and puzzle): Caesar, al-Kindi, Bellaso and Kasiski, Babington, Mary Stuart's lost letters (2023), the Zimmermann telegram |
+| `51-caesar.js` ... `57-enigma.js` | The stories (machine and puzzle): Caesar, al-Kindi, Bellaso and Kasiski, Babington, Mary Stuart's lost letters (2023), the Zimmermann telegram, Enigma and the Polish Cipher Bureau |
 | `90-boot.js` | Starts the front page or the story on the page |
 | `test/run.js` | Tests: `node assets/js/cipher-history/test/run.js` (must end with `ok`) |
 
@@ -66,7 +67,7 @@ quadgram counts, about 50 kB, for the hill climber).
        url: "https://..."
    ```
 
-3. **Write `assets/js/cipher-history/5x-<id>.js`** (57 to 89 are free; keep each file under about 600 lines):
+3. **Write `assets/js/cipher-history/5x-<id>.js`** (58 to 89 are free; keep each file under about 600 lines):
 
    ```js
    (function () {
@@ -87,7 +88,7 @@ quadgram counts, about 50 kB, for the hill climber).
    ```
 
    Ready tools: `CH.desk.wheel`, `CH.desk.allShifts`, `CH.desk.bench` (letters, or signs with `words`, `special`,
-   `nulls`, `many`), `CH.desk.repeats`, `CH.desk.columns`, `CH.desk.climber`, `CH.desk.codebook`; write a new desk tool as its own numbered file (10 to 49) when a
+   `nulls`, `many`), `CH.desk.repeats`, `CH.desk.columns`, `CH.desk.climber`, `CH.desk.codebook`, `CH.desk.enigma`; write a new desk tool as its own numbered file (10 to 49) when a
    story needs one (a codebook rebuilder, a rotor, a crib dragger...) so later stories can reuse it.
 4. **Test it** in `test/stories.test.js`: keep the plaintext there, check that the ciphertext is the plaintext
    enciphered with the key, that the answer fingerprint matches, and that the method of the time really finds the

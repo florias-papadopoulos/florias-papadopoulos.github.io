@@ -130,4 +130,42 @@ module.exports = function (CH, t) {
         /* the machine's book is another one, so it does not give the puzzle's groups away */
         zimMissing.forEach(function (w) { t.ok(Z.number(w, Z.MACHINE) !== Z.number(w, Z.PUZZLE), 'zimmermann: the machine\'s group for ' + w + ' differs'); });
     }
+
+    /* ---------- Enigma: a day key of ours (rotors III II I, start QHN, rings at A, plugs BJ DW FK GT MY OX) ---------- */
+    if (S.enigma) {
+        var En = S.enigma, EM = CH.enigma, eord = ['III', 'II', 'I'], epos = 'QHN';
+        /* the machine itself: the known test vector and the double step */
+        t.eq(EM.make({}).text('AAAAA'), 'BDZGO', 'enigma: rotors I II III at AAA turn AAAAA into BDZGO');
+        var em = EM.make({ pos: 'ADU' }), ew = [];
+        for (var e1 = 0; e1 < 3; e1++) { em.key('A'); ew.push(em.window()); }
+        t.eq(ew.join(' '), 'ADV AEW BFX', 'enigma: the middle rotor steps twice in a row (double step)');
+        t.eq(EM.make({ pos: 'KQD', plugs: 'AB CD' }).text(EM.make({ pos: 'KQD', plugs: 'AB CD' }).text('HELLOWORLD')), 'HELLOWORLD', 'enigma: the same setting deciphers');
+        /* the indicators: every one is a key enciphered twice at the day's start, with the plugboard */
+        var elist = En.ind.split(' ');
+        t.eq(elist.length, 30, 'enigma: 30 indicators');
+        elist.forEach(function (w) {
+            var k = EM.make({ order: eord, pos: epos, plugs: En.plugs }).text(w);
+            t.ok(k.slice(0, 3) === k.slice(3), 'enigma: ' + w + ' is a doubled key (' + k + ')');
+        });
+        [0, 1, 2].forEach(function (a) {
+            var m = En.link(elist, a, a + 3), n = 0;
+            for (var c = 0; c < 26; c++) if (m[c] != null) n++;
+            t.eq(n, 26, 'enigma: letters ' + (a + 1) + ' to ' + (a + 4) + ' are known for all 26 letters');
+        });
+        /* the characteristic from the indicators is the catalogue's for the day's rotors, whatever the plugboard */
+        var echar = [0, 1, 2].map(function (a) { return EM.lengths(En.link(elist, a, a + 3)); });
+        t.eq(echar.join(' | '), EM.characteristic(eord, epos).join(' | '), 'enigma: the chains of the indicators match the catalogue entry');
+        t.eq(echar.join(' | '), '12 12 1 1 | 7 7 5 5 1 1 | 5 5 5 5 1 1 1 1 1 1', 'enigma: the characteristic the hint gives');
+        var other = [];
+        for (var e2 = 0; e2 < 26; e2++) { var kk = CH.ALPHA.charAt(e2) + CH.ALPHA.charAt((e2 + 5) % 26) + CH.ALPHA.charAt((e2 + 11) % 26); other.push(EM.make({ order: eord, pos: epos, plugs: 'AZ BY CX DV EU FT GS HR IQ JP' }).text(kk + kk)); }
+        t.eq([0, 1, 2].map(function (a) { return EM.lengths(En.link(other, a, a + 3)); }).join(' | '), echar.join(' | '), 'enigma: another plugboard gives the same chain lengths');
+        /* the whole catalogue has exactly one entry with this characteristic: the day's */
+        var efound = null;
+        EM.search(echar, function (f) { efound = f; });
+        t.eq(JSON.stringify(efound), JSON.stringify([{ order: eord, pos: epos }]), 'enigma: the catalogue finds exactly the day key');
+        t.eq(En.answer, En.keyPrint(eord, epos), 'enigma: answer fingerprint');
+        /* the first message reads with the key from its indicator */
+        var ekey = EM.make({ order: eord, pos: epos, plugs: En.plugs }).text(elist[0]).slice(0, 3);
+        t.eq(EM.make({ order: eord, pos: ekey, plugs: En.plugs }).text(En.body), 'PATROLSSEENNEARTHERIVERCROSSINGATDAWNREPORTSTRENGTHBYNOON', 'enigma: the first message');
+    }
 };
