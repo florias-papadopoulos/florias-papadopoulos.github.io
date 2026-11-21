@@ -54,7 +54,7 @@ def check(path, limits):
     rows = list(csv.reader(io.StringIO(text.replace("\r\n", "\n"))))
     rows = [r for r in rows if r]
     if not rows or rows[0] != HEADER:
-        raise ValueError("unexpected header: " + (",".join(rows[0])[:80] if rows else "empty file"))
+        raise ValueError("unexpected header: " + (repr(",".join(rows[0])[:80]) if rows else "empty file"))  # repr: no line breaks reach the log
     body = rows[1:]
     if not fewest <= len(body) <= most:
         raise ValueError(f"{len(body)} rows, expected {fewest} to {most}")

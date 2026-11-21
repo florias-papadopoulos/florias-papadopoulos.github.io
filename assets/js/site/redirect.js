@@ -3,5 +3,6 @@
    "//..." or "/\..."), so the script can never send a visitor elsewhere, whatever the attribute says. */
 (function () {
     var to = String(document.currentScript.dataset.to || '');
-    if (/^\/(?![\/\\])/.test(to)) location.replace(to);
+    /* tabs and line breaks are refused too: a browser drops them, so "/<tab>/x" would become "//x" */
+    if (/^\/(?![\/\\])/.test(to) && !/[\t\n\r]/.test(to)) location.replace(to);
 })();

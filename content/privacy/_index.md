@@ -24,12 +24,12 @@ Florias Papadopoulos, doctoral researcher at the University of St. Gallen (HSG),
 
 The pages are served by **GitHub Pages**, which receives your IP address and the usual request details to deliver them and keeps logs for security ([GitHub's privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement)); I do not see those logs.
 
-Each page view adds one to the daily totals of a counter of mine on **Cloudflare Workers** ([Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/)): the page, the site that sent you, the device type, the browser family and the country. No cookies, no IP addresses, nothing that links your page views. With Do Not Track or Global Privacy Control turned on, the counter receives nothing from your visits. The page [What this site knows about you](/you/) shows what it records.
+Each page view adds one to the daily totals of a counter of mine on **Cloudflare Workers** ([Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/)): the page, the site that sent you, the device type, the browser family and the country. No cookies, no IP addresses, nothing that links your page views. With Do Not Track or Global Privacy Control turned on, your visits are not counted at all. (The Games page still asks the same server for the leaderboards and likes, which, as with any website, means it sees your IP address to answer; it is not stored.) The page [What this site knows about you](/you/) shows what it records.
 
 ## What you can choose to send
 
 - **Leaderboards:** if you add a score, the game, the difficulty, your nickname and the score are stored with the date and shown to everyone. Old scores far from the top are deleted; write to me to have one removed. Likes are only counted, never linked to you.
-- **Kitty Kart Duo:** to connect two devices, each sends a short connection message with its IP address, which the counter passes on and deletes within about two minutes. The race then runs directly between the two devices, which see each other's IP address.
+- **Kitty Kart Duo:** to connect two devices, each sends a short connection message with its IP address, which the counter passes on and deletes within about two minutes. To find a direct way between them, each device also asks Cloudflare's STUN server (stun.cloudflare.com) for its own public address. The race then runs directly between the two devices, which see each other's IP address.
 - **Audience mode at my talks:** your answers, questions, an optional nickname (shown with the ranking; nicknames with rude words are refused) and a random browser token, kept for that talk only and deleted 24 hours after it ends.
 
 Deleted data can remain in Cloudflare's automatic backup for up to seven days.
