@@ -1,30 +1,35 @@
     /* Prism Skyway: a ribbon of colour high over a sea of clouds at sunset. Fluffy cloud banks guard the bends, the
        straights have open edges, grumpy storm clouds drift over the road, and the shortcut is a crystal bridge that
-       fades in and out */
+       fades in and out, across the big lobe on the left. Rainbows arch over the clouds, flocks of birds fly by in a
+       V, cats wave from the baskets of the hot air balloons, and a crowd cheers from little clouds at the start */
     var RAINBOW = {
         id: 'rainbow', name: 'Prism Skyway', blurb: 'Open edges, storm clouds, a fading crystal bridge',
-        ctrl: [300, 700, 400, 350, 750, 200, 1100, 320, 1300, 200, 1650, 250, 1800, 550, 1600, 800, 1300, 750, 1100, 900, 1250, 1150,
-               1000, 1350, 600, 1300, 450, 1050, 600, 900], scale: 1, start: 0,
+        ctrl: [500, 300, 950, 250, 1400, 250, 1900, 300, 2200, 500, 2150, 800, 1900, 850, 1500, 760, 1150, 800, 900, 1000, 1100, 1220,
+               1450, 1150, 1800, 1250, 1950, 1550, 1750, 1800, 1300, 1820, 800, 1780, 450, 1680, 170, 1420, 130, 1000, 330, 620], scale: 0.95, start: 0.044,
         phys: { vmax: 350, vgrass: 120, acc: 330, grip: 5.4, gripOff: 3.5, coast: 0.5, turn: 3.0, care: 1.25 },
         col: { bg: '#3b2f6b', edge: '#ffffff', road: '#c4b5fd', panel: 'rgba(15,23,42,.6)', mini: '#e9d5ff', grid: 'rgba(255,255,255,.85)' },
         sky: true, G: 300,
-        alt: { a: 318, b: 410, hw: 30, vf: 1, gate: { at: 0.28, open: 4.4, shut: 2.4 }, via: [[318, 410, 0.33], [318, 410, 0.66]] }, gate: 'fade', gateSoft: true,
+        alt: { a: 358, b: 444, hw: 30, vf: 1, gate: { at: 0.28, open: 4.4, shut: 2.4 }, via: [[358, 444, 0.33], [358, 444, 0.66]] }, gate: 'fade', gateSoft: true,
         fallSay: 'Off the edge! A cloud carries you back.',
-        pads: [[50, 0.5], [280, -0.5]], picks: [20, 190, 440], padCol: ['#f472b6', '#fdf2f8'], gantry: ['#7c3aed', '#facc15'],
+        pads: [[16, 0.5], [236, -0.5]], picks: [20, 156, 331], padCol: ['#f472b6', '#fdf2f8'], gantry: ['#7c3aed', '#facc15'],
         BANDS: ['#ff6b6b', '#ffa94d', '#ffd43b', '#69db7c', '#4dabf7', '#748ffc', '#b197fc'],
         altGood: function (c) { var T = ((ALT.a - c.idx + N) % N * SP + this.s1 * ALT.step) / Math.max(c.vf, 150); return gateOpen(clock + T) > 0.6; },
         prep: function () {
             var i, k, g = this.guard = new Uint8Array(N);
             for (i = 0; i < N; i++) if (Math.abs(K[i]) > 0.0045) for (k = -10; k <= 26; k++) g[ix(i + k)] = 1;  /* longer after the bend, where karts run wide */  /* cloud banks round the bends */
             this.s0 = Math.round(ALT.n * 0.3); this.s1 = Math.round(ALT.n * 0.72);
-            this.storms = [[100, 0], [215, 2.2], [370, 4.1]].map(function (d) { return { j: d[0], ph: d[1], x: 0, y: 0, p: 0 }; });
+            this.storms = [[46, 0], [221, 2.2], [316, 4.1]].map(function (d) { return { j: d[0], ph: d[1], x: 0, y: 0, p: 0 }; });
             seed = 81;
             this.puffs = [];  /* the cloud banks: puffs along the outside of the guarded bends */
-            for (i = 0; i < N; i += 3) if (g[i]) for (k = -1; k <= 1; k += 2) {
+            for (i = 0; i < N; i += 2) if (g[i]) for (k = -1; k <= 1; k += 2) {
                 var q = side(i, k * (HW + 22 + rnd() * 8)), o = { x: q.x, y: q.y }; nearest(o);
                 if (o.dist > HW + 14) this.puffs.push({ x: q.x, y: q.y, r: 16 + rnd() * 10 });
             }
-            this.balloons = spots(3, 500, 260);
+            this.balloons = spots(4, 600, 260);
+            seed = 83;
+            this.bows = spots(3, 900, 320, this.balloons).map(function (b) { return { x: b.x, y: b.y, r: 220 + rnd() * 120, a: (rnd() - 0.5) * 0.8 }; });
+            this.flocks = [0, 1, 2].map(function (n) { return { y: WH * (0.2 + n * 0.3), a: (n % 2 ? Math.PI : 0) + (rnd() - 0.5) * 0.5, sp: 70 + n * 15, ph: n * 900 }; });
+            this.fans = [crowd(N - 24, N - 5, -(HW + 36), 2), crowd(N - 24, N - 5, HW + 36, 2)];
             this.update(0);
         },
         paint: function (g) {
@@ -80,6 +85,10 @@
             void self;
         },
         under: function () {
+            this.fans.forEach(function (g) {  /* the crowd sits on little clouds */
+                if (!vis(g.x, g.y, g.r)) return;
+                g.fans.forEach(function (f, n) { if (vis(f.x, f.y, 20)) { circle(ctx, f.x + 4, f.y + 8, 15, 'rgba(60,40,110,.25)'); circle(ctx, f.x, f.y + 2, 15, n % 2 ? '#f5f3ff' : '#ffffff'); } });
+            });
             var o = gateOpen(clock);
             if (o > 0) {  /* the middle of the crystal bridge, fading in and out (it flickers just before it goes) */
                 var fl = o < 1 && o > 0.3 ? 0.75 + 0.25 * Math.sin(clock * 40) : 1;
@@ -117,15 +126,42 @@
                 ctx.beginPath(); ctx.arc(x, y + 14, 5, 3.6, 5.8); ctx.stroke();
                 for (k = 0; k < 3 && !dark; k++) { var dy = (clock * 60 + k * 13 + n * 7) % 30; ctx.fillStyle = 'rgba(147,197,253,.8)'; ctx.fillRect(x - 12 + k * 12, y + 18 + dy, 2, 6); }
             });
-            var self = this;
-            this.balloons.forEach(function (b, n) {  /* hot air balloons floating far above */
+            var self = this, k;
+            this.fans.forEach(fans);
+            this.bows.forEach(function (b) {  /* rainbows arching over the cloud sea, far below the road's height but above the clouds */
+                if (!vis(b.x, b.y, b.r + 200)) return;
+                var x = liftX(b.x, 0.12), y = liftY(b.y, 0.12);
+                ctx.globalAlpha = 0.5; ctx.lineCap = 'butt';
+                for (k = 0; k < 7; k++) { ctx.strokeStyle = self.BANDS[k]; ctx.lineWidth = 11; ctx.beginPath(); ctx.arc(x, y, b.r - k * 10, Math.PI + b.a, 2 * Math.PI + b.a); ctx.stroke(); }
+                ctx.globalAlpha = 1; ctx.lineCap = 'round';
+            });
+            this.balloons.forEach(function (b, n) {  /* hot air balloons floating far above, a cat waving from each basket */
                 var bx = b.x + Math.sin(clock * 0.2 + n) * 40, by = b.y + Math.cos(clock * 0.17 + n) * 30;
                 if (!vis(bx, by, 260)) return;
-                var x = liftX(bx, 0.28), y = liftY(by, 0.28);
+                var x = liftX(bx, 0.28), y = liftY(by, 0.28), x2 = liftX(bx, 0.2), y2 = liftY(by, 0.2);
                 ctx.fillStyle = 'rgba(40,20,80,.18)'; ctx.beginPath(); ctx.ellipse(bx + 20, by + 30, 40, 30, 0, 0, 7); ctx.fill();
-                var C = [self.BANDS[n * 2], '#fff', self.BANDS[n * 2 + 1]];
-                for (var k = 0; k < 6; k++) { ctx.fillStyle = C[k % 3]; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, 52, k * 1.047, (k + 1) * 1.047); ctx.fill(); }
+                ctx.strokeStyle = '#7c2d12'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x2 - 9, y2); ctx.lineTo(x - 30, y); ctx.moveTo(x2 + 9, y2); ctx.lineTo(x + 30, y); ctx.stroke();
+                ctx.fillStyle = '#a16207'; rrect(x2 - 13, y2 - 11, 26, 22, 4); ctx.fill(); ctx.strokeStyle = '#7c2d12'; ctx.stroke();
+                var fur = DOG ? '#c8843f' : ['#f6a23a', '#a3aab5', '#45424d', '#fbf7ef'][n % 4], wave = Math.sin(clock * 6 + n) * 4;
+                circle(ctx, x2, y2 - 2, 7, fur); circle(ctx, x2 + 8, y2 - 8 + wave, 3, fur);
+                if (DOG) { ctx.fillStyle = '#5b3a24'; ctx.beginPath(); ctx.ellipse(x2 - 6, y2 - 1, 2.5, 4, 0.3, 0, 7); ctx.ellipse(x2 + 6, y2 - 1, 2.5, 4, -0.3, 0, 7); ctx.fill(); }
+                else { ctx.fillStyle = fur; ctx.beginPath(); ctx.moveTo(x2 - 6, y2 - 5); ctx.lineTo(x2 - 5, y2 - 12); ctx.lineTo(x2 - 1, y2 - 7); ctx.moveTo(x2 + 6, y2 - 5); ctx.lineTo(x2 + 5, y2 - 12); ctx.lineTo(x2 + 1, y2 - 7); ctx.fill(); }
+                circle(ctx, x2 - 2.5, y2 - 1, 1.2, '#1f2937'); circle(ctx, x2 + 2.5, y2 - 1, 1.2, '#1f2937');
+                var C = [self.BANDS[(n * 2) % 7], '#fff', self.BANDS[(n * 2 + 1) % 7]];
+                for (k = 0; k < 6; k++) { ctx.fillStyle = C[k % 3]; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, 52, k * 1.047, (k + 1) * 1.047); ctx.fill(); }
                 circle(ctx, x, y, 16, '#fef3c7'); ctx.strokeStyle = '#7c2d12'; ctx.lineWidth = 3; ctx.strokeRect(x - 9, y - 9, 18, 18);
+            });
+            this.flocks.forEach(function (f) {  /* a flock of birds in a V, flying straight across the sky and round again */
+                var L = WW + WH + 800, u = ((clock * f.sp + f.ph) % L) - 400, ca = Math.cos(f.a), sa = Math.sin(f.a);
+                var cx = (ca > 0 ? 0 : WW) + ca * u, cy = f.y + sa * u;
+                if (!vis(liftX(cx, 0.22), liftY(cy, 0.22), 160)) return;
+                for (var m = 0; m < 7; m++) {
+                    var row = Math.ceil(m / 2), sd = m % 2 ? 1 : -1, bx = cx - ca * row * 26 - sa * sd * row * 22, by = cy - sa * row * 26 + ca * sd * row * 22;
+                    var x = liftX(bx, 0.22), y = liftY(by, 0.22), fl = Math.sin(clock * 9 + m) * 5;
+                    ctx.strokeStyle = '#4c3d7a'; ctx.lineWidth = 2.4; ctx.beginPath();
+                    ctx.moveTo(x - sa * 10 - ca * 3 + fl * ca * 0.3, y + ca * 10 - sa * 3); ctx.quadraticCurveTo(x - ca * 2 - sa * 4, y - sa * 2 + ca * 4 + fl * 0.4, x, y);
+                    ctx.quadraticCurveTo(x - ca * 2 + sa * 4, y - sa * 2 - ca * 4 - fl * 0.4, x + sa * 10 - ca * 3, y - ca * 10 - sa * 3); ctx.stroke();
+                }
             });
         },
         drawSky: function (cw, ch, k) {
