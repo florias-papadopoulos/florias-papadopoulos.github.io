@@ -24,3 +24,7 @@
   title: Primes and more maths
   sub: Factoring, primes, matrices, fractions, counting
   tools: [prime-factorization, primality-test, prime-sieve, euler-totient, divisors, carmichael-function, primitive-root, continued-fraction, matrix, linear-system, fractions, binomial, combinatorics, polynomial-division, polynomial-mod-p, big-number, bits-and-sizes]
+- id: groups
+  title: Groups and generators
+  sub: Cyclic or not, generators, element orders, subgroups
+  tools: [cyclic-group-test, cyclic-group-generators, generator-test, subgroups, primitive-root, multiplicative-order, carmichael-function, zn-tables, discrete-logarithm, elliptic-curve-points]

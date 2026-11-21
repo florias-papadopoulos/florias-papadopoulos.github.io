@@ -18,8 +18,18 @@
         ['factor 360', 'prime-factorization'], ['is 97 prime?', 'primality-test'], ['gcd of 12 and 18', 'gcd'], ['lcm(4, 6, 10)', 'gcd'],
         ['255 in binary', 'base-conversion'], ['0xff to decimal', 'base-conversion'], ['sha256 hello', 'hash'], ['md5 of hello', 'hash'],
         ['rot13 hello', 'rot13'], ['caesar 3 hello world', 'caesar'], ['10 choose 3', 'binomial'], ['primes up to 100', 'prime-sieve'],
-        ['phi(36)', 'euler-totient'], ['decode SGVsbG8gd29ybGQ=', 'base64'], ['order of 3 mod 7', 'multiplicative-order']
+        ['phi(36)', 'euler-totient'], ['decode SGVsbG8gd29ybGQ=', 'base64'], ['order of 3 mod 7', 'multiplicative-order'],
+        /* groups and generators */
+        ['is 3 a generator mod 7', 'generator-test'], ['is 3 a primitive root mod 7?', 'generator-test'], ['is 5 a generator of Z_18^*', 'generator-test'],
+        ['is 5 a generator of Z_12', 'generator-test'], ['is Z_15^* cyclic?', 'cyclic-group-test'], ['is Z15* cyclic', 'cyclic-group-test'],
+        ['is Z_{12} cyclic?', 'cyclic-group-test'], ['generators of Z_7^*', 'cyclic-group-generators'], ['how many generators does Z_18* have?', 'cyclic-group-generators'],
+        ['number of generators of Z_12', 'cyclic-group-generators'], ['subgroups of Z_15^*', 'subgroups'], ['element orders mod 15', 'subgroups'],
+        ['generators mod 7', 'primitive-root'], ['primitive roots of 23', 'primitive-root']
     ];
+    /* the group requests pick the right group: a star or "mod" is Z_n^*, a plain Z_n the additive group */
+    [['is 5 a generator of Z_12', 'add'], ['is 5 a generator of Z_12^*', 'mul'], ['is 3 a generator mod 7', 'mul'], ['is Z_12 cyclic', 'add'], ['is Z_12^* cyclic', 'mul'], ['subgroups of Z_12', 'add']].forEach(function (c) {
+        T.prop('paste guess group of: ' + c[0], 1, function () { var g = G.guess(c[0]); return g && g.tools[0][2].group === c[1] ? true : JSON.stringify(g && g.tools[0]); });
+    });
     cases.forEach(function (c, i) {
         T.prop('paste guess ' + (i + 1) + ': ' + c[0].slice(0, 30), 1, function () {
             var g = G.guess(c[0]);

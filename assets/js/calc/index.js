@@ -260,8 +260,25 @@
             return { what: 'Multiplicative order', tools: [['multiplicative-order', 'Its order', { a: m[1], n: m[2] }]] };
         if ((m = /^(?:sqrt|square\s+root\s+of)\s*\(?\s*(\d+)\s*\)?\s+(?:mod|modulo)\s+(\d+)$/i.exec(one)))
             return { what: 'Square root mod n', tools: [['modular-square-root', 'Square roots mod n', { a: m[1], n: m[2] }]] };
+        /* groups: "Z_15^*", "Z15*", "Z_{12}" or "mod 15" (a star or "mod" means the units, a plain Z_n the additive group) */
+        var ZG = '(?:(?:mod(?:ulo)?\\s+)|(z)\\s*_?\\s*\\{?\\s*)(\\d+)\\s*\\}?\\s*(\\^?\\s*\\{?\\s*[*×]\\s*\\}?)?';
+        var zgroup = function (z, star) { return z && !star ? 'add' : 'mul'; };
+        if ((m = new RegExp('^is\\s+(-?\\d+)\\s+a\\s+(?:generator|primitive\\s+root)\\s+(?:of\\s+|in\\s+|for\\s+)?' + ZG + '\\s*\\??$', 'i').exec(one))) {
+            var gg = zgroup(m[2], m[4]);
+            return { what: 'Is it a generator?', tools: [['generator-test', 'Test it', { group: gg, g: m[1], n: m[3] }]].concat(gg === 'mul' ? [['multiplicative-order', 'Its order', { a: m[1], n: m[3] }]] : []) };
+        }
+        if ((m = new RegExp('^is\\s+(?:the\\s+group\\s+)?' + ZG + '\\s+cyclic\\s*\\??$', 'i').exec(one)) && m[1]) {
+            var gc = zgroup(m[1], m[3]);
+            return { what: 'Is the group cyclic?', tools: [['cyclic-group-test', 'Is it cyclic?', { group: gc, n: m[2] }]].concat(Number(m[2]) >= 2 && Number(m[2]) <= 2000 ? [['subgroups', 'Its subgroups', { group: gc, n: m[2] }]] : []) };
+        }
+        if ((m = new RegExp('^(?:(?:the\\s+)?number\\s+of\\s+|how\\s+many\\s+|all\\s+)?generators\\s+(?:of|in|for|does)\\s+(?:the\\s+group\\s+)?' + ZG + '(?:\\s+have)?\\s*\\??$', 'i').exec(one)) && m[1]) {
+            var gn = zgroup(m[1], m[3]);
+            return { what: 'Generators of a cyclic group', tools: [['cyclic-group-generators', 'All its generators', { group: gn, n: m[2] }]].concat(gn === 'mul' ? [['primitive-root', 'Primitive roots', { n: m[2] }]] : []) };
+        }
+        if ((m = new RegExp('^(?:subgroups|(?:the\\s+)?(?:element\\s+orders|orders\\s+of\\s+(?:the\\s+|all\\s+)?elements))\\s+(?:of|in|for)?\\s*(?:the\\s+group\\s+)?' + ZG + '$', 'i').exec(one)) && Number(m[2]) >= 2 && Number(m[2]) <= 2000)
+            return { what: 'Element orders and subgroups', tools: [['subgroups', 'Orders and subgroups', { group: zgroup(m[1], m[3]), n: m[2] }]] };
         if ((m = /^(?:primitive\s+root|generator)s?\s+(?:of|mod|modulo)\s+(\d+)$/i.exec(one)))
-            return { what: 'Primitive roots', tools: [['primitive-root', 'Primitive roots', { n: m[1] }]] };
+            return { what: 'Primitive roots', tools: [['primitive-root', 'Primitive roots', { n: m[1] }], ['cyclic-group-generators', 'All the generators', { group: 'mul', n: m[1] }]] };
         if ((m = /^(?:primes?\s+(?:up\s+to|below|under|to)|sieve\s+(?:of\s+)?(?:up\s+to\s+)?)\s*(\d+)$/i.exec(one)))
             return { what: 'Primes', tools: [['prime-sieve', 'Sieve of Eratosthenes', { mode: 'sieve', N: m[1] }]] };
         return null;
