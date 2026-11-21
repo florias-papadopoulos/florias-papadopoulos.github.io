@@ -53,6 +53,14 @@
             s.x = s.hx + (s.rx - s.hx) * e; s.y = s.hy + (s.ry - s.hy) * e;
         });
     }
+    function inner() {  /* the open place inside the track's bounding box that is furthest from every road */
+        var o = { x: 0, y: 0 }, best = null, x, y;
+        for (x = PAD + 100; x < WW - PAD - 100; x += 40) for (y = PAD + 100; y < WH - PAD - 100; y += 40) {
+            o.x = x; o.y = y; nearest(o);
+            if (!best || o.dist > best.d) best = { x: x, y: y, d: o.dist };
+        }
+        return best || { x: WW / 2, y: WH / 2, d: 0 };
+    }
     function hash(k, s) { var v = Math.sin(k * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); }  /* a steady random number in [0, 1) */
     function drift(n, T, vx, vy, fn) {  /* things blowing through the air (leaves, petals, dust): n per T by T tile of the view, moving
                                            at about (vx, vy) per second, all from the clock; fn(x, y, k) draws one */
