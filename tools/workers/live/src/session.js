@@ -11,7 +11,9 @@
 //            ph: "open" (cur is on screen) or "idle" (between activities); opened[id]: when it was first opened (ms,
 //            the quiz timer); shown[id]: its results are revealed (voting is closed); live[id]: a poll's bars show live;
 //            join: the join secret, copied from the plan at the start; wdue: when nicknames given before the start
-//            are deleted if the talk has not started by then
+//            are deleted if the talk has not started by then; bkey[id]: a secret ballot's public key (made on the
+//            projector, which keeps the secret key); tally[id]: { n: [count per answer], bad } as the projector
+//            decrypted it (bad: ballots whose proofs failed)
 //   plan     the latest saved plan (pushed by the Worker whenever the presenter saves it), with its join secrets
 //   players  { id: { tok, n, s } }        key "ph:<tok>" = { id, n, s }: a phone that has kept something
 //            n: its nickname ("" for none), s: "new" (waiting for the presenter), "ok" (shown), "no" (not shown)
@@ -20,22 +22,26 @@
 //            key "q:<id>" = the question without up; key "u:<q>:<id>" = 1 for each upvote
 //   res      { activity id: { n: [count per answer], by: { id: answer }, p: { id: points } } }
 //            key "v:<activity>:<id>" = [answer] or [answer, points]; the counts are added up when the state is loaded
+//   bal      { activity id: { by: { id: ballot } } }   key "b:<activity>:<id>" = the encrypted ballot { c, p, s }
 // Ids are 16 random characters the worker gives a phone when it first says hello. The phone's own random token (in
 // its localStorage) only finds its id again after a reload; it never decides who voted. No IP addresses: index.js
 // counts connections per address in memory only.
 //
 // Messages (JSON, at most LIMITS.msg characters). From a phone:
 //   {t:"hi", tok, k: join secret}  {t:"nick", n}  {t:"vote", a: id, c: answer}  {t:"ask", x}  {t:"up", q: id}
-//   {t:"react", e: 0..5}
+//   {t:"react", e: 0..5}   a secret ballot: {t:"vote", a: id, c: { c, p, s }} (15-ballot.js)
 // From the presenter (projector, remote): {t:"hi", key} first, then
 //   {t:"start"} {t:"next"} {t:"prev"} {t:"go", i} {t:"close"} {t:"reveal"} {t:"hide"} {t:"qr", on} {t:"board", on}
 //   {t:"live", on} {t:"quick", q, opts} {t:"qset", q: id, st} {t:"qbig", q: id} {t:"name", n, s: "ok" | "no"}
 //   {t:"names"} (show every waiting nickname) {t:"end"} {t:"reset"}
+//   secret ballots: {t:"bkey", a, pk} (the public key, while no ballot is in) {t:"bget", a} (all ballots, in parts)
+//   {t:"tally", a, n: [counts], bad} (after "reveal" closed the ballot)
 // To phones: {t:"state", ...audienceView}, {t:"voted", a, c}, {t:"votes", a, n, total} (live polls), {t:"qup", q, up},
 //   {t:"asked", q}, {t:"nick", ok, n, s, e}, {t:"err", e}
 // To presenters: {t:"pstate", ...presenterView}, {t:"votes", a, n, total}, {t:"n", n} (people connected),
-//   {t:"q", q} (a new question), {t:"qup", q, up}, {t:"react", e}
-import { LIMITS, VOTE_TYPES, EMOJI, checkAct, clean, nameOk, newId, planCode, secret, same } from './plan.js';
+//   {t:"q", q} (a new question), {t:"qup", q, up}, {t:"react", e}, {t:"bal", a, b, total} (a new ballot),
+//   {t:"bals", a, list: [ballots], last} (an answer to "bget")
+import { LIMITS, VOTE_TYPES, EMOJI, checkAct, clean, nameOk, newId, planCode, secret, same, ballotShape, b64Ok } from './plan.js';
 
 export const IDLE = 12 * 3600e3;  // a live session with no presenter command for this long ends by itself
 export const KEEP = 24 * 3600e3;  // audience data is deleted this long after the session ends
@@ -57,8 +63,8 @@ export function blank(name) {
     return {
         meta: { name: name, code: planCode(name), test: name.slice(-5) === '.test', s: 'none', title: '', ask: false, react: false,
             acts: [], cur: -1, ph: 'idle', opened: {}, shown: {}, live: {}, qr: false, board: false, started: 0, ended: 0, last: 0,
-            join: '', wdue: 0 },
-        plan: null, players: map(), toks: map(), qs: [], res: map()
+            join: '', wdue: 0, bkey: {}, tally: {} },
+        plan: null, players: map(), toks: map(), qs: [], res: map(), bal: map()
     };
 }
 
@@ -80,6 +86,10 @@ export function fromStorage(name, entries) {
         } else if (k.indexOf('q:') === 0) {
             if (v && Number.isInteger(v.id)) st.qs.push({ id: v.id, x: v.x, by: v.by, up: [], st: v.st, big: !!v.big, at: v.at });
         } else if (k.indexOf('v:') === 0) votes.push([k.split(':'), v]);
+        else if (k.indexOf('b:') === 0) {
+            const ks = k.split(':');
+            if (v && typeof v === 'object') (st.bal[ks[1]] || (st.bal[ks[1]] = { by: map() })).by[ks[2]] = v;
+        }
         else if (k.indexOf('u:') === 0) ups.push(k.split(':'));
     }
     st.qs.sort(function (x, y) { return x.id - y.id; });
@@ -120,6 +130,10 @@ export function part(st, key) {
         if (!res || res.by[id] === undefined) return undefined;
         return res.p[id] === undefined ? [res.by[id]] : [res.by[id], res.p[id]];
     }
+    if (kind === 'b') {
+        const j = rest.indexOf(':'), b = st.bal[rest.slice(0, j)];
+        return b && b.by[rest.slice(j + 1)] || undefined;
+    }
     if (kind === 'u') {
         const j = rest.indexOf(':'), q = st.qs.filter(function (x) { return String(x.id) === rest.slice(0, j); })[0];
         return q && q.up.indexOf(rest.slice(j + 1)) >= 0 ? 1 : undefined;
@@ -132,6 +146,7 @@ export function audienceKeys(st) {
     for (const id of Object.keys(st.players)) keys.push('ph:' + st.players[id].tok);
     for (const q of st.qs) { keys.push('q:' + q.id); for (const u of q.up) keys.push('u:' + q.id + ':' + u); }
     for (const a of Object.keys(st.res)) for (const id of Object.keys(st.res[a].by)) keys.push('v:' + a + ':' + id);
+    for (const a of Object.keys(st.bal)) for (const id of Object.keys(st.bal[a].by)) keys.push('b:' + a + ':' + id);
     return keys;
 }
 
@@ -151,6 +166,8 @@ function bucket(att, k, now, cap, ms) {
 }
 function total(n) { return n.reduce(function (s, x) { return s + x; }, 0); }
 function copy(o) { return JSON.parse(JSON.stringify(o)); }
+function balOf(st, a) { return st.bal[a.id] || (st.bal[a.id] = { by: map() }); }
+function balCount(st, id) { return st.bal[id] ? Object.keys(st.bal[id].by).length : 0; }
 function resOf(st, a) { return st.res[a.id] || (st.res[a.id] = { n: a.opts.map(function () { return 0; }), by: map(), p: map() }); }
 
 /* the join secret phones must give now: the one copied at the start, or before it the plan's */
@@ -243,6 +260,14 @@ export function audienceView(st, id, now, memo) {
             if (res.by[id] !== undefined) x.mine = res.by[id];
             if (x.shown || (a.type === 'poll' && m.live[a.id])) { x.n = res.n; x.total = total(res.n); }
         }
+        if (a.type === 'ballot') {
+            /* the phone needs the key to encrypt; it sees the counts only once the projector has decrypted them */
+            x.pk = m.bkey[a.id] || '';
+            x.total = balCount(st, a.id);
+            if (st.bal[a.id] && st.bal[a.id].by[id]) x.cast = true;
+            const t = m.tally[a.id];
+            if (x.shown && t) { x.n = t.n; x.counted = total(t.n); x.bad = t.bad; }
+        }
         if (a.type === 'quiz') {
             x.secs = a.secs;
             x.left = left(st, a, now);
@@ -282,7 +307,7 @@ export function presenterView(st, now, aud) {
     const acts = m.s === 'waiting' || m.s === 'none' ? (st.plan ? st.plan.acts : []) : m.acts;
     v.acts = acts.map(function (a) {
         const r = st.res[a.id];
-        return { id: a.id, type: a.type, q: a.q, quick: !!a.quick, shown: !!m.shown[a.id], total: r ? total(r.n) : 0 };
+        return { id: a.id, type: a.type, q: a.q, quick: !!a.quick, shown: !!m.shown[a.id], total: a.type === 'ballot' ? balCount(st, a.id) : r ? total(r.n) : 0 };
     });
     const a = cur(st);
     if (a) {
@@ -291,6 +316,12 @@ export function presenterView(st, now, aud) {
         x.live = !!m.live[a.id];
         const r = st.res[a.id];
         if (r) { x.n = r.n; x.total = total(r.n); }
+        if (a.type === 'ballot') {
+            x.pk = m.bkey[a.id] || '';
+            x.total = balCount(st, a.id);
+            const t = m.tally[a.id];
+            if (t) { x.n = t.n; x.counted = total(t.n); x.bad = t.bad; }
+        }
         if (a.type === 'quiz') x.left = left(st, a, now);
         v.act = x;
     } else v.act = null;
@@ -345,7 +376,7 @@ function start(st, now) {
     const p = st.plan;
     Object.assign(m, { s: 'live', title: p.title, ask: p.ask, react: p.react, acts: copy(p.acts), cur: -1, ph: 'idle',
         opened: {}, shown: {}, live: {}, qr: false, board: false, started: now, ended: 0, last: now,
-        join: (m.test ? p.tjoin : p.join) || '', wdue: 0 });
+        join: (m.test ? p.tjoin : p.join) || '', wdue: 0, bkey: {}, tally: {} });
     for (const a of m.acts) if (a.type === 'poll' && a.live) m.live[a.id] = true;
     r.dirty.push('meta');
     r.alarm = now + IDLE;
@@ -354,7 +385,7 @@ function start(st, now) {
 /* the audience data goes (votes, questions, nicknames); the plan stays */
 function wipe(st, r) {
     r.del = r.del.concat(audienceKeys(st));
-    st.res = map(); st.players = map(); st.toks = map(); st.qs = [];
+    st.res = map(); st.players = map(); st.toks = map(); st.qs = []; st.bal = map();
 }
 export function end(st, now) {
     const r = result(), m = st.meta;
@@ -426,8 +457,34 @@ function presenter(st, att, msg, info) {
     case 'close': if (!live) return err('notlive'); m.ph = 'idle'; m.board = false; break;
     case 'reveal': case 'hide': {
         const a = onScreen(st);
-        if (!a || VOTE_TYPES.indexOf(a.type) < 0) return err('bad');
-        if (msg.t === 'reveal') m.shown[a.id] = true; else delete m.shown[a.id];
+        if (!a || (VOTE_TYPES.indexOf(a.type) < 0 && a.type !== 'ballot')) return err('bad');
+        /* a ballot: "reveal" closes it (the projector then counts and sends "tally"); "hide" opens it again, and a new
+           count is needed after it */
+        if (msg.t === 'reveal') m.shown[a.id] = true; else { delete m.shown[a.id]; delete m.tally[a.id]; }
+        break;
+    }
+    case 'bkey': {
+        /* the projector made a key pair for this ballot: the public key is kept while no ballot uses another one */
+        const a = m.acts.filter(function (x) { return x.id === msg.a; })[0];
+        if (!a || a.type !== 'ballot' || !b64Ok(msg.pk, 44)) return err('bad');
+        if (m.bkey[a.id] === msg.pk) return result();
+        if (balCount(st, a.id)) return err('bkey');
+        m.bkey[a.id] = msg.pk;
+        break;
+    }
+    case 'bget': {
+        /* every ballot of an activity, 100 to a message (a ballot is at most about 1,500 characters) */
+        const b = st.bal[msg.a], list = b ? Object.keys(b.by).map(function (k) { return b.by[k]; }) : [];
+        for (let i = 0; i < list.length || i === 0; i += 100) r.out.push({ to: 'me', m: { t: 'bals', a: msg.a, list: list.slice(i, i + 100), last: i + 100 >= list.length } });
+        return r;
+    }
+    case 'tally': {
+        const a = m.acts.filter(function (x) { return x.id === msg.a; })[0];
+        if (!a || a.type !== 'ballot' || !m.shown[a.id]) return err('bad');
+        const n = msg.n, bad = msg.bad;
+        if (!Array.isArray(n) || n.length !== a.opts.length || !n.every(function (x) { return Number.isInteger(x) && x >= 0; }) ||
+            !Number.isInteger(bad) || bad < 0 || total(n) + bad !== balCount(st, a.id)) return err('bad');
+        m.tally[a.id] = { n: n, bad: bad };
         break;
     }
     case 'live': {
@@ -531,6 +588,7 @@ function audience(st, att, msg, info) {
     }
     case 'vote': {
         const a = onScreen(st);
+        if (a && a.id === msg.a && a.type === 'ballot') return ballot(st, att, a, msg, r);
         if (!a || a.id !== msg.a || VOTE_TYPES.indexOf(a.type) < 0) return err('closed');
         const res = resOf(st, a);
         adopt(st, att);
@@ -602,6 +660,32 @@ function audience(st, att, msg, info) {
     }
     default: return err('unknown');
     }
+}
+
+/* a secret ballot: kept as it is (the projector checks its proofs), one per phone; a copy of someone else's
+   ciphertexts is refused (it would let a phone copy another's vote without knowing it) */
+function ballot(st, att, a, msg, r) {
+    const m = st.meta;
+    if (m.shown[a.id] || !m.bkey[a.id]) return err('closed');
+    const bal = balOf(st, a);
+    adopt(st, att);
+    if (bal.by[att.id] || (att.v || []).indexOf(a.id) >= 0) { r.att = att; return me(r, { t: 'voted', a: a.id, cast: true }); }
+    const b = msg.c;
+    if (!ballotShape(b, a.opts.length)) return err('bad');
+    const seen = new Set();
+    for (const k of Object.keys(bal.by)) for (const ct of bal.by[k].c) seen.add(ct[0]);
+    if (b.c.some(function (ct) { return seen.has(ct[0]); })) return err('bad');
+    if (!own(st, att, r)) return err('full');
+    const keep = { c: b.c, p: b.p, s: b.s };
+    bal.by[att.id] = keep;
+    att.v = (att.v || []).concat([a.id]).slice(-80);
+    r.att = att;
+    r.dirty.push('b:' + a.id + ':' + att.id);
+    me(r, { t: 'voted', a: a.id, cast: true });
+    const n = balCount(st, a.id);
+    r.out.push({ to: 'pres', m: { t: 'bal', a: a.id, b: keep, total: n } });
+    r.out.push({ to: 'aud', m: { t: 'votes', a: a.id, total: n }, coalesce: 'votes' });
+    return r;
 }
 
 /* ---------- a new connection ---------- */
@@ -704,7 +788,15 @@ export function exportResults(st, now) {
         activities: m.acts.map(function (a, i) {
             const x = { n: i + 1, type: a.type, question: a.q };
             if (a.quick) x.quick = true;
-            if (a.opts) {
+            if (a.type === 'ballot') {
+                const t = m.tally[a.id];
+                x.secret = true;
+                x.answers = a.opts.map(function (o, k) { return { answer: o, votes: t ? t.n[k] : null }; });
+                x.total = balCount(st, a.id);
+                x.counted = !!t;
+                if (t) x.invalid = t.bad;
+                x.revealed = !!m.shown[a.id];
+            } else if (a.opts) {
                 const res = st.res[a.id];
                 x.answers = a.opts.map(function (o, k) {
                     const e = { answer: o, votes: res ? res.n[k] : 0 };

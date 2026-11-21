@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
+import { createRequire } from 'module';
 import * as P from '../src/plan.js';
 import * as S from '../src/session.js';
 
@@ -506,6 +507,79 @@ test('storage round trip', function () {
     const t = S.fromStorage('pkc27.test', new Map());
     assert.ok(t.meta.test);
     assert.strictEqual(t.meta.code, 'pkc27');
+});
+
+test('secret ballot: key, one encrypted ballot each, no copies, closed by the reveal, tally from the projector', function () {
+    global.crypto = global.crypto || { getRandomValues: function (b) { return crypto.randomFillSync(b); } };
+    const B = createRequire(import.meta.url)('../../../../assets/js/live/15-ballot.js');
+    const plan = P.checkPlan({ title: 'Teams', acts: [{ type: 'ballot', q: 'Best team?', opts: ['Red', 'Blue', 'Green'] }] }, 'pkc27', seq(5));
+    assert.ok(!plan.error, plan.error);
+    assert.ok(P.checkPlan({ title: 'T', acts: [{ type: 'ballot', q: 'q', opts: ['1', '2', '3', '4', '5', '6'] }] }, 'pkc27').error, 'at most 5 answers');
+    const b = setup();
+    S.setPlan(b.st, P.withJoin(plan.plan, null, rnd));
+    const p = b.pres(), x = b.phone(T1), y = b.phone(T2), z = b.phone(T3);
+    b.send(p, { t: 'start' }); b.send(p, { t: 'next' });
+    const act = b.st.meta.acts[0], name = b.st.meta.name;
+    let r = b.send(x, { t: 'vote', a: act.id, c: {} });
+    assert.strictEqual(mine(r)[0].e, 'closed', 'no key yet: no ballots');
+    const kp = B.keyPair();
+    r = b.send(p, { t: 'bkey', a: act.id, pk: kp.pk });
+    assert.strictEqual(S.audienceView(b.st, x.id, b.now).act.pk, kp.pk, 'phones get the public key');
+    assert.ok(!JSON.stringify(S.presenterView(b.st, b.now)).includes(kp.sk), 'the secret key never reaches the worker');
+    const bx = B.makeBallot(kp.pk, 3, 1, name, act.id);
+    r = b.send(x, { t: 'vote', a: act.id, c: bx });
+    assert.deepStrictEqual(mine(r)[0], { t: 'voted', a: act.id, cast: true });
+    assert.ok(r.dirty.indexOf('b:' + act.id + ':' + x.id) >= 0);
+    assert.ok(r.out.some(function (o) { return o.to === 'pres' && o.m.t === 'bal' && o.m.total === 1; }));
+    assert.ok(!r.out.some(function (o) { return o.to === 'aud' && !o.coalesce; }), 'phones only hear the count');
+    r = b.send(x, { t: 'vote', a: act.id, c: B.makeBallot(kp.pk, 3, 0, name, act.id) });
+    assert.strictEqual(S.presenterView(b.st, b.now).act.total, 1, 'one ballot per phone');
+    r = b.send(y, { t: 'vote', a: act.id, c: bx });
+    assert.strictEqual(mine(r)[0].e, 'bad', 'a copy of another ballot is refused');
+    r = b.send(y, { t: 'vote', a: act.id, c: B.makeBallot(kp.pk, 2, 0, name, act.id) });
+    assert.strictEqual(mine(r)[0].e, 'bad', 'a ballot of the wrong size is refused');
+    r = b.send(p, { t: 'bkey', a: act.id, pk: B.keyPair().pk });
+    assert.strictEqual(mine(r)[0].e, 'bkey', 'the key cannot change once ballots are in');
+    b.send(y, { t: 'vote', a: act.id, c: B.makeBallot(kp.pk, 3, 1, name, act.id) });
+    /* a cheater: a well formed ballot whose proofs do not hold (kept by the worker, rejected by the projector) */
+    const cheat = B.makeBallot(kp.pk, 3, 0, name, act.id); cheat.p[0] = cheat.p[1].slice();
+    b.send(z, { t: 'vote', a: act.id, c: cheat });
+    let v = S.audienceView(b.st, x.id, b.now);
+    assert.ok(v.act.cast); assert.strictEqual(v.act.total, 3); assert.strictEqual(v.act.n, undefined);
+    r = b.send(p, { t: 'tally', a: act.id, n: [0, 2, 0], bad: 1 });
+    assert.strictEqual(mine(r)[0].e, 'bad', 'no tally before the reveal');
+    b.send(p, { t: 'reveal' });
+    r = b.send(b.phone('tokentokentoken4dddd'), { t: 'vote', a: act.id, c: B.makeBallot(kp.pk, 3, 2, name, act.id) });
+    assert.strictEqual(mine(r)[0].e, 'closed', 'the reveal closes the ballot');
+    /* what the projector does: fetch, check, add up, decrypt */
+    r = b.send(p, { t: 'bget', a: act.id });
+    const list = mine(r).reduce(function (l, m) { return l.concat(m.list); }, []);
+    assert.strictEqual(list.length, 3);
+    const ver = B.verifier(kp.pk, 3, name, act.id), sm = B.sums(3);
+    let bad = 0;
+    list.forEach(function (bl) { const cts = ver.check(bl); if (cts) B.addTo(sm, cts); else bad++; });
+    const n = B.decrypt(sm, kp.sk);
+    assert.deepStrictEqual([n, bad], [[0, 2, 0], 1]);
+    r = b.send(p, { t: 'tally', a: act.id, n: [0, 2, 1], bad: 1 });
+    assert.strictEqual(mine(r)[0].e, 'bad', 'a tally must add up to the ballots kept');
+    b.send(p, { t: 'tally', a: act.id, n: n, bad: bad });
+    v = S.audienceView(b.st, y.id, b.now);
+    assert.deepStrictEqual([v.act.n, v.act.counted, v.act.bad], [[0, 2, 0], 2, 1]);
+    /* storage round trip, export, deletion */
+    const store = new Map();
+    ['meta', 'plan'].concat(S.audienceKeys(b.st)).forEach(function (k) { store.set(k, JSON.parse(JSON.stringify(S.part(b.st, k)))); });
+    assert.strictEqual(S.audienceKeys(b.st).filter(function (k) { return k.indexOf('b:') === 0; }).length, 3);
+    const st2 = S.fromStorage(name, store);
+    assert.deepStrictEqual(S.audienceView(st2, y.id, b.now), S.audienceView(b.st, y.id, b.now));
+    const ex = S.exportResults(b.st, b.now).activities[0];
+    assert.deepStrictEqual(ex.answers.map(function (a) { return a.votes; }), [0, 2, 0]);
+    assert.ok(ex.secret && ex.invalid === 1 && ex.total === 3);
+    assert.ok(!JSON.stringify(S.exportResults(b.st, b.now)).includes(bx.c[0][0]), 'the export has no ballots');
+    /* "hide" opens it again and drops the count */
+    b.send(p, { t: 'hide' });
+    assert.strictEqual(S.presenterView(b.st, b.now).act.n, undefined);
+    r = S.purge(b.st);
+    assert.ok(r.del.indexOf('b:' + act.id + ':' + x.id) >= 0, 'ballots are deleted with the audience data');
 });
 
 test('points', function () {

@@ -118,6 +118,8 @@
             else note = a.type === 'quiz' ? 'Faster right answers get more points.' : 'Tap an answer.';
             kids.push(h('p.lv-note' + (a.type === 'quiz' && a.shown ? (a.ok ? '.is-right' : '.is-wrong') : ''), { text: note, role: 'status' }));
             if (a.type === 'quiz' && v.me) kids.push(playing(v.me));
+        } else if (a.type === 'ballot') {
+            kids = kids.concat(ballotPhone(a, on));
         } else if (a.type === 'questions') {
             kids.push(h('p.lv-sub', { text: 'Write your question below. The speaker picks which ones go on the screen; tap ▲ on the ones you want answered.' }));
         } else if (a.type === 'reactions') {
@@ -129,6 +131,35 @@
         }
         return h('section.lv-card.lv-act', { 'data-type': a.type }, kids);
     };
+    /* a secret ballot on the phone. a.my (the answer) is known only to this phone: the audience page keeps it in
+       sessionStorage and adds it before drawing */
+    function ballotPhone(a, on) {
+        var kids = [];
+        if (a.shown && a.n) {
+            kids.push(LV.bars(a.opts, a.n, a.counted, null, a.my));
+            kids.push(h('p.lv-note', { role: 'status', text: plural(a.counted, 'ballot', 'ballots') + ' counted' + (a.bad ? ', ' + plural(a.bad, 'ballot', 'ballots') + ' rejected (the proof did not check out)' : '') + '.' }));
+        } else {
+            var busy = !a.pk || a.cast || a.pending || a.shown;
+            kids.push(h('ol.lv-opts', {}, a.opts.map(function (o, i) {
+                return h('li', {}, [h('button.lv-opt' + (a.my === i ? '.is-mine' : ''), {
+                    type: 'button', disabled: busy, 'aria-pressed': a.my === i ? 'true' : null,
+                    onclick: function () { if (on.vote) on.vote(i); }
+                }, [h('span.lv-letter', { text: LV.LETTERS[i] }), h('span.lv-otext', { text: o })])]);
+            })));
+            var note = a.shown ? 'Voting is closed. The speaker’s laptop is counting.' :
+                a.pending ? 'Encrypting your vote…' :
+                a.cast ? 'Your secret vote is in.' :
+                !a.pk ? 'Waiting for the speaker’s laptop to make the ballot key…' :
+                'Tap an answer. Your phone encrypts it before it is sent.';
+            kids.push(h('p.lv-note', { role: 'status', text: note }));
+            kids.push(h('p.lv-sub', { text: plural(a.total || 0, 'ballot', 'ballots') + ' in so far.' }));
+        }
+        kids.push(h('details.lv-how', {}, [h('summary', { text: 'How is it secret?' }),
+            h('p', { text: 'Your phone locks your vote with the speaker’s public key before it leaves. The server only stores locked ballots and cannot open them.' }),
+            h('p', { text: 'Locked ballots can be added up while still locked. The speaker’s laptop unlocks only the sum, so it learns how many votes each answer got, not who voted what.' }),
+            h('p', { text: 'Each ballot carries a zero knowledge proof that it holds exactly one vote for one answer, so nobody can sneak in five votes. The laptop checks every proof.' })]));
+        return kids;
+    }
     function playing(me) {
         var who = me.n || me.guest;
         return h('p.lv-playing', { text: 'Playing as ' + who + (me.p !== undefined ? ', ' + plural(me.p, 'point', 'points') : '') + (me.rank ? ', ' + ordinal(me.rank) + ' of ' + me.of : '') });
@@ -163,6 +194,17 @@
                 return h('li', {}, [h('span.lv-letter', { text: LV.LETTERS[i] }), h('span', { text: t })]);
             })));
             kids.push(h('p.lv-scr-count', { text: plural(a.total || 0, 'answer', 'answers') + (show || a.shown ? '' : '  ·  results after the reveal') }));
+        } else if (a.type === 'ballot') {
+            if (a.n) {
+                kids.push(LV.bars(a.opts, a.n, a.counted, null, undefined, true));
+                kids.push(h('p.lv-scr-count', { text: plural(a.counted, 'ballot', 'ballots') + ' counted' + (a.bad ? ', ' + plural(a.bad, 'ballot', 'ballots') + ' rejected' : '') + '  ·  only the totals were decrypted' }));
+            } else {
+                kids.push(h('ol.lv-scr-opts', {}, a.opts.map(function (t, i) {
+                    return h('li', {}, [h('span.lv-letter', { text: LV.LETTERS[i] }), h('span', { text: t })]);
+                })));
+                kids.push(h('p.lv-scr-count', { text: plural(a.total || 0, 'secret ballot', 'secret ballots') + (a.shown ? '  ·  counting…' : '  ·  encrypted on each phone, only the total is decrypted') }));
+            }
+            if (o.ballot) kids.push(h('p.lv-scr-sub.lv-scr-ballot', { text: o.ballot }));
         } else if (a.type === 'questions') {
             var shown = (pv.qs || []).filter(function (q) { return q.st === 'shown'; }).sort(function (x, y) { return y.up - x.up || x.id - y.id; });
             var big = shown.filter(function (q) { return q.big; })[0];

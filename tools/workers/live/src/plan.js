@@ -9,6 +9,8 @@ export const LIMITS = {
     opt: 80,           // characters of one answer
     minOpts: 2,
     maxOpts: 6,
+    ballotOpts: 5,     // answers of a secret ballot (each answer makes the encrypted ballot bigger: 5 is about 1,550
+                       // characters, under msg)
     acts: 60,          // activities in one plan (quick polls during the talk add to the session, up to acts + 20)
     quick: 20,
     plans: 200,        // plans kept for one presenter
@@ -29,13 +31,29 @@ export const LIMITS = {
     pres: 6            // presenter connections per session (projector, remote, admin preview)
 };
 
-/* the activity types of version 1. Later: 'ballot' (secret ballot: votes encrypted on the phone with exponential
-   ElGamal plus a proof of a valid vote, tallied encrypted, decrypted on the presenter's laptop) and 'zkguard'. They
-   plug in here and in session.js (VOTE_TYPES) without changing the message format: a vote's "c" field then carries a
-   ciphertext and proof instead of an answer index. */
-export const TYPES = ['poll', 'quiz', 'questions', 'reactions', 'leaderboard'];
+/* the activity types. 'ballot' is a secret ballot: each phone encrypts its vote (exponential ElGamal on P-256, with
+   proofs that it is a vote for exactly one answer; assets/js/live/15-ballot.js) to a key made on the projector, which
+   checks the proofs and decrypts only the sum of all ballots. The worker only keeps the encrypted ballots (checking
+   the proofs costs more CPU than a Worker request may use). Later: 'zkguard'. */
+export const TYPES = ['poll', 'quiz', 'questions', 'reactions', 'leaderboard', 'ballot'];
 export const VOTE_TYPES = ['poll', 'quiz'];
 export const EMOJI = 6;  // reactions are sent as an index 0..5 (the site draws the faces)
+
+/* ---------- secret ballots ---------- */
+/* base64url of exactly len characters */
+export function b64Ok(x, len) { return typeof x === 'string' && x.length === len && /^[A-Za-z0-9_-]+$/.test(x); }
+/* the shape of an encrypted ballot for k answers (the same as shapeOk in assets/js/live/15-ballot.js): k ciphertexts
+   [A, B] (points, 44 characters each), k bit proofs [e0, e1, z0, z1] and the sum proof [e, z] (scalars, 43 each).
+   Whether the points are on the curve and the proofs hold is checked by the projector. */
+export function ballotShape(b, k) {
+    if (!b || typeof b !== 'object' || !Array.isArray(b.c) || !Array.isArray(b.p) || !Array.isArray(b.s)) return false;
+    if (b.c.length !== k || b.p.length !== k || b.s.length !== 2) return false;
+    for (let j = 0; j < k; j++) {
+        if (!Array.isArray(b.c[j]) || b.c[j].length !== 2 || !b64Ok(b.c[j][0], 44) || !b64Ok(b.c[j][1], 44)) return false;
+        if (!Array.isArray(b.p[j]) || b.p[j].length !== 4 || !b.p[j].every(function (x) { return b64Ok(x, 43); })) return false;
+    }
+    return b64Ok(b.s[0], 43) && b64Ok(b.s[1], 43);
+}
 
 /* ---------- codes ---------- */
 /* A talk code: 2 to 20 lower case letters, digits and single hyphens, e.g. "pkc27". A rehearsal of it runs under
@@ -148,11 +166,12 @@ export function checkAct(a, n) {
     if (!a || typeof a !== 'object') return { error: where + 'not an object.' };
     if (TYPES.indexOf(a.type) < 0) return { error: where + 'unknown type.' };
     const out = { id: typeof a.id === 'string' ? a.id : '', type: a.type, q: clean(a.q, LIMITS.q) };
-    if (a.type === 'poll' || a.type === 'quiz') {
+    if (a.type === 'poll' || a.type === 'quiz' || a.type === 'ballot') {
         if (!out.q) return { error: where + 'the question is empty.' };
         if (!Array.isArray(a.opts)) return { error: where + 'no answers.' };
         const opts = a.opts.map(function (o) { return clean(o, LIMITS.opt); });
-        if (opts.length < LIMITS.minOpts || opts.length > LIMITS.maxOpts) return { error: where + 'give ' + LIMITS.minOpts + ' to ' + LIMITS.maxOpts + ' answers.' };
+        const most = a.type === 'ballot' ? LIMITS.ballotOpts : LIMITS.maxOpts;
+        if (opts.length < LIMITS.minOpts || opts.length > most) return { error: where + 'give ' + LIMITS.minOpts + ' to ' + most + ' answers.' };
         if (opts.some(function (o) { return !o; })) return { error: where + 'an answer is empty.' };
         out.opts = opts;
     }

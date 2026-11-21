@@ -28,7 +28,10 @@
             cur.push(h('p.lv-kicker', { text: LV.TYPE_NAMES[a.type] + '  ·  ' + (pv.cur + 1) + ' of ' + pv.acts.length + (a.shown ? '  ·  revealed' : '') }));
             cur.push(h('h2.lv-q', { text: a.q }));
             if (a.type === 'quiz' && !a.shown) cur.push(LV.timer(a.left, a.secs));
-            if (a.opts) {
+            if (a.type === 'ballot') {
+                if (a.n) cur.push(LV.bars(a.opts, a.n, a.counted, null));
+                cur.push(h('p.lv-sub', { text: LV.plural(a.total || 0, 'secret ballot', 'secret ballots') + (a.n ? '  ·  ' + a.counted + ' counted' + (a.bad ? ', ' + a.bad + ' rejected' : '') : a.shown ? '  ·  the projector is counting' : '  ·  “Close and count” ends the voting; the projector tab counts') }));
+            } else if (a.opts) {
                 cur.push(LV.bars(a.opts, a.n, a.total, a.correct || null));
                 cur.push(h('p.lv-sub', { text: LV.plural(a.total || 0, 'answer', 'answers') + (a.type === 'quiz' ? '  ·  ✓ marks the right answer (the projector shows it after the reveal)' : '') }));
             }
@@ -41,7 +44,7 @@
             kids.push(h('div.lv-rpad', {}, [
                 big('← Back', function () { send({ t: 'prev' }); }),
                 big('Next →', function () { send({ t: 'next' }); }, 'is-main'),
-                big(a && a.shown ? 'Hide results' : 'Reveal results', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }, '', !votes),
+                big(a && a.shown ? (a.type === 'ballot' ? 'Open the ballot again' : 'Hide results') : a && a.type === 'ballot' ? 'Close and count' : 'Reveal results', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }, '', !votes),
                 big('Close', function () { send({ t: 'close' }); }, '', !a),
                 big(pv.qr ? 'Hide QR' : 'Show QR', function () { send({ t: 'qr' }); }),
                 big(pv.board ? 'Hide ranking' : 'Ranking', function () { send({ t: 'board' }); }),

@@ -65,6 +65,7 @@
     /* a quiz's time left comes as milliseconds: kept as an end time, so a redraw does not restart the clock */
     function draw() {
         LV.stopTicks();
+        mineBallot(view.act);
         if (view.act && view.act.end) view.act.left = Math.max(0, view.act.end - Date.now());
         LV.clear(main).appendChild(LV.phoneMain(view, { vote: vote, timeUp: timeUp }));
         document.title = view.title ? view.title + ' · live' : 'Live';
@@ -87,9 +88,36 @@
         if (view && view.act && view.act.left !== 0) { view.act.left = 0; setTimeout(draw, 0); }
     }
 
+    /* ---------- secret ballots ---------- */
+    /* this phone's own answer, kept in sessionStorage (this tab only) so a reload still shows it; the worker never
+       gets the answer */
+    function balKey(a) { return 'live-bal:' + name + ':' + a.id; }
+    function mineBallot(a) {
+        if (!a || a.type !== 'ballot' || a.my !== undefined) return;
+        var s = '';
+        try { s = sessionStorage.getItem(balKey(a)) || ''; } catch (e) { /* blocked */ }
+        if (/^\d$/.test(s) && a.cast) a.my = +s;
+    }
+    function castBallot(a, c) {
+        if (!a.pk || a.cast || a.pending || !LV.ballot) return;
+        a.pending = true; a.my = c;
+        draw();
+        /* encrypting and the proofs take a moment on a phone: let the screen show "Encrypting" first */
+        setTimeout(function () {
+            var b;
+            try { b = LV.ballot.makeBallot(a.pk, a.opts.length, c, name, a.id); } catch (e) { a.pending = false; delete a.my; draw(); flash('Could not encrypt the vote on this phone.'); return; }
+            /* a new view may have arrived meanwhile: carry on with the same activity in it */
+            var now = view.act && view.act.id === a.id ? view.act : null;
+            if (now && now !== a) { now.pending = true; now.my = c; a = now; }
+            if (!now || now.shown || !conn.send({ t: 'vote', a: a.id, c: b })) { a.pending = false; delete a.my; draw(); flash(now && now.shown ? 'Voting is closed.' : 'Not connected right now. Try again in a moment.'); return; }
+            try { sessionStorage.setItem(balKey(a), String(c)); } catch (e) { /* blocked */ }
+        }, 30);
+    }
+
     /* ---------- sending ---------- */
     function vote(c) {
         var a = view && view.act;
+        if (a && a.type === 'ballot') { castBallot(a, c); return; }
         if (!a || a.mine !== undefined) return;
         if (!conn.send({ t: 'vote', a: a.id, c: c })) { flash('Not connected right now. Try again in a moment.'); return; }
         a.mine = c; a.pending = true;
@@ -147,7 +175,9 @@
         if (m.t === 'state') { if (m.act && m.act.left !== undefined) m.act.end = Date.now() + m.act.left; view = m; draw(); return; }
         if (!view) return;
         var a = view.act;
-        if (m.t === 'voted' && a && a.id === m.a) { if (m.c !== undefined) a.mine = m.c; a.pending = false; draw(); }
+        if (m.t === 'voted' && a && a.id === m.a && a.type === 'ballot') { a.cast = true; a.pending = false; draw(); }
+        else if (m.t === 'voted' && a && a.id === m.a) { if (m.c !== undefined) a.mine = m.c; a.pending = false; draw(); }
+        else if (m.t === 'votes' && a && a.id === m.a && a.type === 'ballot') { a.total = m.total; if (!a.pending) draw(); }
         else if (m.t === 'votes' && a && a.id === m.a) { a.n = m.n; a.total = m.total; if (a.mine !== undefined || a.shown) draw(); }
         else if (m.t === 'qup') { (view.qs || []).forEach(function (q) { if (q.id === m.q) q.up = m.up; }); drawQs(); }
         else if (m.t === 'asked') { view.qs = (view.qs || []).concat([m.q]); askIn.value = ''; askNote.textContent = 'Sent. The speaker sees it first.'; drawQs(); }
@@ -157,6 +187,13 @@
                 'Use 2 to 20 Latin letters, digits or spaces, and nothing rude.';
         } else if (m.t === 'err') {
             /* a vote that did not count (too late, or closed meanwhile) is taken back on the screen */
+            if (a && a.type === 'ballot' && a.pending) {
+                a.pending = false; delete a.my;
+                try { sessionStorage.removeItem(balKey(a)); } catch (x) { /* blocked */ }
+                draw();
+                flash(m.e === 'closed' ? 'Voting is closed.' : m.e === 'full' ? 'This talk cannot take more people, sorry.' : 'Your ballot was not accepted. Try again.');
+                return;
+            }
             if ((m.e === 'late' || m.e === 'closed' || m.e === 'full') && a && a.pending) {
                 delete a.mine; a.pending = false; if (m.e === 'late') a.end = Date.now(); draw();
                 if (m.e === 'full') { flash('This talk cannot take more people, sorry.'); return; }

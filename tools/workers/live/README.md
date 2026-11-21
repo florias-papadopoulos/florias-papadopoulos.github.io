@@ -80,6 +80,18 @@ copied unchanged from `tools/workers/stats/worker.js`; the test checks the copy 
 may connect (and localhost when `DEV` is `"1"`). The presenter key is compared in constant time and is only ever sent
 in an `Authorization: Bearer` header or as the first WebSocket message, never in a URL.
 
+## Secret ballots
+
+Activity type `ballot` (2 to 5 answers; `LIMITS.ballotOpts`). The cryptography is in the site's
+`assets/js/live/15-ballot.js` (exponential ElGamal on P-256 with proofs that a ballot is one vote for one answer); its
+README describes the flow. This worker only stores and forwards: a phone's `vote` carries the encrypted ballot
+(`ballotShape` checks its form, about 1,550 characters for 5 answers), kept under `b:<activity>:<id>`, one per phone,
+copies of another ballot's ciphertexts refused; the projector sends the public key (`bkey`, fixed once a ballot uses
+it), fetches all ballots (`bget`, 100 to a message), checks the proofs and sends the decrypted counts (`tally`, only
+after `reveal` closed the ballot, and only if counts plus rejected ballots equal the ballots stored). The proofs are not
+checked here: one 5 answer ballot takes some 25 ms of CPU, more than the Free plan allows a request. Ballots are
+audience data: deleted with the rest 24 hours after the talk.
+
 ## The Signal relay (removed)
 
 A relay for a two-phone version of the Signal demo (`/relay/<room>`, a `Relay` Durable Object, migration `v2`) ran here
@@ -113,6 +125,7 @@ after 12 failures in a row or 60 connections per page view), so a network proble
 
 ```
 node test/run.js                       # the pure logic (node 12 or later)
+node test/ballot.test.cjs              # the secret ballot cryptography, against node's own P-256 and SHA-256 (BENCH=1: timings)
 node test/qr.cjs OUT_DIR [PYLIB]       # the site's QR codes; with a folder holding zxing-cpp for Python, they are decoded
 LIVE_DEV_KEY=... HIBERNATE=1 SCRATCH=DIR node test/devserver.js
 ```
@@ -123,11 +136,8 @@ shows that the code is consistent with the documented APIs; it is not Cloudflare
 
 ## Later (not built)
 
-- **Secret ballots**: votes encrypted on the phone with exponential ElGamal on an elliptic curve, with a
-  zero-knowledge proof that the vote is valid (one of the answers), tallied while encrypted by adding ciphertexts, and
-  decrypted only on the presenter's laptop (the key pair is made there and never leaves it). It fits as a new activity
-  type in `TYPES` / `VOTE_TYPES` (plan.js) whose vote `c` carries the ciphertext and proof instead of an index; the
-  Session keeps the running encrypted sum instead of counts.
+- **Threshold decryption for secret ballots** (built: the `ballot` activity, see below): the key split between the
+  projector and this worker, so that neither alone could open a single ballot.
 - A **zero-knowledge guard** activity.
 - **More presenters** with invite-only accounts: one Plans object per presenter (`idFromName("presenter:<id>")`), a
   small registry object mapping talk codes to presenters, and a key per presenter instead of the single

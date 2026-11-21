@@ -129,15 +129,18 @@
         var top = NAMES.map(function (x, k) { return { n: x, p: 4200 - k * 310 }; });
         var x = { id: 'preview', type: a.type, q: a.q || '(no question yet)', opts: opts, shown: after && !!opts };
         if (a.type === 'quiz') { x.secs = a.secs; x.left = after ? 0 : a.secs * 600; }
+        if (a.type === 'ballot') { x.pk = 'preview'; x.total = total; }
         var phone = JSON.parse(JSON.stringify(x));
         if (after && opts) {
             phone.n = n; phone.total = total; phone.mine = a.type === 'quiz' && a.correct.length ? a.correct[0] : 0;
             if (a.type === 'quiz') { phone.correct = a.correct; phone.ok = true; phone.pts = 840; }
+            if (a.type === 'ballot') { phone.counted = total; phone.bad = 0; phone.cast = true; delete phone.mine; }
         }
         var v = { t: 'state', s: 'live', title: p.title, ask: p.ask || a.type === 'questions', react: p.react || a.type === 'reactions', quiz: true,
             me: { n: '', guest: 'Guest 123', p: 2650, rank: 3, of: 25 }, act: phone, top: top, qs: QS };
         var scr = JSON.parse(JSON.stringify(x));
-        if (opts) { scr.n = n; scr.total = total; if (a.type === 'quiz') scr.correct = a.correct; if (a.type === 'poll') scr.live = !!a.live; }
+        if (a.type === 'ballot' && !after) delete scr.n;
+        else if (opts) { scr.n = n; scr.total = total; scr.counted = total; scr.bad = 0; if (a.type === 'quiz') scr.correct = a.correct; if (a.type === 'poll') scr.live = !!a.live; }
         var pv = { t: 'pstate', s: 'live', name: p.code, code: p.code, title: p.title, cur: A.sel, ph: 'open', n: 42, qr: false, board: false,
             acts: p.acts, act: scr, qs: QS.concat([{ id: 4, x: 'A new question waits for you on the remote', up: 0, st: 'new' }]), top: top, players: 25 };
 

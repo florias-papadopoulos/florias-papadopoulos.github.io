@@ -125,6 +125,10 @@ textarea.lv-in, .lv-ask-in { resize: vertical; }
 .lv-privacy { margin: 22px 0 0; color: var(--lv-muted); font-size: 13.5px; line-height: 1.5; }
 .lv-privacy summary { display: inline; color: var(--lv-muted); text-decoration: underline; cursor: pointer; }
 .lv-privacy p { margin-top: 8px; }
+/* a secret ballot: how it stays secret (phone), and what the projector has checked */
+.lv-how { margin-top: 14px; color: var(--lv-muted); font-size: 14.5px; line-height: 1.5; }
+.lv-how summary { display: inline; color: var(--lv-muted); text-decoration: underline; cursor: pointer; }
+.lv-how p { margin-top: 8px; }
 
 /* ---------- the phone (/live/#code) ---------- */
 .lv-aud { min-height: 100vh; }
@@ -181,6 +185,7 @@ textarea.lv-in, .lv-ask-in { resize: vertical; }
 .lv-scr-opts { display: grid; gap: 1.4cqw; }
 .lv-scr-opts li { display: flex; align-items: center; gap: 1.6cqw; font-size: 2.6cqw; }
 .lv-scr-count { margin-top: auto !important; padding-top: 2cqw; color: var(--lv-muted); font-size: 1.6cqw; white-space: pre; }
+.lv-scr-ballot { margin-top: .6cqw !important; font-size: 1.5cqw; }
 .lv-bars.is-big { gap: 1.5cqw; font-size: 2.4cqw; }
 .lv-bars.is-big .lv-bar-track { height: 1.7cqw; margin-top: 0.6cqw; border-radius: 0.85cqw; }
 .lv-bars.is-big .lv-bar-fill { border-radius: 0.85cqw; }

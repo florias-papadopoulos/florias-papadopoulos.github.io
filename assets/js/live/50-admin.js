@@ -130,7 +130,7 @@
         if (!p.title.trim()) return 'The talk needs a title.';
         for (var i = 0; i < p.acts.length; i++) {
             var a = p.acts[i], w = 'Activity ' + (i + 1) + ': ';
-            if ((a.type === 'poll' || a.type === 'quiz') && !a.q.trim()) return w + 'the question is empty.';
+            if ((a.type === 'poll' || a.type === 'quiz' || a.type === 'ballot') && !a.q.trim()) return w + 'the question is empty.';
             if (a.opts && a.opts.some(function (o) { return !o.trim(); })) return w + 'an answer is empty.';
             if (a.type === 'quiz' && !a.correct.length) return w + 'mark the right answer.';
             if (a.type === 'quiz' && a.correct.length === a.opts.length) return w + 'not every answer can be right.';
@@ -166,21 +166,24 @@
     A.changed = changed;
 
     /* ---------- the form ---------- */
-    var ADD = [['poll', '+ Poll'], ['quiz', '+ Quiz question'], ['questions', '+ Audience questions'], ['reactions', '+ Reactions'], ['leaderboard', '+ Quiz ranking']];
+    var ADD = [['poll', '+ Poll'], ['quiz', '+ Quiz question'], ['questions', '+ Audience questions'], ['reactions', '+ Reactions'], ['leaderboard', '+ Quiz ranking'], ['ballot', '+ Secret ballot']];
     function blankAct(type) {
         if (type === 'poll') return { type: 'poll', q: '', opts: ['', ''], live: false };
         if (type === 'quiz') return { type: 'quiz', q: '', opts: ['', '', '', ''], correct: [], secs: 20 };
+        if (type === 'ballot') return { type: 'ballot', q: '', opts: ['', ''] };
         return { type: type, q: { questions: 'Questions for the speaker', reactions: 'How is it going?', leaderboard: 'Quiz ranking' }[type] };
     }
     /* a new type keeps the question and the answers */
     function retype(a, type) {
         var b = blankAct(type);
         if (a.q && (b.opts || !a.opts)) b.q = a.q;
-        if (b.opts && a.opts) b.opts = a.opts.slice();
+        if (b.opts && a.opts) b.opts = a.opts.slice(0, mostOpts(type));
         if (b.correct && a.correct) b.correct = a.correct.filter(function (i) { return i < b.opts.length; });
         if (a.id) b.id = a.id;
         return b;
     }
+
+    function mostOpts(type) { return type === 'ballot' ? LV.LIMITS.ballotOpts : LV.LIMITS.maxOpts; }
 
     function drawEdit() {
         var p = A.plan;
@@ -226,7 +229,7 @@
         ]);
         var qid = 'lv-q-' + i;
         var kids = [head,
-            h('label', { for: qid, text: a.type === 'poll' || a.type === 'quiz' ? 'Question' : 'Text on the screen' }),
+            h('label', { for: qid, text: a.opts ? 'Question' : 'Text on the screen' }),
             h('textarea.lv-in.lv-in-q', { id: qid, rows: '2', maxlength: String(LV.LIMITS.q), value: a.q, oninput: function () { a.q = this.value; changed(); } })];
         if (a.opts) {
             kids.push(h('p.lv-flabel', { text: a.type === 'quiz' ? 'Answers (tick the right one)' : 'Answers' }));
@@ -247,12 +250,13 @@
                     }, a.opts.length <= LV.LIMITS.minOpts)
                 ]);
             })));
-            if (a.opts.length < LV.LIMITS.maxOpts) kids.push(h('button.lv-link', { type: 'button', text: '+ Add an answer', onclick: function () {
+            if (a.opts.length < mostOpts(a.type)) kids.push(h('button.lv-link', { type: 'button', text: '+ Add an answer', onclick: function () {
                 a.opts.push(''); drawEdit(); changed();
                 var ins = edit.querySelectorAll('.lv-actcard')[i].querySelectorAll('.lv-aopts .lv-in');
                 ins[ins.length - 1].focus();
             } }));
         }
+        if (a.type === 'ballot') kids.push(h('p.lv-sub', { text: 'Each phone encrypts its vote. The projector page makes the key, checks every ballot and decrypts only the total. The secret key stays in that browser (deleted after two days), so count the result on the same laptop and browser. At most ' + LV.LIMITS.ballotOpts + ' answers.' }));
         if (a.type === 'poll') kids.push(check2('lv-live-' + i, 'Show the bars live while people vote (else after the reveal)', a.live, function (v) { a.live = v; }));
         if (a.type === 'quiz') {
             var sid = 'lv-secs-' + i;

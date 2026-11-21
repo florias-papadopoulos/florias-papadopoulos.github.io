@@ -4,7 +4,10 @@
    every phone, from the worker.
    Keys on the projector: right arrow or Page Down: next activity (or start); left or Page Up: back; R: reveal the
    results (Shift+R hides them); Q: the QR code; L: the quiz ranking; Escape: close the activity (phones show "next
-   question coming"); P: quick poll; F: full screen; ?: these keys. */
+   question coming"); P: quick poll; F: full screen; ?: these keys.
+   A secret ballot is counted here, on the projector (never on the remote): this page makes the ballot's key pair,
+   keeps the secret key in this browser's localStorage (deleted after two days), checks the proofs of every ballot
+   as it arrives and, once the ballot is closed, decrypts only the sums and sends the counts ("tally"). */
 (function (LV) {
     'use strict';
     var root = LV.root;
@@ -90,7 +93,8 @@
         now(pv);
         document.title = (pv.test ? 'Rehearsal: ' : '') + (pv.title || name) + ' · present';
         if (mode === 'remote') { LV.clear(remoteBox).appendChild(LV.remote(pv)); return; }
-        LV.clear(screen).appendChild(LV.screen(pv, { link: link, qr: bigQr, timeUp: timeUp }));
+        ballotSync();
+        LV.clear(screen).appendChild(LV.screen(pv, { link: link, qr: bigQr, timeUp: timeUp, ballot: ballotLine() }));
         var open = pv.s === 'live' && pv.ph === 'open' && pv.act && !pv.board;
         corner.hidden = !open || pv.qr;
         cornerN.textContent = LV.plural(pv.n || 0, 'person', 'people');
@@ -107,13 +111,14 @@
     }
     function drawBar() {
         LV.clear(bar);
-        var live = pv.s === 'live', a = pv.act && pv.ph === 'open' ? pv.act : null, votes = a && (a.type === 'poll' || a.type === 'quiz');
+        var live = pv.s === 'live', a = pv.act && pv.ph === 'open' ? pv.act : null, votes = a && (a.type === 'poll' || a.type === 'quiz'), ballot = a && a.type === 'ballot';
         var newQs = (pv.qs || []).filter(function (q) { return q.st === 'new'; }).length;
         if (!live) bar.appendChild(btn(pv.s === 'ended' ? 'Start again' : 'Start the session', '→', startSession, 'is-main'));
         if (live) {
             bar.appendChild(btn('Back', '←', function () { send({ t: 'prev' }); }));
             bar.appendChild(btn('Next', '→', function () { send({ t: 'next' }); }, 'is-main'));
             if (votes) bar.appendChild(btn(a.shown ? 'Hide results' : 'Reveal', 'R', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }));
+            if (ballot) bar.appendChild(btn(a.shown ? 'Open the ballot again' : 'Close and count', 'R', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }));
             if (a && a.type === 'poll') bar.appendChild(btn(a.live ? 'Live bars: on' : 'Live bars: off', '', function () { send({ t: 'live', on: !a.live }); }));
             if (a) bar.appendChild(btn('Close', 'Esc', function () { send({ t: 'close' }); }));
             bar.appendChild(btn(pv.board ? 'Hide ranking' : 'Ranking', 'L', function () { send({ t: 'board' }); }));
@@ -166,6 +171,94 @@
         f.style.animationDuration = (3 + Math.random() * 1.5).toFixed(2) + 's';
         f.addEventListener('animationend', function () { if (f.parentNode) f.parentNode.removeChild(f); });
         floats.appendChild(f);
+    }
+
+    /* ---------- secret ballots ---------- */
+    /* bs: the ballot on screen as this page counts it: { id, k, kp (this browser's key pair, or null), ver, sm (the
+       running sums), seen (first ciphertexts already queued), queue, ok, bad, fetched (the full list has arrived),
+       sent (the tally of this closing was sent), asked (when the full list was last asked for) } */
+    var bs = null, KEEP_KEY = 2 * 24 * 3600e3;
+    function keyName(id) { return 'live-bsk:' + name + ':' + id; }
+    function loadKey(id) {
+        try { var o = JSON.parse(localStorage.getItem(keyName(id)) || 'null'); return o && o.sk && o.pk ? o : null; } catch (e) { return null; }
+    }
+    function saveKey(id, kp) { try { localStorage.setItem(keyName(id), JSON.stringify({ sk: kp.sk, pk: kp.pk, at: Date.now() })); } catch (e) { /* blocked */ } }
+    /* ballot keys older than two days are deleted */
+    (function () {
+        try {
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+                var k = localStorage.key(i);
+                if (k && k.indexOf('live-bsk:') === 0) { var o = null; try { o = JSON.parse(localStorage.getItem(k)); } catch (e) { /* broken */ } if (!o || !(Date.now() - o.at < KEEP_KEY)) localStorage.removeItem(k); }
+            }
+        } catch (e) { /* blocked */ }
+    })();
+    function ballotAct() { return pv && pv.s === 'live' && pv.ph === 'open' && pv.act && pv.act.type === 'ballot' ? pv.act : null; }
+    function ballotSync() {
+        var a = ballotAct();
+        if (!a || mode !== 'screen' || !LV.ballot) return;
+        if (!bs || bs.id !== a.id) {
+            var kp = loadKey(a.id);
+            if (!a.pk && !kp) { kp = LV.ballot.keyPair(); saveKey(a.id, kp); }
+            bs = { id: a.id, k: a.opts.length, kp: kp, ver: null, sm: null, seen: {}, queue: [], ok: 0, bad: 0, fetched: false, sent: false, asked: 0 };
+        }
+        if (!a.pk) { if (bs.kp) send({ t: 'bkey', a: a.id, pk: bs.kp.pk }); return; }
+        if (!bs.kp && !a.total) {
+            /* the key was made in a browser that is gone, and no ballot uses it yet: this one takes over */
+            bs.kp = LV.ballot.keyPair(); saveKey(a.id, bs.kp);
+            send({ t: 'bkey', a: a.id, pk: bs.kp.pk });
+            return;
+        }
+        if (!bs.kp || bs.kp.pk !== a.pk) return;   /* the key is in another browser: ballotLine says so */
+        if (!bs.ver) {
+            bs.ver = LV.ballot.verifier(a.pk, bs.k, name, a.id);
+            bs.sm = LV.ballot.sums(bs.k);
+            fetchAll();
+        }
+        if (!a.shown) bs.sent = false;
+        maybeCount();
+    }
+    function fetchAll() { bs.asked = Date.now(); bs.fetched = false; send({ t: 'bget', a: bs.id }); }
+    function take(b) {
+        if (!bs || !bs.ver || !b || !b.c || !b.c[0]) return;
+        var k = String(b.c[0][0]);
+        if (bs.seen[k]) return;
+        bs.seen[k] = true;
+        bs.queue.push(b);
+        if (bs.queue.length === 1) setTimeout(work, 0);
+    }
+    /* one ballot at a time (some 25 ms each), so the page stays smooth */
+    function work() {
+        if (!bs || !bs.queue.length) return;
+        var b = bs.queue.shift(), cts = null;
+        try { cts = bs.ver.check(b); } catch (e) { cts = null; }
+        if (cts) { LV.ballot.addTo(bs.sm, cts); bs.ok++; } else bs.bad++;
+        updateBallotLine();
+        if (bs.queue.length) setTimeout(work, 0); else maybeCount();
+    }
+    function maybeCount() {
+        var a = ballotAct();
+        if (!a || !bs || bs.id !== a.id || !bs.ver || !a.shown || a.n || bs.sent || bs.queue.length) return;
+        if (bs.ok + bs.bad < (a.total || 0)) { if (bs.fetched && Date.now() - bs.asked > 3000) fetchAll(); return; }
+        var n = LV.ballot.decrypt(bs.sm, bs.kp.sk);
+        if (n.some(function (x) { return x === null; })) { say('The count could not be decrypted with this browser’s key.'); return; }
+        bs.sent = true;
+        send({ t: 'tally', a: a.id, n: n, bad: bs.bad });
+    }
+    function ballotLine() {
+        var a = ballotAct();
+        if (!a || mode !== 'screen') return '';
+        if (!LV.ballot) return 'This browser cannot count secret ballots.';
+        if (!a.pk) return 'Making the ballot key…';
+        if (!bs || !bs.kp || bs.kp.pk !== a.pk) return 'This ballot’s key was made in another browser: count it there.';
+        if (a.n) return '';
+        var checked = bs.ok + bs.bad;
+        if (!checked && !a.total) return 'This laptop checks the proof of every ballot as it arrives.';
+        return 'This laptop has checked ' + checked + ' of ' + LV.plural(a.total || 0, 'ballot', 'ballots') + ': ' +
+            (bs.bad ? bs.bad + ' rejected (the proof did not check out)' : 'every proof holds') + '.';
+    }
+    function updateBallotLine() {
+        var el = screen.querySelector('.lv-scr-ballot');
+        if (el) el.textContent = ballotLine();
     }
 
     /* ---------- quick poll ---------- */
@@ -225,11 +318,20 @@
     LV.say = say;
 
     /* ---------- what the worker says ---------- */
-    var ERR = { notlive: 'Start the session first.', noplan: 'There is no saved plan for this code.', toomany: 'That is the most quick polls for one talk.', bad: 'That did not work.' };
+    var ERR = { bkey: 'This ballot already has a key from another browser.', notlive: 'Start the session first.', noplan: 'There is no saved plan for this code.', toomany: 'That is the most quick polls for one talk.', bad: 'That did not work.' };
     function message(m) {
         if (m.t === 'pstate') { fixTime(m); pv = m; setLink(m.join || ''); draw(); return; }
         if (!pv) return;
         if (m.t === 'votes' && pv.act && pv.act.id === m.a) { pv.act.n = m.n; pv.act.total = m.total; updateVotes(); }
+        else if (m.t === 'bal' && pv.act && pv.act.id === m.a) {
+            pv.act.total = m.total;
+            take(m.b);
+            if (mode === 'remote') draw();
+            else { var c = screen.querySelector('.lv-scr-count'); if (c) c.textContent = LV.plural(m.total, 'secret ballot', 'secret ballots') + '  ·  encrypted on each phone, only the total is decrypted'; updateBallotLine(); }
+        } else if (m.t === 'bals' && bs && bs.id === m.a) {
+            (m.list || []).forEach(take);
+            if (m.last) { bs.fetched = true; if (!bs.queue.length) maybeCount(); }
+        }
         else if (m.t === 'n') { pv.n = m.n; if (mode === 'remote' || !(pv.ph === 'open' && pv.act)) draw(); else { cornerN.textContent = LV.plural(m.n, 'person', 'people'); drawBar(); } }
         else if (m.t === 'q') { pv.qs.push(m.q); if (mode === 'remote') draw(); else drawBar(); }
         else if (m.t === 'qup') { pv.qs.forEach(function (q) { if (q.id === m.q) q.up = m.up; }); if (mode === 'remote' || (pv.act && pv.act.type === 'questions')) draw(); }
