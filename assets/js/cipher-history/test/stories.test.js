@@ -34,4 +34,19 @@ module.exports = function (CH, t) {
         kindiKey.split('').forEach(function (c, j) { inv[c] = CH.ALPHA.charAt(j); });
         t.eq(CH.print(K.msg.replace(/[A-Z]/g, function (c) { return inv[c]; })), K.answer, 'al-kindi: the inverse key solves it');
     }
+
+    /* ---------- Bellaso: a message we wrote, countersign FIORE ---------- */
+    var bellasoPlain = 'To the ambassador. The fleet will leave the harbour at the end of the month and the enemy must not learn of it. Tell the captain of the guard that the letters from the north are false and that the enemy has spies in the palace. Send your answer with the same courier and keep the key in your own hand. If the courier is taken, burn the key and the letters at once. The enemy reads every letter that is not in cipher, so write nothing in plain words about the fleet or the money.';
+    if (S.bellaso) {
+        var Bl = S.bellaso, ct = Bl.msg.replace(/ /g, '');
+        t.eq(ct, B.vigenere(CH.letters(bellasoPlain), 'FIORE'), 'bellaso: the message is the plaintext under FIORE');
+        t.eq(Bl.answer, CH.print(bellasoPlain), 'bellaso: answer fingerprint');
+        var rep = CH.desk.findRepeats(ct);
+        t.eq(rep.likely, 5, 'bellaso: Kasiski points to 5');
+        var five = rep.dists.filter(function (d) { return d % 5 === 0; }).length;
+        [2, 3, 4, 6, 7].forEach(function (m) { t.ok(rep.dists.filter(function (d) { return d % m === 0; }).length < five, 'bellaso: ' + m + ' divides fewer gaps than 5'); });
+        var cols = B.columns(B.codes(ct), 5);
+        t.eq(cols.map(function (col) { return CH.ALPHA.charAt(CH.desk.bestShift(B.countCodes(col))); }).join(''), 'FIORE', 'bellaso: column counts give the key');
+        t.eq(CH.print(B.vigenere(Bl.msg, 'FIORE', true)), Bl.answer, 'bellaso: FIORE solves it');
+    }
 };
