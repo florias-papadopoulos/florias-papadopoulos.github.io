@@ -54,6 +54,28 @@
     message, and used once. Computers do the flipping on bits (0 and 1), called <b>XOR</b>. Real ciphers like AES
     make a long key stream from a short key, and the rule still holds: never use the same stream twice. Soviet spies
     reused pads in the 1940s, and American codebreakers read thousands of their messages (project Venona).
+- id: padlock
+  title: Open padlocks (public-key encryption)
+  why: >-
+    The paint trick needs both sides online at the same time. But how do you send a secret to someone you have never
+    talked to, like a shop you visit for the first time, or a friend who is asleep?
+  alt: >-
+    The dog hands out open padlocks to everyone and keeps the only key. The cat locks a letter in a box with one of
+    the padlocks; the fox grabs the box but cannot open it, and its own open padlock does not help. The dog's key
+    opens the box.
+  steps:
+    - The dog has an open padlock, and the only key that opens it. The key never leaves the dog.
+    - The dog makes copies of the open padlock and hands them out to anyone who asks, the fox too.
+    - The cat puts its letter in a box and snaps one of the dog's padlocks shut. Anyone can do that, no key needed.
+      But now even the cat cannot open the box again.
+    - On the way, the fox grabs the box. Shaking it does nothing, and its own open padlock is no help, because a
+      padlock can only lock.
+    - The box reaches the dog. Only the dog's key opens the padlock, and the letter is out.
+  real: >-
+    This is <b>public-key encryption</b> (for example RSA, or elliptic curves). The open padlock is the
+    <b>public key</b>, numbers anyone may use to lock; the key is the <b>private key</b>, numbers that unlock. In RSA,
+    making the private key from the public one means splitting a huge number into its two prime factors, which no
+    computer can do in time. Your phone uses it to send a website a fresh secret key, then switches to a fast cipher.
 - id: hash
   title: Fingerprint (hash)
   why: >-

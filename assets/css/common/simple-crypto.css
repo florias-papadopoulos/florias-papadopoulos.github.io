@@ -338,3 +338,9 @@ html[data-mode="play"] :is(.sc-h2, .sc-why)::before {
     .sc-grow { gap: 8px 3px; }
     .sc-grow .sc-op { font-size: 17px; }
 }
+/* open padlocks: the lock and open lines, the number field with its button */
+.sc-calc-steps { margin: 10px 0 0; padding-left: 1.4em; font-size: 15.5px; line-height: 1.55; font-variant-numeric: tabular-nums; }
+.sc-calc-steps li { margin-bottom: 6px; }
+.sc-stepper .sc-mixlab { margin: 0 4px 0 0; font-size: 14px; }
+.sc-inrow { display: flex; gap: 8px; max-width: 20em; }
+.sc-inrow input { flex: 1; min-width: 0; }
