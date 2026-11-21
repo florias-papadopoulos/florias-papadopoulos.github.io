@@ -9,8 +9,11 @@ function that starts in `00-setup.js` and ends in `90-split.js`.
 | Part | What is in it |
 |---|---|
 | `00-setup.js` | header comment (the whole game described), `Arcade.register` of the three ids, settings and track arrays, `nearest()` (where a kart is on the road), building a track (spline, streets, shortcut path), drawing helpers for the cached track, particles |
-| `10-tracks-meadow-city-reef.js` | culling helpers, then Catnip Meadow, Night City, Coral Reef |
-| `11-tracks-moon-volcano.js` | Moon Rim, Lava Peak |
+| `10a-track-meadow.js` | culling helpers (`vis`), then Catnip Meadow |
+| `10b-track-city.js` | buildings that stand up (`block`, also used by other tracks), Night City |
+| `10c-track-reef.js` | Coral Reef |
+| `11a-track-moon.js` | Moon Rim |
+| `11b-track-volcano.js` | `mainDist`, `strikes`, `warnRing` (also used by other tracks), Lava Peak |
 | `12-tracks-trees-desert-sky.js` | Giant Grove, Red Canyon, Blossom Town |
 | `13-tracks-music-rainbow.js` | Melody Lane, Prism Skyway |
 | `14-tracks-zombie-room.js` | Zombie Town, Living Room Rally, the list of tracks |
@@ -30,5 +33,6 @@ A part can be edited on its own, but syntax only makes sense for the whole, so c
 cat assets/js/games/kitty-kart/*.js | node --check -
 ```
 
-A new part gets a number that puts it in the right place (for example `55-...js` between items and drawing).
+A new part gets a number that puts it in the right place (for example `55-...js` between items and drawing); a
+letter after the number sorts it between two numbers (`10a-`, `10b-` come after `10-` and before `11-`).
 Keep each part under about 650 lines; split a part that grows past that at one of its section headings.
