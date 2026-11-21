@@ -186,6 +186,14 @@ multiplicative-order: |
   <circle class="f" cx="32" cy="32" r="22"/><g class="s"><circle cx="32" cy="10" r="3"/><circle cx="51" cy="21" r="3"/><circle cx="51" cy="43" r="3"/><circle cx="32" cy="54" r="3"/><circle cx="13" cy="43" r="3"/></g><circle class="kf" cx="13" cy="21" r="4"/><path class="k" d="M18 16c6-6 14-7 14-6"/>
 primitive-root: |
   <circle cx="32" cy="32" r="22"/><path class="k f" d="M32 10L53 39 19 50 19 14 53 25 32 54 45 14 11 25 45 50 11 39z"/>
+cyclic-group-test: |
+  <circle cx="32" cy="32" r="22"/><g class="s"><circle cx="32" cy="10" r="3"/><circle cx="51" cy="21" r="3"/><circle cx="51" cy="43" r="3"/><circle cx="32" cy="54" r="3"/><circle cx="13" cy="43" r="3"/><circle cx="13" cy="21" r="3"/></g><text class="tl k" x="32" y="43">?</text>
+cyclic-group-generators: |
+  <circle class="f" cx="32" cy="32" r="22"/><g class="s"><circle cx="51" cy="21" r="3"/><circle cx="51" cy="43" r="3"/><circle cx="32" cy="54" r="3"/><circle cx="13" cy="43" r="3"/><circle cx="13" cy="21" r="3"/></g><circle class="kf" cx="32" cy="10" r="4.5"/><path class="k" d="M38 11c5 1 9 4 11 7"/><text class="t" x="32" y="38">g</text>
+generator-test: |
+  <circle class="f" cx="25" cy="32" r="17"/><text class="tl" x="25" y="42">g</text><path class="k" d="M38 34l7 8 13-20"/>
+subgroups: |
+  <path d="M32 12L14 32 32 52 50 32zM32 12v40"/><g class="s"><circle cx="14" cy="32" r="3.2"/><circle cx="32" cy="32" r="3.2"/><circle cx="50" cy="32" r="3.2"/><circle cx="32" cy="52" r="3.2"/></g><circle class="kf" cx="32" cy="12" r="4.2"/>
 legendre-jacobi: |
   <path d="M18 10c-8 8-8 36 0 44M46 10c8 8 8 36 0 44"/><text class="t" x="32" y="28">a</text><path d="M24 33h16"/><text class="t k" x="32" y="50">p</text>
 modular-square-root: |

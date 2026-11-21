@@ -51,7 +51,7 @@ tools:
     title: Multiplicative order calculator
     short: The smallest k with a to the k congruent to 1 mod n, testing only the divisors of the group exponent.
     keywords: [order, ord, period, exponent, lagrange, cyclic subgroup, generator]
-    related: [primitive-root, carmichael-function, discrete-logarithm, euler-totient]
+    related: [primitive-root, generator-test, carmichael-function, discrete-logarithm, euler-totient]
     about: |
       For $a$ coprime to $n$, the powers $a, a^2, a^3, \dots$ modulo $n$ must eventually come back to 1. The smallest $k \ge 1$ with $a^k \equiv 1 \pmod n$ is the order $\operatorname{ord}_n(a)$, the size of the subgroup that $a$ generates. If $\gcd(a, n) > 1$ no power is ever 1.
 
@@ -62,13 +62,57 @@ tools:
     title: Primitive root calculator
     short: Whether n has a primitive root, the smallest one with the standard test, and the list of all of them.
     keywords: [primitive root, generator, cyclic group, order, diffie hellman, gauss]
-    related: [multiplicative-order, discrete-logarithm, carmichael-function, euler-totient]
+    related: [multiplicative-order, cyclic-group-generators, cyclic-group-test, discrete-logarithm, carmichael-function, euler-totient]
     about: |
       A primitive root modulo $n$ is a number $g$ whose powers produce every residue coprime to $n$; its order is $\varphi(n)$ and $\mathbb Z_n^*$ is cyclic. Gauss proved that primitive roots exist exactly for $n = 1, 2, 4$, $p^k$ and $2p^k$ with $p$ an odd prime. For other $n$, such as $8$ or $15$, the largest order is $\lambda(n) < \varphi(n)$.
 
       To test a candidate $g$ one does not compute all its powers. If the order of $g$ were a proper divisor of $\varphi(n)$, it would divide $\varphi(n)/q$ for some prime $q \mid \varphi(n)$. So $g$ is a primitive root exactly when $g^{\varphi(n)/q} \not\equiv 1$ for every such $q$. Primitive roots are common (there are $\varphi(\varphi(n))$ of them), so trying $2, 3, 5, \dots$ succeeds quickly; the hard part is factoring $\varphi(n)$.
 
       Diffie and Hellman's original key exchange uses a primitive root $g$ modulo a large prime $p$. Once one generator $g$ is known, all others are the powers $g^k$ with $\gcd(k, \varphi(n)) = 1$.
+  - id: cyclic-group-test
+    title: Is this group cyclic?
+    short: Decide whether Z_n*, Z_n or a product of cyclic groups is cyclic, and write it as a product of cyclic groups.
+    keywords: [cyclic group, cyclic, group structure, structure theorem, invariant factors, gauss, primitive root, carmichael, exponent, isomorphic, direct product, units, multiplicative group, z_n*]
+    related: [cyclic-group-generators, subgroups, carmichael-function, primitive-root, elliptic-curve-points]
+    about: |
+      A group is cyclic when one element, a generator, produces every element by repeating the operation. The additive group $\mathbb Z_n$ always is (take $1$). The multiplicative group $\mathbb Z_n^*$ of the numbers coprime to $n$ is cyclic only sometimes: Gauss proved that this happens exactly for $n = 1, 2, 4, p^k$ and $2p^k$ with $p$ an odd prime. So $\mathbb Z_7^*$ and $\mathbb Z_{18}^*$ are cyclic, $\mathbb Z_8^*$ and $\mathbb Z_{15}^*$ are not.
+
+      The test without the rule: the largest order of an element is the Carmichael function $\lambda(n)$, and the group is cyclic exactly when $\lambda(n) = \varphi(n)$. To see the structure, split $\mathbb Z_n^*$ with the Chinese remainder theorem into one group per prime power: $\mathbb Z_{p^k}^*$ is cyclic of order $p^{k-1}(p-1)$ for odd $p$, and $\mathbb Z_{2^k}^* \cong \mathbb Z_2 \times \mathbb Z_{2^{k-2}}$ for $k \ge 3$. For example $\mathbb Z_{15}^* \cong \mathbb Z_3^* \times \mathbb Z_5^* \cong \mathbb Z_2 \times \mathbb Z_4$.
+
+      A product $\mathbb Z_a \times \mathbb Z_b$ is cyclic exactly when $\gcd(a, b) = 1$, and then it is $\mathbb Z_{ab}$. Collecting the prime powers this way writes every finite abelian group uniquely as $\mathbb Z_{n_1} \times \dots \times \mathbb Z_{n_k}$ with $n_1 \mid n_2 \mid \dots \mid n_k$, the invariant factors. Cryptography wants cyclic groups (or cyclic subgroups of prime order) so that one generator $g$ reaches every key $g^x$; the points of an elliptic curve form a group of the same kind.
+  - id: cyclic-group-generators
+    title: Generators of a cyclic group
+    short: How many generators Z_n*, Z_n or a prime order subgroup of Z_p* has, which they are, and the smallest one with the standard test.
+    keywords: [generator, generators, cyclic group, primitive root, number of generators, phi of phi, schnorr group, prime order subgroup, safe prime, diffie hellman, dsa]
+    related: [generator-test, cyclic-group-test, primitive-root, multiplicative-order, subgroups]
+    about: |
+      A generator $g$ of a cyclic group of order $N$ is an element whose powers $g, g^2, \dots, g^N = 1$ run through the whole group. Once one is known, all others follow: $g^k$ has order $N / \gcd(k, N)$, so the generators are the $g^k$ with $\gcd(k, N) = 1$, and there are $\varphi(N)$ of them. For $\mathbb Z_7^*$ ($N = 6$) that gives $\varphi(6) = 2$ generators, $3$ and $5$; a cyclic $\mathbb Z_n^*$ has $\varphi(\varphi(n))$, and the additive group $\mathbb Z_n$ has $\varphi(n)$, the numbers coprime to $n$.
+
+      To find one, factor $N$ and try $g = 2, 3, \dots$: $g$ is a generator exactly when $g^{N/r} \ne 1$ for every prime $r$ dividing $N$, because a smaller order would divide one of these $N/r$. Generators are common, so the search is short; factoring $N$ is the hard part.
+
+      Diffie-Hellman, DSA and Schnorr signatures usually work in a subgroup of prime order $q$ of $\mathbb Z_p^*$ (a Schnorr group), where $q$ divides $p - 1$. Its elements are the powers $h^{(p-1)/q}$, and since $q$ is prime every element except $1$ generates it. With a safe prime $p = 2q + 1$ this subgroup is the set of squares modulo $p$.
+  - id: generator-test
+    title: Is g a generator?
+    short: Check whether g generates Z_n*, Z_n or a subgroup of order q of Z_p*, with the order of g and the subgroup it generates.
+    keywords: [is generator, generator test, primitive root test, check generator, order of g, cyclic subgroup, subgroup generated, schnorr group, safe prime, diffie hellman parameters]
+    related: [cyclic-group-generators, multiplicative-order, primitive-root, subgroups, diffie-hellman]
+    about: |
+      In a group of order $N$, the order of any element divides $N$ (Lagrange's theorem). So $g$ is a generator exactly when its order is $N$ itself, and to show that one does not compute all $N$ powers. If the order were a proper divisor of $N$, it would divide $N/r$ for a prime $r \mid N$. Hence: $g$ generates the group exactly when $g^{N/r} \ne 1$ for every prime $r$ dividing $N$. This needs only a few modular powers, even for 2048-bit numbers, once $N$ is factored.
+
+      Modulo $7$, $N = 6 = 2 \cdot 3$: $3^3 \equiv 6$ and $3^2 \equiv 2$, neither is $1$, so $3$ is a generator. But $2^3 \equiv 1$, so $2$ has order $3$ and generates only $\{1, 2, 4\}$. In the additive group $\mathbb Z_n$ the test becomes $\gcd(g, n) = 1$, and a non-generator $g$ produces the multiples of $\gcd(g, n)$.
+
+      Checking a generator matters for real parameters: if the order of a Diffie-Hellman generator has small prime factors, the secret exponent can be found modulo each of them (the Pohlig-Hellman reduction). For a safe prime $p = 2q + 1$, as in the standard groups of RFC 3526, the test is just $g^2 \ne 1$ and $g^q \ne 1$. There $g = 2$ is a square, so it generates the subgroup of order $q$ rather than all of $\mathbb Z_p^*$, which is what one wants.
+  - id: subgroups
+    title: Element orders and subgroups
+    short: The order of every element of Z_n* or Z_n, how many have each order, and every subgroup with the lattice of inclusions.
+    keywords: [subgroup, subgroups, subgroup lattice, element order, orders, lagrange, cyclic subgroup, klein four group, units, multiplicative group, index]
+    related: [cyclic-group-test, cyclic-group-generators, multiplicative-order, zn-tables]
+    about: |
+      The order of an element $a$ is the smallest $k \ge 1$ with $a^k = 1$ (in $\mathbb Z_n$: $k \cdot a \equiv 0$). The powers of $a$ form the cyclic subgroup $\langle a \rangle$ of that size, and by Lagrange's theorem the size of every subgroup divides the size $N$ of the group.
+
+      In a cyclic group of order $N$ the picture is simple: for every divisor $d$ of $N$ there is exactly one subgroup of order $d$, and it holds exactly $\varphi(d)$ elements of order $d$. $\mathbb Z_{18}^*$ has $6$ elements and $4$ subgroups, of orders $1, 2, 3, 6$. A group that is not cyclic can have several subgroups of the same order: $\mathbb Z_8^* = \{1, 3, 5, 7\}$ has three of order $2$, and $\mathbb Z_{15}^*$ has three subgroups of order $4$, two cyclic and one not.
+
+      The tool finds every subgroup from the cyclic ones: it adds one element at a time and closes up under the operation. The table lists each subgroup with its elements, generators and the subgroups directly above it, which is the subgroup lattice. In cryptography a subgroup of small order is a danger: an attacker who sends an element of it learns the secret exponent modulo that order.
   - id: legendre-jacobi
     title: Legendre and Jacobi symbol calculator
     short: The symbol (a/n) by reduction, the rule for 2 and quadratic reciprocity, with Euler's criterion as a check.

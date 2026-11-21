@@ -477,6 +477,216 @@
         }
         return true;
     });
+    /* ---------- cyclic groups: generators, the generator test, structure, subgroups ---------- */
+    /* the 2048-bit safe prime of RFC 3526 (group 14): q = (p - 1)/2 is prime, 2 is a square (order q), 11 the smallest primitive root */
+    var MODP = '0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF';
+    var MODPq = (BigInt(MODP) - 1n) / 2n;
+    function unitsN(n) { var u = []; for (var a = 1; a < n; a++) if (gcdN(a, n) === 1) u.push(a); return n === 1 ? [0] : u; }
+    function phiB(n) { return unitsN(n).length; }
+    T.tool('cyclic-group-generators', [
+        { in: { group: 'mul', n: '7' }, copy: 'count = 2\nsmallest = 3\nall = 3, 5' },
+        { in: { group: 'mul', n: '18' }, copy: 'count = 2\nsmallest = 5\nall = 5, 11' },
+        { in: { group: 'mul', n: '23' }, copy: 'count = 10\nsmallest = 5\nall = 5, 7, 10, 11, 14, 15, 17, 19, 20, 21' },
+        { in: { group: 'mul', n: '8' }, copy: 'count = 0' },
+        { in: { group: 'mul', n: '15' }, copy: 'count = 0' },
+        { in: { group: 'mul', n: '2' }, copy: 'count = 1\nsmallest = 1\nall = 1' },
+        { in: { group: 'mul', n: '4' }, copy: 'count = 1\nsmallest = 3\nall = 3' },
+        { in: { group: 'add', n: '12' }, copy: 'count = 4\nsmallest = 1\nall = 1, 5, 7, 11' },
+        { in: { group: 'add', n: '2' }, copy: 'count = 1\nsmallest = 1\nall = 1' },
+        { in: { group: 'add', n: '10^30' }, check: function (S, c) { var o = lines(c); return o.count === String(4n * 10n ** 29n) && o.first === '1, 3, 7, 9, 11, 13, 17, 19, 21, 23' || c; } },
+        { in: { group: 'sub', p: '23', q: '11' }, copy: 'count = 10\nsmallest = 2\nall = 2, 3, 4, 6, 8, 9, 12, 13, 16, 18' },
+        { in: { group: 'sub', p: '23', q: '22' }, copy: 'count = 10\nsmallest = 5\nall = 5, 7, 10, 11, 14, 15, 17, 19, 20, 21' },
+        { in: { group: 'sub', p: '13', q: '4' }, copy: 'count = 2\nsmallest = 5\nall = 5, 8' },
+        { in: { group: 'sub', p: '13', q: '2' }, copy: 'count = 1\nsmallest = 12\nall = 12' },
+        { in: { group: 'mul', n: '2^61 - 1' }, check: function (S, c) { var o = lines(c); return o.smallest === '37' && o.count === '406467072000000000' && o.first.split(', ').length === 10 || c; } },
+        { in: { group: 'mul', n: MODP }, check: function (S, c) { var o = lines(c); return o.smallest === '11' && o.count === String(MODPq - 1n) || c; } },
+        { in: { group: 'sub', p: MODP, q: MODPq.toString() }, check: function (S, c) { var o = lines(c), g = BigInt(o.generator); return o.count === String(MODPq - 1n) && g !== 1n && nt.powmod(g, MODPq, BigInt(MODP)) === 1n || c; } },
+        { in: { group: 'sub', p: '(2^128 + 264) * (2^127 - 1) + 1', q: '2^127 - 1' }, check: function (S, c) { var o = lines(c), p = (2n ** 128n + 264n) * (2n ** 127n - 1n) + 1n; return nt.powmod(BigInt(o.generator), 2n ** 127n - 1n, p) === 1n && o.count === String(2n ** 127n - 2n) || c; } },
+        { in: { group: 'sub', p: '24', q: '2' }, error: true },
+        { in: { group: 'sub', p: '23', q: '5' }, error: true },
+        { in: { group: 'sub', p: '23', q: '1' }, error: true },
+        { in: { group: 'mul', n: '1' }, error: true },
+        { in: { group: 'add', n: 'x' }, error: true }
+    ]);
+    T.prop('cyclic-group-generators against brute force', 1, function () {
+        var chain = Promise.resolve(), bad = null;
+        for (var n = 2; n <= 160; n++) (function (n) {
+            chain = chain.then(function () {
+                return Promise.all([T.run('cyclic-group-generators', { group: 'mul', n: String(n) }), T.run('cyclic-group-generators', { group: 'add', n: String(n) })]).then(function (os) {
+                    var u = unitsN(n), phi = u.length, gm = u.filter(function (a) { return bruteOrder(a, n) === phi; });
+                    var want = gm.length ? 'count = ' + gm.length + '\nsmallest = ' + gm[0] + '\nall = ' + gm.join(', ') : 'count = 0';
+                    if (os[0].copy !== want && !bad) bad = 'Z_' + n + '^*: ' + os[0].copy;
+                    var wantA = 'count = ' + phi + '\nsmallest = 1\nall = ' + u.join(', ');
+                    if (os[1].copy !== wantA && !bad) bad = 'Z_' + n + ': ' + os[1].copy;
+                });
+            });
+        })(n);
+        return chain.then(function () { return bad || true; });
+    });
+    T.prop('cyclic-group-generators subgroup of Z_p^* against brute force', 60, function (r) {
+        var p = Number(nt.nextPrime(r.int(3, 600))), ds = bruteDivs(p - 1).filter(function (d) { return d > 1; }), q = r.pick(ds);
+        return T.run('cyclic-group-generators', { group: 'sub', p: String(p), q: String(q) }).then(function (o) {
+            var gens = [];
+            for (var a = 1; a < p; a++) if (bruteOrder(a, p) === q) gens.push(a);
+            var want = 'count = ' + gens.length + '\nsmallest = ' + gens[0] + '\nall = ' + gens.join(', ');
+            return o.copy === want ? true : 'p ' + p + ', q ' + q + ': ' + o.copy;
+        });
+    });
+
+    T.tool('generator-test', [
+        { in: { group: 'mul', g: '3', n: '7' }, copy: 'generator = yes\norder = 6' },
+        { in: { group: 'mul', g: '5', n: '7' }, copy: 'generator = yes\norder = 6' },
+        { in: { group: 'mul', g: '2', n: '7' }, copy: 'generator = no\norder = 3' },
+        { in: { group: 'mul', g: '6', n: '7' }, copy: 'generator = no\norder = 2' },
+        { in: { group: 'mul', g: '10', n: '7' }, copy: 'generator = yes\norder = 6' },
+        { in: { group: 'mul', g: '-1', n: '7' }, copy: 'generator = no\norder = 2' },
+        { in: { group: 'mul', g: '5', n: '18' }, copy: 'generator = yes\norder = 6' },
+        { in: { group: 'mul', g: '11', n: '18' }, copy: 'generator = yes\norder = 6' },
+        { in: { group: 'mul', g: '7', n: '18' }, copy: 'generator = no\norder = 3' },
+        { in: { group: 'mul', g: '3', n: '8' }, copy: 'generator = no\norder = 2', check: function (S) { return S.notes.some(function (x) { return /not cyclic/.test(x); }) || 'no note'; } },
+        { in: { group: 'mul', g: '6', n: '8' }, copy: 'generator = no\norder = none' },
+        { in: { group: 'mul', g: '1', n: '2' }, copy: 'generator = yes\norder = 1' },
+        { in: { group: 'add', g: '9', n: '12' }, copy: 'generator = no\norder = 4' },
+        { in: { group: 'add', g: '5', n: '12' }, copy: 'generator = yes\norder = 12' },
+        { in: { group: 'add', g: '0', n: '12' }, copy: 'generator = no\norder = 1' },
+        { in: { group: 'add', g: '-1', n: '12' }, copy: 'generator = yes\norder = 12' },
+        { in: { group: 'add', g: '3', n: String(nt.nextPrime(10n ** 20n) * nt.nextPrime(10n ** 21n)) }, copy: 'generator = yes\norder = ' + nt.nextPrime(10n ** 20n) * nt.nextPrime(10n ** 21n) },
+        { in: { group: 'sub', g: '4', p: '23', q: '11' }, copy: 'generator = yes\norder = 11' },
+        { in: { group: 'sub', g: '5', p: '23', q: '11' }, copy: 'generator = no\norder = none' },
+        { in: { group: 'sub', g: '1', p: '23', q: '11' }, copy: 'generator = no\norder = 1' },
+        { in: { group: 'sub', g: '0', p: '23', q: '11' }, copy: 'generator = no\norder = none' },
+        { in: { group: 'sub', g: '12', p: '13', q: '4' }, copy: 'generator = no\norder = 2' },
+        { in: { group: 'mul', g: '3', n: '2^127 - 1' }, copy: 'generator = no\norder = ' + (2n ** 127n - 2n) / 3n },
+        { in: { group: 'mul', g: '43', n: '2^127 - 1' }, copy: 'generator = yes\norder = ' + (2n ** 127n - 2n) },
+        { in: { group: 'mul', g: '2', n: MODP }, copy: 'generator = no\norder = ' + MODPq },
+        { in: { group: 'mul', g: '11', n: MODP }, copy: 'generator = yes\norder = ' + (2n * MODPq) },
+        { in: { group: 'sub', g: '2', p: MODP, q: MODPq.toString() }, copy: 'generator = yes\norder = ' + MODPq },
+        { in: { group: 'sub', g: '11', p: MODP, q: MODPq.toString() }, copy: 'generator = no\norder = none' },
+        { in: { group: 'sub', g: '2', p: '22', q: '7' }, error: true },
+        { in: { group: 'mul', g: 'x', n: '7' }, error: true }
+    ]);
+    T.prop('generator-test against brute force', 300, function (r) {
+        var n = r.num(2, 3000), a = r.num(-50, 2 * n), grp = r.pick(['mul', 'add']);
+        return T.run('generator-test', { group: grp, g: String(a), n: String(n) }).then(function (o) {
+            var am = ((a % n) + n) % n, ord, N;
+            if (grp === 'add') { ord = n / gcdN(am, n); N = n; } else { ord = bruteOrder(am, n); N = phiB(n); }
+            var want = ord ? 'generator = ' + (ord === N ? 'yes' : 'no') + '\norder = ' + ord : 'generator = no\norder = none';
+            return o.copy === want ? true : grp + ' ' + a + ' mod ' + n + ': ' + o.copy + ', want ' + want;
+        });
+    });
+
+    T.tool('cyclic-group-test', [
+        { in: { group: 'mul', n: '7' }, copy: 'cyclic = yes\norder = 6\nexponent = 6\nstructure = Z_6' },
+        { in: { group: 'mul', n: '18' }, copy: 'cyclic = yes\norder = 6\nexponent = 6\nstructure = Z_6' },
+        { in: { group: 'mul', n: '8' }, copy: 'cyclic = no\norder = 4\nexponent = 2\nstructure = Z_2 x Z_2' },
+        { in: { group: 'mul', n: '15' }, copy: 'cyclic = no\norder = 8\nexponent = 4\nstructure = Z_2 x Z_4' },
+        { in: { group: 'mul', n: '16' }, copy: 'cyclic = no\norder = 8\nexponent = 4\nstructure = Z_2 x Z_4' },
+        { in: { group: 'mul', n: '21' }, copy: 'cyclic = no\norder = 12\nexponent = 6\nstructure = Z_2 x Z_6' },
+        { in: { group: 'mul', n: '24' }, copy: 'cyclic = no\norder = 8\nexponent = 2\nstructure = Z_2 x Z_2 x Z_2' },
+        { in: { group: 'mul', n: '105' }, copy: 'cyclic = no\norder = 48\nexponent = 12\nstructure = Z_2 x Z_2 x Z_12' },
+        { in: { group: 'mul', n: '1' }, copy: 'cyclic = yes\norder = 1\nexponent = 1\nstructure = {1}' },
+        { in: { group: 'mul', n: '2' }, copy: 'cyclic = yes\norder = 1\nexponent = 1\nstructure = {1}' },
+        { in: { group: 'mul', n: '4' }, copy: 'cyclic = yes\norder = 2\nexponent = 2\nstructure = Z_2' },
+        { in: { group: 'mul', n: '2 * 3^5' }, copy: 'cyclic = yes\norder = 162\nexponent = 162\nstructure = Z_162' },
+        { in: { group: 'mul', n: '2^10' }, copy: 'cyclic = no\norder = 512\nexponent = 256\nstructure = Z_2 x Z_256' },
+        { in: { group: 'mul', n: '3233' }, copy: 'cyclic = no\norder = 3120\nexponent = 780\nstructure = Z_4 x Z_780' },
+        { in: { group: 'mul', n: '2^127 - 1' }, copy: 'cyclic = yes\norder = ' + (2n ** 127n - 2n) + '\nexponent = ' + (2n ** 127n - 2n) + '\nstructure = Z_' + (2n ** 127n - 2n) },
+        { in: { group: 'add', n: '12' }, copy: 'cyclic = yes\norder = 12\nexponent = 12\nstructure = Z_12' },
+        { in: { group: 'add', n: '1' }, copy: 'cyclic = yes\norder = 1\nexponent = 1\nstructure = {0}' },
+        { in: { group: 'prod', ms: '2, 3' }, copy: 'cyclic = yes\norder = 6\nexponent = 6\nstructure = Z_6' },
+        { in: { group: 'prod', ms: '2, 2' }, copy: 'cyclic = no\norder = 4\nexponent = 2\nstructure = Z_2 x Z_2' },
+        { in: { group: 'prod', ms: '4, 6' }, copy: 'cyclic = no\norder = 24\nexponent = 12\nstructure = Z_2 x Z_12' },
+        { in: { group: 'prod', ms: '4, 6, 10' }, copy: 'cyclic = no\norder = 240\nexponent = 60\nstructure = Z_2 x Z_2 x Z_60' },
+        { in: { group: 'prod', ms: '3, 5, 7, 1' }, copy: 'cyclic = yes\norder = 105\nexponent = 105\nstructure = Z_105' },
+        { in: { group: 'prod', ms: '1' }, copy: 'cyclic = yes\norder = 1\nexponent = 1\nstructure = {0}' },
+        { in: { group: 'prod', ms: '0, 3' }, error: true },
+        { in: { group: 'prod', ms: '' }, error: true },
+        { in: { group: 'mul', n: '0' }, error: true }
+    ]);
+    /* the structure Z_n1 x ... x Z_nk is right when every x^d = 1 has prod gcd(d, n_i) solutions (this fixes an
+       abelian group up to isomorphism), checked by brute force */
+    T.prop('cyclic-group-test structure against brute force', 1, function () {
+        var chain = Promise.resolve(), bad = null;
+        for (var n = 1; n <= 200; n++) (function (n) {
+            chain = chain.then(function () {
+                return T.run('cyclic-group-test', { group: 'mul', n: String(n) }).then(function (o) {
+                    var c = lines(o.copy), u = unitsN(n), phi = u.length, lam = n <= 2 ? 1 : bruteLambda(n);
+                    var inv = c.structure.charAt(0) === '{' ? [] : c.structure.split(' x ').map(function (z) { return Number(z.slice(2)); });
+                    if (c.cyclic !== (lam === phi ? 'yes' : 'no') || c.order !== String(phi) || c.exponent !== String(lam)) { bad = bad || n + ': ' + o.copy; return; }
+                    for (var i = 1; i < inv.length; i++) if (inv[i] % inv[i - 1]) bad = bad || n + ': not divisible ' + c.structure;
+                    bruteDivs(phi).forEach(function (d) {
+                        var sols = u.filter(function (a) { return nt.powmod(BigInt(a), BigInt(d), BigInt(n)) === 1n % BigInt(n); }).length;
+                        var want = inv.reduce(function (acc, m) { return acc * gcdN(d, m); }, 1);
+                        if (sols !== want) bad = bad || n + ': x^' + d + ' = 1 has ' + sols + ' solutions, ' + c.structure + ' says ' + want;
+                    });
+                });
+            });
+        })(n);
+        return chain.then(function () { return bad || true; });
+    });
+    T.prop('cyclic-group-test products: cyclic iff pairwise coprime', 80, function (r) {
+        var k = r.num(1, 4), ms = [];
+        for (var i = 0; i < k; i++) ms.push(r.num(1, 60));
+        return T.run('cyclic-group-test', { group: 'prod', ms: ms.join(', ') }).then(function (o) {
+            var c = lines(o.copy), cop = true;
+            for (var a = 0; a < k; a++) for (var b = a + 1; b < k; b++) if (gcdN(ms[a], ms[b]) !== 1) cop = false;
+            var inv = c.structure.charAt(0) === '{' ? [] : c.structure.split(' x ').map(function (z) { return BigInt(z.slice(2)); });
+            var prod = inv.reduce(function (x, y) { return x * y; }, 1n);
+            return c.cyclic === (cop ? 'yes' : 'no') && prod === BigInt(c.order) && (!inv.length || String(inv[inv.length - 1]) === c.exponent) ? true : ms + ': ' + o.copy;
+        });
+    });
+
+    T.tool('subgroups', [
+        { in: { group: 'mul', n: '7' }, copy: 'order = 6\nelement orders = 1: 1, 2: 1, 3: 2, 6: 2\nsubgroups = 4' },
+        { in: { group: 'mul', n: '8' }, copy: 'order = 4\nelement orders = 1: 1, 2: 3\nsubgroups = 5' },
+        { in: { group: 'mul', n: '15' }, copy: 'order = 8\nelement orders = 1: 1, 2: 3, 4: 4\nsubgroups = 8' },
+        { in: { group: 'mul', n: '18' }, copy: 'order = 6\nelement orders = 1: 1, 2: 1, 3: 2, 6: 2\nsubgroups = 4' },
+        { in: { group: 'mul', n: '24' }, copy: 'order = 8\nelement orders = 1: 1, 2: 7\nsubgroups = 16' },
+        { in: { group: 'mul', n: '2' }, copy: 'order = 1\nelement orders = 1: 1\nsubgroups = 1' },
+        { in: { group: 'add', n: '12' }, copy: 'order = 12\nelement orders = 1: 1, 2: 1, 3: 2, 4: 2, 6: 2, 12: 4\nsubgroups = 6' },
+        { in: { group: 'add', n: '2' }, copy: 'order = 2\nelement orders = 1: 1, 2: 1\nsubgroups = 2' },
+        { in: { group: 'mul', n: '840' }, check: function (S, c) { return /^subgroups = more than \d+$/m.test(c) || c; } },
+        { in: { group: 'mul', n: '2001' }, error: true },
+        { in: { group: 'mul', n: '1' }, error: true }
+    ]);
+    /* every subgroup of Z_n^* for n <= 60 is generated by at most 3 elements: all <a, b, c> by brute force */
+    T.prop('subgroups against brute force', 1, function () {
+        var chain = Promise.resolve(), bad = null;
+        for (var n = 2; n <= 60; n++) (function (n) {
+            chain = chain.then(function () {
+                return T.run('subgroups', { group: 'mul', n: String(n) }).then(function (o) {
+                    var u = unitsN(n), keys = {};
+                    function close(gs) {
+                        var set = { 1: 1 }, list = [1];
+                        for (var i = 0; i < list.length; i++) gs.forEach(function (g) { var y = list[i] * g % n; if (!set[y]) { set[y] = 1; list.push(y); } });
+                        return list.sort(function (a, b) { return a - b; }).join(',');
+                    }
+                    var two = {};
+                    u.forEach(function (a) { u.forEach(function (b) { if (b >= a) two[close([a, b])] = [a, b]; }); });
+                    Object.keys(two).forEach(function (k) { u.forEach(function (c) { keys[close(two[k].concat([c]))] = 1; }); });
+                    var cnt = Object.keys(keys).length, c = lines(o.copy);
+                    if (c.subgroups !== String(cnt)) bad = bad || 'Z_' + n + '^*: ' + c.subgroups + ' subgroups, brute force ' + cnt;
+                    var ords = {};
+                    u.forEach(function (a) { var k = bruteOrder(a, n); ords[k] = (ords[k] || 0) + 1; });
+                    var want = Object.keys(ords).map(Number).sort(function (a, b) { return a - b; }).map(function (k) { return k + ': ' + ords[k]; }).join(', ');
+                    if (c['element orders'] !== want) bad = bad || 'Z_' + n + '^* orders ' + c['element orders'];
+                });
+            });
+        })(n);
+        return chain.then(function () { return bad || true; });
+    });
+    T.prop('subgroups of a cyclic group: one per divisor', 40, function (r) {
+        var n = r.num(2, 2000), grp = r.pick(['mul', 'add']);
+        return T.run('subgroups', { group: grp, n: String(n) }).then(function (o) {
+            var c = lines(o.copy), N = grp === 'add' ? n : phiB(n);
+            if (grp === 'mul' && !P.cyclic(nt.factor(BigInt(n)).factors)) return /^(\d+|more than \d+)$/.test(c.subgroups) ? true : c.subgroups;
+            return c.subgroups === String(bruteDivs(N).length) ? true : grp + ' ' + n + ': ' + c.subgroups;
+        });
+    });
+    T.ok('lib invariant factors', (function () {
+        var r = P.invariant([[{ p: 2n, e: 1 }], [{ p: 2n, e: 2 }], [{ p: 2n, e: 1 }, { p: 3n, e: 1 }]]);
+        return r.inv.join(',') === '2,2,12' && P.zPlain(r.inv) === 'Z_2 x Z_2 x Z_12' && P.invariant([]).inv.length === 0;
+    })());
     T.ok('lib cyclic', [1n, 2n, 4n, 9n, 18n, 50n, 97n].every(function (n) { return P.cyclic(n === 1n ? [] : nt.factor(n).factors); }) && [8n, 12n, 15n, 16n, 21n, 100n].every(function (n) { return !P.cyclic(nt.factor(n).factors); }));
     T.eq('lib T keeps long numbers ungrouped', P.T(10n ** 60n), String(10n ** 60n));
     T.eq('lib T groups short numbers', P.T(1234567n), '1\\,234\\,567');
