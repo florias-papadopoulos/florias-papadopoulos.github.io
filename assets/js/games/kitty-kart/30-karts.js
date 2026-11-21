@@ -185,7 +185,7 @@
             c.k = 0; c.fin = 0; c.prog = 0; c.z = c.vz = c.slip = c.rampT = 0;
             c.item = null; c.itemT = 0; c.boost = c.shield = c.spin = c.nap = c.laser = c.fall = c.tangled = c.loose = c.sticky = c.hot = 0;
             c.useAlt = false; c.decided = -1; c.altLap = -1; c.P = persona(i); c.said = c.hitAt = -99;
-            c.poof = 0; c.back = null; c.offT = 0;
+            c.poof = 0; c.back = null; c.offT = 0; c.brk = false; c.drift = c.dlv = c.dT = c.draft = 0;
             nearest(c);
             keep(c);
         });
@@ -223,18 +223,22 @@
         if (c.fall > 0) { c.fall -= dt; if (c.fall <= 0) respawn(c); return; }
         var ca = Math.cos(c.a), sa = Math.sin(c.a), i;
         var vf = c.vx * ca + c.vy * sa, vr = c.vy * ca - c.vx * sa, air = c.z > 0, spin = c.spin > 0;
-        var off = !c.on && !air, vmax = (off ? VGRASS : c.alt ? VMAX * ALT.vf : VMAX) * (c.boost > 0 ? 1.3 : 1) * (c.nap > 0 ? 0.55 : 1) *
-            (c.sticky > 0 ? 0.5 : 1) * (c.loose > 0 ? 0.85 : 1) * (c.hot > 0 ? 0.4 : 1);
-        var acc = ACC * (c.boost > 0 ? 1.8 : 1), thr = air || spin ? 0 : c.thr;
-        if (thr > 0) vf += (vf < 0 ? BRAKE : acc * Math.max(0, 1 - vf / vmax)) * thr * dt;
+        var off = !c.on && !air;
+        var wait = driftStep(c, dt, vf, !air && !spin); draftStep(c, dt, vf);  /* drifting and the slipstream: next part */
+        var dk = !!c.drift, vmax = (off ? VGRASS : c.alt ? VMAX * ALT.vf : VMAX) * (c.boost > 0 ? 1.3 : 1) * (c.nap > 0 ? 0.55 : 1) *
+            (c.sticky > 0 ? 0.5 : 1) * (c.loose > 0 ? 0.85 : 1) * (c.hot > 0 ? 0.4 : 1) * (dk ? DRIFT.vmax : 1) * (1 + DRAFT.v * c.draft);
+        var acc = ACC * (c.boost > 0 ? 1.8 : 1) * (dk ? DRIFT.acc : 1) * (1 + DRAFT.a * c.draft), thr = air || spin || wait ? 0 : dk ? (c.thr < 0 ? 0 : 1) : c.thr;
+        if (dk && thr === 0) vf -= Math.min(vf, DRIFT.scrub * dt);  /* drifting on Brake alone: a slow loss of speed, not braking */
+        else if (thr > 0) vf += (vf < 0 ? BRAKE : acc * Math.max(0, 1 - vf / vmax)) * thr * dt;
         else if (thr < 0) vf += (vf > 0 ? BRAKE : ACC * 0.5 * Math.max(0, 1 + vf / REV)) * thr * dt;
         else if (!air) vf -= vf * (spin ? 2.4 : COAST) * dt;
         if (vf > vmax) vf -= (vf - vmax) * 2.6 * dt;  /* the grass (or a nap) slows you down */
-        if (!air) vr *= Math.max(0, 1 - (off ? GRIPOFF : GRIP) * (c.slip > 0 ? 0.12 : 1) * (c.loose > 0 ? 0.35 : 1) * dt);  /* grip: a little slide, not much */
-        var sp = Math.abs(vf), turn = air || spin ? 0 : c.steer * TURN * Math.min(1, sp / 60) * (1 - 0.25 * Math.min(1, sp / VMAX));
+        if (!air) vr *= Math.max(0, 1 - (off ? GRIPOFF : GRIP) * (c.slip > 0 ? 0.12 : 1) * (c.loose > 0 ? 0.35 : 1) * (dk ? DRIFT.grip : 1) * dt);  /* grip: a little slide, not much */
+        var sp = Math.abs(vf), tk = TURN * Math.min(1, sp / 60) * (1 - 0.25 * Math.min(1, sp / VMAX)), turn = air || spin ? 0 : (dk ? driftSteer(c) : c.steer) * tk;
         c.a += (vf < 0 ? -turn : turn) * dt + (spin ? c.spinK * dt : 0);
         ca = Math.cos(c.a); sa = Math.sin(c.a);
         c.vx = ca * vf - sa * vr; c.vy = sa * vf + ca * vr; c.vf = vf;
+        if (dk) c.a += c.drift * DRIFT.yaw * tk * dt;  /* the drift: the kart turns a little more than where it goes, so it slides */
         c.x += c.vx * dt; c.y += c.vy * dt; c.odo += Math.hypot(c.vx, c.vy) * dt;  /* odo: the way driven since the kart was last by the road */
         c.slip -= dt; c.boost -= dt; c.nap -= dt; c.spin -= dt; c.shield -= dt; c.laser -= dt; c.tangled -= dt;
         c.loose -= dt; c.sticky -= dt; c.hot -= dt; c.rampT -= dt;
@@ -344,6 +348,7 @@
         obey(c, rash);
     }
     function obey(c, rash) {  /* what every computer cat does: chase a red dot, wait for gates and trams */
+        c.brk = false;  /* the computer cats brake, but never drift */
         if (c.laser > 0) { c.steer = clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1); c.thr = 0.6; }
         var dg = toGate(c);
         if (rash) return;  /* test only: drive into gates and trams */

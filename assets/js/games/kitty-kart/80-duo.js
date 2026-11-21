@@ -8,12 +8,14 @@
        two around that moment so that everything moves smoothly. Nothing is saved: no best times, no last track.
        The host's "start" and the friend's "ready" also carry that player's kit (skin and look, myKit), checked on
        arrival (cleanKit), so both screens draw both players' karts; from an older version it is missing (or ignored
-       there), and the kart keeps its default look. A kart being put back after a cut has flag 128 in the snapshot. */
+       there), and the kart keeps its default look. A kart being put back after a cut has flag 128 in the snapshot;
+       a drift is flag 256 with its level in the next two bits (512, 1024), the slipstream 0 to 3 in 2048 and 4096.
+       The friend's keys carry Brake held as a sixth number (missing from an older version: no drifting). */
     var LAG = 0.1, SNAP_MS = 33, KF = 13, ICE = [{ urls: 'stun:stun.cloudflare.com:3478' }], PH = ['pick', 'count', 'race', 'done'];
     var SERVER = (api.server || '').replace(/\/+$/, '');
     var pc = null, fast = null, sure = null, gen = 0, linked = false, role = '', roomCode = null, roomKey = null, codeAt = 0, heard = 0;
     var raceNo = 0, ready = false, snapAt = 0, snapSeq = 0, yarnId = 0, doneAt = 0, myDone = false, palUsed = 0;
-    var palIn = { thr: 0, want: 0, use: 0, seq: 0, at: 0 };
+    var palIn = { thr: 0, want: 0, use: 0, seq: 0, at: 0, brk: false };
     var snaps = [], vclock = -1, lastSeq = 0, cd = -1, sinceGo = 0, uses = 0, inSeq = 0, sentAt = 0, heldItem = null, resKey = '';
     var duoLevel = 'normal', lobbyEl = null, resEl = null, pickBack = null, acts = [];
     var CAT_NAMES = [null, null, 'Black cat', 'White cat'];
@@ -317,7 +319,7 @@
         wrapEl.classList.remove('kk-picking', 'kk-res-on');
         if (document.activeElement && wrapEl.contains(document.activeElement)) document.activeElement.blur();
         api.sfx('tap');
-        if (host) { send({ t: 'go', n: raceNo }); ready = true; palIn = { thr: 0, want: 0, use: palIn.use, seq: 0, at: 0 }; palUsed = palIn.use; }
+        if (host) { send({ t: 'go', n: raceNo }); ready = true; palIn = { thr: 0, want: 0, use: palIn.use, seq: 0, at: 0, brk: false }; palUsed = palIn.use; }
         else cd = 0;
     }
     function onSure(text) {
@@ -351,10 +353,10 @@
         var m;
         try { m = JSON.parse(text); } catch (e) { return; }
         if (!Array.isArray(m) || m[0] !== raceNo || typeof m[1] !== 'number') return;
-        if (host) {  /* the friend's keys: [race, number, throttle, steering, items used so far] */
+        if (host) {  /* the friend's keys: [race, number, throttle, steering, items used so far, Brake held] */
             if (m[1] <= palIn.seq) return;
             palIn.seq = m[1]; palIn.at = performance.now();
-            palIn.thr = clamp(+m[2] || 0, -1, 1); palIn.want = clamp(+m[3] || 0, -1, 1);
+            palIn.thr = clamp(+m[2] || 0, -1, 1); palIn.want = clamp(+m[3] || 0, -1, 1); palIn.brk = m[5] === 1;
             var u = Math.floor(+m[4] || 0);
             if (u > palIn.use) palIn.use = u;
         } else if (remote) {  /* a snapshot, see pack */
@@ -368,7 +370,7 @@
         var c = pal, fresh = performance.now() - palIn.at < 400;
         if (c.fin || phase !== 'race') { autopilot(c, 0.45); return; }
         if (split) { drive2(dt); return; }  /* split screen: player 2's keys on this keyboard */
-        c.thr = fresh ? palIn.thr : 0;
+        c.thr = fresh ? palIn.thr : 0; c.brk = fresh && palIn.brk;
         c.steer += ((fresh ? palIn.want : 0) - c.steer) * Math.min(1, dt * 10);
         if (c.laser > 0) c.steer = c.steer * 0.3 + 0.7 * clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1);
         if (palIn.use > palUsed) { palUsed = palIn.use; useItem(c); }
@@ -381,7 +383,8 @@
         for (i = 0; i < 4; i++) {
             c = karts[i];
             ks.push(rd(c.x, 10), rd(c.y, 10), rd(wrap(c.a), 1000), rd(Math.max(0, c.z), 10), Math.round(c.vx), Math.round(c.vy), rd(c.steer, 100),
-                (c.boost > 0 ? 1 : 0) | (c.shield > 0 ? 2 : 0) | (c.tangled > 0 ? 4 : 0) | (c.nap > 0 ? 8 : 0) | (c.laser > 0 ? 16 : 0) | (c.dotS > 0 ? 32 : 0) | (c.spin > 0 ? 64 : 0) | (c.poof > 0 ? 128 : 0),
+                (c.boost > 0 ? 1 : 0) | (c.shield > 0 ? 2 : 0) | (c.tangled > 0 ? 4 : 0) | (c.nap > 0 ? 8 : 0) | (c.laser > 0 ? 16 : 0) | (c.dotS > 0 ? 32 : 0) | (c.spin > 0 ? 64 : 0) | (c.poof > 0 ? 128 : 0) |
+                (c.drift ? 256 | c.dlv << 9 : 0) | Math.round(c.draft * 3) << 11,
                 c.fall > 0 ? rd(c.fall, 100) : 0, c.k, rd(c.prog, 10), rd(c.fin, 100), c.item ? ITEMS.indexOf(c.item) + 1 : 0);
         }
         for (i = 0; i < tins.length; i++) if (tins[i].t > 0) mask |= 1 << i;
@@ -457,6 +460,7 @@
                 c.z = mix(a[o + 3], b[o + 3], f, 1e9); c.vx = b[o + 4]; c.vy = b[o + 5]; c.steer = mix(a[o + 6], b[o + 6], f, 1e9);
                 c.boost = fl & 1 ? 1 : 0; c.shield = fl & 2 ? 1 : 0; c.tangled = fl & 4 ? 1 : 0; c.nap = fl & 8 ? 1 : 0;
                 c.laser = fl & 16 ? 1 : 0; c.dotS = fl & 32 ? 1 : -1; c.spin = fl & 64 ? 1 : 0; c.poof = fl & 128 ? 1 : 0;
+                c.drift = fl & 256 ? 1 : 0; c.dlv = fl >> 9 & 3; c.draft = (c.draft || 0) + ((fl >> 11 & 3) / 3 - (c.draft || 0)) * Math.min(1, dt * 4);
                 c.fall = b[o + 8] > 0 ? mix(a[o + 8] || b[o + 8], b[o + 8], f, 1e9) : 0;
                 c.k = b[o + 9]; c.prog = b[o + 10]; c.fin = b[o + 11]; c.item = ITEMS[b[o + 12] - 1] || null;
                 c.vf = c.vx * Math.cos(c.a) + c.vy * Math.sin(c.a);
@@ -567,11 +571,12 @@
         if (remote && phase !== 'pick' && now - sentAt >= 15) {
             sentAt = now;
             var thr = (keys.up || pads.up ? 1 : 0) - (keys.down || pads.down ? 1 : 0), want = (keys.right || pads.right ? 1 : 0) - (keys.left || pads.left ? 1 : 0);
+            var brk = keys.down || pads.down ? 1 : 0;
             if (test && test.bot && phase === 'race' && !me.fin) {  /* test only: the computer drives the friend's keys */
-                autopilot(me, test.skill || 0.9); thr = me.thr; want = me.steer;
+                autopilot(me, test.skill || 0.9); thr = me.thr; want = me.steer; brk = 0;
                 if (me.item && Math.random() < 0.02) uses++;
             }
-            fast.send(JSON.stringify([raceNo, ++inSeq, thr, rd(want, 100), uses]));
+            fast.send(JSON.stringify([raceNo, ++inSeq, thr, rd(want, 100), uses, brk]));
         }
     }
     if (test) test.hz = function () { return [rd(clock, 100), hzPack()]; };  /* only on the test page: the moving hazards, to compare host and friend */

@@ -16,6 +16,7 @@ function that starts in `00-setup.js` and ends in `90-split.js`.
 | `14-tracks-zombie-room.js` | Zombie Town, Living Room Rally, the list of tracks |
 | `20-page.js` | canvas, HUD, countdown, touch buttons, the track and kart skin picker |
 | `30-karts.js` | karts (the player and three computer cats), the player's look (cat or dog, `LOOK`, `dogify()`), kart skins and `dress()`, physics, laps, the off-track warning and the rescues |
+| `35-drift-draft.js` | drifting (Brake while steering at speed: slide, sparks by level, the mini-turbo) and the slipstream behind another kart, with their drawing (`drawSlide`) |
 | `40-ai.js` | difficulty and the computer drivers |
 | `50-items.js` | items (fish tins, yarn ball, catnip, milk...) and their dog versions |
 | `60-draw.js` | drawing a frame: scenery, karts, drivers, markers, minimap |

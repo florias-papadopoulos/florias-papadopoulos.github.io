@@ -125,7 +125,7 @@
             v.rot = rots[n];
             v.cv.width = Math.round(w * dpr); v.cv.height = Math.round(h * dpr);
             v.hud.style.right = ((w < 600 ? 92 : 120) + 30) + 'px';  /* clear of the minimap */
-            v.hint.textContent = phone ? TOUCH_HINT : WHO[n][3];
+            v.hint.textContent = phone ? TOUCH_HINT : WHO[n][3] + DRIFT_HINT;
         });
         phoneLine.innerHTML = 'Lay the phone flat between you. <b>Player 1</b> holds the ' + (wide ? 'left' : 'bottom') + ' half, <b>Player 2</b> the ' +
             (wide ? 'right' : 'top') + ' half; each half has its own Gas, Brake, steering and item buttons.';
@@ -174,6 +174,7 @@
     function drive2(dt) {  /* player 2 on the arrow keys or their half's buttons, just as player 1 drives */
         var c = pal, want = (keys2.right || pads2.right ? 1 : 0) - (keys2.left || pads2.left ? 1 : 0);
         c.thr = (keys2.up || pads2.up ? 1 : 0) - (keys2.down || pads2.down ? 1 : 0);
+        c.brk = !!(keys2.down || pads2.down);
         c.steer += (want - c.steer) * Math.min(1, dt * 10);
         if (c.laser > 0) c.steer = c.steer * 0.3 + 0.7 * clamp(wrap(Math.atan2(c.doty - c.y, c.dotx - c.x) - c.a) * 3, -1, 1);
     }
