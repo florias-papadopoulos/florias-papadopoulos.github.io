@@ -1,4 +1,4 @@
-/* Story 3, fingerprint (hash). Scenes:
+/* Story 2, fingerprint (hash). Scenes (labels in the picture: what each row of the board is, "backwards"):
    0 the cat puts a letter into the grinder: a row of six coloured blocks comes out (the fingerprint), up on the board;
    1 the cat sends the same letter to the dog, the dog grinds it: the same fingerprint, a tick;
    2 a letter with one word changed: a completely different fingerprint, a cross;
@@ -69,6 +69,12 @@
 
             svg.appendChild(strips);
             var tick = H.tick(svg), cross = H.cross(svg), wonder = H.wonder(svg);
+            var rowLab = ['the cat\u2019s letter', 'what the dog got', 'one word changed'].map(function (s, i) {
+                return H.label(svg, s, BOARD.x - 30, BOARD.y[i] + BW / 2 + 7, 'sc-small', 'end');
+            });
+            var lBack = H.label(svg, 'backwards', 420, 206, 'sc-warn');
+            var lMach = H.label(svg, 'fingerprint machine', 400, 428, 'sc-small');
+            var lFp = H.label(svg, 'fingerprint', BOARD.x + SW + 30, BOARD.y[0] + BW / 2 + 7, 'sc-small', 'start');
             var crumbs = [], rnd = 7;
             function r01() { rnd = (rnd * 9301 + 49297) % 233280; return rnd / 233280; }
             for (var i = 0; i < 26; i++) {
@@ -176,6 +182,11 @@
                 });
                 H.at(wonder, 540, 270, H.pop(t, a3 + 7.6, a3 + 8.1) * 1.4);
                 H.show(wonder, t > a3 + 7.6 ? 1 : 0);
+                /* the labels */
+                H.show(rowLab[0], H.seg(t, 6.2, 6.6)); H.show(lFp, H.seg(t, 6.2, 6.6) * (1 - H.seg(t, S[1], S[1] + 0.4)));
+                H.show(rowLab[1], H.seg(t, a1 + 5.6, a1 + 6)); H.show(rowLab[2], H.seg(t, a2 + 6.6, a2 + 7));
+                H.show(lMach, inK);
+                H.show(lBack, H.seg(t, a3 + 4, a3 + 4.4) * (1 - H.seg(t, a3 + 7.4, a3 + 7.8)));
 
                 /* faces */
                 var same = t > a1 + 6 && t < S[2];

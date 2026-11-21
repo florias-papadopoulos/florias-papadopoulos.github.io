@@ -1,0 +1,154 @@
+# The stories of Simple Crypto (/simple-crypto/, layouts/simple-crypto/simple-crypto.html), in page order.
+# id: the story in assets/js/simple-crypto/ (SC.story id) and the page anchor; why: the problem it solves, one or two
+# lines over the player; steps: one caption per scene of the animation (the same count as the story's scenes), shown
+# under the picture while that step plays; alt: the picture for screen readers; real: the "In real life" box.
+# The "Try it" box under each player is built by the story's script (its *-try.js part).
+# Short plain sentences: one or two per step, no word an 18 year old would have to look up without a picture.
+- id: key-exchange
+  title: Key exchange
+  why: >-
+    Your phone and a website must agree on a secret key before they can talk privately, but everything they send
+    crosses Wi-Fi that anyone nearby can listen to. How do you agree on a secret while everyone is listening?
+  alt: >-
+    The cat and the dog each mix a secret colour into a shared yellow, swap the mixes while the fox copies them, and
+    both end with the same plum colour, which locks a box only they can open.
+  steps:
+    - The cat and the dog want a secret colour that only they know, but the fox sees every pot they pass. They start
+      from a <b>public</b> yellow that everyone has, the fox too.
+    - Each picks a <b>secret</b> colour and never shows it to anyone. The cat picks pink, the dog blue.
+    - Each pours its secret into its yellow. Mixing paint is easy, but nobody can get the pink back out of the orange.
+    - They swap the mixes in the open. The fox copies both, so it now has the yellow, the orange and the green.
+    - Each pours its own secret into the mix it got. Both pots now hold yellow, pink and blue, so both get the very
+      same plum.
+    - The fox mixes what it has. Orange and green hold two helpings of yellow, so it gets a muddy khaki. To reach the
+      plum it would have to take one yellow out again, and paint cannot be un-mixed.
+    - The plum is now their shared key. The cat locks a heart in a box. The fox's khaki key does not fit, the dog's
+      plum key opens it.
+  real: >-
+    This is the <b>Diffie-Hellman key exchange</b>, and your browser runs it every time it opens an https page. The
+    paints are numbers: the yellow is a public number, each secret is a number, and mixing is multiplying the yellow
+    by itself that many times on a huge clock. Forward takes a millisecond; going back, the <b>discrete logarithm</b>,
+    is the un-mixing that no computer can do in time.
+- id: one-time-pad
+  title: Secret sheets (one-time pad)
+  why: >-
+    Once two people share a secret key, how do they use it to hide a message completely? And why do the rules say a
+    key may be used only once?
+  alt: >-
+    The cat hides a picture of a fish by laying a sheet of random dots on it, which flips the squares under the dots;
+    the fox sees only noise, and the dog flips the fish back with its copy of the sheet. When the cat reuses the
+    sheet for a heart, the fox lays the two noisy sheets on each other and sees the fish and the heart.
+  steps:
+    - The cat and the dog share a secret key, for example made with the paint trick of story 1. Here the key is a
+      sheet of random blue dots, one copy each. The fox has none.
+    - The cat's message is a picture of a fish. It lays its key on top, and every square under a dot flips, white to
+      dark and dark to white.
+    - What travels is just noise. The fox copies it and wonders what it shows. A fish? A house? For every picture there
+      is some key that gives exactly this noise, so the fox cannot know.
+    - The dog lays its copy of the key on the noise. The same squares flip back, and the fish appears.
+    - The next day the cat sends a heart, and is lazy. It uses the same key again! The fox copies that noise too.
+    - "The fox lays its two copies on each other. Every dot of the key now flips its square twice, so the key cancels
+      out, and the fish and the heart appear together. Never use a key twice."
+  real: >-
+    This is the <b>one-time pad</b>, the only cipher proven unbreakable, if the key is truly random, as long as the
+    message, and used once. Computers do the flipping on bits (0 and 1), called <b>XOR</b>. Real ciphers like AES
+    make a long key stream from a short key, and the rule still holds: never use the same stream twice. Soviet spies
+    reused pads in the 1940s, and American codebreakers read thousands of their messages (project Venona).
+- id: padlock
+  title: Open padlocks (public-key encryption)
+  why: >-
+    The paint trick needs both sides online at the same time. But how do you send a secret to someone you have never
+    talked to, like a shop you visit for the first time, or a friend who is asleep?
+  alt: >-
+    The dog hands out open padlocks to everyone and keeps the only key. The cat locks a letter in a box with one of
+    the padlocks; the fox grabs the box but cannot open it, and its own open padlock does not help. The dog's key
+    opens the box.
+  steps:
+    - The dog has an open padlock, and the only key that opens it. The key never leaves the dog.
+    - The dog makes copies of the open padlock and hands them out to anyone who asks, the fox too.
+    - The cat puts its letter in a box and snaps one of the dog's padlocks shut. Anyone can do that, no key needed.
+      But now even the cat cannot open the box again.
+    - On the way, the fox grabs the box. Shaking it does nothing, and its own open padlock is no help, because a
+      padlock can only lock.
+    - The box reaches the dog. Only the dog's key opens the padlock, and the letter is out.
+  real: >-
+    This is <b>public-key encryption</b> (for example RSA, or elliptic curves). The open padlock is the
+    <b>public key</b>, numbers anyone may use to lock; the key is the <b>private key</b>, numbers that unlock. In RSA,
+    making the private key from the public one means splitting a huge number into its two prime factors, which no
+    computer can do in time. Your phone uses it to send a website a fresh secret key, then switches to a fast cipher.
+- id: hash
+  title: Fingerprint (hash)
+  why: >-
+    You download an app or receive a contract. How can you check that it is exactly what was sent, to the last
+    letter, without comparing it letter by letter?
+  alt: >-
+    A letter goes into a grinder and a row of coloured blocks comes out. The same letter gives the same blocks, a
+    letter with one word changed gives completely different blocks, and running the machine backwards only gives
+    crumbs.
+  steps:
+    - The cat puts its letter into the fingerprint machine. Out come six coloured blocks, the letter's
+      <b>fingerprint</b>, and the cat pins them up where everyone can see them.
+    - The dog gets the letter and puts it through the same machine. Same letter, same blocks, so the letter arrived
+      exactly as the cat wrote it.
+    - Now one word of the letter is changed. The fingerprint changes completely, not just one block, so even the
+      smallest change shows.
+    - The fox wants the letter back from its fingerprint, so it runs the machine backwards. Only crumbs come out. The
+      blocks tell nothing about the letter.
+  real: >-
+    This is a <b>hash function</b>, for example SHA-256: any text or file goes in, 64 hex digits come out. Your phone
+    checks every app update this way, and Git and Bitcoin name everything by its hash. Inside, the bits are shuffled
+    in 64 rounds; nobody knows how to go back, or how to find two files with the same hash, other than by guessing,
+    and that takes far more guesses than any computer can make.
+- id: signature
+  title: Signature
+  why: >-
+    When your phone installs an update, how does it know that the update really comes from Apple or Google, and that
+    nobody slipped anything into it on the way?
+  alt: >-
+    The cat seals letters by stamping its paw over the letter's fingerprint; the dog checks each seal with a
+    see-through copy of the paw that everyone has. The fox's own paw does not fit, a seal moved to another letter has
+    the wrong colours, and a changed letter no longer matches its seal.
+  steps:
+    - The cat has a paw stamp that nobody else has. It stamps a see-through sheet and gives copies of the sheet to
+      everyone, the fox too.
+    - To sign a letter, the cat makes the letter's fingerprint (as in the fingerprint story) and stamps its paw over
+      those colours. That is the <b>seal</b>.
+    - "The dog checks two things: the paw on its sheet fits the seal, so the cat made it, and the colours match the
+      fingerprint of the letter the dog has, so nobody changed it."
+    - The fox makes a seal with its own paw. The paw does not fit the dog's sheet, so the dog rejects the letter.
+    - The fox cuts a real seal off one of the cat's letters and sticks it on a letter of its own. The paw fits, but
+      the colours belong to the old letter, not to this one. Rejected.
+    - The fox changes one word in a signed letter. Now the letter's fingerprint has new colours, the seal still has
+      the old ones. Rejected, and the dog knows someone changed the letter.
+  real: >-
+    This is a <b>digital signature</b>. The stamp is a <b>private key</b>, a secret number; the sheet is the matching
+    <b>public key</b>; the seal is a number made from the document's hash and the private key. Anyone can check a
+    seal with the public key, but making one without the private key is as hard as un-mixing the paint. Every app
+    update and every https site carries one.
+- id: passwords
+  title: Passwords and salt
+  why: >-
+    Websites get hacked, and their lists of users get stolen. What should a website keep, so that a stolen list does
+    not give away your password?
+  alt: >-
+    The dog's website first keeps the cat's password itself, and the fox steals it. Then it keeps only the
+    password's fingerprint, but the fox finds it in a book of fingerprints of common passwords. With a random salt
+    added before grinding, the fox's book finds nothing.
+  steps:
+    - The cat opens an account at the dog's website, with the password fish123. A careless website writes the
+      password itself into its list.
+    - Lists get stolen. The fox copies this one and now knows the cat's password, here and on every other site where
+      the cat uses it.
+    - So a good website keeps only the password's fingerprint. When the cat logs in, the site grinds what it types and
+      compares the blocks. Same blocks, welcome in.
+    - The fox steals the list of fingerprints. But it has a book, made in advance, with the fingerprints of millions of
+      common passwords. The cat's blocks are in it, next to fish123.
+    - The fix is <b>salt</b>. The site adds a few random letters to each password before grinding, different for
+      every user, and keeps them in the list next to the fingerprint.
+    - The fox steals the list again. Its book was made without salt, so the cat's blocks are not in it. It would need
+      a new book for every single user.
+  real: >-
+    Good sites never keep your password, only a <b>salted hash</b>, made with deliberately slow hash functions such as
+    <b>bcrypt</b> or <b>Argon2</b>, so even guessing one password at a time is slow. Stolen lists still get cracked
+    when passwords are common: 123456 falls in a second, salt or not. A long password you use nowhere else, or a
+    password manager, is what keeps you safe.

@@ -4,7 +4,7 @@
    2 each pours its secret into its yellow: orange (cat), green (dog);
    3 they swap the mixes in the open, and the fox catches a copy of each;
    4 each pours its own secret into the mix it got: both end with the same plum;
-   5 the fox mixes its copies: a muddy khaki, not the plum;
+   5 the fox mixes its copies: a muddy khaki, not the plum; a panel shows why (one yellow too many);
    6 the plum becomes a key and a padlock: the cat locks a heart in a box, the fox's khaki key does not open it, the
      dog's plum key does. */
 (function () {
@@ -28,11 +28,11 @@
 
     SC.story({
         id: 'key-exchange',
-        scenes: [3.2, 3.6, 4, 5.4, 4.2, 4.4, 12],
+        scenes: [3.2, 3.6, 4, 5.4, 4.2, 6.4, 12],
         poster: 20.9,
         keys: [null, 6.5],                  /* the stills with reduced motion (10-player.js) */
         build: function (svg, H) {
-            var S = [0, 3.2, 6.8, 10.8, 16.2, 20.4, 24.8];
+            var S = [0, 3.2, 6.8, 10.8, 16.2, 20.4, 26.8];
             H.room(svg);
             var fox = H.fox(svg), cat = H.pet(svg, 'cat'), dog = H.pet(svg, 'dog');
             var wonder = H.wonder(svg);
@@ -55,6 +55,27 @@
             var lockCross = H.cross(svg);
             var hearts = H.el('g', {}, svg);
             var hs = [H.heart(hearts), H.heart(hearts), H.heart(hearts)];
+            /* the labels: what is public, what is secret, what the fox has */
+            var lPub = H.label(svg, 'public', 400, 98), lPubC = H.label(svg, 'public', 262, 432), lPubD = H.label(svg, 'public', 538, 432);
+            var lSecC = H.label(svg, 'secret', 190, 432), lSecD = H.label(svg, 'secret', 610, 432);
+            var lFox = H.label(svg, 'the fox\u2019s copies', 400, 440, 'sc-fox-label');
+            var same = H.el('g', {}, svg);
+            H.el('path', { 'class': 'sc-same', d: 'M262 318Q400 178 538 318' }, same);
+            H.label(same, 'the same colour', 400, 236);
+            /* why the fox is stuck: its pot has yellow, pink, yellow, blue; the key has yellow, pink, blue */
+            var why = H.el('g', { 'class': 'sc-why-panel' }, svg);
+            H.el('rect', { 'class': 'ol', x: 222, y: 22, width: 356, height: 112, rx: 10 }, why);
+            H.label(why, 'the fox', 300, 68, 'sc-small', 'end'); H.label(why, 'their key', 300, 114, 'sc-small', 'end');
+            function blobs(row, list, y, out) {
+                list.forEach(function (c, i) { H.el('circle', { 'class': 'ol', cx: 326 + i * 30, cy: y, r: 11, fill: c }, row); });
+                H.el('path', { 'class': 'sc-eq', d: 'M' + (326 + list.length * 30 - 6) + ' ' + (y - 4) + 'h16M' + (326 + list.length * 30 - 6) + ' ' + (y + 4) + 'h16' }, row);
+                H.el('circle', { 'class': 'ol', cx: 326 + list.length * 30 + 34, cy: y, r: 15, fill: out }, row);
+            }
+            blobs(why, [Y, CS, Y, DS], 62, FX);
+            blobs(why, [Y, CS, DS], 108, F);
+            var extra = H.el('g', { 'class': 'sc-extra' }, why);
+            H.el('circle', { cx: 386, cy: 62, r: 16 }, extra);
+            H.el('path', { d: 'M374 74l24-24' }, extra);
 
             var CAT = 105, DOG = 695, FOXX = 400, FLOOR = 384;
             var cP = 262, dP = 538, cS = 190, dS = 610;              /* where the pots stand */
@@ -98,6 +119,17 @@
                     H.at(potC.g, a.x, a.y, 1); H.at(potD.g, b.x, b.y, 1); H.show(potC.g); H.show(potD.g);
                 }
                 fly(fY, slots[0], FLOOR + 22, 0.72, 20);
+                /* the labels */
+                H.show(lPub, H.seg(t, 1.2, 1.6) * (1 - H.seg(t, 1.9, 2.3)));
+                var pubK = H.seg(t, 2.5, 2.9) * (1 - H.seg(t, S[1] + 0.2, S[1] + 0.5));
+                H.show(lPubC, pubK); H.show(lPubD, pubK);
+                var secK = H.seg(t, S[1] + 0.6, S[1] + 1) * (1 - H.seg(t, S[6], S[6] + 0.5));
+                H.show(lSecC, secK); H.show(lSecD, secK);
+                H.show(lFox, H.seg(t, S[3] + 2.6, S[3] + 3.1) * (1 - H.seg(t, S[5], S[5] + 0.4)));
+                H.show(same, H.seg(t, S[4] + 3.3, S[4] + 3.8) * (1 - H.seg(t, S[5], S[5] + 0.4)));
+                var wk = H.seg(t, S[5] + 3.6, S[5] + 4.1) * (1 - H.seg(t, S[6], S[6] + 0.4));
+                H.show(why, wk); H.at(why, 400 * (1 - wk), 30 * (1 - wk), wk);
+                H.show(extra, H.seg(t, S[5] + 4.6, S[5] + 4.9));
                 /* the fox's copies split off at the top of the swap and fall to its feet */
                 var cp = H.seg(t, S[3] + 1.5, S[3] + 2.4);
                 var mc = H.arc(cP, FLOOR, dP, FLOOR, 200, 0.5), md = H.arc(dP, FLOOR, cP, FLOOR, 130, 0.5);

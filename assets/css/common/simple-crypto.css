@@ -1,66 +1,183 @@
-/* Simple Crypto (/simple-crypto/, a tab of the lab; layouts/simple-crypto/simple-crypto.html, assets/js/simple-crypto/):
-   the page around the players, the players, and the drawings inside them. The pictures keep their own light colours
-   in dark mode too (like a screen); the page around them follows the lab's light and dark colours. */
+/* Simple Crypto (/simple-crypto/, a tab of the lab; layouts/simple-crypto/simple-crypto.html, assets/js/simple-crypto/,
+   texts in data/simple_crypto.yaml): the page around the players, the players with their captions, the "Try it" and
+   "In real life" boxes, and the drawings inside the players. Light only, like the rest of the site. */
 
 /* the section's colour (play.css: the dots, the glow, the bar under the title, the current tab): violet */
 html[data-mode="play"] body:has(.sc-page) { --sec: #7c3aed; --sec-glow: rgba(124, 58, 237, 0.11); }
 
 .sc-page {
     --tl-ink: #0f172a; --tl-text: #334155; --tl-muted: #5b6b80; --tl-line: #e2e8f0; --tl-rule: #cbd5e1;
+    --sc-ok: #15803d; --sc-bad: #b42318;
     max-width: 820px;
     margin: 0 auto;
     color: var(--tl-text);
 }
 .sc-page .tl-h1 { margin-top: 6px; color: var(--tl-ink); }
-.sc-lede { max-width: 38em; margin: 0 0 8px; font-size: 16.5px; line-height: 1.6; }
-.sc-keys { max-width: 38em; margin: 0; color: var(--tl-muted); font-size: 14.5px; line-height: 1.5; }
+.sc-lede { max-width: 40em; margin: 0 0 8px; font-size: 16.5px; line-height: 1.6; }
+.sc-keys { max-width: 40em; margin: 0; color: var(--tl-muted); font-size: 14.5px; line-height: 1.5; }
 
-.sc-story { margin: 0 0 44px; scroll-margin-top: 16px; }
-.sc-h2 { position: relative; margin: 0 0 12px; font-size: 22px; font-weight: 700; line-height: 1.25; }
+.sc-story { margin: 0 0 56px; scroll-margin-top: 16px; }
+.sc-h2 { position: relative; margin: 0 0 8px; font-size: 24px; font-weight: 700; line-height: 1.25; }
 .sc-h2 a { color: var(--tl-ink); text-decoration: none; }
 .sc-h2 a:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .sc-num { color: var(--sec); font-variant-numeric: tabular-nums; }
-.sc-cap { position: relative; max-width: 42em; margin: 10px 0 0; color: var(--tl-muted); font-size: 14.5px; line-height: 1.5; }
-html[data-mode="play"] :is(.sc-h2, .sc-cap)::before {
+.sc-why { position: relative; max-width: 42em; margin: 0 0 14px; font-size: 16px; line-height: 1.55; color: var(--tl-text); }
+html[data-mode="play"] :is(.sc-h2, .sc-why)::before {
     content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
     background: var(--veil); border-radius: 12px; box-shadow: 0 0 16px 10px var(--veil);
 }
+/* the captions as a plain list, for a page without the script (the player shows them one at a time) */
+.sc-steps { margin: 10px 0 0; padding-left: 1.4em; font-size: 15.5px; line-height: 1.5; }
+.sc-steps.sc-js { display: none; }
 
 /* ---------- the player ---------- */
-.sc-player { border: 1px solid var(--tl-rule); border-radius: 10px; overflow: hidden; background: var(--sc-bar-bg, #fff); outline: none; }
+.sc-player { border: 1px solid var(--tl-rule); border-radius: 10px; overflow: hidden; background: #fff; outline: none; }
 .sc-player:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--sec) 45%, transparent); }
 .sc-screen { position: relative; }
 .sc-stage { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; cursor: pointer; user-select: none; -webkit-user-select: none; }
-/* the big button on the picture, while it is not playing */
+/* the big button on the picture, before the first step */
 .sc-big {
     position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; padding: 0;
     border: 0; border-radius: 50%; background: rgba(30, 27, 46, 0.72); color: #fff; cursor: pointer;
     transition: opacity 0.2s, transform 0.2s;
 }
 .sc-big svg { width: 40px; height: 40px; fill: currentColor; }
-.sc-big .ln, .sc-btn .ln { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.sc-big .ln, .sc-btn .ln { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .sc-big:hover { transform: scale(1.06); }
 .sc-big:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-.sc-player:is(.playing, .sc-mid) .sc-big { opacity: 0; pointer-events: none; }
+.sc-player.sc-started .sc-big { opacity: 0; pointer-events: none; }
 
-/* the bar: back, play, forward, the scenes, full screen */
-.sc-bar { display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-top: 1px solid var(--tl-line); }
-.sc-btn {
-    display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0;
-    border: 0; border-radius: 8px; background: none; color: var(--tl-ink); cursor: pointer;
+/* the caption of the step, under the picture: room for three lines, so the buttons stay put */
+.sc-caption {
+    min-height: calc(3 * 1.5em + 24px); padding: 12px 16px; border-top: 1px solid var(--tl-line);
+    color: var(--tl-ink); font-size: 17px; line-height: 1.5; box-sizing: border-box;
 }
-.sc-btn svg { width: 22px; height: 22px; fill: currentColor; }
-.sc-btn:hover { background: color-mix(in srgb, var(--tl-ink) 7%, transparent); }
-.sc-btn:focus-visible, .sc-track:focus-visible { outline: 2px solid var(--sec); outline-offset: 1px; }
-.sc-btn[hidden] { display: none; }
-.sc-track { display: flex; flex: 1; gap: 4px; min-width: 0; height: 40px; margin: 0 6px; align-items: center; cursor: pointer; touch-action: none; border-radius: 4px; }
-.sc-seg { position: relative; flex: 1 1 0; height: 6px; overflow: hidden; border-radius: 3px; background: color-mix(in srgb, var(--tl-ink) 13%, transparent); }
-.sc-seg i { position: absolute; inset: 0; background: var(--sec); transform: scaleX(0); transform-origin: left; }
+.sc-stepno { margin-right: 0.6em; color: var(--sec); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sc-caption b { color: var(--tl-ink); }
 
-/* full screen (for a projector): the picture as large as fits, the bar under it */
+/* the steps (tap one to play it), then Back, replay / pause, full screen and Next */
+.sc-bar { border-top: 1px solid var(--tl-line); }
+.sc-track { display: flex; gap: 4px; padding: 0 12px; }
+.sc-seg { flex: 1 1 0; min-width: 0; height: 26px; padding: 0; border: 0; background: none; cursor: pointer; }
+.sc-seg span { position: relative; display: block; height: 6px; overflow: hidden; border-radius: 3px; background: color-mix(in srgb, var(--tl-ink) 13%, transparent); }
+.sc-seg i { position: absolute; inset: 0; background: var(--sec); transform: scaleX(0); transform-origin: left; }
+.sc-seg:hover span { background: color-mix(in srgb, var(--tl-ink) 22%, transparent); }
+.sc-row { display: flex; align-items: center; gap: 8px; padding: 0 12px 12px; }
+.sc-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px; flex: none;
+    min-width: 46px; height: 46px; padding: 0 10px; box-sizing: border-box;
+    border: 1px solid var(--tl-rule); border-radius: 8px; background: #fff; color: var(--tl-ink);
+    font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.sc-btn svg { width: 22px; height: 22px; fill: currentColor; flex: none; }
+.sc-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--tl-ink) 6%, #fff); }
+.sc-btn:disabled { opacity: 0.38; cursor: default; }
+.sc-btn:focus-visible, .sc-seg:focus-visible { outline: 2px solid var(--sec); outline-offset: 2px; }
+.sc-btn[hidden] { display: none; }
+.sc-back { padding-right: 14px; }
+.sc-fullbtn { order: 3; margin-left: auto; border-color: transparent; }
+.sc-next { order: 4; min-width: 112px; padding: 0 12px 0 18px; border-color: var(--sec); background: var(--sec); color: #fff; }
+.sc-next:hover:not(:disabled) { background: color-mix(in srgb, var(--sec) 86%, #000); }
+.sc-row:has(.sc-fullbtn[hidden]) .sc-next { margin-left: auto; }
+
+/* full screen (for a projector): the picture as large as fits, the caption and the bar under it */
 .sc-player.sc-full { display: flex; flex-direction: column; justify-content: center; border: 0; border-radius: 0; background: #14121c; }
-.sc-player.sc-full .sc-screen { width: min(100vw, (100vh - 56px) * 16 / 9); margin: 0 auto; }
-.sc-player.sc-full .sc-bar { width: min(100vw, (100vh - 56px) * 16 / 9); margin: 0 auto; border-top: 0; --tl-ink: #f1eefb; }
+.sc-player.sc-full > * { width: min(100vw, (100vh - 220px) * 16 / 9); margin: 0 auto; box-sizing: border-box; }
+.sc-player.sc-full .sc-caption { min-height: 0; height: 130px; overflow: auto; border: 0; color: #f1eefb; font-size: 24px; }
+.sc-player.sc-full .sc-caption b { color: #fff; }
+.sc-player.sc-full .sc-bar { border: 0; --tl-ink: #f1eefb; }
+.sc-player.sc-full .sc-btn:not(.sc-next) { background: transparent; border-color: #4a4560; color: #f1eefb; }
+
+/* ---------- Try it, and In real life ---------- */
+.sc-try { margin-top: 16px; padding: 14px 18px 18px; border: 1px solid var(--tl-rule); border-radius: 10px; background: #fff; }
+.sc-try h3, .sc-real h3 { margin: 0 0 6px; color: var(--tl-ink); font-size: 17px; font-weight: 700; }
+.sc-try p { max-width: 40em; margin: 0 0 10px; font-size: 15.5px; line-height: 1.55; }
+.sc-try .sc-gap { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--tl-line); }
+.sc-try-note { color: var(--tl-muted); }
+.sc-say { min-height: 1.55em; }
+.sc-say.sc-good, .sc-good { color: var(--sc-ok); }
+.sc-say.sc-bad-say { color: var(--sc-bad); }
+.sc-real { margin-top: 14px; padding: 12px 16px; border-left: 4px solid var(--sec); background: #fff; border-radius: 0 8px 8px 0; }
+.sc-real p { max-width: 44em; margin: 0; font-size: 15.5px; line-height: 1.6; }
+.sc-real b { color: var(--tl-ink); }
+
+/* the controls inside the boxes: 16px text at least (iPhones zoom into smaller fields), 44px to tap */
+.sc-tbtn {
+    min-width: 46px; min-height: 46px; padding: 0 14px; border: 1px solid var(--tl-rule); border-radius: 8px;
+    background: #fff; color: var(--tl-ink); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.sc-tbtn:hover:not(:disabled) { background: color-mix(in srgb, var(--tl-ink) 6%, #fff); }
+.sc-tbtn:disabled { opacity: 0.38; cursor: default; }
+.sc-tbtn:focus-visible { outline: 2px solid var(--sec); outline-offset: 2px; }
+.sc-tbtn.sc-wide { display: block; margin: 10px 0 0; }
+.sc-tbtn[hidden] { display: none; }
+.sc-field, .sc-slider { display: block; margin: 4px 0 12px; }
+.sc-field span, .sc-slider span { display: block; margin-bottom: 4px; color: var(--tl-muted); font-size: 14px; }
+.sc-field input {
+    width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--tl-rule); border-radius: 8px;
+    background: #fff; color: var(--tl-ink); font: inherit; font-size: 17px;
+}
+.sc-field input:focus { outline: 2px solid var(--sec); outline-offset: 0; border-color: var(--sec); }
+.sc-slider input { width: 100%; height: 36px; margin: 0; accent-color: var(--sec); }
+
+/* the colours: a swatch, a fingerprint's blocks */
+.sc-sw { display: inline-block; width: 44px; height: 44px; border: 2px solid #3b2a1e; border-radius: 50%; box-sizing: border-box; }
+.sc-mixrow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 4px; margin: 6px 0 8px; }
+.sc-mixcell { display: flex; flex-direction: column; align-items: center; width: 70px; text-align: center; }
+.sc-mixlab { margin-top: 4px; color: var(--tl-muted); font-size: 13px; line-height: 1.3; }
+.sc-op { padding-top: 8px; color: var(--tl-ink); font-size: 22px; font-weight: 700; }
+.sc-op.sc-vs { padding: 12px 6px 0; font-size: 15px; color: var(--tl-muted); }
+.sc-blocks { display: inline-flex; gap: 4px; vertical-align: middle; }
+.sc-blocks span { width: 22px; height: 22px; border: 1.5px solid #3b2a1e; border-radius: 4px; box-sizing: border-box; }
+.sc-big-blocks span { width: 40px; height: 40px; border-width: 2px; border-radius: 6px; }
+.sc-fp { margin: 4px 0 10px; }
+.sc-hex { display: block; margin-top: 8px; color: var(--tl-text); font-size: 14px; line-height: 1.6; word-break: normal; }
+.sc-hex mark { background: #fde68a; color: var(--tl-ink); }
+
+/* key exchange: the number to try, and the guesses so far */
+.sc-stepper { display: flex; align-items: center; gap: 10px; }
+.sc-num-out { min-width: 2.2ch; color: var(--tl-ink); font-size: 30px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+.sc-calc { margin-top: 10px; font-variant-numeric: tabular-nums; }
+.sc-trail { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.sc-chip { padding: 2px 8px; border: 1px solid var(--tl-rule); border-radius: 6px; color: var(--tl-ink); font-size: 14px; font-variant-numeric: tabular-nums; }
+.sc-chip i { margin-right: 4px; color: var(--tl-muted); font-style: normal; }
+.sc-chip i::after { content: " \2192"; }
+.sc-chip.sc-now { border-color: var(--sec); }
+.sc-chip.sc-hit { border-color: var(--sc-ok); background: #e7f6ec; }
+
+/* signature: the seal (the paw over the blocks), the dog's fingerprint, the two checks */
+.sc-sigrow { display: flex; gap: 20px; align-items: flex-start; margin: 4px 0 6px; }
+.sc-sigcell { display: flex; flex-direction: column; align-items: flex-start; flex: 1 1 0; min-width: 0; max-width: 13em; }
+.sc-sigcell .sc-mixlab { text-align: left; }
+.sc-seal { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px 7px; border: 2px solid #3b2a1e; border-radius: 8px; background: #c8372d; }
+.sc-seal-paw svg { display: block; width: 34px; height: 36px; fill: #7f1d17; }
+.sc-seal-blocks span, .sc-dog-blocks span { width: 18px; height: 18px; }
+.sc-dog-blocks { padding: 6px 0; }
+.sc-checks { margin: 12px 0 4px; padding: 0; list-style: none; font-size: 15.5px; line-height: 1.5; }
+.sc-checks li { position: relative; padding-left: 1.6em; }
+.sc-checks li::before { position: absolute; left: 0; font-weight: 800; }
+.sc-checks .sc-ok { color: var(--sc-ok); }
+.sc-checks .sc-ok::before { content: "\2713"; }
+.sc-checks .sc-bad { color: var(--sc-bad); }
+.sc-checks .sc-bad::before { content: "\2717"; }
+
+/* ---------- labels in the pictures (a few words; the captions tell the story) ---------- */
+.sc-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-size: 24px; font-weight: 700; fill: #3b2a1e;
+    paint-order: stroke; stroke: #fbf6ec; stroke-width: 6px; stroke-linejoin: round;
+}
+.sc-label.sc-small { font-size: 21px; }
+.sc-label.sc-warn, .sc-label.sc-bad { fill: #c2410c; }
+.sc-label.sc-ok { fill: #15803d; }
+.sc-label.sc-res { font-size: 26px; }
+.sc-label.sc-fox-label { fill: #a3401b; }
+.sc-same { fill: none; stroke: #8a4f7d; stroke-width: 3; stroke-dasharray: 7 7; stroke-linecap: round; }
+.sc-why-panel > rect { fill: #fff; }
+.sc-why-panel .sc-label { stroke: #fff; }
+.sc-eq { fill: none; stroke: #3b2a1e; stroke-width: 3; stroke-linecap: round; }
+.sc-extra circle, .sc-extra path { fill: none; stroke: #e5484d; stroke-width: 3.5; stroke-linecap: round; }
+.sc-strip.sc-thin rect { stroke-width: 1; }
 
 /* ---------- the drawings (always light, like a screen) ---------- */
 .sc-wall { fill: #fbf6ec; }
@@ -134,7 +251,6 @@ html[data-mode="play"] :is(.sc-h2, .sc-cap)::before {
 .sc-stamp .st-ink { fill: #c8372d; }
 .sc-glint { fill: none; stroke: #e8b543; stroke-width: 3; stroke-linecap: round; }
 .seal-paw { fill: #7f1d17; }
-.seal-crack { fill: none; stroke: #fff8ef; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .sc-sheet rect { fill: rgba(125, 180, 255, 0.28); stroke: #4f7fd1; stroke-width: 1.6; }
 .sheet-paw { fill: none; stroke: #1d4ed8; stroke-width: 1.3; stroke-dasharray: 2.4 1.6; }
 .sc-scribble { fill: none; stroke: #e5484d; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -153,6 +269,7 @@ html[data-mode="play"] :is(.sc-h2, .sc-cap)::before {
 .sc-crumb { stroke: #3b2a1e; stroke-width: 1; stroke-linejoin: round; }
 .sc-ring { fill: none; stroke: #e5484d; }
 
+
 /* paused: the little life in the drawing (the tail, blinking) waits too */
 .sc-player:not(.playing) .sc-stage * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
@@ -164,12 +281,85 @@ html[data-mode="play"] :is(.sc-h2, .sc-cap)::before {
 @media (max-width: 600px) {
     .sc-lede { font-size: 15.5px; }
     .sc-keys { display: none; }
-    .sc-h2 { font-size: 19px; }
-    .sc-story { margin-bottom: 34px; scroll-margin-top: 64px; }   /* clear of the corner buttons */
+    .sc-h2 { font-size: 21px; }
+    .sc-why { font-size: 15.5px; }
+    .sc-story { margin-bottom: 44px; scroll-margin-top: 64px; }   /* clear of the corner buttons */
     .sc-big { width: 60px; height: 60px; margin: -30px 0 0 -30px; }
     .sc-big svg { width: 32px; height: 32px; }
-    .sc-bar { gap: 0; padding: 4px; }
-    .sc-btn { width: 38px; height: 38px; }
-    .sc-track { gap: 3px; margin: 0 4px; }
+    .sc-caption { min-height: calc(4 * 1.5em + 20px); padding: 10px 12px; font-size: 16px; }
+    .sc-track { gap: 3px; padding: 0 10px; }
+    .sc-row { gap: 6px; padding: 0 10px 10px; }
+    .sc-try { padding: 12px 14px 16px; }
+    .sc-real { padding: 10px 12px; }
+    .sc-mixrow { gap: 6px 2px; }
+    .sc-mixcell { width: 54px; }
+    .sc-mixcell .sc-sw { width: 38px; height: 38px; }
+    .sc-op { padding-top: 5px; font-size: 19px; }
+    .sc-op.sc-vs { padding: 9px 2px 0; }
+}
+/* the labels in the pictures stay readable on a phone (the picture is drawn at about 0.45 of its size there) */
+@media (max-width: 600px) {
+    .sc-label { font-size: 32px; stroke-width: 7px; }
+    .sc-label.sc-small { font-size: 28px; }
+    .sc-label.sc-res { font-size: 32px; }
+    .sc-why-panel .sc-label { font-size: 24px; }
 }
 
+/* ---------- secret sheets (the one-time pad): pictures of squares, the key as a see-through sheet of dots ---------- */
+.sc-grid .grid-paper { fill: #fff; }
+.sc-grid rect:not(.grid-paper) { fill: #f1ece2; }
+.sc-grid rect.on { fill: #3b2a1e; }
+.sc-keysheet .ks-film { fill: rgba(125, 180, 255, 0.3); stroke: #4f7fd1; stroke-width: 1.6; }
+.sc-keysheet circle { fill: #1d4ed8; }
+.sc-bubble > circle, .sc-bubble > ellipse { fill: #fff; stroke: #3b2a1e; stroke-width: 2; }
+.sc-label.sc-q { font-size: 44px; }
+/* the "Try it" grids: a picture of 10 x 10 squares, the key with its dots, the big one to draw on */
+.sc-grow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 6px; margin: 4px 0 6px; }
+.sc-gcell { display: flex; flex-direction: column; align-items: center; width: 104px; margin: 0; text-align: center; }
+.sc-g {
+    display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px; width: 100%; aspect-ratio: 1; padding: 3px;
+    box-sizing: border-box; border: 1.5px solid #3b2a1e; border-radius: 4px; background: #fff;
+}
+.sc-g span { border-radius: 1px; background: #f1ece2; }
+.sc-g span.on { background: #3b2a1e; }
+.sc-gkey { background: rgba(125, 180, 255, 0.3); border-color: #4f7fd1; }
+.sc-gkey span { background: transparent; }
+.sc-gkey span.dot { background: radial-gradient(circle, #1d4ed8 0 42%, transparent 46%); }
+.sc-gfox { border-color: #c2410c; border-width: 2px; }
+.sc-draw-wrap { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 16px; margin: 4px 0 14px; }
+.sc-draw-wrap .sc-gcell { width: min(230px, 100%); }
+.sc-draw { cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.sc-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.sc-tools .sc-tbtn[aria-pressed="true"] { border-color: var(--sec); color: var(--sec); }
+.sc-grow .sc-op { align-self: center; margin-top: -18px; }
+@media (max-width: 600px) {
+    .sc-gcell { width: 86px; }
+    .sc-draw-wrap .sc-gcell { width: 200px; }
+    .sc-grow { gap: 8px 3px; }
+    .sc-grow .sc-op { font-size: 17px; }
+}
+/* open padlocks: the lock and open lines, the number field with its button */
+.sc-calc-steps { margin: 10px 0 0; padding-left: 1.4em; font-size: 15.5px; line-height: 1.55; font-variant-numeric: tabular-nums; }
+.sc-calc-steps li { margin-bottom: 6px; }
+.sc-stepper .sc-mixlab { margin: 0 4px 0 0; font-size: 14px; }
+.sc-inrow { display: flex; gap: 8px; max-width: 20em; }
+.sc-inrow input { flex: 1; min-width: 0; }
+/* passwords and salt: the tags, the list, the fox's book */
+.sc-label.sc-mono { font-family: ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace; font-size: 22px; font-weight: 700; }
+.sc-label.sc-book-pw { font-size: 20px; stroke: #fffdf7; }
+.sc-label.sc-salt-text { fill: #0e7490; }
+.sc-tag rect { fill: #fff; }
+.sc-tag.sc-salt rect { fill: #dff3fb; }
+.sc-book > rect { fill: #fffdf7; }
+.sc-book .book-mid { stroke: #e3d6bb; stroke-width: 2; }
+.sc-book .book-hl { fill: transparent; }
+.sc-book .book-hl.look { fill: #fdecb0; }
+.sc-book .book-hl.hit { fill: #fbd0cc; }
+@media (max-width: 600px) {
+    .sc-label.sc-mono { font-size: 22px; }
+    .sc-label.sc-book-pw { font-size: 20px; }
+}
+.sc-pwrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0; }
+.sc-pwlab { min-width: 8.5em; color: var(--tl-muted); font-size: 14px; }
+.sc-saltchip { padding: 2px 8px; border: 1px solid #7dd3fc; border-radius: 6px; background: #dff3fb; color: #0e7490; font-size: 15px; }
+.sc-gap-top { margin-top: 16px; }
