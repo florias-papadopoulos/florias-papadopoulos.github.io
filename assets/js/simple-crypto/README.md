@@ -26,6 +26,8 @@ picture's alt text, the real-life box) are in `data/simple_crypto.yaml`, in page
 | `51-one-time-pad-try.js` | Try it: draw a picture, see the key and what is sent; then reuse the key for a second picture and see the fox's overlay |
 | `60-padlock.js` | Open padlocks (public-key encryption): the dog hands out open padlocks and keeps the key; the cat snaps one shut on a box (and then cannot open it itself); the fox shakes the box and tries its own open padlock; the dog's key opens it |
 | `61-padlock-try.js` | Try it: the padlock as small numbers (RSA with 33 and 3, the key 7): lock a number and open it again; then be the fox and split 8051 into two factors |
+| `70-passwords.js` | Passwords and salt: the dog's website keeps the password (the fox steals it), then its fingerprint (the fox's book of common passwords' fingerprints finds it), then a salted fingerprint (the book finds nothing); the fingerprints are real SHA-256 colours |
+| `71-passwords-try.js` | Try it: a password's fingerprint without salt (and whether a small book of common passwords has it), then with two random salts for two users |
 | `90-boot.js` | Starts a player for each `.sc-player[data-story]` and fills each `.sc-try[data-try]` |
 
 A story is `SC.story({ id, scenes: [seconds...], poster, keys, build })`. `build(svg, H)` draws everything once

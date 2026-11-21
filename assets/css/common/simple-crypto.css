@@ -344,3 +344,22 @@ html[data-mode="play"] :is(.sc-h2, .sc-why)::before {
 .sc-stepper .sc-mixlab { margin: 0 4px 0 0; font-size: 14px; }
 .sc-inrow { display: flex; gap: 8px; max-width: 20em; }
 .sc-inrow input { flex: 1; min-width: 0; }
+/* passwords and salt: the tags, the list, the fox's book */
+.sc-label.sc-mono { font-family: ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace; font-size: 22px; font-weight: 700; }
+.sc-label.sc-book-pw { font-size: 20px; stroke: #fffdf7; }
+.sc-label.sc-salt-text { fill: #0e7490; }
+.sc-tag rect { fill: #fff; }
+.sc-tag.sc-salt rect { fill: #dff3fb; }
+.sc-book > rect { fill: #fffdf7; }
+.sc-book .book-mid { stroke: #e3d6bb; stroke-width: 2; }
+.sc-book .book-hl { fill: transparent; }
+.sc-book .book-hl.look { fill: #fdecb0; }
+.sc-book .book-hl.hit { fill: #fbd0cc; }
+@media (max-width: 600px) {
+    .sc-label.sc-mono { font-size: 22px; }
+    .sc-label.sc-book-pw { font-size: 20px; }
+}
+.sc-pwrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0; }
+.sc-pwlab { min-width: 8.5em; color: var(--tl-muted); font-size: 14px; }
+.sc-saltchip { padding: 2px 8px; border: 1px solid #7dd3fc; border-radius: 6px; background: #dff3fb; color: #0e7490; font-size: 15px; }
+.sc-gap-top { margin-top: 16px; }

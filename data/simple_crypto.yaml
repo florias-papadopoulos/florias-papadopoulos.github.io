@@ -125,3 +125,30 @@
     <b>public key</b>; the seal is a number made from the document's hash and the private key. Anyone can check a
     seal with the public key, but making one without the private key is as hard as un-mixing the paint. Every app
     update and every https site carries one.
+- id: passwords
+  title: Passwords and salt
+  why: >-
+    Websites get hacked, and their lists of users get stolen. What should a website keep, so that a stolen list does
+    not give away your password?
+  alt: >-
+    The dog's website first keeps the cat's password itself, and the fox steals it. Then it keeps only the
+    password's fingerprint, but the fox finds it in a book of fingerprints of common passwords. With a random salt
+    added before grinding, the fox's book finds nothing.
+  steps:
+    - The cat opens an account at the dog's website, with the password fish123. A careless website writes the
+      password itself into its list.
+    - Lists get stolen. The fox copies this one and now knows the cat's password, here and on every other site where
+      the cat uses it.
+    - So a good website keeps only the password's fingerprint. When the cat logs in, the site grinds what it types and
+      compares the blocks. Same blocks, welcome in.
+    - The fox steals the list of fingerprints. But it has a book, made in advance, with the fingerprints of millions of
+      common passwords. The cat's blocks are in it, next to fish123.
+    - The fix is <b>salt</b>. The site adds a few random letters to each password before grinding, different for
+      every user, and keeps them in the list next to the fingerprint.
+    - The fox steals the list again. Its book was made without salt, so the cat's blocks are not in it. It would need
+      a new book for every single user.
+  real: >-
+    Good sites never keep your password, only a <b>salted hash</b>, made with deliberately slow hash functions such as
+    <b>bcrypt</b> or <b>Argon2</b>, so even guessing one password at a time is slow. Stolen lists still get cracked
+    when passwords are common: 123456 falls in a second, salt or not. A long password you use nowhere else, or a
+    password manager, is what keeps you safe.
