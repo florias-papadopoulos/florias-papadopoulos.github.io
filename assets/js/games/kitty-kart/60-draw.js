@@ -17,6 +17,7 @@
             ctx.globalAlpha = Math.max(0, 0.9 - pt * 3);
         } else if (c.fall > 0) { var fs = 0.15 + 0.85 * c.fall / 1.3; ctx.globalAlpha = c.fall / 1.3; ctx.scale(fs, fs); ctx.rotate((1.3 - c.fall) * 6); }
         ctx.rotate(c.a);
+        drawSlide(c);  /* drift sparks and slipstream wind (drifting part) */
         if (c.boost > 0) {  /* catnip or a boost pad: a green flame */
             ctx.fillStyle = 'rgba(74,222,128,.75)'; ctx.beginPath(); ctx.moveTo(-15, -5); ctx.lineTo(-27 - Math.random() * 9, 0); ctx.lineTo(-15, 5); ctx.fill();
         }

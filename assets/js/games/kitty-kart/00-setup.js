@@ -21,6 +21,8 @@
    No big shortcuts: a kart that goes too far off the road gets "Turn back!" with a flashing arrow, and if it stays
    out (or goes further) it is put back where it left the road, in a puff of smoke; so is a kart that hops across
    between two close parts of the road (offCheck, cutCheck, rescue).
+   Brake while steering hard at speed drifts (sparks turning blue, orange, pink; a mini-turbo on letting go), and
+   right behind another fast kart a slipstream gives a little pull; see the drift part (35-drift-draft.js).
    The same file is Kitty Kart Duo (id kitty-kart-duo): two players on two devices race each other and two computer
    cats; see the Duo part at the end. Single player is untouched by it: pal stays null, host and remote false.
    And it is Kitty Kart Split Screen (id kitty-kart-split): two players on one phone lying flat between them, one half

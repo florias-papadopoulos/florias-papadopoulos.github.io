@@ -1,12 +1,13 @@
     /* ---------- page: canvas, HUD, countdown, touch buttons, track picker ---------- */
     function arrow(d) { return '<svg viewBox="0 0 24 24"><path d="' + d + '"/></svg>'; }
-    var TOUCH_HINT = 'Hold Gas, steer with the arrows, tap the item button to use an item';
+    var DRIFT_HINT = '. Brake while turning fast to drift, let go for a boost';  /* drifting: 35-drift-draft.js */
+    var TOUCH_HINT = 'Hold Gas, steer with the arrows, tap the item button to use an item' + DRIFT_HINT;
     var wrapEl = document.createElement('div');
     wrapEl.className = 'kk kk-picking' + (api.touch ? ' kk-touch' : '') + (duo ? ' kk-lobby-on' : '');
     wrapEl.innerHTML = '<canvas class="kk-cv"></canvas>' +
         '<div class="kk-hud"><span class="kk-pill kk-pos">4th</span><span class="kk-pill"><small>Lap</small><b class="kk-lap">1/3</b></span>' +
         '<span class="kk-pill kk-time">0.0</span><span class="kk-pill kk-slot kk-empty" title="Item"><canvas width="64" height="64"></canvas></span></div>' +
-        '<div class="kk-count"></div><div class="kk-hint">' + (api.touch ? TOUCH_HINT : 'Arrows or WASD to drive and brake, Space or Shift to use an item') + '</div>' +
+        '<div class="kk-count"></div><div class="kk-hint">' + (api.touch ? TOUCH_HINT : 'Arrows or WASD to drive and brake, Space or Shift to use an item' + DRIFT_HINT) + '</div>' +
         '<button class="kk-btn kk-use kk-empty" aria-label="Use item"><canvas width="64" height="64"></canvas></button>' +
         '<button class="kk-btn kk-left" data-k="left" aria-label="Steer left">' + arrow('M15 5l-7 7 7 7') + '</button>' +
         '<button class="kk-btn kk-right" data-k="right" aria-label="Steer right">' + arrow('M9 5l7 7-7 7') + '</button>' +

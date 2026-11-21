@@ -3,6 +3,10 @@
     if (test) test.state = function () { return { phase: phase, map: MAP.id, lap: laps(me), place: place, time: raceTime, item: me.item, idx: me.idx, alt: me.alt, ai: me.ai, altn: ALT ? ALT.n : 0, storm: !!(MAP.storm && MAP.storm.on > 1.2 && MAP.storm.on < 3.8), yarns: yarns.length, milks: milks.length, fx: yarns.concat(milks, karts.filter(function (c) { return c.shield > 0 || c.tangled > 0 || c.nap > 0 || c.laser > 0; })).filter(function (o) { return Math.hypot(o.x - me.x, o.y - me.y) < 300; }).length, met: MAP.met ? MAP.met.filter(function (m) { return m.t < 1.5 && Math.hypot(m.x - me.x, m.y - me.y) < 260; }).length : 0, fin: karts.map(function (c) { return c.fin; }) }; };
     function stat(k) { if (test) test.stats[k] = (test.stats[k] || 0) + 1; }
     if (test) test.karts = function () { return karts.map(function (c) { return [Math.round(c.x), Math.round(c.y), c.idx, c.k, c.alt ? c.ai : -1, Math.round(c.vf), Math.round(c.dist), c.fall > 0 ? 1 : 0]; }); };
+    if (test) test.probe = function () {  /* only on the test page: drift, level, slipstream, speed, boost and steering of every kart */
+        return karts.map(function (c) { return [c.drift, c.dlv, Math.round(c.draft * 100) / 100, Math.round(c.vf), c.boost > 0 ? 1 : 0, Math.round(c.steer * 100) / 100, c.on ? 1 : 0]; });
+    };
+    if (test) test.DRIFT = DRIFT;  /* only on the test page: the drift settings, to try others */
     if (test) test.overview = function (sc) {  /* only on the test page: the whole cached track with its point numbers */
         var c = document.createElement('canvas'), g = c.getContext('2d'), i;
         c.width = Math.round(WW * sc); c.height = Math.round(WH * sc);
@@ -34,9 +38,11 @@
                     if (me.P) smart(me, PERFECT, 1); else autopilot(me, 0.98);
                     if (test.items !== false) { if (me.P) aiItemSmart(me, dt); else aiItem(me, dt); }
                     if (!me.on) test.stats.offT = (test.stats.offT || 0) + dt;
+                    if (test.drift) { me.brk = Math.abs(me.steer) > 0.5 && me.vf > VMAX * DRIFT.on || !!me.drift; if (me.brk && me.thr > 0) me.thr = 0; }  /* the bot drifts: Brake (with Gas) in hard turns */
                 }
                 else {
                     me.thr = (keys.up || pads.up ? 1 : 0) - (keys.down || pads.down ? 1 : 0);
+                    me.brk = !!(keys.down || pads.down);  /* Brake while steering at speed: a drift */
                     var want = (keys.right || pads.right ? 1 : 0) - (keys.left || pads.left ? 1 : 0);
                     me.steer += (want - me.steer) * Math.min(1, dt * 10);
                     if (me.laser > 0) me.steer = me.steer * 0.3 + 0.7 * clamp(wrap(Math.atan2(me.doty - me.y, me.dotx - me.x) - me.a) * 3, -1, 1);
