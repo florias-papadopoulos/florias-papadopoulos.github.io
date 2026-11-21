@@ -202,12 +202,17 @@
         phase = 'done';
         count('');
         place = finishers;
+        /* KK_VERSION: the version of the tracks (2 since they were made longer, 2026-11-21). A best from an older
+           version stays until the first race on this one, which replaces it even when it is slower; the leaderboard
+           server does the same per board (tools/workers/stats/worker.js, ver) */
+        var KK_VERSION = 2;
+        if (!saved.bv || typeof saved.bv !== 'object') saved.bv = {};
         var t = Math.round(raceTime * 10) / 10, old = saved.best[MAP.id];
-        if (typeof old !== 'number' || t < old) { saved.best[MAP.id] = t; persist(); }
+        if (typeof old !== 'number' || t < old || (saved.bv[MAP.id] || 1) < KK_VERSION) { saved.best[MAP.id] = t; saved.bv[MAP.id] = KK_VERSION; persist(); }
         show();
         if (place === 1) { api.cat('happy'); api.say(dogify('Purrfect! First place!'), 2400); }
         else api.say(dogify(place === 2 ? 'So close! Again?' : 'Meow. Next time!'), 2400);
-        api.end({ score: t, lowerIsBetter: true, win: place === 1, place: place, board: MAP.id, again: { track: MAP.id }, menu: 'Tracks',
+        api.end({ score: t, lowerIsBetter: true, win: place === 1, place: place, board: MAP.id, version: KK_VERSION, again: { track: MAP.id }, menu: 'Tracks',
             text: 'You finished ' + ordinal(place) + ' on ' + MAP.name + '\nTime ' + t.toFixed(1) + ' s' });
     }
     function collide() {

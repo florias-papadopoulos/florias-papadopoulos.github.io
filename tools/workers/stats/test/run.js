@@ -148,6 +148,33 @@ test('M4 every board has a max, lower is better ones a min', function () {
         });
     });
 });
+test('versioned tracks: old times stay until the first new one, which deletes them; then old ones are refused', async function () {
+    var w = worker();
+    var post = function (b, v, n, s) { var j = { g: 'kitty-kart', l: 'normal', b: b, n: n, s: s }; if (v !== undefined) j.v = v; return w.call('POST', '/scores', { json: j }); };
+    /* an old time (no version, from a page cached before the change) on a board without new ones: kept */
+    assert.strictEqual((await post('meadow', undefined, 'Milo', 60)).status, 200);
+    assert.strictEqual((await post('meadow', 1, 'Luna', 58)).status, 200);
+    assert.ok(w.db.hasV, 'the version column was added');
+    var d = (await w.call('GET', '/scores?g=kitty-kart&l=normal&b=meadow')).json();
+    assert.deepStrictEqual(d.all.map(function (e) { return e.n; }), ['Luna', 'Milo'], 'only old times: they stay');
+    assert.strictEqual(d.old, true, 'the board says it has only old times, so a new one is always offered');
+    /* the first new time deletes the old ones of this board only */
+    assert.strictEqual((await post('city', 1, 'Milo', 61)).status, 200);
+    assert.strictEqual((await post('meadow', 2, 'Kiki', 84)).status, 200);
+    d = (await w.call('GET', '/scores?g=kitty-kart&l=normal&b=meadow')).json();
+    assert.deepStrictEqual(d.all.map(function (e) { return e.n + ' ' + e.s; }), ['Kiki 84']);
+    assert.strictEqual(d.old, undefined);
+    assert.strictEqual((await w.call('GET', '/scores?g=kitty-kart&l=normal&b=city')).json().all.length, 1, 'other boards keep theirs');
+    /* after it, an old time is refused */
+    var r = await post('meadow', 1, 'Milo', 50);
+    assert.strictEqual(r.status, 409);
+    assert.strictEqual((await post('meadow', undefined, 'Milo', 50)).status, 409);
+    assert.strictEqual((await post('meadow', 3, 'Milo', 50)).status, 400, 'no future versions');
+    assert.strictEqual((await post('meadow', 'x', 'Milo', 50)).status, 400);
+    /* games without versions are unchanged */
+    assert.strictEqual((await w.call('POST', '/scores', { json: { g: 'long-cat', l: 'normal', b: '', n: 'Milo', s: 420 } })).status, 200);
+});
+
 test('M4 scores outside the caps are refused', async function () {
     var w = worker(), ok = function (g, l, s, b) { return w.i.scoreOk(w.i.boardOf({ g: g, l: l, b: b || '' }, true), s); };
     assert.ok(!ok('long-cat', 'normal', 10000000));

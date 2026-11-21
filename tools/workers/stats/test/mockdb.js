@@ -9,6 +9,7 @@ function MockDB(opts) {
     this.t = { counts: [], rooms: [], scores: [], likes: [] };
     this.log = [];
     this.noSecret = !!opts.roomsWithoutSecret;   /* a rooms table from before the host key */
+    this.hasV = !!opts.scoresWithVersion;        /* a scores table with the version column (added by the worker) */
     this.nextId = 1;
 }
 MockDB.prototype.table = function (n) { return this.t[n]; };
@@ -107,8 +108,31 @@ Stmt.prototype.exec = function () {
     }
     /* scores */
     if (sql === 'INSERT INTO scores (board, name, score, week, at) VALUES (?1, ?2, ?3, ?4, ?5)') {
-        db.insert('scores', { board: arg(1), name: arg(2), score: arg(3), week: arg(4), at: arg(5) });
+        db.insert('scores', { board: arg(1), name: arg(2), score: arg(3), week: arg(4), at: arg(5), v: 1 });
         return { rows: [], changes: 1 };
+    }
+    if (sql === 'SELECT v FROM scores LIMIT 1') {
+        if (!db.hasV) throw new Error('D1_ERROR: no such column: v: SQLITE_ERROR');
+        return { rows: t.scores.slice(0, 1).map(function (r) { return { v: r.v }; }) };
+    }
+    if (sql === 'ALTER TABLE scores ADD COLUMN v INTEGER NOT NULL DEFAULT 1') {
+        if (db.hasV) throw new Error('D1_ERROR: duplicate column name: v: SQLITE_ERROR');
+        db.hasV = true;
+        t.scores.forEach(function (r) { r.v = 1; });
+        return { rows: [], changes: 0 };
+    }
+    if (sql === 'INSERT INTO scores (board, name, score, week, at, v) VALUES (?1, ?2, ?3, ?4, ?5, ?6)') {
+        if (!db.hasV) throw new Error('D1_ERROR: table scores has no column named v');
+        db.insert('scores', { board: arg(1), name: arg(2), score: arg(3), week: arg(4), at: arg(5), v: arg(6) });
+        return { rows: [], changes: 1 };
+    }
+    if (sql === 'SELECT COUNT(*) AS n FROM scores WHERE board = ?1 AND v >= ?2') {
+        return { rows: [{ n: t.scores.filter(function (r) { return r.board === arg(1) && (r.v || 1) >= arg(2); }).length }] };
+    }
+    if (sql === 'DELETE FROM scores WHERE board = ?1 AND v < ?2') {
+        var b0 = t.scores.length;
+        t.scores = t.scores.filter(function (r) { return !(r.board === arg(1) && (r.v || 1) < arg(2)); });
+        return { rows: [], changes: b0 - t.scores.length };
     }
     if (/^DELETE FROM scores WHERE board = \?1 AND /.test(sql)) return { rows: [], changes: 0 };   /* trimming: not needed by the tests */
     if ((m = /^SELECT name, (MIN|MAX)\(score\) AS s, MIN\(at\) AS at FROM scores WHERE board = \?1( AND week = \?2)? GROUP BY LOWER\(name\) ORDER BY s (ASC|DESC), at ASC LIMIT 10$/.exec(sql))) {

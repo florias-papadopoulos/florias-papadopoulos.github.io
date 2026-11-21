@@ -30,7 +30,10 @@
                                  the site has its server, the game's leaderboard follows (top 10 this week and all
                                  time, per difficulty) and, if the score makes it in, a box to add it under a nickname;
                                  board: an optional sub-board, e.g. the Kitty Kart track, which also gets its own best
-                                 (one per track, see boardKey). Games of the "two" group have
+                                 (one per track, see boardKey); version: the version of that track (a newer
+                                 version replaces the best of an older one, even when it is slower, and the server
+                                 keeps older times on a board only until the first time of the newest version).
+                                 Games of the "two" group have
                                  no leaderboard (the server lists the games that have one: tools/workers/stats/worker.js).
                                  The buttons stay pinned under it: "Play again" (focused, so Enter plays again; hidden
                                  for "restart: false"), the game's own menu when it passes one, "All games" (Escape
@@ -99,6 +102,8 @@
         return out;
     }
     var bests = clean(store('arcade-best'), function (v) { return typeof v === 'number' && isFinite(v); });
+    /* the version each best was made on (missing: 1), for games whose tracks change (api.end version) */
+    var bestVer = clean(store('arcade-best-v'), function (v) { return typeof v === 'number' && isFinite(v); });
     var levels = clean(store('arcade-level'), function (v) { return v === 'easy' || v === 'normal' || v === 'hard'; });
     /* games that were renamed: old links still open them, and their saved bests and levels move along */
     var RENAMED = { 'yarn-trail': 'long-cat' };
@@ -378,7 +383,8 @@
             var nick = store('arcade-name');
             boardEl.appendChild(topList(data[shown], fmt, mine || (typeof nick === 'string' ? nick : null), 'No scores yet. Be the first!'));
             setPlaces(id, data, o.score, lower);
-            if (!mine && !skipped && (fits(data.week) || fits(data.all))) form();
+            /* a board with only times of an older track version: the first time of this version always goes in */
+            if (!mine && !skipped && (fits(data.week) || fits(data.all) || (data.old && o.version))) form();
         }
         var skipped = false;   /* the player closed the name box (x): it stays closed for this score */
         function form() {
@@ -408,12 +414,13 @@
                 if (name.length < 2) { note.textContent = 'At least 2 letters, please.'; return; }
                 send.disabled = true; note.textContent = 'Sending...';
                 fetch(server + '/scores', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ g: id, l: level, b: sub, n: name, s: o.score }) })
+                    body: JSON.stringify(o.version ? { g: id, l: level, b: sub, n: name, s: o.score, v: o.version } : { g: id, l: level, b: sub, n: name, s: o.score }) })
                     .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { status: r.status, d: d }; }); })
                     .then(function (r) {
                         if (seq !== boardSeq) return;
                         send.disabled = false;
                         if (r.status === 422) { note.textContent = 'That name is not allowed. Try another one.'; return; }
+                        if (r.status === 409) { note.textContent = 'This time is from the old version of this track. Reload the page for the new one.'; return; }
                         if (r.status !== 200 || !r.d.all) { note.textContent = 'The leaderboard is not reachable right now.'; return; }
                         store('arcade-name', name);
                         mine = name; data = r.d;
@@ -488,9 +495,10 @@
                 o = o || {};
                 var isBest = false;
                 if (typeof o.score === 'number' && (o.lowerIsBetter || o.score > 0)) {   /* a score of 0 is never a best */
-                    var bk = o.board ? boardKey(id, o.board) : key, old = bests[bk];
-                    if (old == null || (o.lowerIsBetter ? o.score < old : o.score > old)) {
+                    var bk = o.board ? boardKey(id, o.board) : key, old = bests[bk], ver = o.version || 1;
+                    if (old == null || ver > (bestVer[bk] || 1) || (o.lowerIsBetter ? o.score < old : o.score > old)) {
                         bests[bk] = o.score; store('arcade-best', bests); isBest = true;
+                        if (ver > 1 || bestVer[bk]) { bestVer[bk] = ver; store('arcade-best-v', bestVer); }
                         stage.querySelector('.stage-best').textContent = 'Best ' + scoreFmt(id)(o.score);
                         showBests();
                     }

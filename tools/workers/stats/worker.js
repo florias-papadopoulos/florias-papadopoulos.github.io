@@ -70,7 +70,10 @@ const KK_TRACKS = ['meadow', 'city', 'reef', 'moon', 'volcano', 'trees', 'desert
    lower = lower is better (a time or a number of moves); min and max = the lowest and highest score that can be real,
    one number or one per difficulty; dec = decimals allowed (else whole numbers); tracks = the sub-boards a score can go
    to (the ids the game passes to api.end as board, as in content/games/_index.md; a game with tracks needs one, a game
-   without must send none); old = earlier sub-boards that can still be read but get no new scores. Two-player games have
+   without must send none); old = earlier sub-boards that can still be read but get no new scores; ver = the version of
+   the game's tracks (scores carry it as v, 1 when missing): while a board has only scores of an older version they stay
+   and older ones are still taken, the first score of the current version deletes every older one of that board, and
+   after it older versions are refused (409). Two-player games have
    none. The caps come from each game's scoring code (2026-11-10): the exact best for games that end, about 2 to 3 times
    a very good run for endless ones. Higher is better games start at 1 (the site never sends a 0). */
 const BOARDS = new Map([
@@ -113,7 +116,8 @@ const BOARDS = new Map([
     ['mouse-sweeper', { lower: true, min: 1, max: 20000 }],
     /* race seconds, 3 laps: the shortest lap at top speed with boosts is about 12 s, so about 35 s for a race; a race
        has no time limit, but a very slow one only sits at the bottom */
-    ['kitty-kart', { lower: true, min: 25, max: 3600, dec: 1, tracks: KK_TRACKS }],
+    /* ver 2 (2026-11-21): all twelve tracks were made longer, so older times cannot be compared */
+    ['kitty-kart', { lower: true, min: 25, max: 3600, dec: 1, tracks: KK_TRACKS, ver: 2 }],
     /* 6 / 8 / 10 rooms, 100 (150) each plus 3 per second left: at most about 2760 / 2780 / 3515 */
     ['crypto-heist', { max: 6000 }]
 ]);
@@ -195,6 +199,16 @@ async function roomsSetup(env) {
     }
     await db.prepare('CREATE INDEX IF NOT EXISTS rooms_at ON rooms (at)').run();
     roomsReady = true;
+}
+/* the scores table gets its version column (v, 1 for every older score) the first time a versioned game needs it */
+let scoresReady = false;
+async function scoresSetup(env) {
+    if (scoresReady) return;
+    const db = env.DB, has = function () { return db.prepare('SELECT v FROM scores LIMIT 1').all(); };
+    try { await has(); } catch (e) {
+        try { await db.prepare('ALTER TABLE scores ADD COLUMN v INTEGER NOT NULL DEFAULT 1').run(); } catch (e2) { await has(); }
+    }
+    scoresReady = true;
 }
 let swept = 0;   // when this running copy last deleted old rooms (ms)
 async function sweep(env, force) {
@@ -509,10 +523,22 @@ async function scores(req, url, env) {
         const used = await env.DB.prepare("SELECT (SELECT n FROM counts WHERE day = ?1 AND kind = 'scores' AND key = 'all') AS total, " +
             "(SELECT n FROM counts WHERE day = ?1 AND kind = 'board' AND key = ?2) AS board").bind(day, board).first();
         if (used && (used.total >= SCORE_CAP || used.board >= BOARD_CAP)) return json(503);
+        const ver = b.game.ver || 0, v = d.v === undefined ? 1 : d.v;
+        if (ver && !(Number.isInteger(v) && v >= 1 && v <= ver)) return json(400);
+        if (ver) {
+            await scoresSetup(env);
+            if (v < ver) {
+                const newer = await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE board = ?1 AND v >= ?2').bind(board, ver).first();
+                if (newer && newer.n > 0) return json(409, { error: 'old' });
+            }
+        }
         const order = 'ORDER BY score ' + (lower ? 'ASC' : 'DESC') + ', at ASC';
         const count = env.DB.prepare("INSERT INTO counts (day, kind, key, n) VALUES (?1, ?2, ?3, 1) ON CONFLICT(day, kind, key) DO UPDATE SET n = n + 1");
         await env.DB.batch([
-            env.DB.prepare('INSERT INTO scores (board, name, score, week, at) VALUES (?1, ?2, ?3, ?4, ?5)').bind(board, name, sc, week, Date.now()),
+            ver ? env.DB.prepare('INSERT INTO scores (board, name, score, week, at, v) VALUES (?1, ?2, ?3, ?4, ?5, ?6)').bind(board, name, sc, week, Date.now(), v)
+                : env.DB.prepare('INSERT INTO scores (board, name, score, week, at) VALUES (?1, ?2, ?3, ?4, ?5)').bind(board, name, sc, week, Date.now()),
+            /* the first score of the current version: the older ones of this board go */
+            ver && v === ver ? env.DB.prepare('DELETE FROM scores WHERE board = ?1 AND v < ?2').bind(board, ver) : null,
             count.bind(day, 'scores', 'all'),
             count.bind(day, 'board', board),
             /* one nickname keeps only its best score, and its best of this week */
@@ -521,12 +547,18 @@ async function scores(req, url, env) {
             /* and a board keeps its KEEP best of all time and of this week */
             env.DB.prepare('DELETE FROM scores WHERE board = ?1 AND id NOT IN (SELECT id FROM scores WHERE board = ?1 ' + order + ' LIMIT ?3) ' +
                 'AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND week = ?2 ' + order + ' LIMIT ?3)').bind(board, week, KEEP)
-        ]);
+        ].filter(Boolean));
     }
     const key = board + ' ' + week, hit = boardMemo.get(key);
     let out = !post && hit && Date.now() - hit.at < 15000 ? hit.d : null;
     if (!out) {
         out = { all: await top(env, board, lower), week: await top(env, board, lower, week) };
+        /* a versioned board without a score of the current version yet: its first one always goes in (old: true) */
+        if (b.game.ver && out.all.length) {
+            await scoresSetup(env);
+            const cur = await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE board = ?1 AND v >= ?2').bind(board, b.game.ver).first();
+            if (!(cur && cur.n > 0)) out.old = true;
+        }
         boardMemo.set(key, { at: Date.now(), d: out });
     }
     return json(200, out, post ? 'no-store' : 'public, max-age=15');
