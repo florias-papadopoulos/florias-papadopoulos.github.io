@@ -9,7 +9,7 @@ function that starts in `00-setup.js` and ends in `90-split.js`.
 | Part | What is in it |
 |---|---|
 | `00-setup.js` | header comment (the whole game described), `Arcade.register` of the three ids, settings and track arrays, `nearest()` (where a kart is on the road), building a track (spline, streets, shortcut path), drawing helpers for the cached track, particles |
-| `10a-track-meadow.js` | culling helpers (`vis`), then Catnip Meadow |
+| `10a-track-meadow.js` | culling helpers (`vis`), lively scenery shared by the tracks (cheering fans `fanRow`/`drawFans`, birds that fly off `flock`/`drawFlock`, `kartNear`), then Catnip Meadow |
 | `10b-track-city.js` | buildings that stand up (`block`, also used by other tracks), Night City |
 | `10c-track-reef.js` | Coral Reef |
 | `11a-track-moon.js` | Moon Rim |
