@@ -1,16 +1,21 @@
+    /* Zombie Town: cobbled lanes through a sleepy, spooky village at night. Friendly, clumsy zombies shuffle across the
+       road; bump one and you both go spinning. The shortcut runs through the graveyard, behind an iron gate, where
+       zombies pop up out of the graves now and then. More zombies stroll the pavements, crows on the walls flap off
+       when a kart comes, some street lamps flicker, a little ghost floats over the graves, bats flit about, fog drifts,
+       and a crowd of zombies cheers at the start, arms up */
     var ZOMBIE = {
         id: 'zombie', name: 'Zombie Town', blurb: 'Shuffling zombies, a graveyard gate, foggy cobbles',
-        poly: [0, 0, 500, 0, 500, 220, 800, 220, 800, 0, 1300, 0, 1300, 500, 1000, 500, 1000, 720, 1300, 720, 1300, 1050, 650, 1050, 650, 720,
-               330, 720, 330, 1050, 0, 1050], round: 95, scale: 0.95, start: 0.02,
+        poly: [0, 0, 550, 0, 550, 270, 850, 270, 850, 0, 1550, 0, 1550, 520, 1200, 520, 1200, 800, 1550, 800, 1550, 1280, 1080, 1280,
+               1080, 960, 720, 960, 720, 1280, 0, 1280, 0, 820, 260, 640, 260, 420, 0, 260], round: 95, scale: 1, start: 0.041,
         phys: { vmax: 335, vgrass: 95, acc: 365, grip: 6.8, gripOff: 4.5, coast: 0.7, turn: 3.15, care: 1.05 },
         col: { bg: '#20243a', edge: '#4b4a63', road: '#6b6880', panel: 'rgba(15,23,42,.72)', mini: '#c4b5fd', grid: 'rgba(255,255,255,.6)' },
-        alt: { a: 330, b: 420, hw: 28, vf: 0.9, gate: { at: 0.12, open: 3.4, shut: 2.6 } }, gate: 'iron',
-        pads: [[60, 0.5], [250, -0.5]], picks: [25, 170, 300], padCol: ['#9333ea', '#f3e8ff'], gantry: ['#3b2f5c', '#f97316'],
+        alt: { a: 252, b: 330, hw: 28, vf: 0.9, gate: { at: 0.12, open: 3.4, shut: 2.6 } }, gate: 'iron',
+        pads: [[80, 0.5], [218, -0.5]], picks: [12, 160, 350], padCol: ['#9333ea', '#f3e8ff'], gantry: ['#3b2f5c', '#f97316'],
         ZC: ['#7c3aed', '#0e7490', '#b45309', '#be185d', '#4d7c0f', '#1d4ed8'],
         reset: function () { this.zs.forEach(function (z, n) { z.s = z.s0; z.dir = n % 2 ? 1 : -1; z.down = 0; }); },
         prep: function () {
             var self = this;
-            this.zs = [[40, 26], [95, 30], [140, 24], [205, 34], [262, 28], [300, 30], [445, 26]].map(function (d, n) {
+            this.zs = [[14, 26], [88, 30], [130, 24], [205, 34], [290, 28], [352, 30], [388, 26], [442, 28]].map(function (d, n) {
                 return { j: d[0], sp: d[1], s0: ((n * 37) % 90) - 45, s: 0, dir: 1, down: 0, x: 0, y: 0, col: self.ZC[n % self.ZC.length] };
             });
             this.graves = [0.36, 0.55, 0.76].map(function (f, n) { var ci = Math.round(f * (ALT.n - 1)); return { ci: ci, l: (n % 2 ? 1 : -1) * ALT.hw * 0.35, ph: n * 2.3, x: 0, y: 0, up: 0 }; });
@@ -24,8 +29,12 @@
                 if (rnd() < 0.25) continue;
                 houses.push({ x: x, y: y, w: w, h: h, col: ['#5b4a6e', '#4a5568', '#6b4f4f', '#4f5d4a'][Math.floor(rnd() * 4)], hi: 0.04 + rnd() * 0.04, sky: [], ac: false, neon: null, roof: rnd() < 0.5 });
             }
-            this.bats = [0, 1, 2, 3, 4].map(function (n) { return { cx: rnd() * WW, cy: rnd() * WH, r: 120 + rnd() * 160, w: 0.5 + rnd() * 0.4, ph: n * 1.3 }; });
-            this.fog = [0, 1, 2, 3, 4, 5, 6].map(function () { return { x: rnd() * WW, y: rnd() * WH, r: 160 + rnd() * 120, sp: 8 + rnd() * 10 }; });
+            this.walkers = [[20, 60, -1], [90, 140, 1], [195, 240, -1], [335, 385, 1], [410, 460, -1]].map(function (d, n) { return { j0: d[0], j1: d[1], l: d[2] * (HW + 36), ph: n * 7.3, x: 0, y: 0, a: 0, col: self.ZC[(n + 2) % 6] }; });
+            this.crows = critters([[50, 1], [120, -1], [180, 1], [275, -1], [320, 1], [420, -1]], HW + 40, 170);
+            this.ghost = { x: 0, y: 0 };
+            this.fans = [crowd(N - 13, N - 3, -(HW + 36), 2, { zombie: true }), crowd(N - 13, N - 3, HW + 36, 2, { zombie: true })];
+            this.bats = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return { cx: rnd() * WW, cy: rnd() * WH, r: 120 + rnd() * 160, w: 0.5 + rnd() * 0.4, ph: n * 1.3 }; });
+            this.fog = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function () { return { x: rnd() * WW, y: rnd() * WH, r: 160 + rnd() * 120, sp: 8 + rnd() * 10 }; });
             this.update(0);
         },
         paint: function (g) {
@@ -80,7 +89,8 @@
             }
             skids(g, 'rgba(0,0,0,.28)');
             this.lamps = [];
-            for (i = 8; i < N; i += 30) { p = side(i, (i / 30 % 2 ? 1 : -1) * (HW + 22)); this.lamps.push(p); }
+            var ls = Math.round(420 / SP);
+            for (i = 8; i < N - 26; i += ls) { p = side(i, (Math.round(i / ls) % 2 ? 1 : -1) * (HW + 22)); this.lamps.push(p); }
             this.lamps.forEach(function (q) {  /* street lamps: a warm pool of light */
                 var gl = g.createRadialGradient(q.x, q.y, 4, q.x, q.y, 120);
                 gl.addColorStop(0, 'rgba(255,190,110,.32)'); gl.addColorStop(1, 'rgba(255,190,110,0)');
@@ -129,12 +139,38 @@
                 }
                 var p = side(z.j, z.s); z.x = p.x; z.y = p.y;
             });
+            this.walkers.forEach(function (w) {  /* zombies strolling the pavement, very slowly, from the clock */
+                var span = w.j1 - w.j0, u = ((clock * 0.7 + w.ph) / span) % 2, j = w.j0 + span * (u < 1 ? u : 2 - u), j0 = Math.floor(j);
+                var q = lerp(side(j0, w.l), side(j0 + 1, w.l), j - j0); w.x = q.x; w.y = q.y; w.a = A[ix(j0)] + (u < 1 ? 0 : Math.PI);
+            });
+            scare(this.crows, dt, 150);
+            var gh = this.ghost, gi = Math.round(ALT.n / 2), gp = altSide(gi, 0);  /* the ghost drifts over the graveyard */
+            gh.x = gp.x + Math.sin(clock * 0.31) * 150; gh.y = gp.y + Math.sin(clock * 0.47 + 1) * 110;
             this.graves.forEach(function (q) {  /* every 6 s: the ground shakes, a zombie climbs out, stands a while, goes back down */
                 var t = (clock + q.ph) % 6;
                 q.t = t; q.up = t < 1.2 ? 0 : t < 1.6 ? (t - 1.2) / 0.4 : t < 3.6 ? 1 : t < 4 ? (4 - t) / 0.4 : 0;
             });
         },
         under: function () {
+            var k, self = this;
+            if (!this.dark) { this.dark = ctx.createRadialGradient(0, 0, 4, 0, 0, 120); this.dark.addColorStop(0, 'rgba(12,10,30,.42)'); this.dark.addColorStop(1, 'rgba(12,10,30,0)'); }
+            this.lamps.forEach(function (q, n) {  /* every third lamp flickers: now and then its light drops out for a moment */
+                if (n % 3 || !vis(q.x, q.y, 120) || hash(Math.floor(clock * 9), n) < 0.82 && hash(Math.floor(clock * 0.7), n) > 0.25) return;
+                ctx.save(); ctx.translate(q.x, q.y); ctx.fillStyle = self.dark; ctx.fillRect(-120, -120, 240, 240); ctx.restore();
+            });
+            this.walkers.forEach(function (w, n) { if (vis(w.x, w.y, 40)) self.zombie(w.x, w.y, w.a, w.col, 0, 1, n + 3); });
+            this.crows.forEach(function (c) {  /* crows on the wall: off they flap when a kart comes */
+                if (!vis(c.x, c.y, 30)) return;
+                var fly = c.f > 0.02 && c.f < 0.98, a = fly ? Math.atan2(c.ry - c.hy, c.rx - c.hx) : c.a + Math.sin(clock * 0.5 + c.ph) * 0.5;
+                ctx.save(); ctx.translate(c.x, c.y - (fly ? Math.sin(Math.PI * c.f) * 16 : 0)); ctx.rotate(a);
+                if (fly) { var fw = Math.sin(clock * 26 + c.ph) * 8; ctx.fillStyle = '#0b0a12'; ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(-4, -12 - fw); ctx.lineTo(-8, 0); ctx.lineTo(-4, 12 + fw); ctx.fill(); }
+                ctx.fillStyle = '#15131f'; ctx.beginPath(); ctx.ellipse(0, 0, 8, 4.5, 0, 0, 7); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(-13, -4); ctx.lineTo(-13, 4); ctx.fill();
+                circle(ctx, 7, 0, 3.6, '#15131f'); ctx.fillStyle = '#d6a43a'; ctx.beginPath(); ctx.moveTo(10, -1.2); ctx.lineTo(14, 0); ctx.lineTo(10, 1.2); ctx.fill();
+                circle(ctx, 8, -1.5, 0.9, '#fde047');
+                ctx.restore();
+            });
+            void k;
             this.graves.forEach(function (q) {  /* the telegraph: dirt shakes and a hand pokes out before a zombie comes up */
                 if (!vis(q.x, q.y, 40) || q.t > 1.4) return;
                 var sh = Math.sin(clock * 50) * 2;
@@ -192,6 +228,19 @@
                 var t = pillar(q.x, q.y, 2.5, 0.06, '#1c1a26', null);
                 circle(ctx, t.x, t.y, 13, 'rgba(255,200,120,.25)'); circle(ctx, t.x, t.y, 6, '#1c1a26'); circle(ctx, t.x, t.y, 4, '#ffd8a0');
             });
+            this.fans.forEach(fans);
+            var gh = this.ghost;
+            if (vis(gh.x, gh.y, 60)) {  /* a little ghost: see-through, bobbing, waving */
+                var bob = Math.sin(clock * 2.2) * 5, gx = liftX(gh.x, 0.08), gy = liftY(gh.y, 0.08) + bob;
+                ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(gh.x, gh.y + 14, 16, 7, 0, 0, 7); ctx.fill();
+                ctx.globalAlpha = 0.78; ctx.fillStyle = '#eef2ff'; ctx.beginPath(); ctx.arc(gx, gy - 6, 16, Math.PI, 0);
+                for (var w = 0; w <= 4; w++) ctx.lineTo(gx + 16 - w * 8, gy + 14 + (w % 2 ? -4 : 2) + Math.sin(clock * 6 + w) * 2);
+                ctx.closePath(); ctx.fill();
+                circle(ctx, gx + 17, gy - 2 + Math.sin(clock * 7) * 5, 4, '#eef2ff');
+                ctx.globalAlpha = 1;
+                circle(ctx, gx - 5, gy - 8, 2.6, '#1e1b4b'); circle(ctx, gx + 5, gy - 8, 2.6, '#1e1b4b');
+                ctx.fillStyle = '#1e1b4b'; ctx.beginPath(); ctx.ellipse(gx, gy, 3, 4 + Math.sin(clock * 3) * 1.5, 0, 0, 7); ctx.fill();
+            }
             this.bats.forEach(function (b) {  /* bats flitting about */
                 var x = b.cx + Math.cos(clock * b.w + b.ph) * b.r, y = b.cy + Math.sin(clock * b.w * 1.7 + b.ph) * b.r * 0.5;
                 if (!vis(x, y, 30)) return;
