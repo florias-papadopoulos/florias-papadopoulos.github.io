@@ -61,6 +61,19 @@
         }
         return best || { x: WW / 2, y: WH / 2, d: 0 };
     }
+    function innerSpots(n, minSep, want) {  /* like spots(), but only inside the track's bounding box, where the player sees them */
+        var o = { x: 0, y: 0 }, cand = [], out = [], x, y, q, j;
+        for (x = PAD + 60; x < WW - PAD - 60; x += 40) for (y = PAD + 60; y < WH - PAD - 60; y += 40) {
+            o.x = x; o.y = y; nearest(o);
+            if (o.dist >= want) cand.push({ x: x, y: y, d: o.dist });
+        }
+        for (q = 0; q < n * 40 && out.length < n && cand.length; q++) {
+            var c = cand[Math.floor(rnd() * cand.length)], ok = true;
+            for (j = 0; j < out.length; j++) if (Math.hypot(out[j].x - c.x, out[j].y - c.y) < minSep) ok = false;
+            if (ok) out.push(c);
+        }
+        return out;
+    }
     function hash(k, s) { var v = Math.sin(k * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); }  /* a steady random number in [0, 1) */
     function drift(n, T, vx, vy, fn) {  /* things blowing through the air (leaves, petals, dust): n per T by T tile of the view, moving
                                            at about (vx, vy) per second, all from the clock; fn(x, y, k) draws one */
