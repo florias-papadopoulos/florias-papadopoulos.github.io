@@ -215,13 +215,80 @@ var SC = (function () {
         el('path', { 'class': 'sc-floorline', d: 'M0 372.5h800' }, svg);
     }
 
+    /* a short label in the picture (a few words at most: the captions under the picture tell the story). anchor:
+       'middle' (default), 'start' or 'end'; label.set(text) changes it */
+    function label(parent, text, x, y, cls, anchor) {
+        var n = el('text', { 'class': 'sc-label' + (cls ? ' ' + cls : ''), x: x, y: y, 'text-anchor': anchor || 'middle' }, parent);
+        n.textContent = text;
+        n.set = function (s) { if (n.textContent !== s) n.textContent = s; };
+        return n;
+    }
+    /* a fingerprint strip: n coloured blocks of size bw side by side, its top left corner at (0, 0); strip.set(colours) */
+    function strip(parent, colours, bw, gap) {
+        bw = bw || 24; gap = gap == null ? 4 : gap;
+        var g = el('g', { 'class': 'sc-strip' }, parent), rs = [];
+        colours.forEach(function (c, i) { rs.push(el('rect', { 'class': 'ol', x: i * (bw + gap), y: 0, width: bw, height: bw, rx: bw / 6, fill: c }, g)); });
+        g.set = function (cs) { cs.forEach(function (c, i) { if (rs[i]) rs[i].setAttribute('fill', c); }); };
+        g.w = colours.length * (bw + gap) - gap;
+        return g;
+    }
+
     var H = {
         el: el, seg: seg, lin: lin, lerp: lerp, pop: pop, mix: mix, at: at, show: show, arc: arc, shake: shake, clamp: clamp,
         pet: pet, fox: fox, pot: pot, stream: stream, letter: letter, paw: paw, tick: tick, cross: cross, wonder: wonder,
-        heart: heart, room: room
+        heart: heart, room: room, label: label, strip: strip
     };
+    /* ---------- a real hash for the "try it" boxes: SHA-256 of a text (UTF-8), as 64 hex digits ---------- */
+    var K256 = [];
+    (function () {
+        var n = 2, found = 0;
+        function frac(x) { return ((x - Math.floor(x)) * 4294967296) >>> 0; }
+        while (found < 64) {
+            var prime = true;
+            for (var d = 2; d * d <= n; d++) if (n % d === 0) { prime = false; break; }
+            if (prime) { K256.push(frac(Math.pow(n, 1 / 3))); found++; }
+            n++;
+        }
+    })();
+    function sha256(text) {
+        var bytes = [], i, j, s = unescape(encodeURIComponent(text));
+        for (i = 0; i < s.length; i++) bytes.push(s.charCodeAt(i));
+        var bits = bytes.length * 8;
+        bytes.push(0x80);
+        while (bytes.length % 64 !== 56) bytes.push(0);
+        for (i = 7; i >= 0; i--) bytes.push(i > 3 ? 0 : (bits >>> (i * 8)) & 255);
+        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19], w = [];
+        function rotr(x, n) { return (x >>> n) | (x << (32 - n)); }
+        for (i = 0; i < bytes.length; i += 64) {
+            for (j = 0; j < 16; j++) w[j] = (bytes[i + j * 4] << 24) | (bytes[i + j * 4 + 1] << 16) | (bytes[i + j * 4 + 2] << 8) | bytes[i + j * 4 + 3];
+            for (j = 16; j < 64; j++) {
+                var s0 = rotr(w[j - 15], 7) ^ rotr(w[j - 15], 18) ^ (w[j - 15] >>> 3), s1 = rotr(w[j - 2], 17) ^ rotr(w[j - 2], 19) ^ (w[j - 2] >>> 10);
+                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;
+            }
+            var a = h[0], b = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], k = h[7];
+            for (j = 0; j < 64; j++) {
+                var t1 = (k + (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) + ((e & f) ^ (~e & g)) + K256[j] + w[j]) | 0;
+                var t2 = ((rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+                k = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+            }
+            h[0] = (h[0] + a) | 0; h[1] = (h[1] + b) | 0; h[2] = (h[2] + c) | 0; h[3] = (h[3] + d) | 0;
+            h[4] = (h[4] + e) | 0; h[5] = (h[5] + f) | 0; h[6] = (h[6] + g) | 0; h[7] = (h[7] + k) | 0;
+        }
+        return h.map(function (x) { return ('0000000' + (x >>> 0).toString(16)).slice(-8); }).join('');
+    }
+    /* one colour per hex digit: the blocks of a fingerprint in the "try it" boxes */
+    var PAL = ['#e5484d', '#f4c430', '#2f7fd0', '#22a06b', '#a855f7', '#f08a4b', '#14b8a6', '#ec4899',
+        '#84cc16', '#4f46e5', '#f59e0b', '#7dd3fc', '#0e7490', '#9f1239', '#94a3b8', '#fda4af'];
+    function colours(hexs, n) {
+        var out = [];
+        for (var i = 0; i < (n || 6); i++) out.push(PAL[parseInt(hexs.charAt(i), 16)]);
+        return out;
+    }
+
     return {
         H: H,
+        sha256: sha256,
+        colours: colours,
         players: {},                     /* the page's players by story id (90-boot.js) */
         story: function (def) { stories[def.id] = def; },
         get: function (id) { return stories[id]; }

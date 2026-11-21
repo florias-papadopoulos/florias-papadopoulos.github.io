@@ -1,0 +1,80 @@
+# The stories of Simple Crypto (/simple-crypto/, layouts/simple-crypto/simple-crypto.html), in page order.
+# id: the story in assets/js/simple-crypto/ (SC.story id) and the page anchor; why: the problem it solves, one or two
+# lines over the player; steps: one caption per scene of the animation (the same count as the story's scenes), shown
+# under the picture while that step plays; alt: the picture for screen readers; real: the "In real life" box.
+# The "Try it" box under each player is built by the story's script (its *-try.js part).
+# Short plain sentences: one or two per step, no word an 18 year old would have to look up without a picture.
+- id: key-exchange
+  title: Key exchange
+  why: >-
+    Your phone and a website must agree on a secret key before they can talk privately, but everything they send
+    crosses Wi-Fi that anyone nearby can listen to. How do you agree on a secret while everyone is listening?
+  alt: >-
+    The cat and the dog each mix a secret colour into a shared yellow, swap the mixes while the fox copies them, and
+    both end with the same plum colour, which locks a box only they can open.
+  steps:
+    - The cat and the dog want a secret colour that only they know, but the fox sees every pot they pass. They start
+      from a <b>public</b> yellow that everyone has, the fox too.
+    - Each picks a <b>secret</b> colour and never shows it to anyone. The cat picks pink, the dog blue.
+    - Each pours its secret into its yellow. Mixing paint is easy, but nobody can get the pink back out of the orange.
+    - They swap the mixes in the open. The fox copies both, so it now has the yellow, the orange and the green.
+    - Each pours its own secret into the mix it got. Both pots now hold yellow, pink and blue, so both get the very
+      same plum.
+    - The fox mixes what it has. Orange and green hold two helpings of yellow, so it gets a muddy khaki. To reach the
+      plum it would have to take one yellow out again, and paint cannot be un-mixed.
+    - The plum is now their shared key. The cat locks a heart in a box. The fox's khaki key does not fit, the dog's
+      plum key opens it.
+  real: >-
+    This is the <b>Diffie-Hellman key exchange</b>, and your browser runs it every time it opens an https page. The
+    paints are numbers: the yellow is a public number, each secret is a number, and mixing is multiplying the yellow
+    by itself that many times on a huge clock. Forward takes a millisecond; going back, the <b>discrete logarithm</b>,
+    is the un-mixing that no computer can do in time.
+- id: hash
+  title: Fingerprint (hash)
+  why: >-
+    You download an app or receive a contract. How can you check that it is exactly what was sent, to the last
+    letter, without comparing it letter by letter?
+  alt: >-
+    A letter goes into a grinder and a row of coloured blocks comes out. The same letter gives the same blocks, a
+    letter with one word changed gives completely different blocks, and running the machine backwards only gives
+    crumbs.
+  steps:
+    - The cat puts its letter into the fingerprint machine. Out come six coloured blocks, the letter's
+      <b>fingerprint</b>, and the cat pins them up where everyone can see them.
+    - The dog gets the letter and puts it through the same machine. Same letter, same blocks, so the letter arrived
+      exactly as the cat wrote it.
+    - Now one word of the letter is changed. The fingerprint changes completely, not just one block, so even the
+      smallest change shows.
+    - The fox wants the letter back from its fingerprint, so it runs the machine backwards. Only crumbs come out. The
+      blocks tell nothing about the letter.
+  real: >-
+    This is a <b>hash function</b>, for example SHA-256: any text or file goes in, 64 hex digits come out. Your phone
+    checks every app update this way, and Git and Bitcoin name everything by its hash. Inside, the bits are shuffled
+    in 64 rounds; nobody knows how to go back, or how to find two files with the same hash, other than by guessing,
+    and that takes far more guesses than any computer can make.
+- id: signature
+  title: Signature
+  why: >-
+    When your phone installs an update, how does it know that the update really comes from Apple or Google, and that
+    nobody slipped anything into it on the way?
+  alt: >-
+    The cat seals letters by stamping its paw over the letter's fingerprint; the dog checks each seal with a
+    see-through copy of the paw that everyone has. The fox's own paw does not fit, a seal moved to another letter has
+    the wrong colours, and a changed letter no longer matches its seal.
+  steps:
+    - The cat has a paw stamp that nobody else has. It stamps a see-through sheet and gives copies of the sheet to
+      everyone, the fox too.
+    - To sign a letter, the cat makes the letter's fingerprint (as in the fingerprint story) and stamps its paw over
+      those colours. That is the <b>seal</b>.
+    - "The dog checks two things: the paw on its sheet fits the seal, so the cat made it, and the colours match the
+      fingerprint of the letter the dog has, so nobody changed it."
+    - The fox makes a seal with its own paw. The paw does not fit the dog's sheet, so the dog rejects the letter.
+    - The fox cuts a real seal off one of the cat's letters and sticks it on a letter of its own. The paw fits, but
+      the colours belong to the old letter, not to this one. Rejected.
+    - The fox changes one word in a signed letter. Now the letter's fingerprint has new colours, the seal still has
+      the old ones. Rejected, and the dog knows someone changed the letter.
+  real: >-
+    This is a <b>digital signature</b>. The stamp is a <b>private key</b>, a secret number; the sheet is the matching
+    <b>public key</b>; the seal is a number made from the document's hash and the private key. Anyone can check a
+    seal with the public key, but making one without the private key is as hard as un-mixing the paint. Every app
+    update and every https site carries one.
