@@ -1,24 +1,31 @@
-    /* Moon Rim: a dusty road on a slab of moon floating in space, low grip, ramps for long low gravity jumps */
+    /* Moon Rim: a dusty road on a slab of moon floating in space, low grip, ramps for long low gravity jumps; a long top
+       sweeper, a hairpin with the crack jump across it, an S on the left; astronaut cats hopping about, a rover, a rocket
+       that launches now and then, a turning dish, twinkling stars and shooting stars */
     var MOON = {
         id: 'moon', name: 'Moon Rim', blurb: 'Low grip, meteors, a jump over a crack',
-        ctrl: [250, 250, 800, 200, 1350, 250, 1600, 450, 1500, 700, 1150, 700, 950, 560, 700, 520, 520, 700, 700, 900,
-               1150, 920, 1450, 1050, 1300, 1250, 700, 1300, 250, 1150, 150, 700], scale: 0.74, start: 0.09,
+        ctrl: [300, 250, 900, 180, 1500, 230, 1900, 420, 1950, 750, 1720, 920, 1380, 800, 1150, 620, 800, 560, 600, 750,
+               800, 950, 1250, 1100, 1700, 1200, 1900, 1400, 1700, 1600, 1100, 1620, 500, 1550, 200, 1300, 250, 950, 150, 600],
+        scale: 0.85, start: 0,
         phys: { vmax: 350, vgrass: 125, acc: 300, grip: 3.4, gripOff: 2.4, coast: 0.35, turn: 2.9, care: 1.4 },
         col: { bg: '#070b1c', edge: '#8d8f99', road: '#b8bbc5', panel: 'rgba(15,23,42,.72)', mini: '#cbd5e1', grid: 'rgba(255,255,255,.7)' },
         sky: true, RIM: HW + 84, G: 150,
-        alt: { a: 142, b: 206, hw: 32, vf: 1, ramp: 0.3, gap: [0.4, 0.66] },
-        pads: [[262, 0.5], [430, -0.5]], picks: [100, 300], padCol: ['#ca8a04', '#fef9c3'],
+        alt: { a: 185, b: 228, hw: 32, vf: 1, ramp: 0.3, gap: [0.4, 0.66] },
+        pads: [[30, 0.5], [240, -0.5], [400, 0.5]], picks: [100, 290, 430], padCol: ['#ca8a04', '#fef9c3'],
         altGood: function (c) { return c.vf > 170; },
         reset: function () { this.met = []; this.metT = 4; },
         prep: function () {
-            this.ramps = [straightNear(0.12, -2, 30, 0.004), straightNear(0.47, -2, 30, 0.004), straightNear(0.8, -2, 30, 0.004)];
+            this.ramps = [straightNear(0.1, -2, 30, 0.004), straightNear(0.55, -2, 30, 0.004), straightNear(0.74, -2, 30, 0.004)];
             seed = 77;
             this.blobs = [];
-            for (var i = 0; i < 7; i++) {
-                var j = Math.round(i * N / 7 + 20), sg = i % 2 ? 1 : -1, p = side(j, sg * (HW + 120)), o = { x: p.x, y: p.y };
+            for (var i = 0; i < 9; i++) {
+                var j = Math.round(i * N / 9 + 20), sg = i % 2 ? 1 : -1, p = side(j, sg * (HW + 130)), o = { x: p.x, y: p.y };
                 nearest(o);
-                if (o.dist > HW + 100) this.blobs.push({ x: p.x, y: p.y, r: 80 + rnd() * 50 });
+                if (o.dist > HW + 100) this.blobs.push({ x: p.x, y: p.y, r: 90 + rnd() * 50 });
             }
+            var bl = this.blobs;  /* who lives on which blob: the lander and flag (painted), the rocket, the rover, the dish, hoppers */
+            this.pad = bl[4] || null; this.rover = bl[6] || null; this.dish = bl[0] || null;
+            this.hop = [bl[2], bl[5], bl[7], bl[8]].filter(function (q) { return q; }).map(function (q, n) { return { x: q.x, y: q.y, r: q.r * 0.45, ph: n * 1.7 }; });
+            this.fans = fanRow(466, 490, -(HW + 30), 2, ['#d6336c', '#38bdf8', '#facc15'], 78);
             var far = { x: 0, y: 0, dist: 0 };  /* the Earth hangs in the emptiest bit of sky */
             for (var gx = 100; gx < WW - 100; gx += 40) for (var gy = 100; gy < WH - 100; gy += 40) {
                 o = { x: gx, y: gy }; nearest(o);
@@ -66,6 +73,14 @@
                     g.fillStyle = '#e0b84a'; g.fillRect(-13, -13, 26, 26);
                     circle(g, 0, 0, 9, '#f1f5f9'); circle(g, 2, -2, 3.5, '#60a5fa');
                     g.restore();
+                }
+                if (q === self.pad) {  /* the launch pad: a concrete ring with scorch marks */
+                    circle(g, q.x, q.y, 46, '#5b5d68'); circle(g, q.x, q.y, 38, '#7a7c88'); circle(g, q.x, q.y, 22, '#3f4150');
+                    g.strokeStyle = '#facc15'; g.lineWidth = 4; g.setLineDash([10, 10]); g.beginPath(); g.arc(q.x, q.y, 42, 0, 7); g.stroke(); g.setLineDash([]);
+                }
+                if (q === self.rover) {  /* rover tracks going back and forth */
+                    g.strokeStyle = 'rgba(70,72,85,.35)'; g.lineWidth = 3;
+                    for (k = -1; k <= 1; k += 2) { g.beginPath(); g.moveTo(q.x - q.r * 0.6, q.y + k * 7); g.lineTo(q.x + q.r * 0.6, q.y + k * 7); g.stroke(); }
                 }
                 if (n === 3) {  /* a flag with a paw print */
                     g.save(); g.translate(q.x, q.y);
@@ -139,6 +154,17 @@
             }
         },
         under: function () {
+            var q = this.rover, k;
+            if (q && vis(q.x, q.y, q.r)) {  /* the rover trundling back and forth, its dish turning */
+                var u = Math.sin(clock * 0.4), rx = q.x + u * q.r * 0.6, dir = Math.cos(clock * 0.4) > 0 ? 1 : -1;
+                ctx.save(); ctx.translate(rx, q.y); if (dir < 0) ctx.scale(-1, 1);
+                ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(-16, -8, 38, 24);
+                for (k = -1; k <= 1; k++) { circle(ctx, k * 12, -9, 5, '#374151'); circle(ctx, k * 12, 9, 5, '#374151'); }
+                ctx.fillStyle = '#e5e7eb'; rrect(-18, -8, 36, 16, 4); ctx.fill(); ctx.fillStyle = '#60a5fa'; ctx.fillRect(4, -5, 10, 10);
+                ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-10 + Math.cos(clock * 2) * 10, Math.sin(clock * 2) * 10); ctx.stroke();
+                ctx.restore();
+                if (Math.abs(u) < 0.95) { ctx.globalAlpha = 0.35; circle(ctx, rx - dir * 26, q.y + 6, 5 + (clock * 8 % 4), '#cfd2da'); ctx.globalAlpha = 1; }
+            }
             this.met.forEach(function (m) {
                 if (!vis(m.x, m.y, 60)) return;
                 if (m.t < 1.5) {
@@ -153,7 +179,54 @@
                 }
             });
         },
-        over: function () {  /* the falling rocks, coming in from the top right */
+        over: function () {  /* astronauts, the rocket and the dish, then the falling rocks, coming in from the top right */
+            var k, q, h;
+            for (k = 0; k < this.hop.length; k++) {  /* astronaut cats bouncing about in low gravity */
+                q = this.hop[k];
+                var t = (clock * 0.5 + q.ph) % 2, z = Math.sin(t / 2 * Math.PI), ang = clock * 0.3 + q.ph, ax = q.x + Math.cos(ang) * q.r, ay = q.y + Math.sin(ang) * q.r;
+                if (!vis(ax, ay, 60)) continue;
+                ctx.globalAlpha = 0.3 - z * 0.15; circle(ctx, ax + 4, ay + 6, 9 - z * 3, '#000'); ctx.globalAlpha = 1;
+                h = z * 0.12; var hx = liftX(ax, h), hy = liftY(ay, h) - z * 14;
+                circle(ctx, hx, hy, 9, '#f8fafc'); circle(ctx, hx, hy - 1, 6, DOG ? '#c08a4f' : '#f6a23a');
+                ctx.strokeStyle = 'rgba(147,197,253,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hx, hy - 1, 8, 0, 7); ctx.stroke();
+                ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+                var wv = Math.sin(clock * 6 + q.ph) * 0.6;
+                ctx.beginPath(); ctx.moveTo(hx - 7, hy + 3); ctx.lineTo(hx - 14, hy - 6 + wv * 6); ctx.moveTo(hx + 7, hy + 3); ctx.lineTo(hx + 13, hy + 9); ctx.stroke();
+            }
+            q = this.dish;
+            if (q && vis(q.x, q.y, 80)) {  /* a radar dish turning, a light blinking on top */
+                var dx = liftX(q.x, 0.08), dy = liftY(q.y, 0.08), da = clock * 0.6;
+                ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(dx, dy); ctx.stroke();
+                ctx.save(); ctx.translate(dx, dy); ctx.rotate(da); ctx.scale(1, 0.55 + 0.25 * Math.sin(da));
+                circle(ctx, 0, 0, 26, '#e5e7eb'); circle(ctx, 0, 0, 18, '#cbd5e1'); ctx.restore();
+                circle(ctx, dx, dy, 4, Math.sin(clock * 5) > 0 ? '#ef4444' : '#7f1d1d');
+            }
+            q = this.pad;
+            if (q && vis(q.x, q.y, 600)) {  /* the rocket: a countdown with blinking lights, then a launch every 30 s */
+                var lt = (clock + 18) % 30, up = lt < 22 ? 0 : (lt - 22) / 8, rh = up * up * 1.6;
+                if (lt > 20 && lt < 22 && Math.floor(lt * 6) % 2) { ctx.globalAlpha = 0.35; circle(ctx, q.x, q.y, 54, '#ef4444'); ctx.globalAlpha = 1; }
+                if (up > 0) {
+                    for (k = 0; k < 6; k++) { var sa = k * 1.05 + up * 2, sr = 30 + up * 160; ctx.globalAlpha = 0.45 * (1 - up); circle(ctx, q.x + Math.cos(sa) * sr, q.y + Math.sin(sa) * sr * 0.8, 22 + up * 30, '#cfd2da'); }
+                    ctx.globalAlpha = 1;
+                }
+                var rx2 = liftX(q.x, 0.1 + rh), ry2 = liftY(q.y, 0.1 + rh) - up * 420, sc = 1 + up * 1.6;
+                if (up < 1 && vis(rx2, ry2, 120)) {
+                    ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 4; if (!up) { ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(rx2, ry2); ctx.stroke(); }
+                    ctx.save(); ctx.translate(rx2, ry2); ctx.scale(sc, sc);
+                    if (up > 0) { var fl = 14 + Math.random() * 8; ctx.fillStyle = '#fb923c'; ctx.beginPath(); ctx.moveTo(-6, 16); ctx.lineTo(0, 16 + fl); ctx.lineTo(6, 16); ctx.fill(); circle(ctx, 0, 18, 4, '#fde68a'); }
+                    ctx.fillStyle = '#d6336c'; ctx.beginPath(); ctx.moveTo(-12, 16); ctx.lineTo(-7, 4); ctx.lineTo(7, 4); ctx.lineTo(12, 16); ctx.fill();
+                    ctx.fillStyle = '#f8fafc'; rrect(-7, -18, 14, 34, 6); ctx.fill();
+                    ctx.fillStyle = '#d6336c'; ctx.beginPath(); ctx.moveTo(-7, -14); ctx.quadraticCurveTo(0, -30, 7, -14); ctx.fill();
+                    circle(ctx, 0, -4, 3.6, '#60a5fa');
+                    if (!up) circle(ctx, 0, 10, 2, Math.floor(clock * 2) % 2 ? '#22c55e' : '#14532d');
+                    ctx.restore();
+                }
+            }
+            drawFans(this.fans, function (f, fx, fy) {  /* space helmets with a little aerial */
+                ctx.strokeStyle = 'rgba(191,219,254,.95)'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(fx, fy, 8.5, 0, 7); ctx.stroke();
+                ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(fx + 5, fy - 6); ctx.lineTo(fx + 8, fy - 13); ctx.stroke();
+                circle(ctx, fx + 8, fy - 13, 1.6, Math.sin(clock * 4 + f.ph) > 0 ? '#ef4444' : '#7f1d1d');
+            });
             this.met.forEach(function (m) {
                 if (m.t < 1 || m.t >= 1.5) return;
                 var f = (1.5 - m.t) / 0.5, x = m.x + f * 260, y = m.y - f * 380;
@@ -191,8 +264,21 @@
             }
             var ox = (camX * k * 0.15) % 300, oy = (camY * k * 0.15) % 300;
             ctx.save(); ctx.translate(-ox, -oy); ctx.scale(dpr * 0.7, dpr * 0.7); ctx.fillStyle = this.pat; ctx.fillRect(0, 0, (cw + 600) / dpr / 0.7, (ch + 600) / dpr / 0.7); ctx.restore();
-            var es = 230 * k, ex = (this.ex + (camX - this.ex) * 0.3) * k - VX0 * k, ey = (this.ey + (camY - this.ey) * 0.3) * k - VY0 * k;
+            var es = 230 * k, ex = (this.ex + (camX - this.ex) * 0.3) * k - VX0 * k, ey = (this.ey + (camY - this.ey) * 0.3 + 60 - Math.min(clock, 120) * 1.2) * k - VY0 * k;  /* the Earth rising slowly */
             if (ex > -es && ex < cw + es && ey > -es && ey < ch + es) ctx.drawImage(this.earth, ex - es / 2, ey - es / 2, es, es);
+            var i2, tw;
+            for (i2 = 0; i2 < 24; i2++) {  /* stars that twinkle, fixed on the screen like the far ones */
+                tw = Math.sin(clock * (1.5 + i2 % 5) + i2 * 2.7);
+                if (tw < 0.2) continue;
+                var sx = ((i2 * 397 + 53) % 1000) / 1000 * cw, sy = ((i2 * 619 + 211) % 1000) / 1000 * ch, sr = (1 + tw * 1.6) * dpr;
+                ctx.globalAlpha = tw; ctx.fillStyle = '#fff7d6'; ctx.fillRect(sx - sr * 2, sy - 0.5 * dpr, sr * 4, dpr); ctx.fillRect(sx - 0.5 * dpr, sy - sr * 2, dpr, sr * 4);
+            }
+            var st = (clock % 7) / 1.2;  /* a shooting star every 7 s */
+            if (st < 1) {
+                var s0 = Math.floor(clock / 7), x0 = ((s0 * 431) % 1000) / 1000 * cw, y0 = ((s0 * 277) % 500) / 1000 * ch;
+                ctx.globalAlpha = 1 - st; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 * dpr; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(x0 + st * 300 * dpr, y0 + st * 140 * dpr); ctx.lineTo(x0 + st * 300 * dpr - 60 * dpr, y0 + st * 140 * dpr - 28 * dpr); ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
         }
     };
-
