@@ -12,7 +12,7 @@
     var N = 10, C = 13;                              /* squares per side, size of a square */
     function pic(rows) { var b = []; rows.forEach(function (r) { for (var i = 0; i < N; i++) b.push(r.charAt(i) === 'X'); }); return b; }
     /* the fish keeps to the top half and the heart to the bottom half, so that both stay easy to see when the fox
-       lays them on each other (in the story and in the try box) */
+       lays them on each other (in the story) */
     var FISH_S = pic(['..........', '...XXXX..X', '.XXXXX.XXX', '.XXXXXXXXX', '...XXXX..X', '..........', '..........', '..........', '..........', '..........']);
     var HEART_S = pic(['..........', '..........', '..........', '..........', '..........', '.XXX..XXX.', '.XXXXXXXX.', '..XXXXXX..', '...XXXX...', '....XX....']);
     var HOUSE = pic(['..........', '....XX....', '...XXXX...', '..XXXXXX..', '.XXXXXXXX.', '..X....X..', '..X.XX.X..', '..X.XX.X..', '..XXXXXX..', '..........']);

@@ -2,7 +2,6 @@
 # id: the story in assets/js/simple-crypto/ (SC.story id) and the page anchor; why: the problem it solves, one or two
 # lines over the player; steps: one caption per scene of the animation (the same count as the story's scenes), shown
 # under the picture while that step plays; alt: the picture for screen readers; real: the "In real life" box.
-# The "Try it" box under each player is built by the story's script (its *-try.js part).
 # Short plain sentences: one or two per step, no word an 18 year old would have to look up without a picture.
 - id: key-exchange
   title: Key exchange

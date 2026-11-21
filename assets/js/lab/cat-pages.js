@@ -26,7 +26,7 @@
        sits on a story: the page sends tl-change when one starts) */
     function openRects() {
         var out = [];
-        Array.prototype.forEach.call(document.querySelectorAll('.tl-entry.open .tl-more, .sc-player, .sc-try, .sc-real'), function (m) {
+        Array.prototype.forEach.call(document.querySelectorAll('.tl-entry.open .tl-more, .sc-player, .sc-real'), function (m) {
             if (!m.hidden) out.push(rel(m));
         });
         return out;

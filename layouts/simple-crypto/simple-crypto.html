@@ -1,8 +1,8 @@
 {{- /* Simple Crypto (/simple-crypto/, a tab of the lab): short animated stories, where the cat sends a secret to the dog
-       and the fox listens in, told step by step with a caption under the picture for each step, then a "Try it" box
-       and an "In real life" box. The texts are in data/simple_crypto.yaml (the problem, the captions, the real-life
+       and the fox listens in, told step by step with a caption under the picture for each step, then an "In real
+       life" box. The texts are in data/simple_crypto.yaml (the problem, the captions, the real-life
        box); each story is a player (assets/js/simple-crypto/: a folder of numbered parts joined here into one script,
-       see its README.md), and its "Try it" box is filled by the story's script. The characters are the site's own cat
+       see its README.md). The characters are the site's own cat
        and dog drawing (cat-svg.html, copied by the script from the hidden .sc-sprites below) and a fox drawn in the
        same style. Styles: assets/css/common/simple-crypto.css. */ -}}
 {{- define "main" }}
@@ -27,7 +27,6 @@
             <li>{{ . | safeHTML }}</li>
             {{- end }}
         </ol>
-        <div class="sc-try" data-try="{{ $s.id }}" hidden></div>
         <aside class="sc-real" aria-label="In real life">
             <h3>In real life</h3>
             <p>{{ $s.real | safeHTML }}</p>

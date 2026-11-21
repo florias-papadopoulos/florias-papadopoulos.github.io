@@ -238,7 +238,7 @@ var SC = (function () {
         pet: pet, fox: fox, pot: pot, stream: stream, letter: letter, paw: paw, tick: tick, cross: cross, wonder: wonder,
         heart: heart, room: room, label: label, strip: strip
     };
-    /* ---------- a real hash for the "try it" boxes: SHA-256 of a text (UTF-8), as 64 hex digits ---------- */
+    /* ---------- a real hash (the passwords story): SHA-256 of a text (UTF-8), as 64 hex digits ---------- */
     var K256 = [];
     (function () {
         var n = 2, found = 0;
@@ -276,7 +276,7 @@ var SC = (function () {
         }
         return h.map(function (x) { return ('0000000' + (x >>> 0).toString(16)).slice(-8); }).join('');
     }
-    /* one colour per hex digit: the blocks of a fingerprint in the "try it" boxes */
+    /* one colour per hex digit: the blocks of a fingerprint */
     var PAL = ['#e5484d', '#f4c430', '#2f7fd0', '#22a06b', '#a855f7', '#f08a4b', '#14b8a6', '#ec4899',
         '#84cc16', '#4f46e5', '#f59e0b', '#7dd3fc', '#0e7490', '#9f1239', '#94a3b8', '#fda4af'];
     function colours(hexs, n) {
