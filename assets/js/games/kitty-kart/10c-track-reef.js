@@ -1,12 +1,15 @@
-    /* Coral Reef: a winding sand path on the sea floor, floaty handling and currents that carry you */
+    /* Coral Reef: a winding sand path on the sea floor, floaty handling and currents that carry you; a long sweeper, a
+       hairpin round a coral rock, a wiggle and a bulge the current tunnel cuts across; fish schools, crabs, jellyfish, a
+       manta ray, a sunken ship, a treasure chest and diver cats cheering at the start */
     var REEF = {
         id: 'reef', name: 'Coral Reef', blurb: 'Currents, a turtle, a tunnel with clams',
-        ctrl: [200, 320, 480, 180, 760, 230, 900, 370, 1060, 250, 1300, 170, 1560, 260, 1640, 520, 1480, 700, 1250, 640,
-               1100, 760, 1180, 980, 980, 1120, 720, 1000, 560, 1120, 300, 1060, 180, 840, 360, 680, 250, 520], scale: 1, start: 0,
+        ctrl: [300, 380, 650, 210, 1050, 240, 1450, 160, 1820, 260, 1990, 520, 1880, 760, 1560, 700, 1280, 760, 1240, 920,
+               1460, 1000, 1780, 1000, 1960, 1180, 1820, 1420, 1460, 1440, 1170, 1300, 900, 1440, 640, 1320, 430, 1450, 180, 1400,
+               30, 1150, 60, 850, 250, 600], scale: 1, start: 0,
         phys: { vmax: 325, vgrass: 135, acc: 310, grip: 4.2, gripOff: 3.2, coast: 0.45, turn: 2.8, care: 1.2 },
         col: { bg: '#3f98ad', edge: '#d9c48e', road: '#ecdcae', panel: 'rgba(255,255,255,.82)' },
-        alt: { a: 152, b: 238, hw: 32, vf: 1 }, flow: 120,
-        pads: [[70, 0.5], [440, -0.5]], picks: [30, 180], padCol: ['#0d9488', '#ccfbf1'],
+        alt: { a: 400, b: 462, hw: 32, vf: 1, via: [[430, 330, 0.25]] }, flow: 120,
+        pads: [[22, 0.5], [236, -0.4], [432, 0.5]], picks: [40, 175, 335], padCol: ['#0d9488', '#ccfbf1'],
         reset: function () { this.turtle.s = -250; this.turtle.dir = 1; this.clams.forEach(function (q) { q.open = 1; }); },
         altGood: function (c) {  /* the smarter cats only go in when neither clam will snap as they pass */
             if (!c.P) return true;
@@ -15,7 +18,7 @@
             return ok;
         },
         prep: function () {
-            var i, tj = 345;
+            var i, tj = 60;
             this.clams = [0.33, 0.67].map(function (f, n) {  /* two giant clams in the tunnel, open and shut in turn */
                 var ci = Math.round(f * (ALT.n - 1)), q = altSide(ci, n ? 11 : -11);
                 return { x: q.x, y: q.y, a: ALT.ang[ci], ci: ci, off: n * 1.7, open: 1 };
@@ -25,13 +28,29 @@
                 { i0: Math.round(0.2 * N), side: 1, f: 62 },
                 { i0: Math.round(0.44 * N), side: 0, f: 85 },
                 { i0: Math.round(0.66 * N), side: -1, f: 62 }];
-            this.zones.forEach(function (z) { z.i1 = z.i0 + 38; });
+            this.zones.forEach(function (z) { z.i1 = z.i0 + 30; });
             seed = 33;
             var kelp = this.kelp = [], fish = this.fish = [], vents = this.vents = [];
-            scatter(160, HW + 46, function (x, y, k) { if (kelp.length < 46) kelp.push({ x: x, y: y, len: 40 + (k % 5) * 9, ph: k * 1.3 }); });
-            scatter(30, HW + 60, function (x, y) { if (vents.length < 7) vents.push({ x: x, y: y, t: 0 }); });
+            scatter(260, HW + 46, function (x, y, k) { if (kelp.length < 72) kelp.push({ x: x, y: y, len: 40 + (k % 5) * 9, ph: k * 1.3 }); });
+            scatter(50, HW + 60, function (x, y) { if (vents.length < 10) vents.push({ x: x, y: y, t: 0 }); });
             var FC = ['#ffb347', '#ff6f91', '#ffe066', '#7ad7f0', '#c49bff'];
-            for (i = 0; i < 14; i++) fish.push({ x: rnd() * WW, y: rnd() * WH, a: rnd() * 7, sp: 40 + rnd() * 40, s: 0.8 + rnd() * 0.6, col: FC[i % FC.length], ph: rnd() * 7 });
+            for (i = 0; i < 20; i++) fish.push({ x: rnd() * WW, y: rnd() * WH, a: rnd() * 7, sp: 40 + rnd() * 40, s: 0.8 + rnd() * 0.6, col: FC[i % FC.length], ph: rnd() * 7 });
+            seed = 35;
+            var sp = spots(2, 500, 250);
+            this.ship = sp[0]; this.chest = sp[1];
+            if (this.ship) vents.push({ x: this.ship.x + 30, y: this.ship.y - 10, t: 0 });
+            if (this.chest) vents.push({ x: this.chest.x, y: this.chest.y - 8, t: 0 });
+            this.schools = [];  /* schools of little fish circling by the road; they scatter when a kart comes */
+            for (i = 0; i < 5; i++) {
+                var sj = Math.round((i + 0.3) * N / 5), sq = side(sj, (i % 2 ? 1 : -1) * (HW + 170)), mem = [];
+                for (var m = 0; m < 11; m++) mem.push({ x: (rnd() - 0.5) * 60, y: (rnd() - 0.5) * 40, ph: rnd() * 7 });
+                this.schools.push({ x: sq.x, y: sq.y, ph: rnd() * 7, dir: i % 2 ? 1 : -1, col: FC[(i + 2) % FC.length], m: mem, sc: 0 });
+            }
+            this.crabs = flock(10, HW + 34, HW + 70, 36);  /* little crabs on the sand by the path; they dig in when a kart comes */
+            this.crabs.forEach(function (q) { q.h = 0; });
+            var jel = this.jelly = [];
+            scatter(40, HW + 90, function (x, y, k) { if (jel.length < 8) jel.push({ x: x, y: y, ph: k * 1.9, col: k % 2 ? '#f0abfc' : '#a5f3fc' }); });
+            this.fans = fanRow(466, 490, -(HW + 30), 2, ['#ff7f9e', '#ffd166', '#7ad7f0'], 37);
         },
         paint: function (g) {
             var i, k;
@@ -71,6 +90,22 @@
                     g.closePath(); g.fill();
                 }
             });
+            var sh = this.ship;
+            if (sh) {  /* a sunken ship lying on its side, half in the sand, weed on its deck */
+                g.save(); g.translate(sh.x, sh.y); g.rotate(-0.4);
+                g.fillStyle = 'rgba(8,40,60,.3)'; g.beginPath(); g.ellipse(12, 16, 150, 52, 0, 0, 7); g.fill();
+                g.fillStyle = '#5b3a24'; g.beginPath(); g.moveTo(-140, -10); g.quadraticCurveTo(-120, -48, 0, -46); g.lineTo(120, -40); g.quadraticCurveTo(156, 0, 120, 40); g.lineTo(0, 46); g.quadraticCurveTo(-120, 48, -140, 10); g.closePath(); g.fill();
+                g.fillStyle = '#7a5236'; g.beginPath(); g.ellipse(-6, 0, 118, 32, 0, 0, 7); g.fill();
+                g.strokeStyle = '#5b3a24'; g.lineWidth = 3;
+                for (k = -100; k <= 90; k += 18) { g.beginPath(); g.moveTo(k, -30); g.lineTo(k, 30); g.stroke(); }
+                g.fillStyle = '#2f1f14'; g.fillRect(-40, -12, 26, 24); circle(g, 60, 0, 10, '#2f1f14');
+                g.strokeStyle = '#6b4a2e'; g.lineWidth = 9; g.beginPath(); g.moveTo(20, 0); g.lineTo(180, 70); g.stroke();  /* the broken mast */
+                g.fillStyle = 'rgba(235,225,200,.55)'; g.beginPath(); g.moveTo(110, 30); g.lineTo(170, 58); g.lineTo(120, 92); g.fill();
+                g.strokeStyle = '#2f8f5b'; g.lineWidth = 4;
+                for (k = 0; k < 6; k++) { g.beginPath(); g.moveTo(-90 + k * 34, -28); g.quadraticCurveTo(-80 + k * 34, -50, -96 + k * 34, -66); g.stroke(); }
+                g.restore();
+            }
+            if (this.chest) { g.fillStyle = 'rgba(240,225,180,.55)'; g.beginPath(); g.ellipse(this.chest.x, this.chest.y + 4, 62, 34, 0, 0, 7); g.fill(); }
             strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw + 30, '#2a6c80');  /* the current tunnel shortcut: a deep trench */
             strokeAlt(g, 0, ALT.n - 1, 2 * ALT.hw, '#4d93a3');
             for (i = 1; i < ALT.n - 1; i += 2) for (k = -1; k <= 1; k += 2) {
@@ -136,6 +171,11 @@
                 if (f.x < -40) f.x = WW + 30; else if (f.x > WW + 40) f.x = -30;
                 if (f.y < -40) f.y = WH + 30; else if (f.y > WH + 40) f.y = -30;
             });
+            this.schools.forEach(function (q) {
+                var k = kartNear(q.x + Math.cos(clock * 0.35 * q.dir + q.ph) * 120, q.y + Math.sin(clock * 0.35 * q.dir + q.ph) * 80, 200);
+                q.sc = k ? Math.min(1, q.sc + dt * 4) : Math.max(0, q.sc - dt * 0.4);
+            });
+            this.crabs.forEach(function (q) { q.h = kartNear(q.x, q.y, 120) ? Math.min(1, q.h + dt * 6) : Math.max(0, q.h - dt * 0.6); });
             this.vents.forEach(function (v) {
                 v.t -= dt;
                 if (v.t <= 0 && vis(v.x, v.y, 60)) { v.t = 0.3 + Math.random() * 0.3; puff('bub', v.x + (Math.random() - 0.5) * 8, v.y, (Math.random() - 0.5) * 14, -14, 1.8, 2 + Math.random() * 4); }
@@ -210,6 +250,35 @@
                     ctx.beginPath(); ctx.ellipse(lx + (k % 2 ? 7 : -7), ly, 8, 3.5, k % 2 ? -0.5 : 0.5, 0, 7); ctx.fill();
                 }
             }
+            this.floor();
+        },
+        floor: function () {  /* things on the sea floor, drawn under the karts: crabs and the treasure chest */
+            var i, q, k;
+            for (i = 0; i < this.crabs.length; i++) {
+                q = this.crabs[i];
+                if (!vis(q.x, q.y, 30)) continue;
+                var cx = q.x + Math.sin(clock * 1.3 + q.ph) * 14 * (1 - q.h), cy = q.y;
+                if (q.h > 0.8) { circle(ctx, cx, cy, 7, 'rgba(160,130,80,.5)'); circle(ctx, cx - 3, cy - 2, 1.6, '#0f172a'); circle(ctx, cx + 3, cy - 2, 1.6, '#0f172a'); continue; }
+                ctx.strokeStyle = '#c2410c'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+                var lg = Math.sin(clock * 16 + q.ph) * 2;
+                for (k = -1; k <= 1; k += 2) {
+                    ctx.beginPath(); ctx.moveTo(cx + k * 5, cy); ctx.lineTo(cx + k * 11, cy + 3 + lg * k); ctx.moveTo(cx + k * 5, cy + 2); ctx.lineTo(cx + k * 10, cy + 7 - lg * k); ctx.stroke();
+                    circle(ctx, cx + k * 9, cy - 6, 3.2, '#ea580c');
+                }
+                circle(ctx, cx, cy, 7 * (1 - q.h * 0.3), '#f97316'); circle(ctx, cx - 2.5, cy - 4, 1.6, '#0f172a'); circle(ctx, cx + 2.5, cy - 4, 1.6, '#0f172a');
+            }
+            q = this.chest;
+            if (q && vis(q.x, q.y, 60)) {  /* a treasure chest that opens now and then: gold glints inside */
+                var p = (clock * 0.25) % 1, op = p < 0.45 ? Math.min(1, p / 0.08) : Math.max(0, 1 - (p - 0.45) / 0.08);
+                ctx.fillStyle = 'rgba(8,40,60,.25)'; ctx.fillRect(q.x - 26, q.y - 10, 58, 34);
+                ctx.fillStyle = '#7c4a1e'; ctx.fillRect(q.x - 30, q.y - 14, 60, 30); ctx.fillStyle = '#facc15'; ctx.fillRect(q.x - 30, q.y - 2, 60, 4);
+                if (op > 0.05) {
+                    circle(ctx, q.x - 10, q.y - 14, 8, '#fde047'); circle(ctx, q.x + 6, q.y - 16, 7, '#facc15'); circle(ctx, q.x + 16, q.y - 12, 5, '#fde68a');
+                    if (Math.sin(clock * 9) > 0.3) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(q.x - 2, q.y - 26); ctx.lineTo(q.x - 2, q.y - 16); ctx.moveTo(q.x - 7, q.y - 21); ctx.lineTo(q.x + 3, q.y - 21); ctx.stroke(); }
+                }
+                ctx.fillStyle = '#92400e'; ctx.fillRect(q.x - 30, q.y - 14 - 20 * op, 60, 12 + 8 * (1 - op));
+                ctx.fillStyle = '#facc15'; ctx.fillRect(q.x - 4, q.y - 12 - 20 * op, 8, 7);
+            }
         },
         over: function () {
             ctx.lineCap = 'round';
@@ -232,7 +301,47 @@
                 circle(ctx, 6, -1.5, 1.6, '#0f172a');
                 ctx.restore();
             }
+            for (i = 0; i < this.schools.length; i++) {  /* schools of fish, circling, scattering when a kart comes */
+                var sc = this.schools[i], an = clock * 0.35 * sc.dir + sc.ph, ox = sc.x + Math.cos(an) * 120, oy = sc.y + Math.sin(an) * 80;
+                if (!vis(ox, oy, 160)) continue;
+                var hd = an + sc.dir * Math.PI / 2, ch = Math.cos(hd), sh = Math.sin(hd), spread = 1 + sc.sc * 2.4;
+                ctx.fillStyle = sc.col;
+                for (var m = 0; m < sc.m.length; m++) {
+                    var mb = sc.m[m], fx = ox + (mb.x * ch - mb.y * sh) * spread + Math.sin(clock * 3 + mb.ph) * 3, fy = oy + (mb.x * sh + mb.y * ch) * spread;
+                    var ta = hd + sc.sc * Math.sin(mb.ph) * 1.2, tc = Math.cos(ta), ts = Math.sin(ta), wg = Math.sin(clock * 14 + mb.ph) * 2;
+                    ctx.beginPath(); ctx.ellipse(fx, fy, 6, 2.6, ta, 0, 7); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(fx - tc * 5, fy - ts * 5); ctx.lineTo(fx - tc * 10 - ts * (3 + wg), fy - ts * 10 + tc * (3 + wg)); ctx.lineTo(fx - tc * 10 + ts * (3 - wg), fy - ts * 10 - tc * (3 - wg)); ctx.fill();
+                }
+            }
+            for (i = 0; i < this.jelly.length; i++) {  /* jellyfish, pulsing as they drift up and down */
+                var jf = this.jelly[i], pu = Math.sin(clock * 2.2 + jf.ph), jx = jf.x + Math.sin(clock * 0.3 + jf.ph) * 30, jy = jf.y + Math.sin(clock * 0.5 + jf.ph) * 20 - pu * 4;
+                if (!vis(jx, jy, 50)) continue;
+                ctx.globalAlpha = 0.55; ctx.strokeStyle = jf.col; ctx.lineWidth = 2;
+                for (var k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(jx + k * 4, jy); ctx.quadraticCurveTo(jx + k * 5 + Math.sin(clock * 3 + k) * 5, jy + 14, jx + k * 4 + Math.sin(clock * 2 + k) * 6, jy + 28 + pu * 3); ctx.stroke(); }
+                ctx.globalAlpha = 0.75; ctx.fillStyle = jf.col; ctx.beginPath(); ctx.ellipse(jx, jy, 13 + pu * 2, 10 - pu * 1.5, 0, Math.PI, 0); ctx.fill();
+                ctx.globalAlpha = 1; circle(ctx, jx - 4, jy - 5, 2.5, 'rgba(255,255,255,.7)');
+            }
+            drawFans(this.fans, function (fn, fx, fy) {  /* diving helmets, a bubble now and then */
+                ctx.strokeStyle = 'rgba(224,250,255,.9)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(fx, fy, 8.5, 0, 7); ctx.stroke();
+                var bt = (clock * 0.8 + fn.ph) % 2.5;
+                if (bt < 1.2) { ctx.beginPath(); ctx.arc(fx + 5, fy - 12 - bt * 22, 2 + bt, 0, 7); ctx.stroke(); }
+            });
             drawParts('bub');
+            var mu = (clock / 30 + 0.62) % 1, mx = -300 + mu * (WW + 600), my = WH * (0.35 + 0.22 * Math.sin(mu * 6.28 + 1)), mh = Math.atan2(WH * 0.22 * Math.cos(mu * 6.28 + 1) * 6.28, WW + 600);
+            if (vis(mx, my, 200)) {  /* a manta ray gliding over the whole reef, its shadow on the sand */
+                var wf = Math.sin(clock * 1.8) * 10;
+                for (var pass = 0; pass < 2; pass++) {
+                    ctx.save(); ctx.translate(pass ? mx : mx + 60, pass ? my : my + 90); ctx.rotate(mh);
+                    ctx.fillStyle = pass ? '#334e68' : 'rgba(8,40,60,.16)';
+                    ctx.beginPath(); ctx.moveTo(48, 0); ctx.quadraticCurveTo(0, -12, -14, -78 - wf); ctx.quadraticCurveTo(-26, -20, -44, 0); ctx.quadraticCurveTo(-26, 20, -14, 78 + wf); ctx.quadraticCurveTo(0, 12, 48, 0); ctx.fill();
+                    if (pass) {
+                        ctx.strokeStyle = '#334e68'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-40, 0); ctx.lineTo(-100, Math.sin(clock * 2) * 8); ctx.stroke();
+                        ctx.fillStyle = '#5b7a99'; ctx.beginPath(); ctx.ellipse(8, 0, 22, 9, 0, 0, 7); ctx.fill();
+                        circle(ctx, 40, -8, 2.4, '#0f172a'); circle(ctx, 40, 8, 2.4, '#0f172a');
+                    }
+                    ctx.restore();
+                }
+            }
         },
         screen: function () {  /* sun rays through the water */
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -247,4 +356,3 @@
             }
         }
     };
-
