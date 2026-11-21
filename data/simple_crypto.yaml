@@ -25,10 +25,11 @@
     - The plum is now their shared key. The cat locks a heart in a box. The fox's khaki key does not fit, the dog's
       plum key opens it.
   real: >-
-    This is the <b>Diffie-Hellman key exchange</b>, and your browser runs it every time it opens an https page. The
-    paints are numbers: the yellow is a public number, each secret is a number, and mixing is multiplying the yellow
-    by itself that many times on a huge clock. Forward takes a millisecond; going back, the <b>discrete logarithm</b>,
-    is the un-mixing that no computer can do in time.
+    This is the <b>Diffie-Hellman key exchange</b>, and your browser runs a version of it every time it opens an https
+    page. The paints are numbers: the yellow is a public number, each secret is a number, and mixing is multiplying the
+    yellow by itself that many times on a huge clock (browsers today use the same idea on elliptic curves). Forward
+    takes about a millisecond; going back, the <b>discrete logarithm</b>, is the un-mixing that no computer can do in
+    time.
 - id: one-time-pad
   title: Secret sheets (one-time pad)
   why: >-
@@ -52,8 +53,9 @@
   real: >-
     This is the <b>one-time pad</b>, the only cipher proven unbreakable, if the key is truly random, as long as the
     message, and used once. Computers do the flipping on bits (0 and 1), called <b>XOR</b>. Real ciphers like AES
-    make a long key stream from a short key, and the rule still holds: never use the same stream twice. Soviet spies
-    reused pads in the 1940s, and American codebreakers read thousands of their messages (project Venona).
+    make a long key stream from a short key, and the rule still holds: never use the same stream twice. In the 1940s a
+    Soviet factory printed some one-time pad pages twice, and American codebreakers used that to read, at least in
+    part, about 3,000 Soviet messages (project Venona).
 - id: padlock
   title: Open padlocks (public-key encryption)
   why: >-
