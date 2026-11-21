@@ -304,3 +304,37 @@ html[data-mode="play"] :is(.sc-h2, .sc-why)::before {
     .sc-label.sc-res { font-size: 32px; }
     .sc-why-panel .sc-label { font-size: 24px; }
 }
+
+/* ---------- secret sheets (the one-time pad): pictures of squares, the key as a see-through sheet of dots ---------- */
+.sc-grid .grid-paper { fill: #fff; }
+.sc-grid rect:not(.grid-paper) { fill: #f1ece2; }
+.sc-grid rect.on { fill: #3b2a1e; }
+.sc-keysheet .ks-film { fill: rgba(125, 180, 255, 0.3); stroke: #4f7fd1; stroke-width: 1.6; }
+.sc-keysheet circle { fill: #1d4ed8; }
+.sc-bubble > circle, .sc-bubble > ellipse { fill: #fff; stroke: #3b2a1e; stroke-width: 2; }
+.sc-label.sc-q { font-size: 44px; }
+/* the "Try it" grids: a picture of 10 x 10 squares, the key with its dots, the big one to draw on */
+.sc-grow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 6px; margin: 4px 0 6px; }
+.sc-gcell { display: flex; flex-direction: column; align-items: center; width: 104px; margin: 0; text-align: center; }
+.sc-g {
+    display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px; width: 100%; aspect-ratio: 1; padding: 3px;
+    box-sizing: border-box; border: 1.5px solid #3b2a1e; border-radius: 4px; background: #fff;
+}
+.sc-g span { border-radius: 1px; background: #f1ece2; }
+.sc-g span.on { background: #3b2a1e; }
+.sc-gkey { background: rgba(125, 180, 255, 0.3); border-color: #4f7fd1; }
+.sc-gkey span { background: transparent; }
+.sc-gkey span.dot { background: radial-gradient(circle, #1d4ed8 0 42%, transparent 46%); }
+.sc-gfox { border-color: #c2410c; border-width: 2px; }
+.sc-draw-wrap { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 16px; margin: 4px 0 14px; }
+.sc-draw-wrap .sc-gcell { width: min(230px, 100%); }
+.sc-draw { cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.sc-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.sc-tools .sc-tbtn[aria-pressed="true"] { border-color: var(--sec); color: var(--sec); }
+.sc-grow .sc-op { align-self: center; margin-top: -18px; }
+@media (max-width: 600px) {
+    .sc-gcell { width: 86px; }
+    .sc-draw-wrap .sc-gcell { width: 200px; }
+    .sc-grow { gap: 8px 3px; }
+    .sc-grow .sc-op { font-size: 17px; }
+}

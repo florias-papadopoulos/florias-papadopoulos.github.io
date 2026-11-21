@@ -11,17 +11,19 @@ picture's alt text, the real-life box) are in `data/simple_crypto.yaml`, in page
 `assets/css/common/simple-crypto.css`. The files here are joined in name order into one script
 (`resources.Match "js/simple-crypto/*.js"`, then minified and fingerprinted with SRI).
 
-| File | What is in it |
+| File (the page order of the stories is the order in `data/simple_crypto.yaml`) | What is in it |
 | --- | --- |
 | `00-core.js` | `SC`: the story registry, the drawing helpers `SC.H` (easing, colour mixing, arcs; the cat and the dog copied from the page's hidden drawing, the fox, pots, letters, paw prints, tick, cross, thought bubble, the room, short labels, fingerprint strips), and `SC.sha256` / `SC.colours` (a real SHA-256 and its first hex digits as coloured blocks, for the "Try it" boxes) |
 | `10-player.js` | The player: one step per scene, each played once and held at its end; the caption of the step under the picture; the steps track, Back, pause / go on / replay, Next, full screen; keys; reduced motion; one story at a time; pause when out of view |
 | `15-try.js` | `SC.tryBox(id, fill)`: the "Try it" boxes, and their small DOM helpers |
-| `20-key-exchange.js` | Story 1: key exchange as paint mixing (Diffie-Hellman), with a panel showing why the fox's mix is wrong (one yellow too many), ending with a padlock in the shared colour |
+| `20-key-exchange.js` | Key exchange as paint mixing (Diffie-Hellman), with a panel showing why the fox's mix is wrong (one yellow too many), ending with a padlock in the shared colour |
 | `21-key-exchange-try.js` | Try it: un-mix the paint with a colour slider (paint lets you get warmer), then the real thing with small numbers (5 on a 23 hour clock: no warmer or colder) |
-| `30-hash.js` | Story 2: the grinder that turns a letter into six coloured blocks, and cannot turn them back |
+| `30-hash.js` | Fingerprint (hash): the grinder that turns a letter into six coloured blocks, and cannot turn them back |
 | `31-hash-try.js` | Try it: type a text, see its real SHA-256 as blocks and 64 hex digits, the digits that changed marked |
-| `40-signature.js` | Story 3: the cat's paw stamped over the letter's fingerprint is the seal; the dog checks the paw with a see-through sheet everyone has and the colours with its own fingerprint; the fox's own paw, a moved seal and a changed word all fail |
+| `40-signature.js` | Signature: the cat's paw stamped over the letter's fingerprint is the seal; the dog checks the paw with a see-through sheet everyone has and the colours with its own fingerprint; the fox's own paw, a moved seal and a changed word all fail |
 | `41-signature-try.js` | Try it: edit the signed letter or use the fox's paw, and see the dog's two checks live |
+| `50-one-time-pad.js` | Secret sheets (the one-time pad). A picture of 10 x 10 squares, the key a see-through sheet of random dots that flips the squares under them (XOR); the fox's bubble tries pictures; reusing the key lets the fox lay two sent sheets on each other and see both pictures |
+| `51-one-time-pad-try.js` | Try it: draw a picture, see the key and what is sent; then reuse the key for a second picture and see the fox's overlay |
 | `90-boot.js` | Starts a player for each `.sc-player[data-story]` and fills each `.sc-try[data-try]` |
 
 A story is `SC.story({ id, scenes: [seconds...], poster, keys, build })`. `build(svg, H)` draws everything once

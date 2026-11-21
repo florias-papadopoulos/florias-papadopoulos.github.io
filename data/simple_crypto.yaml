@@ -29,6 +29,31 @@
     paints are numbers: the yellow is a public number, each secret is a number, and mixing is multiplying the yellow
     by itself that many times on a huge clock. Forward takes a millisecond; going back, the <b>discrete logarithm</b>,
     is the un-mixing that no computer can do in time.
+- id: one-time-pad
+  title: Secret sheets (one-time pad)
+  why: >-
+    Once two people share a secret key, how do they use it to hide a message completely? And why do the rules say a
+    key may be used only once?
+  alt: >-
+    The cat hides a picture of a fish by laying a sheet of random dots on it, which flips the squares under the dots;
+    the fox sees only noise, and the dog flips the fish back with its copy of the sheet. When the cat reuses the
+    sheet for a heart, the fox lays the two noisy sheets on each other and sees the fish and the heart.
+  steps:
+    - The cat and the dog share a secret key, for example made with the paint trick of story 1. Here the key is a
+      sheet of random blue dots, one copy each. The fox has none.
+    - The cat's message is a picture of a fish. It lays its key on top, and every square under a dot flips, white to
+      dark and dark to white.
+    - What travels is just noise. The fox copies it and wonders what it shows. A fish? A house? For every picture there
+      is some key that gives exactly this noise, so the fox cannot know.
+    - The dog lays its copy of the key on the noise. The same squares flip back, and the fish appears.
+    - The next day the cat sends a heart, and is lazy. It uses the same key again! The fox copies that noise too.
+    - "The fox lays its two copies on each other. Every dot of the key now flips its square twice, so the key cancels
+      out, and the fish and the heart appear together. Never use a key twice."
+  real: >-
+    This is the <b>one-time pad</b>, the only cipher proven unbreakable, if the key is truly random, as long as the
+    message, and used once. Computers do the flipping on bits (0 and 1), called <b>XOR</b>. Real ciphers like AES
+    make a long key stream from a short key, and the rule still holds: never use the same stream twice. Soviet spies
+    reused pads in the 1940s, and American codebreakers read thousands of their messages (project Venona).
 - id: hash
   title: Fingerprint (hash)
   why: >-
