@@ -49,4 +49,26 @@ module.exports = function (CH, t) {
         t.eq(cols.map(function (col) { return CH.ALPHA.charAt(CH.desk.bestShift(B.countCodes(col))); }).join(''), 'FIORE', 'bellaso: column counts give the key');
         t.eq(CH.print(B.vigenere(Bl.msg, 'FIORE', true)), Bl.answer, 'bellaso: FIORE solves it');
     }
+
+    /* ---------- Babington: Mary's letter of 17 July 1586, section vii (Pollen 1922, spelling modernised) ---------- */
+    var babPlain = 'The affairs being thus prepared and forces in readiness both without and within the realm, then shall it be time to set the six gentlemen to work, taking order, upon the accomplishing of their design, I may be suddenly transported out of this place';
+    var psPlain = 'I would be glad to know the names and qualities of the six gentlemen which are to accomplish the designment, for it may be I shall be able upon knowledge of the parties to give you some further advice necessary to be followed therein';
+    if (S.babington) {
+        var Bb = S.babington;
+        t.eq(Bb.answer, CH.print(Bb.normal(babPlain)), 'babington: answer fingerprint');
+        t.eq(Bb.decipher(Bb.msg), Bb.normal(babPlain).length ? Bb.decipher(Bb.encipher(babPlain)) : '', 'babington: the message deciphers like a fresh encipherment (nulls dropped)');
+        t.eq(CH.letters(Bb.decipher(Bb.msg)), Bb.normal(babPlain), 'babington: the message is the passage');
+        t.eq(CH.letters(Bb.decipher(Bb.ps)), Bb.normal(psPlain), 'babington: the postscript is the forged postscript');
+        t.eq(Bb.normal('Jewels of Venice, who knows'), 'IEUUELSOFUENICEUUHOKNOUUS', 'babington: J as I, V as U, W as UU');
+        /* round trips on random text, with nulls */
+        var rnd = B.rng(7);
+        for (var r = 0; r < 20; r++) {
+            var words = [], n = 3 + Math.floor(rnd() * 8);
+            for (var w = 0; w < n; w++) { var len = 1 + Math.floor(rnd() * 7), s = ''; for (var q = 0; q < len; q++) s += 'ABCDEFGHIKLMNOPQRSTUXYZ'.charAt(Math.floor(rnd() * 23)); words.push(s); }
+            var text = words.join(' ');
+            t.eq(CH.letters(Bb.decipher(Bb.encipher(text, rnd))), Bb.normal(text), 'babington: round trip ' + text);
+        }
+        /* a tripled letter keeps its third letter */
+        t.eq(CH.letters(Bb.decipher(Bb.encipher('AAA'))), 'AAA', 'babington: three of a kind');
+    }
 };
