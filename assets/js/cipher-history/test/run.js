@@ -1,6 +1,6 @@
 /* Cipher History tests: node assets/js/cipher-history/test/run.js [word]
    Loads the page's script in the same order as layouts/partials/cipher-history/script.html (00-core.js, the Toolbox's
-   lib/text.js and lib/code-breaking.js, then every other part in name order) into node without a page, then runs
+   lib/text.js, lib/code-breaking.js and data/english-quadgrams.js, then every other part in name order) into node without a page, then runs
    test/*.test.js. A test file gets (CH, t) and calls t.ok(cond, msg), t.eq(a, b, msg); a word as argument runs only
    the test files whose name contains it. It also checks the texts: no em or en dash and no "--" in the story pages
    (content/cipher-history/*.md) or in these scripts, and every story page has its script and the other way round.
@@ -15,6 +15,7 @@ function load(f) { vm.runInThisContext(fs.readFileSync(f, 'utf8'), { filename: f
 load(path.join(HERE, '00-core.js'));
 load(path.join(SITE, 'assets/js/calc/lib/text.js'));
 load(path.join(SITE, 'assets/js/calc/lib/code-breaking.js'));
+load(path.join(SITE, 'assets/js/calc/data/english-quadgrams.js'));
 fs.readdirSync(HERE).filter(function (f) { return /\.js$/.test(f) && f !== '00-core.js'; }).sort().forEach(function (f) { load(path.join(HERE, f)); });
 var CH = global.CH;
 

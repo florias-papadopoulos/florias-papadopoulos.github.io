@@ -71,4 +71,40 @@ module.exports = function (CH, t) {
         /* a tripled letter keeps its third letter */
         t.eq(CH.letters(Bb.decipher(Bb.encipher('AAA'))), 'AAA', 'babington: three of a kind');
     }
+
+    /* ---------- Mary 2023: a letter we wrote in English, in a homophonic key of 33 signs (shuffled with seed 1583) ---------- */
+    var maryPlain = 'Monsieur de Mauvissiere, I have received your letter of the tenth. My health is worse this winter, and my keepers allow me no air and no exercise. I beg you to press the Queen of England again about my liberty, for I fear that all this talk of my release is only words to keep me quiet. Do not trust Walsingham, who reads all that passes through his hands. Send your answer by the same way, in this cipher, and burn this letter when you have read it.';
+    if (S['mary-2023']) {
+        var My = S['mary-2023'], mr = B.rng(1583), msigns = My.signs.slice();
+        for (var mi = msigns.length - 1; mi > 0; mi--) { var mj = Math.floor(mr() * (mi + 1)), mt = msigns[mi]; msigns[mi] = msigns[mj]; msigns[mj] = mt; }
+        var mkey = {}, mdec = {};
+        msigns.forEach(function (sg, i2) { var L = CH.ALPHA.charAt(My.shape[i2]); (mkey[L] = mkey[L] || []).push(sg); mdec[sg] = L; });
+        t.eq(My.signs.length, 33, 'mary: 33 signs');
+        t.eq(My.shape.length, 33, 'mary: the key shape has 33 slots');
+        t.eq(My.msg, My.encipher(maryPlain, mkey, B.rng(1584)), 'mary: the message is the plaintext in the secret key');
+        t.eq(My.answer, CH.print(maryPlain), 'mary: answer fingerprint');
+        var plainOf = function (m) { return My.msg.split('').map(function (sg) { return m[sg] || '?'; }).join(''); };
+        t.eq(CH.print(plainOf(mdec)), My.answer, 'mary: the secret key solves it');
+        /* counting fails: the commonest sign is not one of e's, and matching by rank leaves the text unreadable */
+        var mc = {};
+        My.msg.split('').forEach(function (sg) { mc[sg] = (mc[sg] || 0) + 1; });
+        var morder = Object.keys(mc).sort(function (a, b) { return mc[b] - mc[a] || (a < b ? -1 : 1); });
+        t.ok(mdec[morder[0]] !== 'E', 'mary: the commonest sign is not e (it is ' + mdec[morder[0]] + ')');
+        var en = CH.desk.englishOrder(), rank = {}, rightRank = 0;
+        morder.forEach(function (sg, r) { rank[sg] = en[r] || '?'; });
+        My.msg.split('').forEach(function (sg) { if (rank[sg] === mdec[sg]) rightRank++; });
+        t.ok(rightRank / My.msg.length < 0.4, 'mary: rank matching gets under 40 percent of the letters (' + Math.round(rightRank / My.msg.length * 100) + ')');
+        /* the hill climber finds the key from several random starts */
+        var midx = {};
+        My.signs.forEach(function (sg, i2) { midx[sg] = i2; });
+        var mct = My.msg.split('').map(function (sg) { return midx[sg]; }), msolved = 0;
+        for (var seed = 1; seed <= 6; seed++) {
+            var cl = CH.climb.make(mct, My.shape, B.rng(seed));
+            for (var k2 = 0; k2 < 400; k2++) {
+                cl.run(1000);
+                if (CH.print(mct.map(function (x) { return CH.ALPHA.charAt(cl.bestKey[x]); }).join('')) === My.answer) { msolved++; break; }
+            }
+        }
+        t.eq(msolved, 6, 'mary: the climber solves it from 6 of 6 random starts within 400000 steps');
+    }
 };

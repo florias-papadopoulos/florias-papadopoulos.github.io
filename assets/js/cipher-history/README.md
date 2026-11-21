@@ -15,21 +15,23 @@ the method of the time, three hints, a check that says when it is solved) and **
 | `content/cipher-history/<id>.md` | One story: all its text, in front matter (see below) |
 | `layouts/cipher-history/list.html` | The front page (corridor, cards, stamps) |
 | `layouts/cipher-history/single.html` | A story page (the four parts) |
-| `layouts/partials/cipher-history/script.html` | The script: `00-core.js`, the Toolbox's `calc/lib/text.js` and `calc/lib/code-breaking.js` (unchanged), then the other parts here in name order. One file for every page of the tab |
+| `layouts/partials/cipher-history/script.html` | The script: `00-core.js`, the Toolbox's `calc/lib/text.js`, `calc/lib/code-breaking.js` and `calc/data/english-quadgrams.js` (unchanged), then the other parts here in name order. One file for every page of the tab |
 | `assets/css/common/cipher-history.css` | Styles (light colours only) |
 | `00-core.js` | `CH`: the registry, DOM helpers, the notebook, `CH.print` (answer fingerprints), a minimal `Calc` for the Toolbox libraries |
 | `10-desk-wheel.js` | Desk tool: the cipher wheel, `CH.desk.shift`, the list of all 25 shifts |
-| `20-desk-bench.js` | Desk tool: the frequency bench (English bars, a card per sign with its count and a box for its letter or word, the message with the letters found so far; letters swap, nulls and a doubling sign are supported) |
+| `15-desk-climb.js` | Desk tool: the hill climber for a homophonic cipher (`CH.climb.make`, `CH.desk.climber`): one step with its reason, or climb with a chart of the best English quadgram score; random restarts when stuck |
+| `20-desk-bench.js` | Desk tool: the frequency bench (English bars, a card per sign with its count and a box for its letter or word, the message with the letters found so far; letters swap, nulls and a doubling sign are supported; `many: true` lets several signs share a letter, `setAll` fills a whole key) |
 | `30-desk-kasiski.js` | Desk tools: Kasiski repeats (coloured, gaps, divisors, key length buttons) and the column splitter (one slider per key letter, bars against English) |
 | `40-desk-turn.js` | The frame of Your turn: hints one at a time, the status line, the stamp |
 | `45-front.js` | The front page: stamps and the notebook line |
-| `51-caesar.js` ... `54-babington.js` | The stories (machine and puzzle) |
+| `51-caesar.js` ... `55-mary-2023.js` | The stories (machine and puzzle): Caesar, al-Kindi, Bellaso and Kasiski, Babington, Mary Stuart's lost letters (2023) |
 | `90-boot.js` | Starts the front page or the story on the page |
 | `test/run.js` | Tests: `node assets/js/cipher-history/test/run.js` (must end with `ok`) |
 
 Reused from the Toolbox (imported as they are, nothing changed there): `Calc.lib.text` (letters, English letter
-frequencies) and `Calc.lib.breaking` (Caesar, Vigenère and substitution in both directions, Kasiski repeats, columns,
-chi-squared, the seeded random generator and the FNV hash).
+frequencies), `Calc.lib.breaking` (Caesar, Vigenère and substitution in both directions, Kasiski repeats, columns,
+chi-squared, the quadgram score, the seeded random generator and the FNV hash) and `Calc.data.quadgrams` (English
+quadgram counts, about 50 kB, for the hill climber).
 
 ## Adding a story
 
@@ -63,7 +65,7 @@ chi-squared, the seeded random generator and the FNV hash).
        url: "https://..."
    ```
 
-3. **Write `assets/js/cipher-history/5x-<id>.js`** (55 to 89 are free; keep each file under about 600 lines):
+3. **Write `assets/js/cipher-history/5x-<id>.js`** (56 to 89 are free; keep each file under about 600 lines):
 
    ```js
    (function () {
@@ -84,7 +86,7 @@ chi-squared, the seeded random generator and the FNV hash).
    ```
 
    Ready tools: `CH.desk.wheel`, `CH.desk.allShifts`, `CH.desk.bench` (letters, or signs with `words`, `special`,
-   `nulls`), `CH.desk.repeats`, `CH.desk.columns`; write a new desk tool as its own numbered file (10 to 49) when a
+   `nulls`, `many`), `CH.desk.repeats`, `CH.desk.columns`, `CH.desk.climber`; write a new desk tool as its own numbered file (10 to 49) when a
    story needs one (a codebook rebuilder, a rotor, a crib dragger...) so later stories can reuse it.
 4. **Test it** in `test/stories.test.js`: keep the plaintext there, check that the ciphertext is the plaintext
    enciphered with the key, that the answer fingerprint matches, and that the method of the time really finds the

@@ -7,10 +7,12 @@
        words: false,           true: a sign may stand for a word (inputs take several letters, no swapping)
        special: { sign: 'double' },   signs with a known job: 'double' repeats the letter before it
        rank: true,             show the button "Match by rank" (al-Kindi's first step: most common sign = E, ...)
+       many: false,            true: several signs may stand for the same letter (a homophonic cipher), so no swapping
        onChange(bench)         after every change
    })
    draws: the English letter counts, a card per cipher sign (how often it occurs, a bar, a box for its letter), and
-   the message with the letters found so far under each sign. Returns { map, set(sign, text), plain(), reset() }. */
+   the message with the letters found so far under each sign. Returns { map, set(sign, text), setAll({ sign: text }),
+   plain(), reset() }. */
 (function () {
     'use strict';
 
@@ -103,7 +105,7 @@
         function clean(v) { return CH.letters(v).slice(0, words ? 14 : 1); }
         function set(s, v, typed) {
             v = clean(v);
-            if (!words && v) {
+            if (!words && !opt.many && v) {
                 /* a letter can only stand for one sign: the sign that had it gets this sign's old letter (a swap) */
                 Object.keys(map).forEach(function (o) {
                     if (o !== s && map[o] === v) { map[o] = map[s] || ''; inputs[o].value = map[o]; }
@@ -143,6 +145,8 @@
             if (opt.onChange) opt.onChange(api);
         }
         api.set = function (s, v) { if (inputs[s]) set(s, v); };
+        /* many signs at once (a key found by a machine), drawn once */
+        api.setAll = function (m) { Object.keys(m).forEach(function (s) { if (inputs[s]) { map[s] = clean(m[s]); inputs[s].value = map[s]; } }); render(); };
         api.reset = function () { Object.keys(map).forEach(function (s) { map[s] = ''; inputs[s].value = ''; }); render(); };
         api.order = order;
         api.counts = counts;
