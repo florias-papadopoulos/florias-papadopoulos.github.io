@@ -511,6 +511,8 @@ function presenter(st, att, msg, info) {
         if (!a || (VOTE_TYPES.indexOf(a.type) < 0 && a.type !== 'ballot')) return err('bad');
         /* a ballot: "reveal" closes it (the projector then counts and sends "tally"); "hide" opens it again, and a new
            count is needed after it */
+        /* a counted ballot is not opened again: a second count would show how the ballots cast in between voted */
+        if (msg.t === 'hide' && a.type === 'ballot' && m.tally[a.id]) return err('counted');
         if (msg.t === 'reveal') m.shown[a.id] = true; else { delete m.shown[a.id]; delete m.tally[a.id]; }
         break;
     }
@@ -619,13 +621,17 @@ function audience(st, att, msg, info) {
         adopt(st, att);
         const low = n.toLowerCase();
         if (n) for (const k of Object.keys(st.players)) if (k !== att.id && st.players[k].n.toLowerCase() === low) return me(r, { t: 'nick', ok: false, e: 'taken' });
+        /* no nickname, and none kept before: nothing to store (a phone is only stored once it keeps something) */
+        if (!n && !st.players[att.id]) { r.att = att; return me(r, { t: 'nick', ok: true, n: '', s: '' }); }
         const p = own(st, att, r);
         if (!p) return me(r, { t: 'nick', ok: false, e: 'full' });
+        /* the same nickname again changes nothing and writes nothing */
+        if (p.n === n && r.dirty.length === 0) return me(r, { t: 'nick', ok: true, n: n, s: p.s });
         /* a nickname that passes the word filter (nameOk) is shown at once; the presenter can still hide it ("name",
-           s: "no"); the same one again keeps its state */
+           s: "no") */
         if (p.n !== n) { p.n = n; p.s = n ? 'ok' : ''; }
         r.dirty.push('ph:' + p.tok);
-        if (m.s === 'waiting' && n) {
+        if (m.s === 'waiting') {
             /* if the talk never starts, nicknames given before it are deleted 24 hours after the last one */
             m.wdue = now + KEEP;
             r.dirty.push('meta');
@@ -741,6 +747,9 @@ function guess(st, att, msg, info, r) {
     if (!p) return err('full');
     const cg = st.cg[a.id] || (st.cg[a.id] = { by: map() });
     const e = cg.by[att.id] || (cg.by[att.id] = { g: {}, p: 0 });
+    /* the same guess again within 30 s changes nothing and writes nothing (it still counts until FADE) */
+    if (y && e.g[x] && e.g[x][0] === y && now - e.g[x][1] < 30000) { r.att = att; return me(r, { t: 'guessed', a: a.id, x: x, y: y }); }
+    if (!y && !e.g[x]) { r.att = att; return me(r, { t: 'guessed', a: a.id, x: x, y: '' }); }
     if (y) e.g[x] = [y, now]; else delete e.g[x];
     r.dirty.push('g:' + a.id + ':' + att.id);
     /* enough phones agree on the right letter: it locks for everyone, and each of them gets the points */

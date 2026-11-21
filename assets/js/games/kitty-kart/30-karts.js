@@ -92,7 +92,7 @@
             ctx.stroke();
             ctx.fillStyle = '#1c2b22'; ctx.fillRect(-7, -9.6, 11, 19.2);  /* the seaweed band */
         } }];
-    var SKIN_BY = {};
+    var SKIN_BY = Object.create(null);  /* no prototype: a skin id such as "__proto__" from a Duo peer is just unknown */
     SKINS.forEach(function (s) { SKIN_BY[s.id] = s; });
     function kartCol(c) { var s = SKIN_BY[c.skin]; return s && s.col ? s.col : c.body; }
     var mySkin = [0, 1].map(function (n) {

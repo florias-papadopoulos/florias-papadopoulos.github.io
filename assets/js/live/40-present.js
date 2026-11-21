@@ -122,7 +122,7 @@
                 bar.appendChild(btn('Hint', 'H', function () { send({ t: 'hint' }); }));
                 bar.appendChild(btn('Solve it', 'R', function () { if (confirm('Show the whole message?')) send({ t: 'reveal' }); }));
             }
-            if (ballot) bar.appendChild(btn(a.shown ? 'Open the ballot again' : 'Close and count', 'R', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }));
+            if (ballot && !a.n) bar.appendChild(btn(a.shown ? 'Open the ballot again' : 'Close and count', 'R', function () { send({ t: a.shown ? 'hide' : 'reveal' }); }));
             if (a && a.type === 'poll') bar.appendChild(btn(a.live ? 'Live bars: on' : 'Live bars: off', '', function () { send({ t: 'live', on: !a.live }); }));
             if (a) bar.appendChild(btn('Close', 'Esc', function () { send({ t: 'close' }); }));
             bar.appendChild(btn(pv.board ? 'Hide ranking' : 'Ranking', 'L', function () { send({ t: 'board' }); }));
@@ -224,9 +224,10 @@
     function fetchAll() { bs.asked = Date.now(); bs.fetched = false; send({ t: 'bget', a: bs.id }); }
     function take(b) {
         if (!bs || !bs.ver || !b || !b.c || !b.c[0]) return;
-        var k = String(b.c[0][0]);
-        if (bs.seen[k]) return;
-        bs.seen[k] = true;
+        /* a ballot that reuses any ciphertext of one already taken is a copy: the worker refuses those, and so does this page */
+        var ks = b.c.map(function (ct) { return String(ct && ct[0]); });
+        if (ks.some(function (k) { return bs.seen[k]; })) return;
+        ks.forEach(function (k) { bs.seen[k] = true; });
         bs.queue.push(b);
         if (bs.queue.length === 1) setTimeout(work, 0);
     }
@@ -324,7 +325,7 @@
     LV.say = say;
 
     /* ---------- what the worker says ---------- */
-    var ERR = { bkey: 'This ballot already has a key from another browser.', notlive: 'Start the session first.', noplan: 'There is no saved plan for this code.', toomany: 'That is the most quick polls for one talk.', bad: 'That did not work.' };
+    var ERR = { counted: 'This ballot is counted: it cannot be opened again.', bkey: 'This ballot already has a key from another browser.', notlive: 'Start the session first.', noplan: 'There is no saved plan for this code.', toomany: 'That is the most quick polls for one talk.', bad: 'That did not work.' };
     function message(m) {
         if (m.t === 'pstate') { fixTime(m); pv = m; setLink(m.join || ''); draw(); return; }
         if (!pv) return;

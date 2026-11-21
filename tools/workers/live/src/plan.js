@@ -217,6 +217,7 @@ export const LONG = ['fuck', 'shit', 'bitch', 'pussy', 'penis', 'vagina', 'porn'
     'slut', 'wanker', 'wanka', 'dickhead', 'cocksuck', 'scheiss', 'fotze', 'hurensohn', 'wichs', 'arschloch',
     'schlampe', 'putain', 'merde', 'connard', 'salope', 'mierda', 'hijodeputa', 'cazzo', 'stronzo', 'vaffanculo', 'malaka',
     'gamoto', 'poutana', 'florias', 'moderator'];
+const PROTECTED = ['florias', 'moderator'];   // refused anywhere in a name, also with lookalike letters (admin is refused as a whole word in SHORT)
 const NAME_CH = 'A-Za-z0-9\\u00C0-\\u024F\\u1E00-\\u1EFF';   // Latin letters with accents (Latin-1, Extended A and B, Vietnamese)
 const NAME_RE = new RegExp('^[' + NAME_CH + '][' + NAME_CH + ' ._\'-]{0,18}[' + NAME_CH + '.]$');
 const LOOK = new Map([['0', 'o'], ['1', 'i'], ['3', 'e'], ['4', 'a'], ['5', 's'], ['7', 't'], ['8', 'b']]);
@@ -253,6 +254,11 @@ export function nameOk(raw) {
     const n = raw.normalize('NFC');
     if (!NAME_RE.test(n) || /  /.test(n) || /[×÷]/.test(n)) return false;
     for (const c of n) if (!/[0-9 ._'-]/.test(c) && fold(c) === null) return false;
+    /* lookalikes of the protected names: capital I, small l and the digit 1 all read as one letter (FIorias, F1orias) */
+    const skel = function (x) { return x.replace(/[il1|]/g, 'l'); };
+    if (PROTECTED.some(function (p) { return [true, false].some(function (digits) { return skel(words(n, digits).join('')).indexOf(skel(p)) >= 0; }); })) return false;
+    /* and a name that is only "admin", however it is split or spelled (AdmIn, Adm1n) */
+    if ([true, false].some(function (digits) { return skel(words(n, digits).join('')) === skel('admin'); })) return false;
     return [true, false].every(function (digits) {
         const ws = words(n, digits), flat = ws.join('');
         return !ws.some(function (w) { return SHORT.has(w); }) && !LONG.some(function (w) { return flat.indexOf(w) >= 0; });

@@ -80,6 +80,17 @@ copied unchanged from `tools/workers/stats/worker.js`; the test checks the copy 
 may connect (and localhost when `DEV` is `"1"`). The presenter key is compared in constant time and is only ever sent
 in an `Authorization: Bearer` header or as the first WebSocket message, never in a URL.
 
+## What this cannot stop (security review, 2026-11-21)
+
+A phone's identity is a random token, so one person with a script can act as many phones: vote several times in a
+poll, quiz or secret ballot (the proofs show one vote per ballot, not one ballot per person), fill the session caps,
+brute force a shared cipher letter by letter (a letter locks when 2 phones agree, so two scripted phones can try
+letters until one locks) or outvote the room on it. Counting per address would stop that, but a conference Wi-Fi puts
+the whole room behind one address, so it would break honest use, and storing addresses would break the privacy
+promise. Audience mode is for fun polls and games in a talk, not for anything that must be fair against a scripted
+attacker; the join secret keeps everyone without the QR code out. The Origin check stops browsers on other sites only;
+a script can send any Origin, so the join secret and the presenter key are the real gates.
+
 ## Secret ballots
 
 Activity type `ballot` (2 to 5 answers; `LIMITS.ballotOpts`). The cryptography is in the site's

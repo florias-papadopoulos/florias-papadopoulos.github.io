@@ -432,7 +432,7 @@
         }
         fetch(server + '/scores?' + q, { cache: 'no-cache' })   /* fresh: a score may have been added a moment ago */
             .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-            .then(function (d) { if (seq !== boardSeq) return; data = { week: d.week || [], all: d.all || [] }; render(); })
+            .then(function (d) { if (seq !== boardSeq) return; data = { week: d.week || [], all: d.all || [], old: d.old === true }; render(); })
             .catch(function () { if (seq === boardSeq) { boardEl.innerHTML = ''; boardEl.appendChild(el('p', 'sb-load', 'The leaderboard is not reachable right now.')); } });
     }
 
@@ -469,8 +469,9 @@
                     if (!running) return;
                     var dt = Math.min(0.05, (now - last) / 1000);
                     last = now;
-                    if (!document.hidden) fn(dt, now);
+                    /* the next frame is asked for first, so one error in a frame cannot stop the game for good */
                     id2 = requestAnimationFrame(frame);
+                    if (!document.hidden) fn(dt, now);
                 }
                 id2 = requestAnimationFrame(frame);
                 function halt() { running = false; cancelAnimationFrame(id2); }

@@ -1,5 +1,5 @@
     /* ---------- Kitty Kart Duo: a race with a friend on another device ----------
-       One player hosts and gets a four letter code from the site's counter (api.server, tools/workers/stats/worker.js);
+       One player hosts and gets a six letter code from the site's counter (api.server, tools/workers/stats/worker.js);
        the friend types it in. The counter only passes the two WebRTC offers on, then forgets them; from then on the two
        devices talk directly over two data channels: "fast" (unordered, never resent) for the friend's keys and the
        host's snapshots, "sure" (reliable, in order) for what must arrive: start, go, sounds and speech, leaving.
@@ -46,7 +46,7 @@
             '<p class="kk-lb-p">Read it out to your friend. They open this game, tap Join a race and type it.</p>' +
             '<p class="kk-lb-wait">Waiting for your friend…</p><div class="kk-lb-row"><button type="button" class="kk-lb-btn" data-a="menu">Cancel</button></div></section>' +
             '<section data-s="join"><h3>Join a race</h3><p class="kk-lb-p">Type the code shown on your friend\'s screen.</p>' +
-            '<div class="kk-lb-row"><input class="kk-in" type="text" maxlength="4" autocomplete="off" autocorrect="off" autocapitalize="characters" ' +
+            '<div class="kk-lb-row"><input class="kk-in" type="text" maxlength="6" autocomplete="off" autocorrect="off" autocapitalize="characters" ' +
             'spellcheck="false" enterkeyhint="go" aria-label="Race code"><button type="button" class="kk-lb-btn kk-lb-go" data-a="go">Join</button></div>' +
             '<p class="kk-lb-err" role="alert"></p><div class="kk-lb-row"><button type="button" class="kk-lb-btn" data-a="menu">Back</button></div></section>' +
             '<section data-s="msg"><h3></h3><p class="kk-lb-p"></p><div class="kk-lb-row"></div></section></div>';
@@ -84,7 +84,7 @@
         });
         var codeIn = lobbyEl.querySelector('.kk-in');
         api.on(codeIn, 'input', function () {
-            var v = codeIn.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+            var v = codeIn.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
             if (v !== codeIn.value) codeIn.value = v;
             lobbyEl.querySelector('.kk-lb-err').textContent = '';
         });
@@ -228,7 +228,7 @@
             .then(function () { return g === gen ? ask('POST', '/room', { offer: pc.localDescription.sdp, k: 1 }) : null; })
             .then(function (r) {
                 if (!r || g !== gen) return;
-                if (r.status !== 200 || !/^[A-Z]{4}$/.test(r.data.code)) { fail(r.status === 503 ? 'full' : 'server'); return; }
+                if (r.status !== 200 || !/^[A-Z]{6}$/.test(r.data.code)) { fail(r.status === 503 ? 'full' : 'server'); return; }
                 roomCode = r.data.code; codeAt = Date.now();
                 roomKey = typeof r.data.key === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(r.data.key) ? r.data.key : null;
                 lobbyEl.querySelector('.kk-code').textContent = roomCode;
@@ -255,7 +255,7 @@
     }
     function joinRoom() {
         var c = lobbyEl.querySelector('.kk-in').value.toUpperCase().replace(/[^A-Z]/g, '');
-        if (c.length !== 4) { lobbyEl.querySelector('.kk-lb-err').textContent = 'The code has four letters.'; return; }
+        if (c.length !== 6) { lobbyEl.querySelector('.kk-lb-err').textContent = 'The code has six letters.'; return; }
         teardown(true);
         var g = gen;
         role = 'guest';
@@ -410,7 +410,7 @@
         if (!Array.isArray(a) || !Array.isArray(b)) return;
         if (m === CITY && b.length >= 3) {
             m.tram.s = mix(a[0], b[0], f, 60); m.tram.dir = b[1]; m.tram.wait = b[2];
-            for (i = 3; i + 3 < b.length; i += 4) { var q = m.cones[b[i]]; if (q) { q.x = b[i + 1]; q.y = b[i + 2]; q.a = b[i + 3]; q.vx = q.vy = q.va = 0; } }
+            for (i = 3; i + 3 < b.length; i += 4) { var q = Number.isInteger(b[i]) ? m.cones[b[i]] : null; if (q) { q.x = b[i + 1]; q.y = b[i + 2]; q.a = b[i + 3]; q.vx = q.vy = q.va = 0; } }
         } else if (m === REEF && b.length >= 2) { m.turtle.s = mix(a[0], b[0], f, 30); m.turtle.dir = b[1]; }
         else if (m === MOON || m === VOLCANO) {
             var old = m === MOON ? m.met : m.burst.list, list = [], at = m === MOON ? 1.5 : 1.4;
@@ -477,9 +477,10 @@
                 if (gone && !(tins[i].t > 0)) for (j = 0; j < 7; j++) puff('spark', tins[i].x, tins[i].y, (Math.random() - 0.5) * 170, (Math.random() - 0.5) * 170, 0.5, 2.6);
                 tins[i].t = gone;
             }
-            var had = {}, now = [], ya = s0[7], yb = s1[7];
+            var had = Object.create(null), now = [], ya = s0[7], yb = s1[7];
             yarns.forEach(function (y) { had[y.id] = y; });
             for (i = 0; i + 3 < yb.length; i += 4) {
+                if (!Number.isInteger(yb[i])) continue;   /* a yarn id from the other device is a number, nothing else */
                 var y = had[yb[i]] || { id: yb[i], trail: [] }, x = yb[i + 1], yy = yb[i + 2];
                 for (j = 0; j + 3 < ya.length; j += 4) if (ya[j] === y.id) { x = ya[j + 1] + (x - ya[j + 1]) * f; yy = ya[j + 2] + (yy - ya[j + 2]) * f; break; }
                 y.x = x; y.y = yy; y.roll = yb[i + 3];

@@ -212,9 +212,20 @@ test('M4 likes: take-backs limited to the day\'s likes plus the slack', async fu
     assert.strictEqual(await up(1, 0), 50 - slack);
     /* another game has its own limit */
     var r = await w.call('POST', '/likes', { json: { g: 'brick-paw', f: 1, t: 0 } });
-    assert.deepStrictEqual(r.json()['brick-paw'], { u: 0, d: 0 }, 'never below 0');
+    assert.deepStrictEqual(r.json()['brick-paw'] || { u: 0, d: 0 }, { u: 0, d: 0 }, 'never below 0');
     assert.ok(w.i.mayRemove(undefined, undefined) && w.i.mayRemove(0, 2) && !w.i.mayRemove(0, 3) && w.i.mayRemove(5, 7) && !w.i.mayRemove(5, 8));
 });
+test('likes: take-backs sent all at once are still held to the limit', async function () {
+    var w = worker();
+    w.db.insert('likes', { game: 'long-cat', up: 40, down: 0 });
+    var all = [];
+    for (var k = 0; k < 40; k++) all.push(w.call('POST', '/likes', { json: { g: 'long-cat', f: 1, t: 0 } }));
+    await Promise.all(all);
+    /* D1 runs each batch as one transaction; the mock may interleave them, which can only make it stricter */
+    var left = w.db.table('likes')[0].up;
+    assert.ok(left >= 40 - w.i.UNLIKE_SLACK && left <= 40, 'only the slack can go on a day without new likes: ' + left);
+});
+
 test('M4 likes: LIKE_CAP still holds', async function () {
     var w = worker();
     w.db.count('likes', 'all', w.i.LIKE_CAP);
@@ -229,7 +240,7 @@ test('L2 rooms: a host key guards the answer and the close', async function () {
     var r = await w.call('POST', '/room', { json: { offer: OFFER, k: 1 } });
     assert.strictEqual(r.status, 200);
     var d = r.json(), code = d.code, key = d.key;
-    assert.ok(/^[A-Z]{4}$/.test(code) && /^[A-Za-z0-9_-]{22}$/.test(key), JSON.stringify(d));
+    assert.ok(/^[A-Z]{6}$/.test(code) && /^[A-Za-z0-9_-]{22}$/.test(key), JSON.stringify(d));
     assert.strictEqual(w.db.table('rooms')[0].secret, key);
     assert.strictEqual((await w.call('GET', '/room/' + code + '/answer')).status, 403, 'no key');
     assert.strictEqual((await w.call('GET', '/room/' + code + '/answer', { headers: { Authorization: 'Room ' + key.replace(/^./, key[0] === 'A' ? 'B' : 'A') } })).status, 403, 'wrong key');

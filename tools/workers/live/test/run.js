@@ -101,6 +101,11 @@ test('nicknames', function () {
     ['M', 'x'.repeat(21), ' Milo', 'Milo  B', 'Sh1t', 'b.i.t.c.h', 'florias', 'Admin', 'a<b>', ''].forEach(function (n) { assert.ok(!P.nameOk(n), n); });
 });
 
+test('lookalikes of the protected names are refused, ordinary names with i and l are not', function () {
+    ['FIorias', 'F1orias', 'fl0rias', 'AdmIn', 'Adm1n', 'Moderat0r'].forEach(function (n) { assert.ok(!P.nameOk(n), n); });
+    ['Florian', 'Lilia', 'Ali', 'Milo', 'Ilias'].forEach(function (n) { assert.ok(P.nameOk(n), n); });
+});
+
 test('the nickname filter is the leaderboards worker\'s, unchanged', function () {
     const w = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '../../stats/worker.js'), 'utf8');
     /* the same lists */
@@ -117,7 +122,7 @@ test('the nickname filter is the leaderboards worker\'s, unchanged', function ()
     vm.runInContext(w.slice(from, to) + '\n' + fn('fold') + '\n' + fn('words') + '\n' + fn('nameOk') + '\nthis.nameOk = nameOk;', box);
     const names = ['Milo', 'Anna B.', 'Jo', 'Zoë', "O'Neil", 'crypto_fan', 'Essex', 'Dickens', 'Badminton', 'Nazir', 'Gamora', 'M', 'x'.repeat(21),
         ' Milo', 'Milo  B', 'Sh1t', 'sh1thead', 'b.i.t.c.h', 's.e.x', 'S E X', 'BigDick', 'dick69', 'florias', 'Admin', 'a<b>', '', 'Флориас',
-        'Ψ', 'Straße', 'Łukasz', 'Nguyễn', '2×3', 'f u c k', 'K1ll', 'moderator1', 'Mr. Bean', '___'];
+        'Ψ', 'Straße', 'Łukasz', 'Nguyễn', '2×3', 'f u c k', 'K1ll', 'moderator1', 'Mr. Bean', '___', 'FIorias', 'F1orias', 'F|orias', 'AdmIn', 'Florian', 'Lilia', 'Ali', 'Badminton'];
     names.forEach(function (n) { assert.strictEqual(P.nameOk(n), box.nameOk(n), n); });
 });
 
@@ -576,9 +581,9 @@ test('secret ballot: key, one encrypted ballot each, no copies, closed by the re
     assert.deepStrictEqual(ex.answers.map(function (a) { return a.votes; }), [0, 2, 0]);
     assert.ok(ex.secret && ex.invalid === 1 && ex.total === 3);
     assert.ok(!JSON.stringify(S.exportResults(b.st, b.now)).includes(bx.c[0][0]), 'the export has no ballots');
-    /* "hide" opens it again and drops the count */
-    b.send(p, { t: 'hide' });
-    assert.strictEqual(S.presenterView(b.st, b.now).act.n, undefined);
+    /* once counted it cannot be opened again (a second count would show how the late ballots voted) */
+    assert.strictEqual(mine(b.send(p, { t: 'hide' }))[0].e, 'counted');
+    assert.deepStrictEqual(S.presenterView(b.st, b.now).act.n, [0, 2, 0]);
     r = S.purge(b.st);
     assert.ok(r.del.indexOf('b:' + act.id + ':' + x.id) >= 0, 'ballots are deleted with the audience data');
 });
@@ -642,6 +647,20 @@ test('shared cipher: plan, key, guesses that fade, locking by agreement, hint, s
     const ex = S.exportResults(b.st, b.now).activities[0];
     assert.ok(ex.solved && ex.message === a.text && ex.guessers === 8);
     assert.ok(S.purge(b.st).del.some(function (k) { return k.indexOf('g:') === 0; }), 'guesses are deleted with the audience data');
+});
+
+test('an empty nickname stores nothing; the same nickname or guess again writes nothing; data before the talk gets its deadline', function () {
+    const b = setup();
+    S.setPlan(b.st, b.plan);
+    const ph = b.phone(T1);
+    let r = b.send(ph, { t: 'nick', n: '' });
+    assert.deepStrictEqual(r.dirty, []); assert.strictEqual(Object.keys(b.st.players).length, 0);
+    r = b.send(ph, { t: 'nick', n: 'Milo' });
+    assert.ok(r.dirty.indexOf('ph:' + T1) >= 0 && b.st.meta.wdue > 0);
+    r = b.send(ph, { t: 'nick', n: 'Milo' });
+    assert.deepStrictEqual(r.dirty, [], 'the same nickname again');
+    r = b.send(ph, { t: 'nick', n: '' });
+    assert.ok(r.dirty.indexOf('meta') >= 0 && b.st.meta.wdue > 0, 'clearing it before the talk still has the deadline');
 });
 
 test('points', function () {

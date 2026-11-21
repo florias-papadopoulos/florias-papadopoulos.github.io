@@ -147,6 +147,13 @@ Stmt.prototype.exec = function () {
     }
     if (sql === 'SELECT board, name, score, at FROM scores') return { rows: t.scores.map(function (r) { return { board: r.board, name: r.name, score: r.score, at: r.at }; }) };
     /* likes */
+    if (sql === "UPDATE likes SET up = MAX(up - 1, 0), down = MAX(down + ?2, 0) WHERE game = ?1 AND (SELECT n FROM counts WHERE day = ?3 AND kind = 'like-' AND key = ?1) <= COALESCE((SELECT n FROM counts WHERE day = ?3 AND kind = 'like+' AND key = ?1), 0) + ?4") {
+        var lk = t.likes.filter(function (r) { return r.game === arg(1); })[0];
+        var minus = cnt(arg(3), 'like-', arg(1)), plus = cnt(arg(3), 'like+', arg(1)) || 0;
+        if (!lk || !(minus !== null && minus <= plus + arg(4))) return { rows: [], changes: 0 };
+        lk.up = Math.max(lk.up - 1, 0); lk.down = Math.max(lk.down + arg(2), 0);
+        return { rows: [], changes: 1 };
+    }
     if (sql === 'SELECT game, up, down FROM likes') return { rows: t.likes.map(function (r) { return { game: r.game, up: r.up, down: r.down }; }) };
     if (/^INSERT INTO likes \(game, up, down\) VALUES \(\?1, MAX\(\?2, 0\), MAX\(\?3, 0\)\) ON CONFLICT\(game\) DO UPDATE SET up = MAX\(up \+ \?2, 0\), down = MAX\(down \+ \?3, 0\)$/.test(sql)) {
         var l = t.likes.filter(function (r) { return r.game === arg(1); })[0];

@@ -47,7 +47,7 @@
             kids.push(h('div.lv-rpad', {}, [
                 big('← Back', function () { send({ t: 'prev' }); }),
                 big('Next →', function () { send({ t: 'next' }); }, 'is-main'),
-                big(a && a.type === 'cipher' ? 'Solve it' : a && a.shown ? (a.type === 'ballot' ? 'Open the ballot again' : 'Hide results') : a && a.type === 'ballot' ? 'Close and count' : 'Reveal results', function () { send({ t: a.type !== 'cipher' && a.shown ? 'hide' : 'reveal' }); }, '', !votes || (a.type === 'cipher' && a.done)),
+                big(a && a.type === 'cipher' ? 'Solve it' : a && a.shown ? (a.type === 'ballot' ? (a.n ? 'Counted' : 'Open the ballot again') : 'Hide results') : a && a.type === 'ballot' ? 'Close and count' : 'Reveal results', function () { send({ t: a.type !== 'cipher' && a.shown ? 'hide' : 'reveal' }); }, '', !votes || (a.type === 'cipher' && a.done) || (a.type === 'ballot' && !!a.n)),
                 big('Close', function () { send({ t: 'close' }); }, '', !a),
                 big(pv.qr ? 'Hide QR' : 'Show QR', function () { send({ t: 'qr' }); }),
                 big(pv.board ? 'Hide ranking' : 'Ranking', function () { send({ t: 'board' }); }),

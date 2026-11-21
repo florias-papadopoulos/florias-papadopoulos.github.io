@@ -142,6 +142,7 @@ const LONG = ['fuck', 'shit', 'bitch', 'pussy', 'penis', 'vagina', 'porn', 'hitl
     'slut', 'wanker', 'wanka', 'dickhead', 'cocksuck', 'scheiss', 'fotze', 'hurensohn', 'wichs', 'arschloch',
     'schlampe', 'putain', 'merde', 'connard', 'salope', 'mierda', 'hijodeputa', 'cazzo', 'stronzo', 'vaffanculo', 'malaka',
     'gamoto', 'poutana', 'florias', 'moderator'];
+const PROTECTED = ['florias', 'moderator'];   // refused anywhere in a name, also with lookalike letters (admin is refused as a whole word in SHORT)
 const NAME_CH = 'A-Za-z0-9\\u00C0-\\u024F\\u1E00-\\u1EFF';   // Latin letters with accents (Latin-1, Extended A and B, Vietnamese)
 const NAME_RE = new RegExp('^[' + NAME_CH + '][' + NAME_CH + ' ._\'-]{0,18}[' + NAME_CH + '.]$');
 const LOOK = new Map([['0', 'o'], ['1', 'i'], ['3', 'e'], ['4', 'a'], ['5', 's'], ['7', 't'], ['8', 'b']]);
@@ -231,11 +232,11 @@ function sdp(d, key) {
 }
 
 function newCode() {
-    const b = new Uint8Array(12);
+    const b = new Uint8Array(16);
     crypto.getRandomValues(b);
     let c = '';
-    for (let i = 0; i < b.length && c.length < 4; i++) if (b[i] < 240) c += LETTERS[b[i] % LETTERS.length];  /* 240 = 12 * 20: no letter favoured */
-    return c.length === 4 ? c : null;
+    for (let i = 0; i < b.length && c.length < 6; i++) if (b[i] < 240) c += LETTERS[b[i] % LETTERS.length];  /* 240 = 12 * 20: no letter favoured */
+    return c.length === 6 ? c : null;
 }
 /* the host key: 16 random bytes (CSPRNG), base64url, 22 characters */
 function newKey() {
@@ -257,7 +258,7 @@ function keyOk(secret, given) {
 
 async function room(req, url, env) {
     if (req.headers.get('Origin') !== SITE) return reply(403);
-    const m = /^\/room(?:\/([A-Z]{4})(\/answer|\/close)?)?$/.exec(url.pathname);
+    const m = /^\/room(?:\/([A-Z]{6})(\/answer|\/close)?)?$/.exec(url.pathname);
     if (!m) return reply(404);
     await roomsSetup(env);
     const code = m[1], what = m[2], post = req.method === 'POST', get = req.method === 'GET';
@@ -463,6 +464,11 @@ function nameOk(raw) {
     const n = raw.normalize('NFC');
     if (!NAME_RE.test(n) || /  /.test(n) || /[×÷]/.test(n)) return false;
     for (const c of n) if (!/[0-9 ._'-]/.test(c) && fold(c) === null) return false;
+    /* lookalikes of the protected names: capital I, small l and the digit 1 all read as one letter (FIorias, F1orias) */
+    const skel = function (x) { return x.replace(/[il1|]/g, 'l'); };
+    if (PROTECTED.some(function (p) { return [true, false].some(function (digits) { return skel(words(n, digits).join('')).indexOf(skel(p)) >= 0; }); })) return false;
+    /* and a name that is only "admin", however it is split or spelled (AdmIn, Adm1n) */
+    if ([true, false].some(function (digits) { return skel(words(n, digits).join('')) === skel('admin'); })) return false;
     return [true, false].every(function (digits) {
         const ws = words(n, digits), flat = ws.join('');
         return !ws.some(function (w) { return SHORT.has(w); }) && !LONG.some(function (w) { return flat.indexOf(w) >= 0; });
@@ -544,9 +550,11 @@ async function scores(req, url, env) {
             /* one nickname keeps only its best score, and its best of this week */
             env.DB.prepare('DELETE FROM scores WHERE board = ?1 AND LOWER(name) = LOWER(?2) AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND LOWER(name) = LOWER(?2) ' + order + ' LIMIT 1) ' +
                 'AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND LOWER(name) = LOWER(?2) AND week = ?3 ' + order + ' LIMIT 1)').bind(board, name, week),
-            /* and a board keeps its KEEP best of all time and of this week */
-            env.DB.prepare('DELETE FROM scores WHERE board = ?1 AND id NOT IN (SELECT id FROM scores WHERE board = ?1 ' + order + ' LIMIT ?3) ' +
-                'AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND week = ?2 ' + order + ' LIMIT ?3)').bind(board, week, KEEP)
+            /* and a board keeps its KEEP best of all time and of this week; only scores older than a week are trimmed,
+               so a burst of fake top scores can push real ones down the list but never delete them (the owner can
+               remove fakes in the D1 console) */
+            env.DB.prepare('DELETE FROM scores WHERE board = ?1 AND at < ?4 AND id NOT IN (SELECT id FROM scores WHERE board = ?1 ' + order + ' LIMIT ?3) ' +
+                'AND id NOT IN (SELECT id FROM scores WHERE board = ?1 AND week = ?2 ' + order + ' LIMIT ?3)').bind(board, week, KEEP, Date.now() - 7 * 864e5)
         ].filter(Boolean));
     }
     const key = board + ' ' + week, hit = boardMemo.get(key);
@@ -624,11 +632,18 @@ async function likes(req, env) {
         const du = (d.t === 1 ? 1 : 0) - (d.f === 1 ? 1 : 0), dd = (d.t === -1 ? 1 : 0) - (d.f === -1 ? 1 : 0);
         if (du < 0 && !mayRemove(used.added, used.removed)) return json(200, await likesAll(env), 'no-store');   /* ignored */
         const count = env.DB.prepare("INSERT INTO counts (day, kind, key, n) VALUES (?1, ?2, ?3, 1) ON CONFLICT(day, kind, key) DO UPDATE SET n = n + 1");
-        const writes = [
+        /* A take-back counts itself first and then lowers the total only while the day's take-backs (its own included)
+           stay within the day's likes plus the slack, all in one batch (one transaction): many requests sent at the same
+           moment are then still held to the limit, which the check above alone could not do. */
+        const writes = du < 0 ? [
+            count.bind(day, 'like-', d.g),
+            env.DB.prepare("UPDATE likes SET up = MAX(up - 1, 0), down = MAX(down + ?2, 0) WHERE game = ?1 AND (SELECT n FROM counts WHERE day = ?3 AND kind = 'like-' AND key = ?1) <= COALESCE((SELECT n FROM counts WHERE day = ?3 AND kind = 'like+' AND key = ?1), 0) + ?4").bind(d.g, dd, day, UNLIKE_SLACK),
+            count.bind(day, 'likes', 'all')
+        ] : [
             env.DB.prepare('INSERT INTO likes (game, up, down) VALUES (?1, MAX(?2, 0), MAX(?3, 0)) ON CONFLICT(game) DO UPDATE SET up = MAX(up + ?2, 0), down = MAX(down + ?3, 0)').bind(d.g, du, dd),
             count.bind(day, 'likes', 'all')
         ];
-        if (du !== 0) writes.push(count.bind(day, du > 0 ? 'like+' : 'like-', d.g));
+        if (du > 0) writes.push(count.bind(day, 'like+', d.g));
         await env.DB.batch(writes);
     }
     return json(200, await likesAll(env), post ? 'no-store' : 'public, max-age=15');
