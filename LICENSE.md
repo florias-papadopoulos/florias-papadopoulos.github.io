@@ -9,6 +9,11 @@ on 10 November 2026).
 particular the texts, papers, theses, slides, notebooks, photos and pictures, and the games and other code written for
 this site. Please ask before reusing any of it.
 
+**DocTools** (the lab's file tools, `/doctools/`): the code in `assets/js/doctools/` uses MuPDF and is therefore
+licensed under the GNU Affero General Public License, version 3 or later, not "all rights reserved". MuPDF itself
+(`static/engines/mupdf-*/`, © Artifex Software, Inc.) is under the same licence; see `static/engines/README.md` for its
+source.
+
 **Third-party material** keeps its own licence: for example KaTeX in `static/katex/` (MIT) and the datasets used in some
 course projects (see the project pages for their sources).
 

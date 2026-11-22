@@ -6,6 +6,12 @@
 {{- if eq .Layout "admin" }}{{ with site.Params.liveEndpoint }}{{ with urls.Parse . }}
 {{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' %s://%s wss://%s" .Scheme .Host .Host) }}
 {{- end }}{{ end }}{{ end }}
+{{- /* DocTools (/doctools/): MuPDF is WebAssembly ('wasm-unsafe-eval' lets the browser compile it; it allows no eval
+       of JavaScript), and workers only from blob: URLs, because a blob worker keeps this policy and a worker loaded
+       from its own URL would not (GitHub Pages sends no CSP header). See assets/js/doctools/README.md. */}}
+{{- if eq .Section "doctools" }}
+{{- $csp = printf "%s; worker-src 'self' blob:" (replace $csp "script-src 'self'" "script-src 'self' 'wasm-unsafe-eval'") }}
+{{- end }}
 <meta http-equiv="Content-Security-Policy" content="{{ $csp }}">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -55,7 +61,7 @@
        head (live-head.html). reset.css and zmedia.css came from the PaperMod theme (MIT, see LICENSE.md). */ -}}
 {{- $base := slice "core/theme-vars" "core/reset" "common/main" "common/footer" "common/paw" "common/play" "common/color-scheme" "common/profile-mode" "common/post-entry" "common/terms" "common/404" }}
 {{- $extra := slice }}
-{{- $lab := in (slice "lab" "games" "toolbox" "simple-crypto" "cipher-history") .Section }}
+{{- $lab := in (slice "lab" "games" "toolbox" "simple-crypto" "cipher-history" "doctools") .Section }}
 {{- if .IsHome }}{{ $extra = $extra | append "common/home-page" }}{{ end }}
 {{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/home" }}{{ end }}
 {{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/toolbox" "common/timeline" }}{{ end }}
@@ -72,6 +78,8 @@
 {{- if eq .Section "simple-crypto" }}{{ $extra = $extra | append "common/simple-crypto" }}{{ end }}
 {{- /* Cipher History (/cipher-history/, in the lab: the stories of historic ciphers): the tab tokens of timeline.css and assets/css/common/cipher-history.css */}}
 {{- if eq .Section "cipher-history" }}{{ $extra = $extra | append "common/timeline" "common/cipher-history" }}{{ end }}
+{{- /* DocTools (/doctools/, in the lab: file tools that run in the browser): the tab tokens of timeline.css and assets/css/common/doctools.css */}}
+{{- if eq .Section "doctools" }}{{ $extra = $extra | append "common/timeline" "common/doctools" }}{{ end }}
 {{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats" "cv" "common/cv") .Layout }}{{ $extra = $extra | append . }}{{ end }}
 {{- /* in the same order as before the split: the core files, then assets/css/common in alphabetical order of the file
        names (later rules win, e.g. site-nav.css after play.css), then zmedia.css */}}

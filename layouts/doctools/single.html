@@ -1,0 +1,47 @@
+{{- /* One DocTools tool (content/doctools/<tool>.md). For now there is one: Compress PDF.
+       Scripts: assets/js/doctools/page.js (the page: files, level, results, the requests box) and one module for the
+       worker, compress.js + worker.js joined (it loads MuPDF from params.doctools.mupdf, static/engines/). The worker
+       is started from a blob: URL by page.js, so it keeps this page's CSP (head.html adds 'wasm-unsafe-eval' and
+       worker-src blob: for this section). See assets/js/doctools/README.md. */ -}}
+{{- define "main" }}
+{{- $page := resources.Get "js/doctools/page.js" | minify | fingerprint }}
+{{- $worker := slice (resources.Get "js/doctools/compress.js") (resources.Get "js/doctools/worker.js") | resources.Concat "js/doctools/worker.bundle.js" | minify | fingerprint }}
+{{- $mupdfVer := replaceRE `.*mupdf-([0-9.]+)/.*` "$1" site.Params.doctools.mupdf }}
+{{- $counter := "" }}{{ with site.Params.statsEndpoint }}{{ with urls.Parse . }}{{ $counter = .Host }}{{ end }}{{ end }}
+<div class="tl-page dt-page" id="dt-tool" data-worker="{{ $worker.RelPermalink }}" data-engine="{{ site.Params.doctools.mupdf | relURL }}" data-counter="{{ $counter }}">
+    <nav class="dt-crumbs" aria-label="Breadcrumb"><a href="{{ "doctools/" | relURL }}">DocTools</a></nav>
+    <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+    <p class="dt-lede">{{ .Params.short }} Your file stays on your device.</p>
+
+    <fieldset class="dt-levels">
+        <legend>How small?</legend>
+        <label class="dt-level"><input type="radio" name="dt-level" value="lossless"><b>Lossless</b><span>Nothing you can see changes.</span></label>
+        <label class="dt-level"><input type="radio" name="dt-level" value="recommended" checked><b>Recommended</b><span>Pictures at 150 dpi: sharp on screen and in print.</span></label>
+        <label class="dt-level"><input type="radio" name="dt-level" value="strong"><b>Strong</b><span>Pictures at 96 dpi: the smallest file, fine on screen.</span></label>
+    </fieldset>
+
+    <label class="dt-drop" id="dt-drop" for="dt-file">
+        <input type="file" id="dt-file" accept=".pdf,application/pdf" multiple>
+        <b>Choose PDF files</b>
+        <span>or drop them here</span>
+    </label>
+    <noscript><p class="dt-err">This tool runs in your browser with JavaScript, which is off.</p></noscript>
+
+    <ul class="dt-files" id="dt-files" aria-live="polite" hidden></ul>
+
+    <section class="dt-net" id="dt-net" hidden aria-labelledby="dt-h-net">
+        <h2 class="dt-h2" id="dt-h-net">Where your files went</h2>
+        <p>Nowhere. They are read and compressed by this page, on your device.</p>
+        <p id="dt-net-count"></p>
+        <ul class="dt-net-list" id="dt-net-list" hidden></ul>
+    </section>
+
+    <section class="dt-about" aria-labelledby="dt-h-about">
+        <h2 class="dt-h2" id="dt-h-about">How it works</h2>
+        {{ .Content }}
+        <p class="dt-licence">MuPDF is made by Artifex Software and is free software under the <a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License 3</a> (<a href="{{ path.Join (path.Dir site.Params.doctools.mupdf) "LICENSE" | relURL }}">the licence as served with it</a>). The copy used here is the unchanged npm release <a href="https://www.npmjs.com/package/mupdf/v/{{ $mupdfVer }}">mupdf {{ $mupdfVer }}</a> (<a href="https://cgit.ghostscript.com/mupdf.git/">MuPDF's source</a>). This tool's own code uses it, so it is under the same licence: <a href="https://github.com/florias-papadopoulos/florias-papadopoulos.github.io/tree/master/assets/js/doctools">source</a>.</p>
+    </section>
+</div>
+<script src="{{ $page.RelPermalink }}" integrity="{{ $page.Data.Integrity }}" defer></script>
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}

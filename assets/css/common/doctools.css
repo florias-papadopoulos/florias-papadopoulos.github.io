@@ -1,0 +1,63 @@
+/* DocTools (/doctools/, a lab tab): the list of tools (layouts/doctools/list.html) and a tool page
+   (layouts/doctools/single.html, behaviour in assets/js/doctools/page.js). Plain and typographic like the Toolbox;
+   colour tokens from timeline.css. */
+
+html[data-mode="play"] body:has(.dt-page) { --sec: #2563eb; --sec-glow: rgba(37, 99, 235, 0.13); }
+
+.dt-lede { margin: 0 0 22px; color: var(--tl-text); font-size: 16.5px; line-height: 1.6; }
+.dt-lede p { margin: 0; }
+
+/* the list of tools */
+.dt-tools { margin: 0; padding: 0; list-style: none; }
+.dt-tool { display: grid; grid-template-columns: minmax(160px, 230px) minmax(0, 1fr); gap: 4px 18px; padding: 10px 0; border-bottom: 1px solid var(--tl-line); }
+.dt-tool a { color: var(--tl-navy); font-weight: 600; text-decoration: none; }
+.dt-tool a:hover { text-decoration: underline; }
+.dt-tool span { color: var(--tl-text); font-size: 15px; line-height: 1.5; }
+
+/* a tool page */
+.dt-crumbs { margin: 8px 0 0; font-size: 13.5px; }
+.dt-crumbs a { color: var(--tl-muted); text-decoration: none; }
+.dt-crumbs a:hover { color: var(--tl-navy); text-decoration: underline; }
+.dt-page > .tl-h1 { margin: 6px 0 10px; }
+
+.dt-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 16px; padding: 0; border: 0; }
+.dt-levels legend { margin: 0 0 8px; padding: 0; color: var(--tl-ink); font-weight: 700; font-size: 15.5px; }
+.dt-level { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: baseline; padding: 10px 12px; border: 1px solid var(--tl-rule); border-radius: 8px; background: #fff; cursor: pointer; }
+.dt-level input { margin: 0; accent-color: var(--sec); }
+.dt-level b { color: var(--tl-ink); font-size: 15px; }
+.dt-level span { grid-column: 2; color: var(--tl-muted); font-size: 13.5px; line-height: 1.4; }
+.dt-level:has(input:checked) { border-color: var(--sec); box-shadow: inset 0 0 0 1px var(--sec); }
+.dt-level:has(input:focus-visible) { outline: 2px solid var(--sec); outline-offset: 2px; }
+
+.dt-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 150px; padding: 20px; border: 2px dashed var(--tl-rule); border-radius: 10px; background: #fff; color: var(--tl-muted); text-align: center; cursor: pointer; }
+.dt-drop b { color: var(--sec); font-size: 18px; }
+.dt-drop:hover, .dt-drop.dt-over { border-color: var(--sec); background: color-mix(in srgb, var(--sec) 5%, #fff); }
+.dt-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.dt-drop:has(input:focus-visible) { outline: 2px solid var(--sec); outline-offset: 2px; }
+
+.dt-files { margin: 18px 0 0; padding: 0; list-style: none; }
+.dt-file { padding: 10px 0; border-bottom: 1px solid var(--tl-line); }
+.dt-file-head { display: flex; align-items: baseline; gap: 10px; }
+.dt-name { min-width: 0; overflow: hidden; color: var(--tl-ink); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.dt-size { flex: none; color: var(--tl-muted); font-size: 14px; }
+.dt-remove { flex: none; margin-left: auto; padding: 0 6px; border: 0; background: none; color: var(--tl-muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.dt-remove:hover { color: var(--tl-ink); }
+.dt-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 4px; color: var(--tl-text); font-size: 14.5px; }
+.dt-bar { flex: 1 1 160px; max-width: 260px; height: 8px; accent-color: var(--sec); }
+.dt-ok b { color: var(--tl-ink); }
+.dt-err { color: #b91c1c; }
+.dt-download { padding: 5px 14px; border-radius: 6px; background: var(--sec); color: #fff; font-weight: 600; text-decoration: none; }
+.dt-download:hover { filter: brightness(1.1); }
+
+.dt-h2 { margin: 30px 0 10px; color: var(--tl-ink); font-size: 19px; font-weight: 700; }
+.dt-net, .dt-about { color: var(--tl-text); font-size: 15.5px; line-height: 1.65; }
+.dt-net p, .dt-about p { margin: 0 0 10px; }
+.dt-net-list { margin: 0; padding-left: 20px; color: var(--tl-muted); font-size: 14px; }
+.dt-about a { color: var(--tl-navy); }
+.dt-licence { color: var(--tl-muted); font-size: 14px; }
+
+@media (max-width: 700px) {
+    .dt-levels { grid-template-columns: minmax(0, 1fr); }
+    .dt-tool { grid-template-columns: minmax(0, 1fr); }
+    .dt-drop { min-height: 120px; }
+}

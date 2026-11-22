@@ -1,0 +1,20 @@
+{{- /* DocTools (/doctools/, a lab tab): tools for documents that run in the visitor's browser, nothing uploaded.
+       This page lists the tools (the pages of content/doctools/); each tool is layouts/doctools/single.html.
+       Code and rules: assets/js/doctools/README.md. Styles: assets/css/common/doctools.css. */ -}}
+{{- define "main" }}
+<div class="tl-page dt-page">
+    <header class="lab-head">
+        <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        <div class="dt-lede">{{ .Content }}</div>
+    </header>
+    <ul class="dt-tools">
+        {{- range .Pages.ByWeight }}
+        <li class="dt-tool">
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            <span>{{ .Params.short }}</span>
+        </li>
+        {{- end }}
+    </ul>
+</div>
+{{ partial "cat.html" (dict "world" "pages") }}
+{{- end }}
