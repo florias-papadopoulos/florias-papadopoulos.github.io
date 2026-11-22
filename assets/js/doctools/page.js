@@ -234,7 +234,7 @@
             // blob: and data: never reach here (they are not requests)
             if (url.pathname.indexOf('/engines/') >= 0) return 'this site: ' + file + ' (the PDF engine)';
             if (url.pathname.indexOf('/js/') >= 0) return 'this site: ' + file + ' (this tool\'s code)';
-            return 'this site: ' + url.pathname + ' (a page of this site)';
+            return 'this site: ' + url.pathname;
         }
         if (counterHost && url.host === counterHost) return url.host + ' (the visit counter: this page\'s name only)';
         unexpected++;
