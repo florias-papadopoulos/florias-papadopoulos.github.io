@@ -1,0 +1,15 @@
+{{- define "main" }}
+{{- /* The travel side (/switzerland/, content/switzerland/_index.md): a side of its own, opened by the flag in the top
+       right corner (baseof.html). For now only the drawn map: layouts/partials/switzerland/map.svg, made once by
+       tools/swiss-map/make_map.py from federal open geodata and served inside this page, so no map server is
+       contacted. Places and hikes come later. Styles: assets/css/common/switzerland.css */ -}}
+<div class="ch-page">
+    <header class="ch-head">
+        <h1>{{ .Title }}</h1>
+    </header>
+    <figure class="ch-figure">
+        {{ partial "switzerland/map.svg" . }}
+        <figcaption class="ch-source">Borders: swisstopo (swissBOUNDARIES3D). Lakes: FOEN (VECTOR25 lakes).</figcaption>
+    </figure>
+</div>
+{{- end }}

@@ -344,3 +344,12 @@ body:has(.profile.home) .footer {
     .main:has(.lab-home) { display: flex; flex-direction: column; justify-content: center; }
 }
 
+
+/* ---------- the lab's "still under development" notice (layouts/_default/lab.html, assets/js/lab/lab-notice.js) ---------- */
+.lab-notice { position: fixed; z-index: 120; left: 50%; bottom: calc(24px + var(--pn-tab, 0px) + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(420px, calc(100vw - 32px)); box-sizing: border-box; padding: 16px 18px 14px; border: 1px solid #e0d7c8; border-radius: 12px; background: #fffdf9; color: #1f2937; box-shadow: 0 8px 28px rgba(15, 23, 42, .16); font-size: 15px; line-height: 1.45; }
+.lab-notice p { margin: 0; }
+.lab-notice .lab-notice-title { font-weight: 700; margin-bottom: 4px; }
+.lab-notice-ok { display: block; margin: 12px 0 0 auto; min-width: 72px; height: 36px; padding: 0 16px; border: 0; border-radius: 8px; background: #1e3a8a; color: #fff; font: inherit; font-size: 16px; font-weight: 650; cursor: pointer; }
+.lab-notice-ok:focus-visible { outline: 2px solid #1e3a8a; outline-offset: 2px; }
+html[data-pet="dog"] .lab-notice-ok { background: #8a5a2b; }
+.lab-notice { left: calc(50% + var(--pn-w, 0px) / 2); }

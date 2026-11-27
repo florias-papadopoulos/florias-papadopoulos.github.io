@@ -30,6 +30,14 @@
         </div>
     </div>
 </div>
+{{- /* the notice that the lab is still being built: shown once per tab (assets/js/lab/lab-notice.js), styles in home.css */}}
+<div class="lab-notice" id="lab-notice" role="dialog" aria-modal="false" aria-labelledby="lab-notice-title" hidden>
+    <p class="lab-notice-title" id="lab-notice-title">The lab is still under development</p>
+    <p>Some things may look off, glitch or not work yet.</p>
+    <button type="button" class="lab-notice-ok" id="lab-notice-ok">OK</button>
+</div>
+{{- $notice := resources.Get "js/lab/lab-notice.js" | minify | fingerprint }}
+<script src="{{ $notice.RelPermalink }}" integrity="{{ $notice.Data.Integrity }}" defer></script>
 {{- $js := slice (resources.Get "js/calc/index.js") (resources.Get "js/lab/lab-bench.js") | resources.Concat "js/lab-bench.bundle.js" | minify | fingerprint }}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 {{ partial "cat.html" (dict "world" "home") }}

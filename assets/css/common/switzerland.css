@@ -1,0 +1,20 @@
+/* The travel side (/switzerland/, layouts/switzerland/list.html): a plain page around the drawn map of Switzerland
+   (layouts/partials/switzerland/map.svg). Light only, like the rest of the site. */
+html[data-side="travel"] { --ch-ink: #1f2937; --ch-quiet: #64748b; --ch-land: #f3f1ea; --ch-line: #ffffff; --ch-edge: #9aa3ad; --ch-lake: #a9cbe6; }
+.ch-page { max-width: 1100px; margin: 0 auto; padding: 72px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, env(safe-area-inset-left, 0px)); box-sizing: border-box; }
+.ch-head h1 { margin: 0 0 18px; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; letter-spacing: -0.01em; color: var(--ch-ink); }
+.ch-figure { margin: 0; }
+.ch-map { display: block; width: 100%; height: auto; }
+.ch-land { fill: var(--ch-land); }
+.ch-cantons path { fill: transparent; stroke: var(--ch-line); stroke-width: 1.6; stroke-linejoin: round; transition: fill .15s; }
+.ch-cantons path:hover { fill: rgba(213, 43, 30, .07); }
+.ch-lakes path { fill: var(--ch-lake); stroke: none; }
+.ch-border { fill: none; stroke: var(--ch-edge); stroke-width: 1.2; stroke-linejoin: round; }
+.ch-labels text { font: 600 13px/1 system-ui, sans-serif; fill: var(--ch-quiet); text-anchor: middle; dominant-baseline: middle; letter-spacing: .06em; pointer-events: none; }
+.ch-source { margin-top: 10px; font-size: 13px; color: var(--ch-quiet); }
+@media (max-width: 600px) {
+    .ch-page { padding-top: 60px; }
+    .ch-labels text { font-size: 18px; }
+    .ch-cantons path { stroke-width: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .ch-cantons path { transition: none; } }

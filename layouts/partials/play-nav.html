@@ -22,7 +22,7 @@
     <ul class="pn-tabs">
         {{- range $items }}
         {{- if eq .name "Simple Crypto" }}{{ $sc := site.GetPage "/simple-crypto" }}{{ if or (not $sc) $sc.Draft }}{{ continue }}{{ end }}{{ end }}
-        <li class="pm-card"><a class="pn-tab" href="{{ .url }}"{{ if .on }} aria-current="page"{{ end }}>{{ .icon | safeHTML }}<span>{{ .name }}{{ with .sec }}{{ with site.GetPage (printf "/%s" .) }}{{ partial "wip.html" . }}{{ end }}{{ end }}</span></a></li>
+        <li class="pm-card"><a class="pn-tab" href="{{ .url }}"{{ if .on }} aria-current="page"{{ end }}>{{ .icon | safeHTML }}<span>{{ .name }}</span></a></li>
         {{- end }}
     </ul>
     {{- /* the owner's way into audience mode (locked by the presenter key there), only in the sidebar */}}

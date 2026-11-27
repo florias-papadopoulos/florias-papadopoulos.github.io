@@ -76,6 +76,8 @@
 {{- if eq .Section "phd" }}{{ $extra = $extra | append "common/phd" }}{{ if .IsPage }}{{ $extra = $extra | append "common/timeline" (printf "phd/%s" .Layout) }}{{ end }}{{ end }}
 {{- /* Simple Crypto (/simple-crypto/, in the lab: the cat's animated stories): assets/css/common/simple-crypto.css */}}
 {{- if eq .Section "simple-crypto" }}{{ $extra = $extra | append "common/simple-crypto" }}{{ end }}
+{{- /* the travel side (/switzerland/): assets/css/common/switzerland.css */}}
+{{- if eq .Section "switzerland" }}{{ $extra = $extra | append "common/switzerland" }}{{ end }}
 {{- /* DocTools (/doctools/, in the lab: file tools that run in the browser): the tab tokens of timeline.css and assets/css/common/doctools.css */}}
 {{- if eq .Section "doctools" }}{{ $extra = $extra | append "common/timeline" "common/doctools" }}{{ end }}
 {{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats" "cv" "common/cv") .Layout }}{{ $extra = $extra | append . }}{{ end }}
