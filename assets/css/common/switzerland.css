@@ -1,20 +1,220 @@
-/* The travel side (/switzerland/, layouts/switzerland/list.html): a plain page around the drawn map of Switzerland
-   (layouts/partials/switzerland/map.svg). Light only, like the rest of the site. */
-html[data-side="travel"] { --ch-ink: #1f2937; --ch-quiet: #64748b; --ch-land: #f3f1ea; --ch-line: #ffffff; --ch-edge: #9aa3ad; --ch-lake: #a9cbe6; }
-.ch-page { max-width: 1100px; margin: 0 auto; padding: 72px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, env(safe-area-inset-left, 0px)); box-sizing: border-box; }
-.ch-head h1 { margin: 0 0 18px; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; letter-spacing: -0.01em; color: var(--ch-ink); }
-.ch-figure { margin: 0; }
-.ch-map { display: block; width: 100%; height: auto; }
-.ch-land { fill: var(--ch-land); }
-.ch-cantons path { fill: transparent; stroke: var(--ch-line); stroke-width: 1.6; stroke-linejoin: round; transition: fill .15s; }
-.ch-cantons path:hover { fill: rgba(213, 43, 30, .07); }
-.ch-lakes path { fill: var(--ch-lake); stroke: none; }
-.ch-border { fill: none; stroke: var(--ch-edge); stroke-width: 1.2; stroke-linejoin: round; }
-.ch-labels text { font: 600 13px/1 system-ui, sans-serif; fill: var(--ch-quiet); text-anchor: middle; dominant-baseline: middle; letter-spacing: .06em; pointer-events: none; }
-.ch-source { margin-top: 10px; font-size: 13px; color: var(--ch-quiet); }
-@media (max-width: 600px) {
-    .ch-page { padding-top: 60px; }
-    .ch-labels text { font-size: 18px; }
-    .ch-cantons path { stroke-width: 2; }
+/* The Switzerland page (/switzerland/, layouts/switzerland/list.html): a full-screen map with small floating panels.
+   Light only, like the rest of the site. Panels: white cards with a soft shadow, the Swiss red for the chosen things. */
+html[data-side="travel"] {
+    --ch-ink: #1f2937; --ch-quiet: #5b6673; --ch-red: #d52b1e; --ch-red-dark: #b91c1c; --ch-card: rgba(255, 255, 255, .94);
+    --ch-line: #e3e7ec; --ch-shadow: 0 2px 10px rgba(15, 23, 42, .14), 0 1px 2px rgba(15, 23, 42, .08);
 }
-@media (prefers-reduced-motion: reduce) { .ch-cantons path { transition: none; } }
+html[data-side="travel"], html[data-side="travel"] body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+html[data-side="travel"] .main { padding: 0; margin: 0; max-width: none; min-height: 0; }
+html[data-side="travel"] .top-link { display: none; }
+
+.ch-app { position: fixed; inset: 0; color: var(--ch-ink); font-size: 15px; }
+.ch-stage, .ch-app .ch-map { position: absolute; inset: 0; }
+.ch-map-b { pointer-events: none; }
+.ch-app button { font: inherit; }
+.ch-app [hidden] { display: none !important; }
+
+/* panels */
+.ch-panel { position: absolute; z-index: 5; background: var(--ch-card); border-radius: 12px; box-shadow: var(--ch-shadow); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.ch-title { top: max(12px, env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); width: min(300px, calc(100vw - 150px)); box-sizing: border-box; padding: 12px 14px 10px; }
+.ch-title h1 { margin: 0; font-size: 24px; line-height: 1.1; letter-spacing: -.01em; }
+.ch-link { margin: 6px 0 0; padding: 0; border: 0; background: none; color: var(--ch-red-dark); font-weight: 650; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.ch-insta { margin: 6px 0 0; font-size: 11px; line-height: 1.4; color: #9aa3ad; }
+.ch-insta-link { display: inline-grid; place-items: center; width: 18px; height: 18px; vertical-align: -4px; margin-left: 2px; color: #6b7280; }
+.ch-insta-link svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ch-insta-link:hover { color: #c13584; }
+.ch-legal { margin: 2px 0 0; font-size: 11px; color: #9aa3ad; }
+.ch-legal a { color: inherit; }
+
+/* the facts drawer */
+.ch-facts { top: max(12px, env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); z-index: 7; width: min(380px, calc(100vw - 24px)); max-height: calc(100% - 24px); overflow: auto; box-sizing: border-box; padding: 14px 16px 12px; background: #fff; }
+.ch-facts h2 { margin: 14px 0 8px; font-size: 15px; letter-spacing: .02em; }
+.ch-facts-head { display: flex; align-items: center; justify-content: space-between; }
+.ch-facts-head h2 { margin: 0; }
+.ch-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin: 10px 0 0; }
+.ch-numbers div { min-width: 0; }
+.ch-numbers dt { font-size: 12px; color: var(--ch-quiet); }
+.ch-numbers dd { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.ch-numbers dd span { font-size: 13px; font-weight: 600; color: var(--ch-quiet); }
+.ch-numbers p { margin: 0; font-size: 12px; color: var(--ch-quiet); }
+.ch-signs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ch-signs li { display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: start; }
+.ch-signs strong { font-size: 14px; }
+.ch-signs em { font-style: normal; font-size: 12px; color: var(--ch-quiet); margin-left: 4px; }
+.ch-signs p { margin: 2px 0 0; font-size: 13px; line-height: 1.4; color: var(--ch-quiet); }
+.ch-sign { display: block; width: 40px; height: 22px; border-radius: 3px; border: 1px solid #cfd5dc; box-sizing: border-box; margin-top: 2px; }
+.ch-sign-yellow { width: 26px; height: 26px; margin: 0 7px; background: #f2c400; border: 0; transform: rotate(45deg) scale(.72); border-radius: 2px; }
+.ch-sign-red { background: linear-gradient(#fff 0 33%, #d52b1e 33% 67%, #fff 67%); }
+.ch-sign-blue { background: linear-gradient(#fff 0 33%, #2563eb 33% 67%, #fff 67%); }
+.ch-sign-pink { background: #e0457b; border: 0; }
+.ch-facts-src { margin: 14px 0 0; font-size: 11px; color: #9aa3ad; }
+.ch-facts-src a { color: inherit; }
+.ch-close { width: 32px; height: 32px; border: 0; border-radius: 8px; background: none; color: var(--ch-quiet); font-size: 22px; line-height: 1; cursor: pointer; }
+.ch-close:hover { background: #f1f4f7; color: var(--ch-ink); }
+
+/* the tools, a column on the right under the corner buttons */
+.ch-tools { top: calc(var(--key-h, 40px) + 22px); right: max(12px, env(safe-area-inset-right, 0px)); display: grid; gap: 4px; padding: 6px; }
+.ch-tool { display: grid; grid-template-columns: 26px auto; align-items: center; gap: 8px; min-height: 38px; padding: 0 12px 0 8px; border: 0; border-radius: 8px; background: none; color: var(--ch-ink); font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; white-space: nowrap; }
+.ch-tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; justify-self: center; }
+.ch-tool-icon { justify-self: center; font-size: 13px; font-weight: 800; letter-spacing: .02em; }
+.ch-tool:hover { background: #f1f4f7; }
+.ch-tool[aria-pressed="true"] { background: var(--ch-red); color: #fff; }
+.ch-tools-sep { height: 1px; margin: 2px 6px; background: var(--ch-line); }
+
+/* the map choices as small pictures */
+.ch-bases { left: max(12px, env(safe-area-inset-left, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px; padding: 6px; }
+.ch-base { display: grid; gap: 3px; justify-items: center; padding: 3px; border: 2px solid transparent; border-radius: 9px; background: none; color: var(--ch-ink); font-size: 12px; font-weight: 600; cursor: pointer; }
+.ch-base img { display: block; width: 56px; height: 56px; border-radius: 6px; object-fit: cover; }
+.ch-base[aria-checked="true"] { border-color: var(--ch-red); color: var(--ch-red-dark); }
+.ch-base:hover img { filter: brightness(1.05); }
+
+/* Swipe and Then and now */
+.ch-divider { position: absolute; z-index: 4; top: 0; bottom: 0; width: 0; border-left: 3px solid #fff; box-shadow: 0 0 6px rgba(0, 0, 0, .35); transform: translateX(-1.5px); }
+.ch-handle { position: absolute; top: 50%; left: -22px; width: 42px; height: 42px; margin-top: -21px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #fff; box-shadow: var(--ch-shadow); cursor: ew-resize; touch-action: none; }
+.ch-handle svg { width: 22px; height: 22px; fill: none; stroke: var(--ch-ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ch-side-label { position: absolute; z-index: 4; bottom: 128px; margin: 0; padding: 4px 10px; border-radius: 6px; background: rgba(17, 24, 39, .72); color: #fff; font-size: 13px; font-weight: 600; pointer-events: none; }
+.ch-side-left { left: 14px; }
+.ch-side-right { right: 64px; }
+.ch-years { left: 50%; bottom: max(12px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 14px; }
+.ch-years label { font-size: 13px; font-weight: 600; color: var(--ch-quiet); white-space: nowrap; }
+.ch-years input { width: min(320px, 40vw); accent-color: var(--ch-red); }
+.ch-years output { min-width: 3.2em; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* the card of a canton or summit */
+.ch-card { right: max(12px, env(safe-area-inset-right, 0px)); bottom: 150px; width: min(280px, calc(100vw - 24px)); box-sizing: border-box; padding: 12px 14px; background: #fff; }
+.ch-card .ch-close { position: absolute; top: 6px; right: 6px; }
+.ch-card-kind { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ch-red-dark); }
+.ch-card h2 { margin: 2px 30px 8px 0; font-size: 20px; line-height: 1.2; }
+.ch-card-facts { margin: 0; display: grid; gap: 4px; }
+.ch-card-facts div { display: grid; grid-template-columns: 9em 1fr; gap: 8px; font-size: 14px; }
+.ch-card-facts dt { color: var(--ch-quiet); }
+.ch-card-facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ch-card-src { margin: 10px 0 0; font-size: 11px; color: #9aa3ad; }
+
+.ch-status { position: absolute; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; padding: 10px 16px; border-radius: 10px; background: var(--ch-card); box-shadow: var(--ch-shadow); font-weight: 600; }
+
+/* before the visitor agrees: the drawn map with the question over it */
+.ch-gate { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: #f4f5f2; }
+.ch-gate-map { position: absolute; inset: 8% 6%; width: 88%; height: 84%; object-fit: contain; opacity: .55; }
+.ch-gate .ch-consent { position: relative; }
+.ch-asking .ch-panel, .ch-asking .ch-stage { visibility: hidden; }
+
+/* MapLibre's own controls a little closer to the site's look */
+.ch-app .maplibregl-ctrl-group { border-radius: 10px; box-shadow: var(--ch-shadow); }
+.ch-app .maplibregl-ctrl-bottom-right { bottom: max(0px, env(safe-area-inset-bottom, 0px)); right: max(0px, env(safe-area-inset-right, 0px)); }
+
+/* visually hidden labels */
+.ch-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* search (title panel) */
+.ch-search-box { position: relative; margin: 8px 0 2px; }
+.ch-search-box input { width: 100%; box-sizing: border-box; height: 36px; padding: 0 10px; border: 1px solid #d5dbe3; border-radius: 8px; background: #fff; color: var(--ch-ink); font: inherit; font-size: 16px; }
+.ch-search-box input:focus { outline: 2px solid var(--ch-red); outline-offset: 0; border-color: transparent; }
+.ch-results { position: absolute; z-index: 9; left: 0; right: 0; top: 40px; margin: 0; padding: 4px; list-style: none; background: #fff; border-radius: 10px; box-shadow: var(--ch-shadow); max-height: 50vh; overflow: auto; }
+.ch-result { display: block; width: 100%; padding: 7px 8px; border: 0; border-radius: 6px; background: none; color: var(--ch-ink); font-size: 14px; text-align: left; cursor: pointer; }
+.ch-result:hover, .ch-result:focus { background: #fdecea; outline: none; }
+.ch-noresult { padding: 7px 8px; font-size: 14px; color: var(--ch-quiet); }
+
+/* a tool whose panel has something switched on */
+.ch-tool.ch-has::after { content: ""; position: absolute; right: 8px; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--ch-red); }
+.ch-tool { position: relative; }
+.ch-tool[aria-expanded="true"] { background: #fdecea; }
+
+/* the layers panel, left of the tools */
+.ch-layers { top: calc(var(--key-h, 40px) + 22px); right: calc(max(12px, env(safe-area-inset-right, 0px)) + 206px); z-index: 7; width: min(320px, calc(100vw - 24px)); max-height: calc(100% - var(--key-h, 40px) - 44px); overflow: auto; box-sizing: border-box; padding: 12px 14px; background: #fff; }
+.ch-layers h2 { margin: 0; font-size: 16px; }
+.ch-layers-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 2px; }
+.ch-ly { border-top: 1px solid var(--ch-line); padding: 8px 0 6px; }
+.ch-ly:first-child { border-top: 0; }
+.ch-ly-row { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+.ch-ly-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--ch-red); }
+.ch-ly-line { width: 22px; height: 3px; border-radius: 2px; margin-left: auto; }
+.ch-ly-more { margin: 6px 0 2px 28px; }
+.ch-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.ch-legend li { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.ch-swatch { width: 16px; height: 12px; border-radius: 3px; border: 1px solid rgba(0, 0, 0, .15); flex: none; }
+.ch-ly-note { margin: 5px 0 0; font-size: 12px; line-height: 1.4; color: var(--ch-quiet); }
+.ch-ly-state { color: var(--ch-ink); }
+.ch-ly-link, .ch-card-link { display: inline-block; margin-top: 5px; font-size: 12px; color: var(--ch-red-dark); }
+.ch-ly-go { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--ch-quiet); }
+.ch-chip { height: 30px; padding: 0 11px; border: 1px solid #d5dbe3; border-radius: 15px; background: #fff; color: var(--ch-ink); font-size: 13px; font-weight: 600; cursor: pointer; }
+.ch-chip:hover { border-color: var(--ch-red); color: var(--ch-red-dark); }
+.ch-chip:disabled { opacity: .45; cursor: default; }
+
+/* the dock at the bottom centre: sun and profile (the years use .ch-years) */
+.ch-dock { left: 50%; bottom: max(12px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(560px, calc(100vw - 440px)); box-sizing: border-box; padding: 10px 14px 10px; }
+.ch-dock-head { display: flex; align-items: center; gap: 10px; }
+.ch-dock-head strong { font-size: 15px; }
+.ch-dock-info { flex: 1; font-size: 13px; color: var(--ch-quiet); font-variant-numeric: tabular-nums; }
+.ch-dock-head .ch-close { width: 28px; height: 28px; }
+.ch-dock-note { margin: 4px 0 0; font-size: 12px; color: var(--ch-quiet); }
+.ch-sun-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.ch-sun-row input[type="date"] { height: 34px; padding: 0 6px; border: 1px solid #d5dbe3; border-radius: 8px; font: inherit; font-size: 16px; color: var(--ch-ink); background: #fff; }
+.ch-sun-row input[type="range"] { flex: 1; accent-color: #e5a50a; }
+.ch-sun-row output { min-width: 3.2em; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ch-pf-svg { display: block; width: 100%; height: 130px; margin-top: 6px; touch-action: none; cursor: crosshair; }
+.ch-pf-grid { stroke: #e3e7ec; stroke-width: 1; }
+.ch-pf-axis { font-size: 11px; fill: #8a94a0; font-variant-numeric: tabular-nums; }
+.ch-pf-area { fill: rgba(213, 43, 30, .12); }
+.ch-pf-line { fill: none; stroke: var(--ch-red); stroke-width: 2; stroke-linejoin: round; }
+.ch-pf-dot { fill: #1f2937; stroke: #fff; stroke-width: 2; }
+.ch-pf-stats { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 6px 0 0; }
+.ch-pf-stats div { display: grid; }
+.ch-pf-stats dt { font-size: 11px; color: var(--ch-quiet); }
+.ch-pf-stats dd { margin: 0; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ch-pf-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+
+/* Fly me somewhere: the place's name, top centre */
+.ch-fly-label { left: 50%; top: max(14px, env(safe-area-inset-top, 0px)); transform: translateX(-50%); margin: 0; padding: 8px 16px; display: grid; justify-items: center; text-align: center; }
+.ch-fly-label strong { font-size: 18px; }
+.ch-fly-label span { font-size: 12px; color: var(--ch-quiet); }
+.ch-toast { position: absolute; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: min(420px, calc(100vw - 32px)); margin: 0; padding: 10px 16px; border-radius: 10px; background: rgba(17, 24, 39, .88); color: #fff; font-size: 14px; text-align: center; word-break: break-word; pointer-events: none; }
+
+/* the card: avalanche level, problems, notes, button */
+.ch-danger { display: inline-block; margin: 0 0 8px; padding: 3px 10px; border-radius: 6px; font-weight: 700; font-size: 14px; background: #e5e7eb; }
+.ch-danger-1 { background: #ccff66; } .ch-danger-2 { background: #ffff00; } .ch-danger-3 { background: #ff9900; }
+.ch-danger-4 { background: #ff0000; color: #fff; } .ch-danger-5 { background: #7a0000; color: #fff; }
+.ch-problems { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.45; }
+.ch-card-note { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--ch-quiet); }
+.ch-card-btn { margin-top: 10px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--ch-red); color: #fff; font-size: 14px; font-weight: 650; cursor: pointer; }
+.ch-card { z-index: 8; max-height: calc(100% - 300px); overflow: auto; }
+
+/* the 3D pad, left of MapLibre's zoom buttons: up, then left / north / right, then down */
+.ch-pad { right: calc(max(12px, env(safe-area-inset-right, 0px)) + 44px); bottom: max(40px, env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(3, 38px); grid-template-rows: repeat(3, 34px); gap: 2px; padding: 6px; }
+.ch-pad button { display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--ch-ink); cursor: pointer; }
+.ch-pad button:hover { background: #f1f4f7; }
+.ch-pad svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ch-pad span { font-size: 13px; font-weight: 800; color: var(--ch-red-dark); }
+#ch-pad-up { grid-column: 2; grid-row: 1; } #ch-pad-left { grid-column: 1; grid-row: 2; } #ch-pad-north { grid-column: 2; grid-row: 2; }
+#ch-pad-right { grid-column: 3; grid-row: 2; } #ch-pad-down { grid-column: 2; grid-row: 3; }
+
+/* the panels step aside while the map moves (part 80); the docks in use, the place name and messages stay */
+.ch-panel, html[data-side="travel"] .corner-btn { transition: opacity .25s ease; }
+body.ch-hud-off .ch-panel:not(.ch-dock):not(.ch-years):not(.ch-fly-label), body.ch-hud-off .corner-btn,
+body.ch-hud-off .ch-app .maplibregl-ctrl { opacity: 0; pointer-events: none; }
+body.ch-hud-off .ch-app .maplibregl-ctrl { transition: opacity .25s ease; }
+@media (prefers-reduced-motion: reduce) { .ch-panel, html[data-side="travel"] .corner-btn { transition: none; } }
+
+@media (max-width: 700px) {
+    .ch-title { width: calc(100vw - 24px - var(--key-w, 112px) - var(--key-h, 44px) - 24px); padding: 10px 12px 8px; }
+    .ch-title h1 { font-size: 20px; }
+    .ch-facts { top: calc(var(--key-h, 44px) + 14px); max-height: calc(100% - var(--key-h, 44px) - 26px); }
+    .ch-tools { top: calc(var(--key-h, 44px) + 70px); bottom: auto; }
+    .ch-tool { grid-template-columns: 26px; padding: 0 6px; }
+    .ch-tool-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .ch-bases { gap: 2px; }
+    .ch-base img { width: 48px; height: 48px; }
+    .ch-years { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+    .ch-years input { width: 42vw; }
+    .ch-card { left: 12px; right: auto; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); width: calc(100vw - 90px); }
+    .ch-side-label { bottom: auto; top: 120px; }
+    .ch-side-right { right: 14px; }
+    .ch-results { width: calc(100vw - 24px); }
+    .ch-layers { top: auto; left: 12px; right: 12px; width: auto; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); max-height: 58vh; }
+    .ch-dock { width: auto; left: 12px; right: 12px; transform: none; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+    .ch-pf-svg { height: 100px; }
+    .ch-fly-label { top: calc(var(--key-h, 44px) + 14px); }
+    .ch-pad { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); right: 56px; grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(3, 38px); }
+    .ch-app .maplibregl-ctrl-bottom-right { bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { .ch-base img { transition: none; } }

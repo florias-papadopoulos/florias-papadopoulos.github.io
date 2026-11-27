@@ -9,6 +9,15 @@
 {{- /* DocTools (/doctools/): MuPDF is WebAssembly ('wasm-unsafe-eval' lets the browser compile it; it allows no eval
        of JavaScript), and workers only from blob: URLs, because a blob worker keeps this policy and a worker loaded
        from its own URL would not (GitHub Pages sends no CSP header). See assets/js/doctools/README.md. */}}
+{{- /* the Switzerland page (/switzerland/): its live map shows swisstopo's map pictures (assets/js/switzerland/map.js) */}}
+{{- /* the Switzerland page (assets/js/switzerland/README.md): MapLibre fetches tiles and data from these federal services
+       (connect-src), shows map pictures from wmts.geo.admin.ch and blob: images, and runs its worker from this site */}}
+{{- if eq .Section "switzerland" }}
+{{- $geo := "https://api3.geo.admin.ch https://data.geo.admin.ch https://aws.slf.ch https://wmts.geo.admin.ch https://3d.geo.admin.ch https://vectortiles.geo.admin.ch https://vectortiles0.geo.admin.ch https://vectortiles1.geo.admin.ch https://vectortiles2.geo.admin.ch https://vectortiles3.geo.admin.ch https://vectortiles4.geo.admin.ch" }}
+{{- $csp = replace $csp "img-src 'self' data:" "img-src 'self' data: blob: https://wmts.geo.admin.ch" }}
+{{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' %s" $geo) }}
+{{- $csp = printf "%s; worker-src 'self'" $csp }}
+{{- end }}
 {{- if eq .Section "doctools" }}
 {{- $csp = printf "%s; worker-src 'self' blob:" (replace $csp "script-src 'self'" "script-src 'self' 'wasm-unsafe-eval'") }}
 {{- end }}

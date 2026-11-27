@@ -64,8 +64,11 @@
     <a class="corner-btn flag-btn" href="{{ cond $travel ("" | relURL) ("switzerland/" | relURL) }}"{{ if $travel }} aria-current="page"{{ end }} title="{{ cond $travel "Back to the home page" "Switzerland: places and hikes" }}" aria-label="{{ cond $travel "Back to the home page" "Switzerland: places and hikes" }}">
         <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="currentColor"/></svg>
     </a>
+    {{- if not $travel }}
+    <div class="ch-consent-back" hidden>{{ partial "switzerland/consent.html" (dict "id" "ch-flag-consent") }}</div>
+    {{- end }}
     {{- partial "play-nav.html" . }}
-    {{- $picker := slice (resources.Get "js/lab/cat-picker.js") (resources.Get "js/lab/play.js") | resources.Concat "js/corner.js" | minify | fingerprint }}
+    {{- $picker := slice (resources.Get "js/lab/cat-picker.js") (resources.Get "js/lab/play.js") (resources.Get "js/site/flag.js") | resources.Concat "js/corner.js" | minify | fingerprint }}
     <script src="{{ $picker.RelPermalink }}" integrity="{{ $picker.Data.Integrity }}" defer></script>
     {{- /* the visit counter: one beacon per page view, only when params.statsEndpoint is set (assets/js/site/stats-hit.js,
            with assets/js/site/stats-detect.js before it; totals on /stats/); "page not found" is counted as /404/ instead

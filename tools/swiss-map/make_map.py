@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Draws the Switzerland page's map (layouts/partials/switzerland/map.svg) from open geodata, once; the page then
-serves it as part of its HTML, so visitors' browsers contact no map server.
+"""Draws the Switzerland page's still map (static/switzerland/map.svg, shown behind the question before the live map
+loads) and the canton outlines of the live map (static/switzerland/cantons.json) from open geodata, once.
 
 Sources (download into a folder, then run `python3 -I tools/swiss-map/make_map.py <folder>`):
   land.json     swisstopo swissBOUNDARIES3D, country border:
@@ -15,7 +15,7 @@ Federal geodata (geo.admin.ch) is free to use with the source named is free to u
 import json, math, os, sys
 
 SRC = sys.argv[1]
-OUT = os.path.join(os.path.dirname(__file__), '..', '..', 'layouts', 'partials', 'switzerland', 'map.svg')
+OUT = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'switzerland', 'map.svg')
 W = 1000.0                       # viewBox width; height follows the country's shape
 LAT0 = 46.8                      # projection: plain equirectangular, longitudes scaled by cos(46.8 deg)
 K = math.cos(math.radians(LAT0))
@@ -102,8 +102,11 @@ for fn in sorted(os.listdir(os.path.join(SRC, 'seen'))):
 
 VH = H + 2 * PAD
 out = []
-out.append('<svg class="ch-map" viewBox="0 0 %d %d" role="img" aria-labelledby="ch-map-title">' % (W + 2 * PAD, round(VH)))
-out.append('<title id="ch-map-title">Map of Switzerland with its 26 cantons and main lakes</title>')
+out.append('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d">' % (W + 2 * PAD, round(VH)))
+out.append('<title>Map of Switzerland with its 26 cantons and main lakes</title>')
+out.append('<style>.ch-land{fill:#ecebe4}.ch-cantons path{fill:none;stroke:#fff;stroke-width:1.6}.ch-lakes path{fill:#a9cbe6}'
+           '.ch-border{fill:none;stroke:#9aa3ad;stroke-width:1.2}.ch-labels text{font:600 13px sans-serif;fill:#8a94a0;'
+           'text-anchor:middle;dominant-baseline:middle}</style>')
 out.append('<defs><clipPath id="ch-clip"><path d="%s"/></clipPath></defs>' % country)
 out.append('<path class="ch-land" d="%s"/>' % country)
 out.append('<g class="ch-cantons">')
@@ -123,3 +126,29 @@ out.append('</svg>')
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 open(OUT, 'w').write('\n'.join(out) + '\n')
 print(OUT, os.path.getsize(OUT), 'bytes,', len(lakes), 'lakes')
+
+# the cantons for the live map (assets/js/switzerland/map.js): outlines in longitude/latitude, simplified to about
+# 100 m, with the canton's code, name and area (swissBOUNDARIES3D 'flaeche', in hectares) -> static/switzerland/cantons.json
+GJ = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'switzerland', 'cantons.json')
+
+
+def simplify_ll(ring, tol=0.0012):
+    m = len(ring) // 2
+    a = dp([tuple(p) for p in ring[:m + 1]], tol)[:-1] + dp([tuple(p) for p in ring[m:]], tol)
+    return [[round(x, 4), round(y, 4)] for x, y in a]
+
+
+feats = []
+for i in range(1, 27):
+    f = json.load(open(os.path.join(SRC, 'k%d.json' % i)))['feature']
+    pp = []
+    for p in polys(f['geometry']):
+        rings = [simplify_ll(r) for r in p]
+        rings = [r for r in rings if len(r) >= 4]
+        if rings:
+            pp.append(rings)
+    feats.append({'type': 'Feature', 'properties': {'code': f['properties']['ak'], 'name': f['properties']['name'],
+                  'area_ha': f['properties']['flaeche']}, 'geometry': {'type': 'MultiPolygon', 'coordinates': pp}})
+os.makedirs(os.path.dirname(GJ), exist_ok=True)
+json.dump({'type': 'FeatureCollection', 'features': feats}, open(GJ, 'w'), separators=(',', ':'), ensure_ascii=False)
+print(GJ, os.path.getsize(GJ), 'bytes')

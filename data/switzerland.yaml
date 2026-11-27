@@ -1,0 +1,88 @@
+# Facts for the Switzerland page (layouts/switzerland/list.html, assets/js/switzerland/map.js). Every fact here was
+# checked against two independent sources (listed under sources). Canton areas come from swisstopo's
+# swissBOUNDARIES3D (static/switzerland/cantons.json, made by tools/swiss-map/make_map.py) and are not repeated here.
+
+instagram: https://www.instagram.com/florias.pap/
+
+numbers:
+  - { label: "Highest point", value: "4634", unit: "m", note: "Dufourspitze, Monte Rosa" }
+  - { label: "Lowest point", value: "193", unit: "m", note: "Lago Maggiore" }
+  - { label: "Area", value: "41 291", unit: "km²" }
+  - { label: "Cantons", value: "26" }
+  - { label: "National languages", value: "4", note: "German, French, Italian, Romansh" }
+  - { label: "Marked hiking trails", value: "65 000", unit: "km" }
+  - { label: "Glaciers", value: "1 400", note: "about, Swiss Glacier Inventory 2016" }
+  - { label: "Highest settlement", value: "2126", unit: "m", note: "Juf, Avers (GR)" }
+
+signs:
+  - { id: yellow, name: "Hiking trail", scale: "T1", text: "Yellow signposts and diamonds. No special demands on the hiker." }
+  - { id: red, name: "Mountain hiking trail", scale: "T2 to T3", text: "White-red-white. Steep, narrow, at times exposed paths: sure-footed, no fear of heights, in good shape." }
+  - { id: blue, name: "Alpine hiking route", scale: "T4 to T5", text: "White-blue-white. Partly over snowfields, glaciers or scree: very good shape and mountain experience. T6 routes are mostly not marked." }
+  - { id: pink, name: "Winter hiking trail", text: "Pink signs. Prepared paths through the snow; watch the weather and slippery ground." }
+
+# capital and official languages of each canton, by code (as in cantons.json); joined = year it joined the
+# Confederation (1291 is the traditional founding year; OW and NW joined as Unterwalden, BL as Basel, AR and AI as
+# Appenzell). AR's constitution names no capital: Herisau is the seat of government and parliament.
+cantons:
+  ZH: { capital: "Zürich", languages: "German", joined: 1351 }
+  BE: { capital: "Bern", languages: "German, French", joined: 1353 }
+  LU: { capital: "Lucerne", languages: "German", joined: 1332 }
+  UR: { capital: "Altdorf", languages: "German", joined: 1291 }
+  SZ: { capital: "Schwyz", languages: "German", joined: 1291 }
+  OW: { capital: "Sarnen", languages: "German", joined: 1291 }
+  NW: { capital: "Stans", languages: "German", joined: 1291 }
+  GL: { capital: "Glarus", languages: "German", joined: 1352 }
+  ZG: { capital: "Zug", languages: "German", joined: 1352 }
+  FR: { capital: "Fribourg", languages: "French, German", joined: 1481 }
+  SO: { capital: "Solothurn", languages: "German", joined: 1481 }
+  BS: { capital: "Basel", languages: "German", joined: 1501 }
+  BL: { capital: "Liestal", languages: "German", joined: 1501 }
+  SH: { capital: "Schaffhausen", languages: "German", joined: 1501 }
+  AR: { capital: "Herisau (seat of government; courts in Trogen)", languages: "German", joined: 1513 }
+  AI: { capital: "Appenzell", languages: "German", joined: 1513 }
+  SG: { capital: "St. Gallen", languages: "German", joined: 1803 }
+  GR: { capital: "Chur", languages: "German, Romansh, Italian", joined: 1803 }
+  AG: { capital: "Aarau", languages: "German", joined: 1803 }
+  TG: { capital: "Frauenfeld", languages: "German", joined: 1803 }
+  TI: { capital: "Bellinzona", languages: "Italian", joined: 1803 }
+  VD: { capital: "Lausanne", languages: "French", joined: 1803 }
+  VS: { capital: "Sion", languages: "French, German", joined: 1815 }
+  NE: { capital: "Neuchâtel", languages: "French", joined: 1815 }
+  GE: { capital: "Geneva", languages: "French", joined: 1815 }
+  JU: { capital: "Delémont", languages: "French", joined: 1979 }
+
+# the glacier cards (assets/js/switzerland/30-layers.js, GLACIERS): only figures confirmed by two sources (GLAMOS length
+# change series, release 2026, doi:10.18750/lengthchange.2025.r2026, summed per year; and the sources named below)
+glaciers:
+  aletsch:
+    title: "Great Aletsch Glacier"
+    facts:
+      - { label: "Shorter since 1870", value: "about 3.5 km (to 2025)" }
+    note: "The longest glacier of the Alps."
+    source: "Length change: GLAMOS, also reported by swissinfo. Extents: GLAMOS via swisstopo."
+  rhone:
+    title: "Rhône Glacier"
+    facts:
+      - { label: "Shorter since 1879", value: "about 1.9 km (to 2025)" }
+    note: "The source of the Rhône."
+    source: "Length change: GLAMOS; Ohmura (2025), Journal of Geography. Extents: GLAMOS via swisstopo."
+  morteratsch:
+    title: "Morteratsch Glacier"
+    facts:
+      - { label: "Shorter since 1878", value: "about 3.1 km (to 2025)" }
+    note: "Its neighbour, the Pers Glacier, has broken away from it since about 2015."
+    source: "Length change: GLAMOS; swisseduc.ch glacier archive. Extents: GLAMOS via swisstopo."
+
+# Swiss glaciers as a whole: Mannerfelt et al. (2022), The Cryosphere 16, 3249; ETH and WSL press release (2022)
+glacier_loss: "Swiss glaciers lost about half of their volume between 1931 and 2016."
+
+sources:
+  - { name: "swisstopo", url: "https://www.swisstopo.admin.ch/" }
+  - { name: "About Switzerland (FDFA)", url: "https://www.aboutswitzerland.eda.admin.ch/en/geography" }
+  - { name: "Federal Statistical Office", url: "https://www.bfs.admin.ch/" }
+  - { name: "ch.ch", url: "https://www.ch.ch/" }
+  - { name: "Swiss Hiking Trail Federation", url: "https://www.schweizer-wanderwege.ch/de/wissen/signalisation/wegkategorien" }
+  - { name: "SAC hiking scale", url: "https://www.baspo.admin.ch/dam/de/sd-web/qKSxeWIiXYZa/sac-berg-und-alpinwanderskala_DE.pdf" }
+  - { name: "GLAMOS", url: "https://www.glamos.ch/en/" }
+  - { name: "SLF", url: "https://www.slf.ch/" }
+  - { name: "MeteoSwiss", url: "https://www.meteoswiss.admin.ch/" }
