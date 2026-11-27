@@ -61,7 +61,7 @@
        head (live-head.html). reset.css and zmedia.css came from the PaperMod theme (MIT, see LICENSE.md). */ -}}
 {{- $base := slice "core/theme-vars" "core/reset" "common/main" "common/footer" "common/paw" "common/play" "common/color-scheme" "common/profile-mode" "common/post-entry" "common/terms" "common/404" }}
 {{- $extra := slice }}
-{{- $lab := in (slice "lab" "games" "toolbox" "simple-crypto" "cipher-history" "doctools") .Section }}
+{{- $lab := in (slice "lab" "games" "toolbox" "simple-crypto" "doctools") .Section }}
 {{- if .IsHome }}{{ $extra = $extra | append "common/home-page" }}{{ end }}
 {{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/home" }}{{ end }}
 {{- if eq .Layout "lab" }}{{ $extra = $extra | append "common/toolbox" "common/timeline" }}{{ end }}
@@ -76,8 +76,6 @@
 {{- if eq .Section "phd" }}{{ $extra = $extra | append "common/phd" }}{{ if .IsPage }}{{ $extra = $extra | append "common/timeline" (printf "phd/%s" .Layout) }}{{ end }}{{ end }}
 {{- /* Simple Crypto (/simple-crypto/, in the lab: the cat's animated stories): assets/css/common/simple-crypto.css */}}
 {{- if eq .Section "simple-crypto" }}{{ $extra = $extra | append "common/simple-crypto" }}{{ end }}
-{{- /* Cipher History (/cipher-history/, in the lab: the stories of historic ciphers): the tab tokens of timeline.css and assets/css/common/cipher-history.css */}}
-{{- if eq .Section "cipher-history" }}{{ $extra = $extra | append "common/timeline" "common/cipher-history" }}{{ end }}
 {{- /* DocTools (/doctools/, in the lab: file tools that run in the browser): the tab tokens of timeline.css and assets/css/common/doctools.css */}}
 {{- if eq .Section "doctools" }}{{ $extra = $extra | append "common/timeline" "common/doctools" }}{{ end }}
 {{- with index (dict "you" "common/you" "privacy" "common/privacy" "stats" "common/stats" "cv" "common/cv") .Layout }}{{ $extra = $extra | append . }}{{ end }}

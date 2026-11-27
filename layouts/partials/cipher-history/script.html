@@ -1,8 +1,0 @@
-{{- /* The script of Cipher History, the same file on the front page and on every story page (so the browser keeps it):
-       assets/js/cipher-history/00-core.js, then the Toolbox's text and code breaking libraries and its English quadgram
-       table (all unchanged; the quadgrams score the hill climber of 15-desk-climb.js), then the
-       other parts of assets/js/cipher-history/ in name order (desk tools, stories, boot). See its README.md. */ -}}
-{{- $parts := slice (resources.Get "js/cipher-history/00-core.js") (resources.Get "js/calc/lib/text.js") (resources.Get "js/calc/lib/code-breaking.js") (resources.Get "js/calc/data/english-quadgrams.js") }}
-{{- range sort (resources.Match "js/cipher-history/*.js") "Name" }}{{ if ne .Name "js/cipher-history/00-core.js" }}{{ $parts = $parts | append . }}{{ end }}{{ end }}
-{{- $js := $parts | resources.Concat "js/cipher-history.js" | minify | fingerprint }}
-<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
