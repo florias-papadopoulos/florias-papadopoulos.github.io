@@ -6,9 +6,9 @@ can call another's. Check after a change: `cat assets/js/switzerland/[0-9]*.js >
 
 | Part | What it does |
 |---|---|
-| 00-core | constants, shared state, helpers (cards' small builders, LV95 formulas), the first map's style, start(), the three base maps, the modes (one at a time), the left sheets, the map controls |
+| 00-core | constants, shared state, helpers (cards' small builders, LV95 formulas), the first map's style, start(), the four base maps (Map: swisstopo's light base map from static/switzerland/lightbase.json; Topo: the national map), the modes (one at a time), the left sheets, the map controls |
 | 10-compare | Then and now (a second map with an old national map, clipped at the divider) |
-| 20-terrain | 3D (swisstopo terrain) and the sun (sun position, hillshade from that direction) |
+| 20-terrain | 3D (swisstopo terrain, made by terrain-worker.js); the Sun feature was removed (kept in __NotOnline/switzerland-sun) |
 | 30-layers | the Layers panel: summits, trails, slopes, ski and snowshoe routes, glaciers (with Go to), avalanche bulletin (SLF) |
 | 40-cards | what a tap shows: profile point, summit, avalanche region, snow station, canton |
 | 50-profile | the elevation profile (swisstopo profile service) with distance, climb, descent and DIN 33466 walking time |

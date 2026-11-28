@@ -14,14 +14,18 @@ function visitorsLayers() {
                     paint: { 'fill-color': '#0d9488', 'fill-opacity': 0.16 } }, 'canton-fill');
     mapA.addLayer({ id: 'ostwind-edge', type: 'line', source: 'ostwind', filter: ['==', ['get', 'kind'], 'edge'],
                     layout: { 'line-join': 'round' }, paint: { 'line-color': '#0f766e', 'line-width': 2.5, 'line-opacity': 0.9, 'line-dasharray': [3, 2] } }, 'canton-fill');
-    mapA.addSource('guests', { type: 'geojson', data: { type: 'FeatureCollection', features: (guests.places || []).map((p, i) => ({
+    // pins that would touch become one bubble ("1–3"); a tap on it zooms in until they part
+    mapA.addSource('guests', { type: 'geojson', cluster: true, clusterRadius: 26, clusterMaxZoom: 14,
+        clusterProperties: { lo: ['min', ['get', 'i']], hi: ['max', ['get', 'i']] },
+        data: { type: 'FeatureCollection', features: (guests.places || []).map((p, i) => ({
         type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] }, properties: { i, n: String(i + 1), name: String(p.name) } })) } });
     mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests',
-                    paint: { 'circle-radius': 11, 'circle-color': '#d52b1e', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } });
+                    paint: { 'circle-radius': ['case', ['has', 'point_count'], 15, 11], 'circle-color': '#d52b1e', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } });
     mapA.addLayer({ id: 'guests-n', type: 'symbol', source: 'guests',
-                    layout: { 'text-field': ['get', 'n'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
+                    layout: { 'text-field': ['case', ['has', 'point_count'],
+                                             ['concat', ['to-string', ['+', ['get', 'lo'], 1]], '–', ['to-string', ['+', ['get', 'hi'], 1]]], ['get', 'n']], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
                     paint: { 'text-color': '#ffffff' } });
-    mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 9,
+    mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 9, filter: ['!', ['has', 'point_count']],
                     layout: { 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1.3], 'text-anchor': 'top', 'text-padding': 2 },
                     paint: { 'text-color': '#7f1d1d', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
 }
@@ -94,9 +98,10 @@ function buildVisitors() {
     const tl = $('ch-v-tickets');
     (guests.tickets || []).forEach((t) => {
         const li = el('li', 'ch-v-ticket' + (t.best ? ' ch-v-best' : ''));
-        const head = el('div', 'ch-v-thead');
-        head.append(el('strong', null, String(t.name)), el('span', 'ch-v-price', String(t.price)));
-        li.append(head, el('p', null, String(t.note)));
+        li.appendChild(el('strong', 'ch-v-tname', String(t.name)));
+        const pr = el('dl', 'ch-v-prices');
+        [['Adults', t.price], ['Half Fare or child', t.half]].forEach(([k, v]) => { if (v) { const d = el('div'); d.append(el('dt', null, k), el('dd', null, String(v))); pr.appendChild(d); } });
+        li.append(pr, el('p', null, String(t.note)));
         tl.appendChild(li);
     });
 }

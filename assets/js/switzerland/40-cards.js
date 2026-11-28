@@ -27,6 +27,12 @@ function hoverCheck(e) {
 function onClick(e) {
     if (mode === 'profile') { profileAdd(e.lngLat); return; }
     const gp = visitorsOn ? mapA.queryRenderedFeatures(e.point, { layers: visible(['guests-dot']) }) : [];
+    if (gp.length && gp[0].properties.point_count) {
+        // a bubble of several places: zoom in to where they part
+        mapA.getSource('guests').getClusterExpansionZoom(gp[0].properties.cluster_id)
+            .then((z) => mapA.easeTo({ center: gp[0].geometry.coordinates, zoom: z + 0.3, duration: reduced ? 0 : 700 })).catch(() => {});
+        return;
+    }
     if (gp.length && guestCard(gp[0].properties.i)) { hiCanton(''); return; }
     const peaks = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit')) });
     if (peaks.length) {
@@ -86,10 +92,10 @@ function onClick(e) {
     if (!c) { closeCard(); return; }
     const pr = c.properties, f = facts.cantons[pr.code] || {};
     hiCanton(pr.code);
-    // minimal: the name and one line
+    // minimal: the name, the capital and the languages
     card((b) => {
         b.append(el('p', 'ch-card-kind', 'Canton'), el('h2', null, pr.name));
-        const bits = [f.capital, f.languages, fmt(pr.area_ha / 100) + ' km²'].filter(Boolean).map(String);
+        const bits = [f.capital, f.languages].filter(Boolean).map(String);
         b.appendChild(el('p', 'ch-card-line', bits.join(' · ')));
     });
 }

@@ -175,15 +175,10 @@ guests:
   region: [8.45, 47.05, 9.75, 47.75]
   tickets:
     - name: "9 am day pass, all zones"
-      price: "CHF 40 (20 with Half Fare)"
+      price: "CHF 40"
+      half: "CHF 20"
       note: "Mon to Fri from 9:00, weekends all day, until 5:00 the next morning. Trains and buses in the whole Ostwind area, no boats. CHF 41 from 13 December 2026."
       best: true
-    - name: "Day pass, all zones"
-      price: "CHF 63.60 (31.80)"
-      note: "Any time of day, same area, no boats. CHF 65.20 from 13 December 2026."
-    - name: "Day pass Plus"
-      price: "CHF 66 (34)"
-      note: "Adds the boats on Lake Constance, the Rhine and the Walensee, and the trains to Winterthur (the fast way to the Rhine Falls). CHF 69 from 13 December 2026."
   tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich and Luzern are outside Ostwind: they need a normal SBB ticket."
   places:
     - id: abbey
@@ -255,7 +250,7 @@ guests:
       lat: 47.47859
       why: "Lake promenade at Rorschach and boats along the Swiss shore."
       trip: "21 min by train to Rorschach"
-      ostwind: "train yes, boat with Day pass Plus"
+      ostwind: "train yes, boat no (separate ticket)"
       season: "Boats from 26 March to 10 October 2027"
       link: "https://www.bodensee-schiffe.ch/"
     - id: rheinfall
@@ -265,7 +260,7 @@ guests:
       lat: 47.67772
       why: "Europe's largest waterfall; a small boat goes to the rock in the middle."
       trip: "About 1 h via Winterthur, or 2 h inside Ostwind via Stein am Rhein"
-      ostwind: "via Winterthur only with Day pass Plus"
+      ostwind: "only the slow way via Stein am Rhein; via Winterthur needs another ticket"
       extra: "Schloss Laufen side CHF 5; rock boat CHF 22.50"
       season: "Rock boat April to October; most water in early summer"
       link: "https://www.rheinfall.ch/"
@@ -286,7 +281,7 @@ guests:
       lat: 47.12890
       why: "A fjord-like lake below the Churfirsten; Quinten, a car-free wine village, is reached only by boat."
       trip: "1 h 10 by train to Murg, then the boat across (about 1 h 35 in all)"
-      ostwind: "train yes, boat with Day pass Plus"
+      ostwind: "train yes, boat no (separate ticket)"
       extra: "Half Fare, GA, the SBB app and FAIRTIQ are not valid on the Walensee boats"
       season: "The crossing to Quinten runs all year"
       link: "https://walenseeschiff.ch/"

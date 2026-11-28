@@ -24,8 +24,11 @@ const ATTR_SLF = '© <a href="https://www.slf.ch/" target="_blank" rel="noopener
    The map pans within AREA and asks for tiles only there. */
 const AREA = [3.95, 44.6, 12.3, 48.9];
 const BOUNDS = AREA;
+/* map: swisstopo's light base map, drawn in the browser (static/switzerland/lightbase.json, tools/swiss-map/
+   make_lightbase.py): one lettering, exact borders, sharp at every zoom. topo: the national map (pictures). */
 const BASES = {
-    map: { name: 'National map', layer: 'ch.swisstopo.pixelkarte-farbe', ext: 'jpeg', max: 18 },
+    map: { name: 'Map', vector: true },
+    topo: { name: 'National map', layer: 'ch.swisstopo.pixelkarte-farbe', ext: 'jpeg', max: 18 },
     aerial: { name: 'Aerial photo', layer: 'ch.swisstopo.swissimage', ext: 'jpeg', max: 19 },
     relief: { name: 'Relief', layer: 'ch.swisstopo.swissalti3d-reliefschattierung', ext: 'png', max: 17 }
 };
@@ -105,11 +108,15 @@ function fromLV95(e, n) {
     return [l * 100 / 36, p * 100 / 36];
 }
 
+/* the two maps that write their own names, borders and summits (the page then adds none of its own) */
+const lettered = (k) => k === 'map' || k === 'topo';
+let LB = null;   // the light base map's style (sources, layers, sprite), loaded with the engine
+function lbLayers() { return LB ? LB.layers : []; }
 function rasterSource(key, time) {
     const b = BASES[key];
     // no bounds: swisstopo's maps reach beyond the border, so the zoomed-out view has no blank corners. The national
     // map goes through chmap:// (mendBlank), which fills its blank tiles.
-    const url = key === 'map' && !time ? 'chmap://{z}/{x}/{y}' : WMTS + b.layer + '/default/' + (time || 'current') + '/3857/{z}/{x}/{y}.' + b.ext;
+    const url = key === 'topo' && !time ? 'chmap://{z}/{x}/{y}' : WMTS + b.layer + '/default/' + (time || 'current') + '/3857/{z}/{x}/{y}.' + b.ext;
     return { type: 'raster', tileSize: 256, maxzoom: b.max, attribution: ATTR, tiles: [url] };
 }
 /* Beyond Switzerland the national map has holes: at some zooms a tile is plain white (always the same 668-byte image)
@@ -117,7 +124,7 @@ function rasterSource(key, time) {
    tile one to three zooms up, enlarged; the other tiles pass through untouched. */
 const BLANK_BYTES = 668;
 function mendBlank() {
-    const tileUrl = (z, x, y) => WMTS + BASES.map.layer + '/default/current/3857/' + z + '/' + x + '/' + y + '.jpeg';
+    const tileUrl = (z, x, y) => WMTS + BASES.topo.layer + '/default/current/3857/' + z + '/' + x + '/' + y + '.jpeg';
     const get = (z, x, y, signal) => fetch(tileUrl(z, x, y), { signal, credentials: 'omit', referrerPolicy: 'no-referrer' })
         .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); });
     ml.addProtocol('chmap', async ({ url }, abort) => {
@@ -177,7 +184,7 @@ const AIRPORTS = { type: 'FeatureCollection', features: [
    cantons (an invisible fill for tapping and the chosen one outlined in red; the maps draw the borders themselves); the profile line; summits; pins */
 function styleA() {
     const sources = {
-        base: rasterSource(base),
+        ...(BASES[base].vector ? LB.sources : { base: rasterSource(base) }),
         cantons: { type: 'geojson', data: app.dataset.cantons },
         // summits, towns and the border from small files of this site (tools/swiss-map/make_labels.py and make_map.py),
         // not swisstopo's vector tiles, which carry every road and field and cost megabytes a view
@@ -198,10 +205,11 @@ function styleA() {
     return {
         version: 8,
         glyphs: 'https://vectortiles.geo.admin.ch/fonts/{fontstack}/{range}.pbf',
+        sprite: LB.sprite,
         sources,
         layers: [
             { id: 'bg', type: 'background', paint: { 'background-color': '#f1f2ef' } },
-            { id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } },
+            ...(BASES[base].vector ? lbLayers() : [{ id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } }]),
             { id: 'slopes', type: 'raster', source: 'slopes', layout: hidden, paint: { 'raster-opacity': 0.6 } },
             { id: 'glaciers', type: 'raster', source: 'glaciers', layout: hidden, paint: { 'raster-opacity': 0.75 } },
             { id: 'avalanche', type: 'fill', source: 'avalanche', layout: hidden,
@@ -223,11 +231,11 @@ function styleA() {
                        'circle-stroke-color': '#d52b1e', 'circle-stroke-width': 3 } },
             // on the aerial photo and the relief, which have no lettering of their own: the borders and the towns,
             // from swisstopo's vector data (the national map draws these itself)
-            { id: 'bnd-canton', type: 'line', source: 'cantons', layout: { visibility: base === 'map' ? 'none' : 'visible', 'line-join': 'round' },
+            { id: 'bnd-canton', type: 'line', source: 'cantons', layout: { visibility: lettered(base) ? 'none' : 'visible', 'line-join': 'round' },
               paint: { 'line-color': 'rgba(255,255,255,0.85)', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.8, 12, 1.8], 'line-dasharray': [3, 2] } },
-            { id: 'bnd-country', type: 'line', source: 'border', layout: { visibility: base === 'map' ? 'none' : 'visible', 'line-join': 'round' },
+            { id: 'bnd-country', type: 'line', source: 'border', layout: { visibility: lettered(base) ? 'none' : 'visible', 'line-join': 'round' },
               paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 1.6, 12, 3.2] } },
-            { id: 'towns', type: 'symbol', source: 'towns', layout: { visibility: base === 'map' ? 'none' : 'visible',
+            { id: 'towns', type: 'symbol', source: 'towns', layout: { visibility: lettered(base) ? 'none' : 'visible',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-letter-spacing': 0.02,
               'text-size': ['interpolate', ['linear'], ['zoom'], 7, ['match', ['get', 'class'], 'city', 13, 11], 12, ['match', ['get', 'class'], 'city', 17, 'town', 15, 13]],
               'text-padding': 6, 'symbol-sort-key': ['match', ['get', 'class'], 'city', 0, 'town', 1, 2] },
@@ -239,7 +247,7 @@ function styleA() {
             // grow with the zoom like the picture they are part of (a size that depends on the zoom alone changes
             // smoothly; one that also depends on the town only at whole zoom steps, hence two layers).
             { id: 'featured-map', type: 'symbol', source: 'featured', maxzoom: 8.6, filter: ['!', ['get', 'abroad']],
-              layout: { visibility: base === 'map' ? 'visible' : 'none',
+              layout: { visibility: base === 'topo' ? 'visible' : 'none',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
               'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, 12, 6.5, 12, 6.8, 12, 7.1, 16, 7.4, 20, 7.7, 25, 8, 30, 8.3, 32, 8.6, 36],
               'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
@@ -247,13 +255,13 @@ function styleA() {
               // are part of its picture and a little soft, sharp lettering looked pasted on top
               paint: { 'text-color': '#1a1a1a', 'text-halo-color': 'rgba(26,26,26,0.35)', 'text-halo-width': 0.6, 'text-halo-blur': 0.8 } },
             { id: 'featured-map-abroad', type: 'symbol', source: 'featured', maxzoom: 8.6, filter: ['get', 'abroad'],
-              layout: { visibility: base === 'map' ? 'visible' : 'none',
+              layout: { visibility: base === 'topo' ? 'visible' : 'none',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
               'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, ['case', ['get', 'big'], 13, 11], 8.6, ['case', ['get', 'big'], 17, 14]],
               'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
               paint: { 'text-color': '#5b6470', 'text-halo-color': 'rgba(91,100,112,0.3)', 'text-halo-width': 0.5, 'text-halo-blur': 0.8 } },
             // the aerial photo and the relief: white like the other names there, at every zoom
-            { id: 'featured-photo', type: 'symbol', source: 'featured', layout: { visibility: base === 'map' ? 'none' : 'visible',
+            { id: 'featured-photo', type: 'symbol', source: 'featured', layout: { visibility: lettered(base) ? 'none' : 'visible',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
               'text-size': ['interpolate', ['linear'], ['zoom'], 6, ['case', ['get', 'abroad'], 11, 13], 12, ['case', ['get', 'abroad'], 14, 17]],
               'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
@@ -262,7 +270,7 @@ function styleA() {
               paint: { 'circle-radius': 7, 'circle-color': '#1f2937', 'circle-stroke-color': '#d52b1e', 'circle-stroke-width': 3 } },
             // on the national map, which names the summits itself: invisible dots, so a tap still opens a summit's card
             { id: 'peaks-hit', type: 'circle', source: 'peaks', minzoom: 9, filter: ['<=', ['get', 'rank'], ['step', ['zoom'], 2, 11, 3, 12.5, 99]],
-              layout: { visibility: base === 'map' ? 'visible' : 'none' }, paint: { 'circle-radius': 12, 'circle-opacity': 0 } },
+              layout: { visibility: lettered(base) ? 'visible' : 'none' }, paint: { 'circle-radius': 12, 'circle-opacity': 0 } },
             peakLayer('peaks', 7.5),
             { id: 'pin', type: 'circle', source: 'pin',
               paint: { 'circle-radius': 8, 'circle-color': '#d52b1e', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 } }
@@ -274,7 +282,7 @@ function peakLayer(id, minzoom) {
     return {
         id, type: 'symbol', source: 'peaks', minzoom,
         filter: ['<=', ['get', 'rank'], ['step', ['zoom'], 1, 10, 2, 11, 3, 12.5, 99]],
-        layout: { visibility: base === 'map' ? 'none' : 'visible', 'symbol-sort-key': ['get', 'rank'],
+        layout: { visibility: lettered(base) ? 'none' : 'visible', 'symbol-sort-key': ['get', 'rank'],
             'text-field': ['format', '▲ ', { 'font-scale': 0.7 }, ['get', 'name'], {}, '\n', {}, ['to-string', ['get', 'ele']], { 'font-scale': 0.8 }, ' m', { 'font-scale': 0.8 }],
             'text-font': ['Frutiger Neue Italic'], 'text-size': 13, 'text-anchor': 'top', 'text-offset': [0, -0.4],
             'text-max-width': 9, 'text-padding': 4
@@ -295,7 +303,9 @@ async function start() {
     status('Loading the map…');
     try {
         const engine = app.dataset.maplibre;
-        const [mod] = await Promise.all([import(engine + 'maplibre-gl.mjs'), loadCss(engine + 'maplibre-gl.css')]);
+        const [mod, , lb] = await Promise.all([import(engine + 'maplibre-gl.mjs'), loadCss(engine + 'maplibre-gl.css'),
+                                             fetch(app.dataset.lightbase).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })]);
+        LB = lb;
         ml = mod.default && mod.default.Map ? mod.default : mod;
         mendBlank();
     } catch (e) {
@@ -373,15 +383,15 @@ async function start() {
 /* summits: written on the aerial photo and the relief; on the national map (which writes them itself) only tappable */
 function peakVisibility() {
     const on = layerOn.peaks !== false;
-    PEAK_LAYERS.forEach((id) => mapA.setLayoutProperty(id, 'visibility', on && base !== 'map' ? 'visible' : 'none'));
-    mapA.setLayoutProperty('peaks-hit', 'visibility', on && base === 'map' ? 'visible' : 'none');
+    PEAK_LAYERS.forEach((id) => mapA.setLayoutProperty(id, 'visibility', on && !lettered(base) ? 'visible' : 'none'));
+    mapA.setLayoutProperty('peaks-hit', 'visibility', on && lettered(base) ? 'visible' : 'none');
 }
 /* the base map: a new raster source under everything else */
 /* the canton and country lines: a light version (about 100 m) from the start, the precise one (about 10 m, about
    330 KB to download) once the lines are seen from close in, on the aerial photo or the relief */
 let fineState = 0;   // 0 not yet, 1 loading, 2 done
 function fineLines() {
-    if (fineState || !mapA || base === 'map' || mapA.getZoom() < 10) return;
+    if (fineState || !mapA || lettered(base) || mapA.getZoom() < 10) return;
     fineState = 1;
     Promise.all([app.dataset.cantonsFine, app.dataset.borderFine].map((u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })))
         .then(([c, b]) => { mapA.getSource('cantons').setData(c); mapA.getSource('border').setData(b); fineState = 2; })
@@ -391,23 +401,30 @@ function hiCanton(code) {
     ['canton-tint', 'canton-hi'].forEach((id) => mapA.getLayer(id) && mapA.setFilter(id, ['==', ['get', 'code'], code || '']));
 }
 function airportZoom() {
-    if (mapA.getLayer('airports')) mapA.setLayerZoomRange('airports', base === 'map' ? 9.5 : 0, 24);
+    if (mapA.getLayer('airports')) mapA.setLayerZoomRange('airports', lettered(base) ? 9.5 : 0, 24);
 }
 function setBase(key) {
     if (!own(BASES, key) || key === base) return;
     if (threeD && key !== 'aerial') return;   // 3D shows the aerial photo only (the other pictures are greyed out)
     base = key;
     document.querySelectorAll('.ch-base').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.base === key)));
-    mapA.removeLayer('base');
-    mapA.removeSource('base');
-    mapA.addSource('base', rasterSource(key));
-    mapA.addLayer({ id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } }, mapA.getLayer('sun-shade') ? 'sun-shade' : 'slopes');
-    ['bnd-canton', 'bnd-country', 'towns', 'featured-photo'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'map' ? 'none' : 'visible'));
-    ['featured-map', 'featured-map-abroad'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'map' ? 'visible' : 'none'));
+    // take the old base map out (a picture, or the light base map's layers) and put the new one in its place
+    const was = mapA.getLayer('base') ? 'raster' : 'vector';
+    if (was === 'raster') { mapA.removeLayer('base'); mapA.removeSource('base'); }
+    else lbLayers().forEach((l) => mapA.getLayer(l.id) && mapA.removeLayer(l.id));
+    const before = 'slopes';
+    if (BASES[key].vector) {
+        Object.keys(LB.sources).forEach((k) => { if (!mapA.getSource(k)) mapA.addSource(k, LB.sources[k]); });
+        lbLayers().forEach((l) => mapA.addLayer(l, before));
+    } else {
+        mapA.addSource('base', rasterSource(key));
+        mapA.addLayer({ id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } }, before);
+    }
+    ['bnd-canton', 'bnd-country', 'towns', 'featured-photo'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', lettered(key) ? 'none' : 'visible'));
+    ['featured-map', 'featured-map-abroad'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'topo' ? 'visible' : 'none'));
     airportZoom();
     fineLines();
     peakVisibility();
-    if (sunOn) applySun();
     if (compare) labels();
     writeHash();
 }
@@ -434,9 +451,8 @@ function dis(id, off, why) {
 }
 function tools() {
     const t = compare === 'time', p = mode === 'profile', d = threeD || pending3D;
-    const whyT = 'Not with Then and now: close it first', whyP = 'Not while drawing a profile: close it first', why3 = 'Not in 3D: turn 3D off first';
+    const whyT = 'Not with Then and now: close it first', whyP = 'Not while drawing a route: close it first', why3 = 'Not in 3D: turn 3D off first';
     dis('ch-3d', t || (pending3D && !threeD), t ? whyT : 'Loading the mountains…');
-    dis('ch-sun', t, whyT);
     dis('ch-time', d || p, d ? why3 : whyP);
     dis('ch-profile', t, whyT);
     document.querySelectorAll('.ch-base').forEach((b) => {
