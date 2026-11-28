@@ -319,3 +319,6 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-rt-warn:empty { display: none; }
 .ch-rt-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
 .ch-rt-sw { box-shadow: 0 0 0 2px #fff inset, 0 0 0 1px #d5dbe3; }
+.ch-v-trip { display: block; width: 100%; text-align: left; color: var(--ch-ink); cursor: pointer; font: inherit; }
+.ch-v-trip:hover { border-color: var(--ch-red); }
+.ch-v-show { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 650; color: var(--ch-red-dark); }

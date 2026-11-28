@@ -46,7 +46,7 @@ function showVisitors(on) {
     if (on && !styleReady) { onLoad.push(() => { if (!$('ch-visitors').hidden) showVisitors(true); }); return; }
     visitorsOn = on;
     if (on) visitorsLayers();
-    ['ostwind-fill', 'ostwind-edge', 'guests-dot', 'guests-n', 'guests-name'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
+    ['ostwind-fill', 'ostwind-edge', 'guests-dot', 'guests-n', 'guests-name', 'trip-line', 'trip-stop', 'trip-name'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
     if (on) {
         const r = guests.region || [8.45, 47.05, 9.75, 47.75];
         const pad = matchMedia('(max-width: 900px)').matches ? { top: 60, bottom: Math.round(innerHeight * 0.5), left: 20, right: 60 } : { top: 40, bottom: 40, left: 380, right: 60 };
@@ -80,6 +80,60 @@ function guestCard(i) {
     return true;
 }
 
+/* a train trip on the map: the next connection's stops from the SBB timetable (transport.opendata.ch), joined by a
+   line from stop to stop (the stations are exact, the line between them is straight) */
+let tripReq = 0;
+async function showTrip(from, to, title) {
+    const req = ++tripReq;
+    try {
+        const res = await fetch('https://transport.opendata.ch/v1/connections?limit=1&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to),
+                                { credentials: 'omit', referrerPolicy: 'no-referrer' });
+        if (!res.ok) throw new Error(res.status);
+        const d = await res.json();
+        if (req !== tripReq) return;
+        const c = (d.connections || [])[0];
+        const stops = [];
+        ((c && c.sections) || []).forEach((sec) => {
+            const j = sec.journey;
+            if (!j || !Array.isArray(j.passList)) return;
+            j.passList.forEach((p) => {
+                const co = p.station && p.station.coordinate, lat = Number(co && co.x), lon = Number(co && co.y);
+                const t = new Date(Number(p.departureTimestamp || p.arrivalTimestamp) * 1000);
+                if (!isFinite(lat) || !isFinite(lon) || lat < 44 || lat > 49 || lon < 5 || lon > 12) return;
+                if (stops.length && stops[stops.length - 1].name === String(p.station.name || '')) return;
+                stops.push({ name: String(p.station.name || ''), lon, lat, time: isNaN(t) ? '' : t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }),
+                             line: lineName(j.category, j.number) });
+            });
+        });
+        if (stops.length < 2) throw new Error('empty');
+        if (!mapA.getSource('trip')) {
+            mapA.addSource('trip', { type: 'geojson', data: EMPTY });
+            mapA.addLayer({ id: 'trip-line', type: 'line', source: 'trip', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-join': 'round', 'line-cap': 'round' },
+                            paint: { 'line-color': '#d52b1e', 'line-width': 4, 'line-opacity': 0.85 } }, 'guests-dot');
+            mapA.addLayer({ id: 'trip-stop', type: 'circle', source: 'trip', filter: ['==', ['geometry-type'], 'Point'],
+                            paint: { 'circle-radius': 5, 'circle-color': '#ffffff', 'circle-stroke-color': '#d52b1e', 'circle-stroke-width': 2.5 } }, 'guests-dot');
+            mapA.addLayer({ id: 'trip-name', type: 'symbol', source: 'trip', filter: ['==', ['geometry-type'], 'Point'],
+                            layout: { 'text-field': ['get', 'label'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-offset': [0, -1.1], 'text-anchor': 'bottom', 'text-padding': 2 },
+                            paint: { 'text-color': '#7f1d1d', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
+        }
+        mapA.getSource('trip').setData({ type: 'FeatureCollection', features: [
+            { type: 'Feature', geometry: { type: 'LineString', coordinates: stops.map((q) => [q.lon, q.lat]) }, properties: {} },
+            ...stops.map((q) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [q.lon, q.lat] }, properties: { label: q.name } }))] });
+        let w = 180, so = 90, e = -180, n = -90;
+        stops.forEach((q) => { w = Math.min(w, q.lon); e = Math.max(e, q.lon); so = Math.min(so, q.lat); n = Math.max(n, q.lat); });
+        const pad = matchMedia('(max-width: 900px)').matches ? { top: 60, bottom: Math.round(innerHeight * 0.5), left: 30, right: 60 } : { top: 60, bottom: 60, left: 380, right: 340 };
+        mapA.fitBounds([[w, so], [e, n]], { padding: pad, pitch: 0, duration: reduced ? 0 : 1200 });
+        card((b) => {
+            b.append(el('p', 'ch-card-kind', 'By train'), el('h2', null, title));
+            const dl = el('dl', 'ch-card-facts');
+            stops.forEach((q) => row(dl, q.time, q.name));
+            b.appendChild(dl);
+            b.appendChild(el('p', 'ch-card-src', 'Next connection: ' + stops[0].line + '. SBB timetable (transport.opendata.ch); the line joins the stops.'));
+        });
+    } catch (e) {
+        if (req === tripReq) toast('The train could not be loaded right now.', 3000);
+    }
+}
 /* the places, grouped by their first kind, in the order of the legend */
 function vPlaces() {
     document.querySelectorAll('.ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === vKind)));
@@ -139,8 +193,12 @@ function buildVisitors() {
     vPlaces();
     const al = $('ch-v-arrival');
     (guests.arrival || []).forEach((a) => {
-        const li = el('li', 'ch-v-ticket');
-        li.append(el('strong', 'ch-v-tname', String(a.name)), el('p', null, String(a.text)));
+        const li = el('li');
+        const b = el('button', 'ch-v-ticket ch-v-trip');
+        b.type = 'button';
+        b.append(el('strong', 'ch-v-tname', String(a.name)), el('p', null, String(a.text)), el('span', 'ch-v-show', 'Show the train on the map'));
+        if (a.from && a.to) b.addEventListener('click', () => showTrip(String(a.from), String(a.to), String(a.name)));
+        li.appendChild(b);
         al.appendChild(li);
     });
     const tl = $('ch-v-tickets');

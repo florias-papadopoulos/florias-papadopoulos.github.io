@@ -441,6 +441,8 @@ function setBase(key) {
 const modes = {};
 const CLASH = { '3d': ['time'], time: ['3d', 'profile'], profile: ['time'] };
 function only(id) {
+    // a mode starting lets go of a tapped canton too
+    if (tinted && typeof closeCard === 'function') closeCard();
     (CLASH[id] || []).forEach((k) => { if (modes[k] && modes[k].on()) modes[k].off(); });
 }
 /* Which tools go together. A tool that would make a poor pair with the mode that is on is greyed out (its tooltip
@@ -469,6 +471,8 @@ function tools() {
 }
 /* the left column holds one sheet at a time: the facts or the layers */
 function sheet(id, open) {
+    // opening a sheet lets go of a tapped canton (its tint and its card)
+    if (open && tinted && typeof closeCard === 'function') closeCard();
     ['ch-facts', 'ch-layers', 'ch-weather', 'ch-visitors'].forEach((s) => {
         if (!$(s)) return;
         const on = s === id ? open : false;
