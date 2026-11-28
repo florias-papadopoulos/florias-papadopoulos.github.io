@@ -240,14 +240,15 @@ function styleA() {
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
               'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, 12, 6.5, 12, 6.8, 12, 7.1, 16, 7.4, 20, 7.7, 25, 8, 30, 8.3, 32, 8.6, 36],
               'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
-              // no white outline: the map's own names have none
-              paint: { 'text-color': '#101010' } },
+              // no white outline (the map's own names have none), and a faint dark blur at the edges: the map's names
+              // are part of its picture and a little soft, sharp lettering looked pasted on top
+              paint: { 'text-color': '#1a1a1a', 'text-halo-color': 'rgba(26,26,26,0.35)', 'text-halo-width': 0.6, 'text-halo-blur': 0.8 } },
             { id: 'featured-map-abroad', type: 'symbol', source: 'featured', maxzoom: 8.6, filter: ['get', 'abroad'],
               layout: { visibility: base === 'map' ? 'visible' : 'none',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
               'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, ['case', ['get', 'big'], 13, 11], 8.6, ['case', ['get', 'big'], 17, 14]],
               'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
-              paint: { 'text-color': '#5b6470' } },
+              paint: { 'text-color': '#5b6470', 'text-halo-color': 'rgba(91,100,112,0.3)', 'text-halo-width': 0.5, 'text-halo-blur': 0.8 } },
             // the aerial photo and the relief: white like the other names there, at every zoom
             { id: 'featured-photo', type: 'symbol', source: 'featured', layout: { visibility: base === 'map' ? 'none' : 'visible',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
