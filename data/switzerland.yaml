@@ -6,10 +6,9 @@ instagram: https://www.instagram.com/florias.pap/
 
 # First time in Switzerland? (the about sheet). Each tip checked on 2026-11-28 against two sources, listed per tip.
 visitors:
-  # SAC safety when hiking; SLF about the avalanche bulletin
-  - { title: "Mountains.", text: "Weather changes fast: check MeteoSwiss before you go, and in winter the SLF avalanche bulletin (White Risk app)." }
-  # MySwitzerland, can I use euros; Wise, money in Switzerland
-  - { title: "Money.", text: "Swiss francs (CHF). Cards work almost everywhere; places that take euros give change in francs." }
+  # Your Europe (European Commission), roaming: "Roam like at home" covers the EU, Iceland, Liechtenstein, Norway,
+  # Moldova and Ukraine, not Switzerland (checked 2026-11-28)
+  - { title: "Mobile data.", text: "EU roaming (Roam like at home) does not cover Switzerland, so data can be expensive on an EU plan. Check your plan, or get a travel eSIM or a Swiss prepaid SIM." }
   # BAV fact sheet on public transport; SBB offers for guests from abroad; SBB Half Fare Card
   - title: "Getting around."
     text: "Trains, buses and boats share one timetable and one ticket."
@@ -17,23 +16,17 @@ visitors:
       - { text: "Timetable", url: "https://www.sbb.ch/en" }
       - { text: "Swiss Travel Pass", url: "https://www.sbb.ch/en/offers/guests-from-abroad" }
       - { text: "Half Fare Card", url: "https://www.sbb.ch/en/offers/swiss-half-fare-card" }
-  # BAZG vignette FAQ; ch.ch motorway vignette
-  - { title: "Driving.", text: "Motorways need a vignette: CHF 40, valid from 1 December to 31 January of the year after. Buy the e-vignette at via.admin.ch." }
-  # canton Aargau fountain labelling leaflet; The Local on Swiss drinking water
+  # canton Aargau fountain labelling leaflet; The Local on Swiss drinking water; eaupotable.info maps public fountains
   - title: "Water."
     text: "Tap and fountain water is drinkable unless a sign says it is not (Kein Trinkwasser, eau non potable)."
     links:
-      - { text: "What the signs look like", url: "https://www.ag.ch/media/kanton-aargau/dgs/dokumente/verbraucherschutz/lebensmittelkontrolle/trinkwasser/merkblatt-kennzeichnung-laufbrunnen.pdf" }
+      - { text: "Map of drinking fountains", url: "https://eaupotable.info/en/ch-switzerland" }
   # Zurich Tourism electric power; MySwitzerland electricity
   - title: "Plugs."
     text: "Type J sockets, 230 V. Two-pin Europlugs fit; for earthed plugs bring a Type J adapter."
     plug: true
     links:
       - { text: "More on plugs", url: "https://www.zuerich.com/en/electric-power-and-internet" }
-  # MySwitzerland business hours; swissinfo on Sunday opening
-  - { title: "Sundays.", text: "Most shops close; those at stations, airports and many petrol stations stay open." }
-  # FOPH (BAG) tick-borne encephalitis page and its 2024 vaccination recommendation
-  - { title: "Ticks.", text: "They live up to about 2000 m; the TBE vaccine is recommended everywhere except Ticino." }
 
 # The big caves (the map's Caves layer). Each figure checked on 2026-11-28 against two sources (named per cave); positions
 # from swisstopo's place names (cave entrances; Hoelloch at the bus stop by its entrance; Siebenhengste at the ridge

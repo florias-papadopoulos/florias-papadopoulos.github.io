@@ -19,9 +19,10 @@ const WMTS = 'https://wmts.geo.admin.ch/1.0.0/';
 const API = 'https://api3.geo.admin.ch/rest/services/';
 const ATTR = '© <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>';
 const ATTR_SLF = '© <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">SLF</a>';
-/* Switzerland's rectangle (5.956 to 10.492 E, 45.818 to 47.808 N) and 200 km around it on every side: 200 km is
-   1.80° of latitude and, at 46.8° N, 2.62° of longitude. The map pans within AREA and asks for tiles only there. */
-const AREA = [3.33, 44.02, 13.12, 49.61];
+/* Switzerland's rectangle (5.956 to 10.492 E, 45.818 to 47.808 N) and about 150 to 200 km around it: as far as
+   swisstopo's national map is drawn (beyond, its tiles are blank, which showed as white patches when zoomed out).
+   The map pans within AREA and asks for tiles only there. */
+const AREA = [3.95, 44.6, 12.3, 48.9];
 const BOUNDS = AREA;
 const BASES = {
     map: { name: 'National map', layer: 'ch.swisstopo.pixelkarte-farbe', ext: 'jpeg', max: 18 },
@@ -45,14 +46,19 @@ const CAVE_LAYERS = [
                 'text-variable-anchor': ['left', 'right'], 'text-radial-offset': 1.2, 'text-justify': 'auto' },
       paint: { 'text-color': '#3b2f2a', 'text-halo-color': 'rgba(255,255,255,0.95)', 'text-halo-width': 1.5 } }
 ];
-/* the airports (added once their plane is drawn, see start) */
+/* the airports (added once their plane is drawn, see start). Below the town names, which are placed first: a plane
+   that would cover a name is left out. The national map writes its own names, which cannot make way, so there the
+   plane comes only from zoom 9.5, where the airports lie clear of their towns' names. */
 const AIRPORT_LAYER = { id: 'airports', type: 'symbol', source: 'airports',
-              layout: { 'icon-image': 'plane', 'icon-size': 1, 'icon-allow-overlap': true, 'icon-ignore-placement': true } };
+              layout: { 'icon-image': 'plane', 'icon-size': 1, 'icon-padding': 2 } };
 const PEAK_LAYERS = ['peaks'];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const facts = (() => { try { return JSON.parse($('ch-facts-data').textContent); } catch (e) { return { cantons: {}, glaciers: {} }; } })();
 
 let ml = null, mapA = null, mapB = null;
+/* sharp enough on every screen, without drawing three times as many pixels on the sharpest phones; in 3D on a phone,
+   1.25 (the slopes and the photo are redrawn for every frame there, and the pixels are the cost) */
+const PIXELS = Math.min(window.devicePixelRatio || 1, 2), PIXELS_3D = matchMedia('(pointer: coarse)').matches ? Math.min(PIXELS, 1.25) : PIXELS;
 let base = 'map', compare = null /* null | 'time' */, year = 1900;
 let threeD = false, terrainSpec = null, split = 0.5;
 let mode = null; /* null | 'profile': a tool that takes the map's clicks */
@@ -101,9 +107,36 @@ function fromLV95(e, n) {
 
 function rasterSource(key, time) {
     const b = BASES[key];
-    // no bounds: swisstopo's maps reach beyond the border, so the zoomed-out view has no blank corners
-    return { type: 'raster', tileSize: 256, maxzoom: b.max, attribution: ATTR,
-             tiles: [WMTS + b.layer + '/default/' + (time || 'current') + '/3857/{z}/{x}/{y}.' + b.ext] };
+    // no bounds: swisstopo's maps reach beyond the border, so the zoomed-out view has no blank corners. The national
+    // map goes through chmap:// (mendBlank), which fills its blank tiles.
+    const url = key === 'map' && !time ? 'chmap://{z}/{x}/{y}' : WMTS + b.layer + '/default/' + (time || 'current') + '/3857/{z}/{x}/{y}.' + b.ext;
+    return { type: 'raster', tileSize: 256, maxzoom: b.max, attribution: ATTR, tiles: [url] };
+}
+/* Beyond Switzerland the national map has holes: at some zooms a tile is plain white (always the same 668-byte image)
+   while the zoom above has the map there. Such a tile is replaced by the matching quarter (or smaller piece) of the
+   tile one to three zooms up, enlarged; the other tiles pass through untouched. */
+const BLANK_BYTES = 668;
+function mendBlank() {
+    const tileUrl = (z, x, y) => WMTS + BASES.map.layer + '/default/current/3857/' + z + '/' + x + '/' + y + '.jpeg';
+    const get = (z, x, y, signal) => fetch(tileUrl(z, x, y), { signal, credentials: 'omit', referrerPolicy: 'no-referrer' })
+        .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); });
+    ml.addProtocol('chmap', async ({ url }, abort) => {
+        const m = /^chmap:\/\/(\d{1,2})\/(\d{1,7})\/(\d{1,7})$/.exec(url);
+        if (!m) throw new Error('url');
+        const z = +m[1], x = +m[2], y = +m[3], signal = abort && abort.signal;
+        const own = await get(z, x, y, signal);
+        if (own.byteLength !== BLANK_BYTES) return { data: own };
+        for (let k = 1; k <= 3 && z - k >= 0; k++) {
+            let up;
+            try { up = await get(z - k, x >> k, y >> k, signal); } catch (e) { if (e.name === 'AbortError') throw e; break; }
+            if (up.byteLength === BLANK_BYTES) continue;
+            const f = 2 ** k, piece = 256 / f;
+            const bmp = await createImageBitmap(new Blob([up], { type: 'image/jpeg' }), (x - (x >> k) * f) * piece, (y - (y >> k) * f) * piece, piece, piece,
+                                                { resizeWidth: 256, resizeHeight: 256, resizeQuality: 'medium' });
+            return { data: bmp };
+        }
+        return { data: own };
+    });
 }
 function oldSource(y) {
     // the old maps cover Switzerland only: asking beyond it gets errors (400)
@@ -201,9 +234,12 @@ function styleA() {
             // the national map: dark bold like its own towns, only at the overview scales where it leaves these out
             { id: 'featured-map', type: 'symbol', source: 'featured', maxzoom: 8.6, layout: { visibility: base === 'map' ? 'visible' : 'none',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
-              'text-size': ['interpolate', ['linear'], ['zoom'], 6, ['case', ['get', 'big'], 13, ['get', 'abroad'], 11, 13], 8.6, ['case', ['get', 'big'], 17, ['get', 'abroad'], 14, 17]],
+              // the Swiss towns as large and as dark as the map's own city names (Zürich, Bern, Basel), measured on
+              // screen: about 13 px wide out, 19 px from zoom 7.3
+              'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, ['case', ['get', 'big'], 13, ['get', 'abroad'], 11, 13],
+                            7.3, ['case', ['get', 'big'], 16, ['get', 'abroad'], 13, 19], 8.6, ['case', ['get', 'big'], 17, ['get', 'abroad'], 14, 20]],
               'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
-              paint: { 'text-color': ['case', ['get', 'abroad'], '#5b6470', '#16181d'], 'text-halo-color': 'rgba(255,255,255,0.9)', 'text-halo-width': 1.6 } },
+              paint: { 'text-color': ['case', ['get', 'abroad'], '#5b6470', '#101010'], 'text-halo-color': 'rgba(255,255,255,0.9)', 'text-halo-width': 1.6 } },
             // the aerial photo and the relief: white like the other names there, at every zoom
             { id: 'featured-photo', type: 'symbol', source: 'featured', layout: { visibility: base === 'map' ? 'none' : 'visible',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
@@ -249,6 +285,7 @@ async function start() {
         const engine = app.dataset.maplibre;
         const [mod] = await Promise.all([import(engine + 'maplibre-gl.mjs'), loadCss(engine + 'maplibre-gl.css')]);
         ml = mod.default && mod.default.Map ? mod.default : mod;
+        mendBlank();
     } catch (e) {
         status('The map could not be loaded. Check your connection and reload the page.');
         return;
@@ -256,6 +293,7 @@ async function start() {
     const view = readHash();
     // a shared link starts with its own map (3D is the aerial photo), not the national map first
     if (view) base = view.threeD ? 'aerial' : view.base;
+    document.querySelectorAll('.ch-base').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.base === base)));
     try {
         mapA = new ml.Map({
             container: 'ch-map-a', style: styleA(),
@@ -266,8 +304,7 @@ async function start() {
             maxBounds: [[AREA[0], AREA[1]], [AREA[2], AREA[3]]],
             // the sources are named under the title instead (#ch-credits, part 30), so the corner stays free
             attributionControl: false,
-            // sharp enough on every screen, without drawing three times as many pixels on the sharpest phones
-            pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+            pixelRatio: PIXELS,
             canvasContextAttributes: { antialias: true }
         });
     } catch (e) {
@@ -282,6 +319,7 @@ async function start() {
     mapA.on('click', onClick);
     mapA.on('mousemove', onHover);
     mapA.on('move', syncB);
+    mapA.once('idle', warmTerrain);
     // the summits and towns, loaded alongside the map's first tiles
     const labelData = Promise.all(['peaks', 'towns'].map((k) => fetch(app.dataset[k]).then((r) => r.ok ? r.json() : []).catch(() => [])));
     mapA.once('load', () => {
@@ -294,7 +332,8 @@ async function start() {
         g.fillStyle = '#1e3a8a'; g.translate(sz / 2, sz / 2); g.scale(r * 0.62, r * 0.62);
         g.fill(new Path2D('M0 -11 C1.4 -11 2 -9.6 2 -8.3 V-3 L10 2 V4.3 L2 1.8 V7 L4.5 9 V10.8 L0 9.6 L-4.5 10.8 V9 L-2 7 V1.8 L-10 4.3 V2 L-2 -3 V-8.3 C-2 -9.6 -1.4 -11 0 -11 Z'));
         mapA.addImage('plane', g.getImageData(0, 0, sz, sz), { pixelRatio: r });
-        mapA.addLayer(AIRPORT_LAYER, 'peaks-hit');
+        mapA.addLayer(AIRPORT_LAYER, 'towns');
+        airportZoom();
         // the caves' symbol: a white disc with a dark brown cave mouth
         const c2 = document.createElement('canvas');
         c2.width = c2.height = sz;
@@ -324,6 +363,9 @@ function peakVisibility() {
     mapA.setLayoutProperty('peaks-hit', 'visibility', on && base === 'map' ? 'visible' : 'none');
 }
 /* the base map: a new raster source under everything else */
+function airportZoom() {
+    if (mapA.getLayer('airports')) mapA.setLayerZoomRange('airports', base === 'map' ? 9.5 : 0, 24);
+}
 function setBase(key) {
     if (!own(BASES, key) || key === base) return;
     if (threeD && key !== 'aerial') return;   // 3D shows the aerial photo only (the other pictures are greyed out)
@@ -335,6 +377,7 @@ function setBase(key) {
     mapA.addLayer({ id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } }, mapA.getLayer('sun-shade') ? 'sun-shade' : 'slopes');
     ['bnd-canton', 'bnd-country', 'towns', 'featured-photo'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'map' ? 'none' : 'visible'));
     mapA.setLayoutProperty('featured-map', 'visibility', key === 'map' ? 'visible' : 'none');
+    airportZoom();
     peakVisibility();
     if (sunOn) applySun();
     if (compare) labels();

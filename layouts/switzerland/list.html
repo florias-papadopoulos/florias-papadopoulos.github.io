@@ -10,7 +10,7 @@
 {{- $eng := site.Params.switzerland }}
 <div class="ch-app" id="ch-app"
      data-maplibre="{{ printf "engines/%s/" $eng.maplibre | relURL }}"
-     data-terrain="{{ printf "engines/%s/index.js" $eng.terrain | relURL }}"
+     data-terrain-worker="{{ (resources.Get "js/switzerland/terrain-worker.js" | minify | fingerprint).RelPermalink }}"
      data-decoder="{{ printf "engines/%s/index.js" $eng.decoder | relURL }}"
      data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-border="{{ "switzerland/border.json" | relURL }}"
      data-peaks="{{ "switzerland/peaks.json" | relURL }}" data-towns="{{ "switzerland/towns.json" | relURL }}" data-home="{{ "" | relURL }}">

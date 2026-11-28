@@ -11,6 +11,7 @@ function wire() {
     wireProfile();
     wireSearch();
     wireHud();
+    wireGrips();
     tools();
     addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;

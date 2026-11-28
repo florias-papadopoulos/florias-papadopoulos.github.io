@@ -16,10 +16,14 @@ can call another's. Check after a change: `cat assets/js/switzerland/[0-9]*.js >
 | 80-hud | the panels fade out while the map moves and come back when it stops |
 | 90-boot | wiring of the controls, the facts drawer, and the question before anything loads |
 
+Not a part: `terrain-worker.js`, a worker of its own (started by 20-terrain), which turns swisstopo's terrain into the
+height images of 3D off the main thread. Check it with `node --check assets/js/switzerland/terrain-worker.js`.
+
 Every host the parts contact is listed in the page's Content-Security-Policy (layouts/partials/head.html, section
 switzerland); a new host needs a line there, in the question (layouts/partials/switzerland/consent.html) and on the
 privacy page. Text from these services is always set with textContent, never as HTML.
 
 Known and accepted (security review 2026-11-28): MapLibre runs its worker from its own file (worker-src 'self'), and a
-page's meta CSP does not reach such a worker; nothing that reaches the worker comes from outside (all its URLs are this
+page's meta CSP does not reach such a worker (the same holds for terrain-worker.js, which fetches only swisstopo's
+terrain host and checks that the tile addresses stay on it); nothing that reaches the worker comes from outside (all its URLs are this
 site's or fixed hosts). To close it, start the worker from a blob: module and allow worker-src blob:.

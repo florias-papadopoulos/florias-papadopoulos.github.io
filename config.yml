@@ -169,10 +169,9 @@ params:
   # DocTools (/doctools/, a lab tab): the engines it loads from static/engines/ (see static/engines/README.md)
   doctools:
     mupdf: "engines/mupdf-1.28.6/mupdf.js"
-  # the Switzerland page's live map (assets/js/switzerland/map.js): its engines, folders in static/engines
+  # the Switzerland page's live map (assets/js/switzerland/): its engines, folders in static/engines
   switzerland:
     maplibre: "maplibre-gl-6.16.0"
-    terrain: "maplibre-gl-3dtiles-terrain-0.1.0"
     decoder: "quantized-mesh-decoder-1.2.8"
   cover:
     hiddenInList: false
