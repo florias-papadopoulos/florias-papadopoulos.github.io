@@ -51,7 +51,7 @@ function setLayer(def, on, opts) {
     if (def.id === 'guests' && on && styleReady) visitorsLayers();   // made on first use
     if (def.id === 'guests') {
         if ($('ch-v-pins')) $('ch-v-pins').checked = on;
-        if (!on) { closePlace(); clearTrip(); }   // the place panel, its path and a train go with the pins
+        if (!on) { closePlace(); if (tripOpen) closeCard(); }   // the place panel, its path and a train go with the pins
     }
     if (def.id === 'peaks') peakVisibility();
     else def.ids.forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
@@ -85,7 +85,7 @@ function lockLayers(lock) {
         btn.title = 'Layers are off in this mode';
         $('ch-weather-btn').disabled = true;
         if ($('ch-v-pins')) $('ch-v-pins').disabled = true;
-        if (typeof closePlace === 'function') { closePlace(); clearTrip(); }
+        if (typeof closePlace === 'function') { closePlace(); closeCard(); }
         if (typeof showOstwind === 'function') showOstwind();
         $('ch-weather-btn').title = 'Weather maps are off in this mode';
     } else if (!lock && layersSaved) {

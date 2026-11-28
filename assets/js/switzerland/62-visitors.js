@@ -1,11 +1,13 @@
 /* Part 62: Visitors, the page's main view, for people visiting St. Gallen: St. Gallen is the base of every trip.
-   A sheet (open at the start, or the sun-and-mountain icon) with three tabs:
-   - Places (data/switzerland.yaml, guests): grouped by the time it takes from St. Gallen station; chips for the six
-     kinds and for a rainy day; switches for "open this month" and the Ostwind area (static/switzerland/ostwind.json,
-     tools/swiss-map/make_ostwind.py). Each place has a card with the next train from St. Gallen (transport.opendata.ch),
+   A sheet (open at the start, or the sun-and-mountain icon) with four tabs:
+   - Places (data/switzerland.yaml, guests): grouped by the time it takes from St. Gallen station; chips that turn the
+     six kinds and the four time groups off and on, one for a rainy day; switches for the pins, "open this month" and
+     the Ostwind area (static/switzerland/ostwind.json, tools/swiss-map/make_ostwind.py). A place opens a panel at the
+     bottom (#ch-place) with the next train from St. Gallen (transport.opendata.ch),
      the forecast there (Open-Meteo), and for hikes the line of the walk (static/switzerland/visitor-routes.json,
-     tools/swiss-map/make_visitor_routes.py). A star puts a place on "My plan" (kept in this browser, localStorage
-     'ch-plan'), which can be sent as a link (#plan=id,id); a single place has a link too (#visitors/id).
+     tools/swiss-map/make_visitor_routes.py). A star puts a place on "My plan".
+   - My plan: the starred places (kept in this browser, localStorage 'ch-plan'), sent as a link (#plan=id,id) that
+     shows only those places; a single place has a link too (#visitors/id).
    - Travel: the trains from Zurich Airport (drawn stop by stop) and the day tickets.
    - Now: the next departures from St. Gallen and the weather in St. Gallen (MeteoSwiss).
    The pins are on from the start and stay when the sheet closes (Layers, Visitor places). The map is not moved
@@ -68,7 +70,6 @@ function showVisitors(on) {
     // the sheet turns the place pins on; they stay when it closes (Layers, Visitor places, turns them off)
     // (not in Then and now, which keeps the extra layers off until it ends)
     if (on && !layerOn.guests && !layersSaved) setLayer(LAYERS.find((d) => d.id === 'guests'), true);
-    ['trip-line', 'trip-stop', 'trip-name'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
     if (on) vTab(vCurrent);
     else { clearInterval(depTimer); depTimer = null; }
     writeHash();
@@ -113,9 +114,14 @@ function clearVRoute() {
 /* room around what is shown: the Visitors sheet on the left, the place panel at the bottom, the tools on the right */
 function cardPad() {
     const dock = $('ch-place'), dh = dock && !dock.hidden ? dock.getBoundingClientRect().height : 0;
-    if (matchMedia('(max-width: 900px)').matches) return { top: 70, bottom: Math.round(dh || innerHeight * 0.4) + 20, left: 30, right: 70 };
-    const sheetOpen = !$('ch-visitors').hidden;
-    return { top: 70, bottom: Math.round(dh) + 30, left: sheetOpen ? 380 : 60, right: $('ch-card').hidden ? 90 : 340 };
+    const p = matchMedia('(max-width: 900px)').matches
+        ? { top: 70, bottom: Math.round(dh || innerHeight * 0.4) + 20, left: 30, right: 70 }
+        : { top: 70, bottom: Math.round(dh) + 30, left: !$('ch-visitors').hidden ? 380 : 60, right: $('ch-card').hidden ? 90 : 340 };
+    // always leave the map at least 120 px each way (panels on a small window would otherwise cover it all)
+    const c = mapA.getCanvas(), W = c.clientWidth, H = c.clientHeight;
+    if (p.top + p.bottom > H - 120) p.bottom = Math.max(10, H - 120 - p.top);
+    if (p.left + p.right > W - 120) { const k = Math.max(0, W - 120) / (p.left + p.right); p.left = Math.round(p.left * k); p.right = Math.round(p.right * k); }
+    return p;
 }
 
 /* ---- the forecast at a place: today and tomorrow (Open-Meteo, which receives the place's position) ---- */
@@ -174,7 +180,10 @@ function savePlan() { try { localStorage.setItem('ch-plan', JSON.stringify(plan)
 function togglePlan(id) {
     plan = plan.includes(id) ? plan.filter((x) => x !== id) : plan.concat(id);
     savePlan();
-    if (planOnly && !sharedPlan) planOnly = plan.length ? plan.slice() : null;
+    if (planOnly && !sharedPlan) {
+        planOnly = plan.length ? plan.slice() : null;
+        if (placeNow >= 0 && planOnly && !planOnly.includes(String(PLACES[placeNow].id))) closePlace();
+    }
     renderPlan();
     vPlaces();
 }
@@ -263,16 +272,19 @@ function passShort(p) {
     const o = String(p.ostwind || '');
     return /^yes/i.test(o) ? 'Ostwind' : /^not needed/i.test(o) ? 'On foot' : 'Ostwind + extra';
 }
-let placeNow = -1;
+let placeNow = -1, placeFrom = null;
 function closePlace() {
+    const d = $('ch-place'), was = d && !d.hidden;
     placeNow = -1;
-    const d = $('ch-place');
     if (d) { d.hidden = true; d.classList.remove('ch-small'); }
     clearVRoute();
+    if (was && placeFrom && document.contains(placeFrom)) { try { placeFrom.focus({ preventScroll: true }); } catch (e) { /* gone */ } }
+    placeFrom = null;
 }
 function guestCard(i, move) {
     const p = PLACES[i];
     if (!p) return false;
+    if (modes.time.on() || modes.profile.on()) { toast('Close Then and now or Route first to see a place.', 2600); return true; }
     const id = String(p.id), dock = $('ch-place'), b = $('ch-place-body');
     placeNow = i;
     b.textContent = '';
@@ -288,7 +300,9 @@ function guestCard(i, move) {
         s.append(dot, document.createTextNode(String(k.name)));
         kinds.appendChild(s);
     });
-    b.append(kinds, el('h2', 'ch-pl-name', String(p.name)));
+    const h2 = el('h2', 'ch-pl-name', String(p.name));
+    h2.tabIndex = -1;
+    b.append(kinds, h2);
     // the key facts at a glance
     const stats = el('ul', 'ch-pl-stats');
     const stat = (k, v) => { const li = el('li'); li.append(el('span', null, k), el('strong', null, v)); stats.appendChild(li); };
@@ -346,26 +360,32 @@ function guestCard(i, move) {
     b.appendChild(src);
     // on a phone the panel starts low, so the map and the path stay in sight above it
     dock.classList.toggle('ch-small', matchMedia('(max-width: 900px)').matches);
+    placeFrom = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
     dock.hidden = false;
     dock.scrollTop = 0;
+    h2.focus({ preventScroll: true });
     closeCard();
     showVRoute(id, move);
     if (move && !LINES.has(id)) {
-        mapA.flyTo({ center: [+p.lon, +p.lat], zoom: Math.max(mapA.getZoom(), 13), padding: cardPad(), duration: reduced ? 0 : 1400, essential: true });
+        // an offset, not padding: a flight's padding would stay on the map and add to every later fit
+        const pd = cardPad();
+        mapA.flyTo({ center: [+p.lon, +p.lat], zoom: Math.max(mapA.getZoom(), 13), offset: [(pd.left - pd.right) / 2, (pd.top - pd.bottom) / 2], duration: reduced ? 0 : 1400, essential: true });
     }
     return true;
 }
 
 /* a train trip on the map: the next connection's stops from the SBB timetable (transport.opendata.ch), joined by a
    line from stop to stop (the stations are exact, the line between them is straight) */
-let tripReq = 0, tripBuilding = false;
+let tripReq = 0, tripBuilding = false, tripOpen = false;   // tripOpen: the card on the right is a train's
 function clearTrip() {
     tripReq++;
+    tripOpen = false;
     if (mapA && mapA.getSource('trip')) mapA.getSource('trip').setData(EMPTY);
 }
 async function showTrip(from, to, title) {
     const req = ++tripReq;
     if (!styleReady) { toast('The map is still loading.', 2000); return; }
+    if (layersSaved) return;   // not in Then and now
     try {
         const res = await fetch('https://transport.opendata.ch/v1/connections?limit=1&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to),
                                 { credentials: 'omit', referrerPolicy: 'no-referrer' });
@@ -404,7 +424,6 @@ async function showTrip(from, to, title) {
             ...stops.map((q) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [q.lon, q.lat] }, properties: { label: q.name } }))] });
         let w = 180, so = 90, e = -180, n = -90;
         stops.forEach((q) => { w = Math.min(w, q.lon); e = Math.max(e, q.lon); so = Math.min(so, q.lat); n = Math.max(n, q.lat); });
-        mapA.fitBounds([[w, so], [e, n]], { padding: cardPad(), bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
         tripBuilding = true;
         try { card((b) => {
             b.append(el('p', 'ch-card-kind', 'By train'), el('h2', null, title));
@@ -412,7 +431,9 @@ async function showTrip(from, to, title) {
             stops.forEach((q) => row(dl, q.time, q.name));
             b.appendChild(dl);
             b.appendChild(el('p', 'ch-card-src', 'Next connection: ' + stops[0].line + '. SBB timetable (transport.opendata.ch); the line joins the stops.'));
-        }); } finally { tripBuilding = false; }
+        }); tripOpen = true; } finally { tripBuilding = false; }
+        // the map fitted once the card is there, so the line keeps clear of it
+        mapA.fitBounds([[w, so], [e, n]], { padding: cardPad(), bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
     } catch (e) {
         if (req === tripReq) toast('The train could not be loaded right now.', 3000);
     }
@@ -456,7 +477,7 @@ function vPlaces() {
     if (!list.children.length) list.appendChild(el('li', 'ch-ly-note', 'Nothing matches these choices.'));
     if (mapA && mapA.getSource('guests')) mapA.getSource('guests').setData({ type: 'FeatureCollection', features: guestFeatures() });
 }
-/* the sheet's three tabs */
+/* the sheet's four tabs */
 let vCurrent = 'places';
 function vTab(t) {
     vCurrent = t;
@@ -474,20 +495,20 @@ function buildVisitors() {
         const dot = el('span', 'ch-v-dot'); dot.style.background = String(k.colour);
         b.append(dot, el('span', null, String(k.short || k.name)));
         b.title = 'Show or hide: ' + String(k.name);
-        b.addEventListener('click', () => { if (kindOff.has(k.id)) kindOff.delete(k.id); else kindOff.add(k.id); vPlaces(); });
+        b.addEventListener('click', () => { planOnly = null; if (kindOff.has(k.id)) kindOff.delete(k.id); else kindOff.add(k.id); vPlaces(); renderPlan(); });
         chips.appendChild(b);
     });
     const rain = el('button', 'ch-v-kind ch-v-rain');
     rain.type = 'button'; rain.dataset.kind = 'rain'; rain.title = 'Only places that are good in bad weather';
     rain.append(el('span', 'ch-v-dot'), el('span', null, 'Rainy day only'));
-    rain.addEventListener('click', () => { vRain = !vRain; vPlaces(); });
+    rain.addEventListener('click', () => { planOnly = null; vRain = !vRain; vPlaces(); renderPlan(); });
     chips.appendChild(rain);
     // the time groups, also on and off
     const times = $('ch-v-times');
     V_GROUPS.forEach((g, k) => {
         const b = el('button', 'ch-v-kind ch-v-time', g.name);
         b.type = 'button'; b.dataset.group = String(k); b.title = 'Show or hide: ' + g.name;
-        b.addEventListener('click', () => { if (groupOff.has(k)) groupOff.delete(k); else groupOff.add(k); vPlaces(); });
+        b.addEventListener('click', () => { planOnly = null; if (groupOff.has(k)) groupOff.delete(k); else groupOff.add(k); vPlaces(); renderPlan(); });
         times.appendChild(b);
     });
     // the pins' own switch, the same as Layers, Visitor places
@@ -495,7 +516,7 @@ function buildVisitors() {
     pins.addEventListener('change', () => setLayer(LAYERS.find((d) => d.id === 'guests'), pins.checked));
     const op = $('ch-v-open');
     $('ch-v-open-name').textContent = 'Open in ' + MONTHS[thisMonth() - 1];
-    op.addEventListener('change', () => { vOpen = op.checked; vPlaces(); });
+    op.addEventListener('change', () => { planOnly = null; vOpen = op.checked; vPlaces(); renderPlan(); });
     renderPlan();
     vPlaces();
     const ow = $('ch-v-ostwind');
@@ -590,7 +611,7 @@ function wireVisitors() {
         sharedPlan = c.length ? c : null;
         planOnly = sharedPlan ? sharedPlan.slice() : null;
         if (!sharedPlan) history.replaceState(null, '', location.pathname + '#visitors');
-        renderPlan(); vPlaces(); vCurrent = 'plan';
+        renderPlan(); vPlaces(); vTab('plan');
     }
     if (!h || h === '#visitors' || one || sent || /,v$/.test(h)) {
         sheet('ch-visitors', true);

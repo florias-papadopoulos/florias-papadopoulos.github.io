@@ -103,7 +103,9 @@ html:not([data-pet="dog"]) .cat-pick:not(.dog-pick), html[data-pet="dog"] .dog-p
 .flag-btn { top: 8px; width: var(--key-h); height: var(--key-h); right: calc(18px + var(--key-w, 34px)); border-radius: 10px; border-color: #b91c1c; background: #d52b1e; color: #fff; text-decoration: none; }
 .flag-btn svg { width: 22px; height: 22px; }
 .flag-btn:hover { transform: translateY(-1px); color: #fff; }
-.flag-btn[data-here] { box-shadow: 0 0 0 3px rgba(213, 43, 30, .25); }
+/* on the Switzerland page the flag is the way home: a house in the light corner style of the Lab button, not red */
+.flag-btn[data-here] { border-color: #d5dbe3; background: #fff; color: #1e293b; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1); }
+.flag-btn[data-here]:hover { color: #0f172a; border-color: #b8c0ca; }
 @media (max-width: 600px) { .flag-btn { top: 6px; right: calc(14px + var(--key-w, 34px)); } }
 /* on the home page the corner buttons sit in the band (home-page.css) */
 body:has(.home3) .flag-btn { position: absolute; top: 28px; right: calc(38px + var(--key-w, 34px)); box-shadow: none; }

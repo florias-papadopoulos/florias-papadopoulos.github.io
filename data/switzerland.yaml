@@ -392,7 +392,7 @@ guests:
       grade: T2
       line: true
       mins: 52
-      months: [1, 2, 3, 5, 6, 7, 8, 9, 10, 11]
+      months: [1, 2, 3, 5, 6, 7, 8, 9, 10]
       stop: "Wasserauen"
       kinds: [hike, winter]
       name: "Ebenalp, Äscher and Schäfler"
@@ -410,7 +410,7 @@ guests:
       hike: "2.7 km · 1 h"
       grade: T1
       line: true
-      mins: 51
+      mins: 52
       stop: "Wasserauen"
       kinds: [walk, water, winter]
       name: "Seealpsee"
@@ -668,7 +668,7 @@ guests:
       link: "https://www.iwc.com/"
     # ---- far: day trips beyond Ostwind ----
     - id: hoellgrotten
-      mins: 108
+      mins: 138
       months: [4, 5, 6, 7, 8, 9, 10]
       rain: true
       stop: "Baar, Tobelbrücke-Höllgrotten"
@@ -723,7 +723,7 @@ guests:
       hike: "3.5 km · 1 h"
       grade: T3
       line: true
-      mins: 134
+      mins: 135
       months: [7, 8, 9, 10]
       stop: "Lenzerheide/Lai, Post"
       far: true
@@ -848,7 +848,7 @@ guests:
       know: "Pairs with the Reichenbach Falls in one day"
       link: "https://www.aareschlucht.ch/"
     - id: reichenbach
-      mins: 226
+      mins: 224
       months: [5, 6, 7, 8, 9]
       stop: "Willigen (Reichenbachfallbahn)"
       far: true
@@ -880,7 +880,7 @@ guests:
       season: "Summer daily 10:00 to 18:00; in winter (until 18 March 2027) only Castelgrande is fully open, 10:30 to 16:00; closed 25 December"
       link: "https://fortezzabellinzona.ch/en/visit/"
     - id: madonnasasso
-      mins: 250
+      mins: 255
       stop: "Locarno"
       far: true
       kinds: [culture, winter]

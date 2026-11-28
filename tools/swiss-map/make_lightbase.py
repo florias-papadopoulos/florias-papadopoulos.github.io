@@ -52,10 +52,12 @@ for l in layers:
         swiss = lambda side: ['match', ['coalesce', ['get', 'adm2_' + side], ''], SWISS, True, False]
         base = ['all', ['match', ['get', 'admin_level'], [2, 4], True, False], ['!=', ['get', 'maritime'], 1],
                 ['!=', ['get', 'disputed'], 1], ['==', ['geometry-type'], 'LineString']]
-        l['filter'] = base + [['any', ['!=', ['get', 'admin_level'], 2], swiss('l'), swiss('r')]]
+        # a line with a side not named stays Swiss style (some of Switzerland's own border pieces have none)
+        named = lambda side: ['!=', ['coalesce', ['get', 'adm2_' + side], ''], '']
+        l['filter'] = base + [['any', ['!=', ['get', 'admin_level'], 2], swiss('l'), swiss('r'), ['!', named('l')], ['!', named('r')]]]
         f = json.loads(json.dumps(l))
         f['id'] = 'lb-boundary_foreign'
-        f['filter'] = base + [['==', ['get', 'admin_level'], 2], ['!', swiss('l')], ['!', swiss('r')]]
+        f['filter'] = base + [['==', ['get', 'admin_level'], 2], named('l'), named('r'), ['!', swiss('l')], ['!', swiss('r')]]
         f['paint'] = {'line-color': 'hsl(300, 18%, 72%)', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.8, 12, 1.6],
                       'line-dasharray': [3, 2]}
         kept.append(f)

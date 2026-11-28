@@ -358,7 +358,7 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-pl-facts dd { margin: 2px 0 0; font-size: 13px; line-height: 1.4; }
 .ch-v-kind[aria-pressed="false"] { opacity: .5; }
 .ch-v-kind[aria-pressed="false"] .ch-v-dot { background: #c3c9d1 !important; }
-.ch-v-time { padding: 0 9px; font-weight: 600; }
+.ch-v-kind.ch-v-time { padding: 0 9px; font-weight: 600; }
 .ch-v-rain .ch-v-dot { background: #64748b; }
 .ch-v-rain[aria-pressed="false"] { opacity: 1; }
 .ch-v-rain[aria-pressed="true"] { border-color: #475569; background: #e2e8f0; }
