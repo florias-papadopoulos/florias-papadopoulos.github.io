@@ -1,47 +1,57 @@
 /* Part 10: Then and now. A second map on top of the first, clipped at a draggable line and following every move of
    the first: swisstopo's "Journey through time" (ch.swisstopo.zeitreihen), one national map for every year from 1844
    to 2021. */
+let bReady = false, bYear = null;   /* the second map's style is ready; the year it shows */
 function ensureB() {
     if (mapB) return mapB;
+    bYear = year;
     $('ch-map-b').hidden = false;
     mapB = new ml.Map({
         container: 'ch-map-b', interactive: false, attributionControl: false, maxPitch: 80,
         pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        fadeDuration: 0,
         style: { version: 8, sources: { b: oldSource(year) },
-                 layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#e9edf1' } }, { id: 'b', type: 'raster', source: 'b' }] },
+                 layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#e9edf1' } }, { id: 'b', type: 'raster', source: 'b', paint: { 'raster-fade-duration': 0 } }] },
         center: mapA.getCenter(), zoom: mapA.getZoom(), bearing: mapA.getBearing(), pitch: mapA.getPitch()
     });
+    // the style is ready once (its tiles may still be loading): sources can be swapped from then on
+    mapB.once('load', () => { bReady = true; if (bYear !== year) setB(oldSource(year)); });
     return mapB;
 }
 function syncB() {
     if (!mapB || !compare) return;
     mapB.jumpTo({ center: mapA.getCenter(), zoom: mapA.getZoom(), bearing: mapA.getBearing(), pitch: mapA.getPitch() });
+    // draw it in this same frame: otherwise the old map trails the new one by a frame or more while zooming
+    if (mapB.redraw) mapB.redraw();
 }
+/* the old map of the current year; before the second map's style is ready, the load handler above catches up */
 function setB(src) {
-    const go = () => {
-        if (mapB.getLayer('b')) mapB.removeLayer('b');
-        if (mapB.getSource('b')) mapB.removeSource('b');
-        mapB.addSource('b', src);
-        mapB.addLayer({ id: 'b', type: 'raster', source: 'b' });
-    };
-    if (mapB.isStyleLoaded()) go(); else mapB.once('load', go);
+    if (!bReady || bYear === year) return;
+    bYear = year;
+    if (mapB.getLayer('b')) mapB.removeLayer('b');
+    if (mapB.getSource('b')) mapB.removeSource('b');
+    mapB.addSource('b', src);
+    mapB.addLayer({ id: 'b', type: 'raster', source: 'b', paint: { 'raster-fade-duration': 0 } });
 }
 function clip() {
     const w = $('ch-stage').clientWidth, x = Math.round(w * split);
     $('ch-map-b').style.clipPath = 'inset(0 0 0 ' + x + 'px)';
     $('ch-divider').style.left = x + 'px';
+    // the two names sit either side of the line, just below its handle
+    $('ch-label-a').style.right = (w - x + 14) + 'px';
+    $('ch-label-b').style.left = (x + 14) + 'px';
 }
 function setCompare(next) {
     compare = compare === next ? null : next;
-    // the old maps are flat: in 3D the second map would have to build the terrain a second time, which is slow
-    if (compare && threeD) { set3D(false); toast('Then and now shows the flat map.'); }
-    if (compare === 'time') dock('years');
+    if (compare) only('time');
     $('ch-time').setAttribute('aria-pressed', String(compare === 'time'));
     $('ch-years').hidden = compare !== 'time';
     const on = !!compare;
     $('ch-divider').hidden = !on;
     $('ch-label-a').hidden = !on;
     $('ch-label-b').hidden = !on;
+    lockLayers(on);
+    tools();
     if (!on) { $('ch-map-b').hidden = true; return; }
     ensureB();
     $('ch-map-b').hidden = false;
@@ -62,7 +72,7 @@ function setYear(y) {
     labels();
     if (compare === 'time') setB(oldSource(year));
 }
-docks.years = { open: () => compare === 'time', close: () => setCompare('time') };
+modes.time = { on: () => compare === 'time', off: () => setCompare('time') };
 
 function wireCompare() {
     $('ch-time').addEventListener('click', () => setCompare('time'));

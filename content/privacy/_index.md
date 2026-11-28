@@ -2,7 +2,7 @@
 title: "Privacy"
 description: "How this site handles your data: who runs it, where it is hosted, what the visit counter records, and your rights."
 layout: privacy
-updated: "10 November 2026"
+updated: "28 November 2026"
 # linked from the footer (layouts/partials/footer.html), /you/ and /stats/; kept out of lists and search
 build:
   list: never
@@ -30,7 +30,7 @@ Each page view adds one to the daily totals of a counter of mine on **Cloudflare
 
 - **Leaderboards:** if you add a score, the game, the difficulty, your nickname and the score are stored with the date and shown to everyone. Old scores far from the top are deleted; write to me to have one removed. Likes are only counted, never linked to you.
 - **Kitty Kart Duo:** to connect two devices, each sends a short connection message with its IP address, which the counter passes on and deletes within about two minutes. To find a direct way between them, each device also asks Cloudflare's STUN server (stun.cloudflare.com) for its own public address. The race then runs directly between the two devices, which see each other's IP address.
-- **The live maps of Switzerland:** the page /switzerland/ shows maps, 3D terrain, summit names, place search and height profiles from swisstopo, the Swiss federal mapping office (wmts.geo.admin.ch, 3d.geo.admin.ch, vectortiles.geo.admin.ch, api3.geo.admin.ch). Two layers come from other public offices and load only when you turn them on: the avalanche bulletin from the SLF institute (aws.slf.ch) and the snow depths from MeteoSwiss (data.geo.admin.ch). Each of them sees your IP address, as any website you visit does ([terms of use of the federal geodata services](https://www.geo.admin.ch/en/general-terms-of-use-fsdi)). What you type in the search box goes to swisstopo's search service; the points of a profile go to its profile service. Before anything is loaded from these services, the site asks you; if you tick "Remember my choice in this browser", your yes is kept in your browser's local storage and the site does not ask again. The "show my location" button uses your device's location only inside your browser; it is never sent anywhere.
+- **The live maps of Switzerland:** the page /switzerland/ shows maps, 3D terrain, place search and height profiles from swisstopo, the Swiss federal mapping office (wmts.geo.admin.ch, 3d.geo.admin.ch, api3.geo.admin.ch, and vectortiles.geo.admin.ch for the lettering's fonts); summit and town names come from files of this site. Two layers come from other public offices and load only when you turn them on: the avalanche bulletin from the SLF institute (aws.slf.ch) and the snow depths from MeteoSwiss (data.geo.admin.ch). Each of them sees your IP address and that the request comes from this site, as any website you visit would ([terms of use of the federal geodata services](https://www.geo.admin.ch/en/general-terms-of-use-fsdi)). What you type in the search box goes to swisstopo's search service; the points of a profile go to its profile service. Before anything is loaded from these services, the site asks you. If you tick "Remember my choice in this browser", your yes is kept in your browser's local storage (key ch-maps-ok); "Forget my choice" in the map's information panel removes it.
 - **Audience mode at my talks:** your answers, questions, an optional nickname (shown with the ranking; nicknames with rude words are refused) and a random browser token, kept for that talk only and deleted 24 hours after it ends.
 
 Deleted data can remain in Cloudflare's automatic backup for up to seven days.

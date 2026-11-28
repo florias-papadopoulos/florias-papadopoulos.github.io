@@ -8,7 +8,7 @@
     if (!flag || !box || flag.getAttribute('aria-current') === 'page') return;
     var back = box.parentNode;
     function ok() {
-        try { return localStorage.getItem('ch-maps-ok') === '1'; } catch (e) { return false; }
+        try { return localStorage.getItem('ch-maps-ok') === '1' || sessionStorage.getItem('ch-maps-ok') === '1'; } catch (e) { return false; }
     }
     function close() {
         back.hidden = true;
@@ -16,6 +16,22 @@
         flag.focus();
     }
     function onKey(e) { if (e.key === 'Escape') close(); }
+    /* a head start: when the pointer or a finger reaches the flag of a visitor who already said yes, the browser
+       fetches the map engine (its largest file), so the Switzerland page draws sooner; once, and not on slow or
+       data-saving connections */
+    var warmed = false;
+    function warm() {
+        var c = navigator.connection;
+        if (warmed || !ok() || (c && (c.saveData || /2g/.test(c.effectiveType || '')))) return;
+        warmed = true;
+        var l = document.createElement('link');
+        l.rel = 'modulepreload';
+        l.href = flag.getAttribute('data-engine');
+        document.head.appendChild(l);
+    }
+    flag.addEventListener('pointerenter', warm);
+    flag.addEventListener('touchstart', warm, { passive: true });
+    flag.addEventListener('focus', warm);
     flag.addEventListener('click', function (e) {
         if (ok()) return;
         e.preventDefault();

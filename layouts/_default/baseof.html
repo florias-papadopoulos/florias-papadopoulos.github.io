@@ -61,7 +61,7 @@
     {{- /* the flag: the door to the travel side (/switzerland/, layouts/switzerland/list.html); on that page it leads back
            to the home page. Styles in paw.css */}}
     {{- $travel := eq .Section "switzerland" }}
-    <a class="corner-btn flag-btn" href="{{ cond $travel ("" | relURL) ("switzerland/" | relURL) }}"{{ if $travel }} aria-current="page"{{ end }} title="{{ cond $travel "Back to the home page" "Switzerland: places and hikes" }}" aria-label="{{ cond $travel "Back to the home page" "Switzerland: places and hikes" }}">
+    <a class="corner-btn flag-btn" href="{{ cond $travel ("" | relURL) ("switzerland/" | relURL) }}" data-engine="{{ printf "engines/%s/maplibre-gl.mjs" site.Params.switzerland.maplibre | relURL }}"{{ if $travel }} aria-current="page"{{ end }} title="{{ cond $travel "Back to the home page" "Switzerland: places and hikes" }}" aria-label="{{ cond $travel "Back to the home page" "Switzerland: places and hikes" }}">
         <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="currentColor"/></svg>
     </a>
     {{- if not $travel }}

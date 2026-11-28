@@ -8,8 +8,7 @@ let profilePts = [], profileData = null, profileReq = 0, profileAbort = null;
 function setProfile(on) {
     if (on === (mode === 'profile')) return;
     if (on) {
-        dock('profile');
-        stopOrbit();
+        only('profile');
         mode = 'profile';
         closeCard();
         toast('Tap the map to add points along your route.', 3200);
@@ -17,33 +16,38 @@ function setProfile(on) {
         mode = null;
         if (profileAbort) profileAbort.abort();
         profilePts = []; profileData = null;
-        drawProfileLine(null);
+        drawProfileLine();
         mapA.getCanvas().style.cursor = '';
     }
     $('ch-profile').setAttribute('aria-pressed', String(on));
+    tools();
     $('ch-profile-panel').hidden = !on;
     renderProfile();
 }
-docks.profile = { open: () => mode === 'profile', close: () => setProfile(false) };
+modes.profile = { on: () => mode === 'profile', off: () => setProfile(false) };
 
 function profileAdd(ll) {
     if (profilePts.length >= 40) { toast('A profile can have at most 40 points.'); return; }
     profilePts.push([ll.lng, ll.lat]);
     fetchProfile();
 }
-function drawProfileLine(cursor) {
+function drawProfileLine() {
     const f = profilePts.map((c) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { kind: 'pt' } }));
     if (profilePts.length > 1) f.unshift({ type: 'Feature', geometry: { type: 'LineString', coordinates: profilePts }, properties: {} });
-    if (cursor) f.push({ type: 'Feature', geometry: { type: 'Point', coordinates: cursor }, properties: { kind: 'cursor' } });
     mapA.getSource('profile').setData({ type: 'FeatureCollection', features: f });
+    drawCursor(null);
+}
+/* the point on the map that matches the place pointed at on the chart: a source of its own, one point */
+function drawCursor(c) {
+    mapA.getSource('pin2').setData(c ? { type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { kind: 'cursor' } } : EMPTY);
 }
 async function fetchProfile() {
-    drawProfileLine(null);
+    const id = ++profileReq;   // any answer still on its way is now out of date
+    if (profileAbort) { profileAbort.abort(); profileAbort = null; }
+    drawProfileLine();
     profileData = null;
     renderProfile();
     if (profilePts.length < 2) return;
-    const id = ++profileReq;
-    if (profileAbort) profileAbort.abort();
     profileAbort = new AbortController();
     const geom = JSON.stringify({ type: 'LineString', coordinates: profilePts.map((c) => toLV95(c[0], c[1]).map((v) => Math.round(v * 10) / 10)) });
     $('ch-pf-state').textContent = 'Measuring…';
@@ -119,11 +123,12 @@ function renderProfile() {
         for (const q of p) { if (Math.abs(q.d - d) < Math.abs(best.d - d)) best = q; }
         dot.setAttribute('cx', X(best.d)); dot.setAttribute('cy', Y(best.h));
         $('ch-pf-at').textContent = (best.d / 1000).toFixed(1) + ' km · ' + fmt(best.h) + ' m';
-        drawProfileLine(fromLV95(best.e, best.n));
+        drawCursor(fromLV95(best.e, best.n));
     };
-    svg.onpointermove = (e) => at(e.clientX);
+    let raf = 0, lastX = 0;
+    svg.onpointermove = (e) => { lastX = e.clientX; if (!raf) raf = requestAnimationFrame(() => { raf = 0; at(lastX); }); };
     svg.onpointerdown = (e) => at(e.clientX);
-    svg.onpointerleave = () => { dot.setAttribute('cx', -10); $('ch-pf-at').textContent = ''; drawProfileLine(null); };
+    svg.onpointerleave = () => { dot.setAttribute('cx', -10); $('ch-pf-at').textContent = ''; drawCursor(null); };
     const hm = Math.round(s.hours * 60), hh = Math.floor(hm / 60), mm = hm % 60;
     [['Distance', (s.km < 10 ? s.km.toFixed(1) : Math.round(s.km)) + ' km'], ['Climb', fmt(s.up) + ' m'], ['Descent', fmt(s.down) + ' m'],
      ['Highest', fmt(s.max) + ' m'], ['Walking time', (hh ? hh + ' h ' : '') + mm + ' min']].forEach(([k, v]) => row(stats, k, v));

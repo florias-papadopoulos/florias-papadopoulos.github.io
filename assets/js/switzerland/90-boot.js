@@ -4,25 +4,30 @@
 function wire() {
     document.querySelectorAll('.ch-base').forEach((b) => b.addEventListener('click', () => setBase(b.dataset.base)));
     $('ch-card-close').addEventListener('click', closeCard);
+    wireControls();
     wireCompare();
     wireTerrain();
     wireLayers();
     wireProfile();
-    wireFly();
     wireSearch();
     wireHud();
+    tools();
     addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         if (!$('ch-card').hidden) closeCard();
         else if (!$('ch-layers').hidden) $('ch-layers-close').click();
+        else if (!$('ch-facts').hidden) $('ch-facts-close').click();
     });
 }
 
 (function factsDrawer() {
     const btn = $('ch-facts-btn'), box = $('ch-facts');
-    const set = (open) => { box.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
-    btn.addEventListener('click', () => set(box.hidden));
-    $('ch-facts-close').addEventListener('click', () => { set(false); btn.focus(); });
+    btn.addEventListener('click', () => sheet('ch-facts', box.hidden));
+    $('ch-facts-close').addEventListener('click', () => { sheet('ch-facts', false); btn.focus(); });
+    $('ch-forget').addEventListener('click', () => {
+        try { localStorage.removeItem('ch-maps-ok'); sessionStorage.removeItem('ch-maps-ok'); } catch (e) { /* no storage */ }
+        toast('Done: the site will ask again next time.');
+    });
 })();
 
 (function gate() {

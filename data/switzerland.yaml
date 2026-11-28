@@ -4,15 +4,30 @@
 
 instagram: https://www.instagram.com/florias.pap/
 
-numbers:
-  - { label: "Highest point", value: "4634", unit: "m", note: "Dufourspitze, Monte Rosa" }
-  - { label: "Lowest point", value: "193", unit: "m", note: "Lago Maggiore" }
-  - { label: "Area", value: "41 291", unit: "km²" }
-  - { label: "Cantons", value: "26" }
-  - { label: "National languages", value: "4", note: "German, French, Italian, Romansh" }
-  - { label: "Marked hiking trails", value: "65 000", unit: "km" }
-  - { label: "Glaciers", value: "1 400", note: "about, Swiss Glacier Inventory 2016" }
-  - { label: "Highest settlement", value: "2126", unit: "m", note: "Juf, Avers (GR)" }
+# First time in Switzerland? (the about sheet). Each tip checked on 2026-11-28 against two sources, listed per tip.
+visitors:
+  # ch.ch emergencies page; rega.ch emergency numbers (Rega 1414, in Valais 144)
+  - { title: "Emergency.", text: "112 general, 117 police, 118 fire, 144 ambulance, 1414 Rega air rescue (in Valais call 144)." }
+  # SAC safety when hiking; SLF about the avalanche bulletin
+  - { title: "Mountains.", text: "Weather changes fast: check MeteoSwiss before you go, and in winter the SLF avalanche bulletin (White Risk app)." }
+  # MySwitzerland, can I use euros; Wise, money in Switzerland
+  - { title: "Money.", text: "Swiss francs (CHF). Cards work almost everywhere; places that take euros give change in francs." }
+  # BAV fact sheet on public transport; SBB offers for guests from abroad; SBB Half Fare Card
+  - { title: "Getting around.", text: "Trains, buses and boats share one timetable and one ticket. Visitors can buy a Swiss Travel Pass (3 to 15 days unlimited) or a Half Fare Card (CHF 150 for a month)." }
+  # BAZG vignette FAQ; ch.ch motorway vignette
+  - { title: "Driving.", text: "Motorways need a vignette: CHF 40, valid from 1 December to 31 January of the year after. Buy the e-vignette at via.admin.ch." }
+  # canton Aargau fountain labelling leaflet; The Local on Swiss drinking water
+  - { title: "Water.", text: "Tap and fountain water is drinkable unless a sign says it is not (Kein Trinkwasser, eau non potable)." }
+  # Zurich Tourism electric power; MySwitzerland electricity
+  - { title: "Plugs.", text: "Type J sockets, 230 V. Two-pin Europlugs fit; for earthed plugs bring a Type J adapter." }
+  # MySwitzerland business hours; swissinfo on Sunday opening
+  - { title: "Sundays.", text: "Most shops close; those at stations, airports and many petrol stations stay open." }
+  # MySwitzerland tipping; UBS tipping culture
+  - { title: "Tipping.", text: "Service is included in prices; rounding up is common but optional." }
+  # FOPH (BAG) tick-borne encephalitis page and its 2024 vaccination recommendation
+  - { title: "Ticks.", text: "They live up to about 2000 m; the TBE vaccine is recommended everywhere except Ticino." }
+  # FOCA (BAZL) drone operator registration; ch.ch drones
+  - { title: "Drones.", text: "EU drone rules apply: register unless the drone weighs under 250 g and has no camera." }
 
 signs:
   - { id: yellow, name: "Hiking trail", scale: "T1", text: "Yellow signposts and diamonds. No special demands on the hiker." }

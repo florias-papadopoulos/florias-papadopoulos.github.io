@@ -13,20 +13,25 @@ function closeCard() {
 function visible(ids) {
     return ids.filter((l) => mapA.getLayer(l) && mapA.getLayoutProperty(l, 'visibility') !== 'none');
 }
+let hoverFrame = 0, hoverEvent = null;
 function onHover(e) {
     if (mode) { mapA.getCanvas().style.cursor = 'crosshair'; return; }
-    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS) }).length;
+    if ((e.originalEvent && e.originalEvent.buttons) || mapA.isMoving()) return;
+    hoverEvent = e;
+    if (!hoverFrame) hoverFrame = requestAnimationFrame(() => { hoverFrame = 0; hoverCheck(hoverEvent); });
+}
+function hoverCheck(e) {
+    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports')) }).length;
     mapA.getCanvas().style.cursor = hit ? 'pointer' : '';
 }
 function onClick(e) {
-    stopOrbit();
     if (mode === 'profile') { profileAdd(e.lngLat); return; }
-    const peaks = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS) });
+    const peaks = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit')) });
     if (peaks.length) {
         const p = peaks[0].properties;
         mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
         card((b) => {
-            b.append(el('p', 'ch-card-kind', 'Summit'), el('h2', null, p['name:latin'] || p.name || 'Summit'));
+            b.append(el('p', 'ch-card-kind', 'Summit'), el('h2', null, p.name || 'Summit'));
             const dl = el('dl', 'ch-card-facts');
             if (p.ele != null && isFinite(+p.ele)) row(dl, 'Height', fmt(+p.ele) + ' m');
             const c = cantonAt(e.point);
@@ -34,6 +39,13 @@ function onClick(e) {
             b.appendChild(dl);
             b.appendChild(el('p', 'ch-card-src', 'Name and height: swisstopo'));
         });
+        return;
+    }
+    const air = mapA.getLayer('airports') ? mapA.queryRenderedFeatures(e.point, { layers: ['airports'] }) : [];
+    if (air.length) {
+        const p = air[0].properties;
+        mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
+        card((b) => { b.append(el('p', 'ch-card-kind', 'Airport ' + p.code), el('h2', null, p.name)); });
         return;
     }
     if (layerOn.avalanche && avalanche) {

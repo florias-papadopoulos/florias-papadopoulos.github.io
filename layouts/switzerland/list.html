@@ -12,7 +12,8 @@
      data-maplibre="{{ printf "engines/%s/" $eng.maplibre | relURL }}"
      data-terrain="{{ printf "engines/%s/index.js" $eng.terrain | relURL }}"
      data-decoder="{{ printf "engines/%s/index.js" $eng.decoder | relURL }}"
-     data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-home="{{ "" | relURL }}">
+     data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-border="{{ "switzerland/border.json" | relURL }}"
+     data-peaks="{{ "switzerland/peaks.json" | relURL }}" data-towns="{{ "switzerland/towns.json" | relURL }}" data-home="{{ "" | relURL }}">
 
     {{- /* before the visitor agrees: the drawn map and the question */}}
     <div class="ch-gate" id="ch-gate" hidden>
@@ -28,77 +29,85 @@
         <p class="ch-side-label ch-side-right" id="ch-label-b" hidden></p>
     </div>
 
-    {{- /* top left: the title and the facts drawer */}}
-    <header class="ch-panel ch-title">
-        <h1>{{ .Title }}</h1>
-        <div class="ch-search-box" role="search">
-            <label class="ch-vh" for="ch-search">Search a place, summit or address</label>
-            <input type="search" id="ch-search" placeholder="Search a place or summit" autocomplete="off" spellcheck="false" maxlength="80" aria-controls="ch-results">
-            <ul class="ch-results" id="ch-results" hidden></ul>
-        </div>
-        <button type="button" class="ch-link" id="ch-facts-btn" aria-expanded="false" aria-controls="ch-facts">Facts and trail signs</button>
-        {{- with $d.instagram }}
-        <p class="ch-insta">Planned: trails and my own pictures. Until then, go to <a class="ch-insta-link" href="{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="my Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a></p>
-        {{- end }}
-        <p class="ch-legal"><a href="{{ "privacy/" | relURL }}">Privacy</a> · Maps © swisstopo</p>
-    </header>
-
-    <section class="ch-panel ch-facts" id="ch-facts" hidden aria-labelledby="ch-facts-h">
-        <div class="ch-facts-head">
-            <h2 id="ch-facts-h">Switzerland in numbers</h2>
-            <button type="button" class="ch-close" id="ch-facts-close" aria-label="Close">×</button>
-        </div>
-        <dl class="ch-numbers">
-            {{- range $d.numbers }}
-            <div><dt>{{ .label }}</dt><dd>{{ .value }}{{ with .unit }}<span> {{ . }}</span>{{ end }}</dd>{{ with .note }}<p>{{ . }}</p>{{ end }}</div>
+    {{- /* Four zones, so nothing covers anything (on phones the sheets, the card and the docks become one bottom sheet,
+           one at a time): left column, the title and one sheet (facts or layers); right column, the tools and the
+           card; bottom left, the maps; bottom centre, one dock (year, sun or profile); bottom right, the controls. */}}
+    <div class="ch-col ch-col-left">
+        <header class="ch-panel ch-title">
+            <h1 class="ch-vh">{{ .Title }}</h1>
+            <div class="ch-head">
+                <div class="ch-icons">
+                    <button type="button" class="ch-icon-btn" id="ch-search-btn" aria-expanded="false" aria-controls="ch-search-box" title="Search a place or summit" aria-label="Search a place or summit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/></svg></button>
+                    {{- with $d.instagram }}
+                    <a class="ch-icon-btn" href="{{ . }}" target="_blank" rel="noopener noreferrer" title="My trip photos on Instagram" aria-label="My trip photos on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></a>
+                    {{- end }}
+                    <button type="button" class="ch-icon-btn" id="ch-facts-btn" aria-expanded="false" aria-controls="ch-facts" title="About this map: facts, trail signs, sources, privacy" aria-label="About this map"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></button>
+                </div>
+            </div>
+            <div class="ch-search-box" id="ch-search-box" role="search" hidden>
+                <label class="ch-vh" for="ch-search">Search a place, summit or address</label>
+                <input type="search" id="ch-search" placeholder="Place or summit" autocomplete="off" spellcheck="false" maxlength="80" aria-controls="ch-results">
+                <ul class="ch-results" id="ch-results" hidden></ul>
+            </div>
+        </header>
+        <section class="ch-panel ch-sheet ch-facts" id="ch-facts" hidden aria-labelledby="ch-facts-h">
+            <div class="ch-facts-head">
+                <h2 id="ch-facts-h">About this map</h2>
+                <button type="button" class="ch-close" id="ch-facts-close" aria-label="Close">×</button>
+            </div>
+            {{- /* first-time visitors: filled from data/switzerland.yaml (visitors), each tip checked against two sources */}}
+            {{- with $d.visitors }}
+            <h2>First time in Switzerland?</h2>
+            <ul class="ch-tips">
+                {{- range . }}
+                <li><strong>{{ .title }}</strong> {{ .text }}</li>
+                {{- end }}
+            </ul>
             {{- end }}
-        </dl>
-        <h2>Hiking trail signs</h2>
-        <ul class="ch-signs">
-            {{- range $d.signs }}
-            <li><span class="ch-sign ch-sign-{{ .id }}" aria-hidden="true"></span><div><strong>{{ .name }}</strong>{{ with .scale }} <em>{{ . }}</em>{{ end }}<p>{{ .text }}</p></div></li>
-            {{- end }}
-        </ul>
-        <p class="ch-facts-src">Sources: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
-    </section>
-
-    {{- /* right: the tools */}}
-    <div class="ch-panel ch-tools" role="toolbar" aria-label="Map tools">
-        <button type="button" class="ch-tool" id="ch-3d" aria-pressed="false" title="Tilt the map and see the mountains in 3D"><span class="ch-tool-icon">3D</span><span class="ch-tool-text">3D</span></button>
-        <button type="button" class="ch-tool" id="ch-sun" aria-pressed="false" title="Light the mountains as the sun would on a chosen day and time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg><span class="ch-tool-text">Sun</span></button>
-        <button type="button" class="ch-tool" id="ch-fly" aria-pressed="false" title="Fly to a famous place, chosen at random"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13l18-8-6 16-3-6z"/><path d="M12 15l3-3"/></svg><span class="ch-tool-text">Fly me somewhere</span></button>
-        <span class="ch-tools-sep" aria-hidden="true"></span>
-        <button type="button" class="ch-tool" id="ch-time" aria-pressed="false" title="Old maps from 1844 to today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="ch-tool-text">Then and now</span></button>
-        <span class="ch-tools-sep" aria-hidden="true"></span>
-        <button type="button" class="ch-tool" id="ch-layers-btn" aria-expanded="false" aria-controls="ch-layers" title="Trails, slopes, glaciers, snow and avalanches"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5"/></svg><span class="ch-tool-text">Layers</span></button>
-        <button type="button" class="ch-tool" id="ch-profile" aria-pressed="false" title="Draw a route and see its elevation profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l5-8 4 5 3-6 6 9z"/><path d="M3 21h18"/></svg><span class="ch-tool-text">Profile</span></button>
-        <button type="button" class="ch-tool" id="ch-share" title="Share a link to this view"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/></svg><span class="ch-tool-text">Share</span></button>
+            <h2>Hiking trail signs</h2>
+            <ul class="ch-signs">
+                {{- range $d.signs }}
+                <li><span class="ch-sign ch-sign-{{ .id }}" aria-hidden="true"></span><div><strong>{{ .name }}</strong>{{ with .scale }} <em>{{ . }}</em>{{ end }}<p>{{ .text }}</p></div></li>
+                {{- end }}
+            </ul>
+            <h2>Sources</h2>
+            <p class="ch-facts-src">Maps, terrain, names and heights: <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>. Avalanche bulletin: <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">WSL Institute for Snow and Avalanche Research SLF</a> (CC BY 4.0). Snow depths: <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a> (CC BY 4.0). Facts checked against two sources each: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
+            <p class="ch-facts-src"><a href="{{ "privacy/" | relURL }}">Privacy</a>: what this map loads from whom. <button type="button" class="ch-link-btn" id="ch-forget">Forget my choice</button> to be asked again before the maps load.</p>
+        </section>
+        <section class="ch-panel ch-sheet ch-layers" id="ch-layers" hidden aria-labelledby="ch-layers-h">
+            <div class="ch-facts-head">
+                <h2 id="ch-layers-h">Layers</h2>
+                <button type="button" class="ch-close" id="ch-layers-close" aria-label="Close">×</button>
+            </div>
+            <ul class="ch-layers-list" id="ch-layers-list"></ul>
+        </section>
+    </div>
+    <div class="ch-col ch-col-right">
+        <div class="ch-panel ch-tools" role="toolbar" aria-label="Map tools">
+            <button type="button" class="ch-tool" id="ch-3d" aria-pressed="false" title="Tilt the map and see the mountains in 3D"><span class="ch-tool-icon">3D</span><span class="ch-tool-text">3D</span></button>
+            <button type="button" class="ch-tool" id="ch-sun" aria-pressed="false" title="Light the mountains as the sun would on a chosen day and time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg><span class="ch-tool-text">Sun</span></button>
+            <button type="button" class="ch-tool" id="ch-time" aria-pressed="false" title="Old maps from 1844 to today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="ch-tool-text">Then and now</span></button>
+            <button type="button" class="ch-tool" id="ch-profile" aria-pressed="false" title="Draw a route and see its elevation profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l5-8 4 5 3-6 6 9z"/><path d="M3 21h18"/></svg><span class="ch-tool-text">Profile</span></button>
+            <button type="button" class="ch-tool" id="ch-layers-btn" aria-expanded="false" aria-controls="ch-layers" title="Trails, slopes, glaciers, snow and avalanches"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5"/></svg><span class="ch-tool-text">Layers</span></button>
+        </div>
+        <aside class="ch-panel ch-card" id="ch-card" hidden aria-live="polite">
+            <button type="button" class="ch-close" id="ch-card-close" aria-label="Close">×</button>
+            <div id="ch-card-body"></div>
+        </aside>
     </div>
 
-    {{- /* the layers panel, filled by part 30 */}}
-    <section class="ch-panel ch-layers" id="ch-layers" hidden aria-labelledby="ch-layers-h">
-        <div class="ch-facts-head">
-            <h2 id="ch-layers-h">Layers</h2>
-            <button type="button" class="ch-close" id="ch-layers-close" aria-label="Close">×</button>
-        </div>
-        <ul class="ch-layers-list" id="ch-layers-list"></ul>
-    </section>
-
-    {{- /* bottom left: the map choices, as small pictures of each map */}}
     <div class="ch-panel ch-bases" id="ch-bases" role="radiogroup" aria-label="Map">
         {{- range slice (slice "map" "Map") (slice "aerial" "Aerial") (slice "relief" "Relief") }}
-        <button type="button" class="ch-base" role="radio" aria-checked="{{ cond (eq (index . 0) "map") "true" "false" }}" data-base="{{ index . 0 }}"><img src="{{ printf "switzerland/%s.jpg" (index . 0) | relURL }}" alt="" width="56" height="56"><span>{{ index . 1 }}</span></button>
+        <button type="button" class="ch-base" role="radio" aria-checked="{{ cond (eq (index . 0) "map") "true" "false" }}" data-base="{{ index . 0 }}"><img src="{{ printf "switzerland/%s.jpg" (index . 0) | relURL }}" alt="" width="46" height="46"><span>{{ index . 1 }}</span></button>
         {{- end }}
     </div>
 
-    {{- /* bottom centre: the year of the old map (Then and now) */}}
-    <div class="ch-panel ch-years" id="ch-years" hidden>
+    <div class="ch-panel ch-dock ch-years" id="ch-years" hidden>
         <label for="ch-year">Old map</label>
         <input type="range" id="ch-year" min="0" max="1" step="1" value="0">
         <output id="ch-year-out" for="ch-year">1900</output>
     </div>
 
-    {{- /* bottom centre, one at a time: the sun (part 20) */}}
     <div class="ch-panel ch-dock ch-sun-panel" id="ch-sun-panel" hidden>
         <div class="ch-dock-head"><strong>Sun</strong><span id="ch-sun-info" class="ch-dock-info"></span><button type="button" class="ch-close" id="ch-sun-close" aria-label="Close">×</button></div>
         <div class="ch-sun-row">
@@ -111,7 +120,6 @@
         <p class="ch-dock-note">Lights the slopes from where the sun stands; mountains do not cast shadows on each other here.</p>
     </div>
 
-    {{- /* bottom centre, one at a time: the elevation profile (part 50) */}}
     <div class="ch-panel ch-dock ch-profile-panel" id="ch-profile-panel" hidden>
         <div class="ch-dock-head"><strong>Elevation profile</strong><span id="ch-pf-at" class="ch-dock-info"></span><button type="button" class="ch-close" id="ch-profile-close" aria-label="Close">×</button></div>
         <svg class="ch-pf-svg" id="ch-pf-svg" role="img" aria-label="Elevation profile of the route"></svg>
@@ -124,29 +132,29 @@
         </div>
     </div>
 
-    {{- /* the 3D pad (part 20), shown while 3D is on */}}
-    <div class="ch-panel ch-pad" id="ch-pad" hidden role="group" aria-label="Turn and tilt the 3D view">
-        <button type="button" id="ch-pad-up" title="Tilt more" aria-label="Tilt more"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
-        <button type="button" id="ch-pad-left" title="Turn left" aria-label="Turn left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H5V3"/><path d="M5.5 7A8 8 0 1 1 4 12"/></svg></button>
-        <button type="button" id="ch-pad-north" title="Face north" aria-label="Face north"><span>N</span></button>
-        <button type="button" id="ch-pad-right" title="Turn right" aria-label="Turn right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h4V3"/><path d="M18.5 7A8 8 0 1 0 20 12"/></svg></button>
-        <button type="button" id="ch-pad-down" title="Tilt less" aria-label="Tilt less"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    {{- /* the map's own controls, in the bottom right corner (part 00 hands it to MapLibre, which stacks it with the scale):
+           in 3D a row to turn and tilt, always zoom, and the compass when the map is turned */}}
+    <div class="ch-panel ch-pad maplibregl-ctrl" id="ch-pad" role="group" aria-label="Map controls">
+        <div class="ch-pad-row ch-pad-3d" hidden>
+            <button type="button" id="ch-pad-left" title="Turn left" aria-label="Turn left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H5V3"/><path d="M5.5 7A8 8 0 1 1 4 12"/></svg></button>
+            <button type="button" id="ch-pad-up" title="Tilt more" aria-label="Tilt more"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
+            <button type="button" id="ch-pad-down" title="Tilt less" aria-label="Tilt less"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <button type="button" id="ch-pad-right" title="Turn right" aria-label="Turn right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h4V3"/><path d="M18.5 7A8 8 0 1 0 20 12"/></svg></button>
+        </div>
+        <div class="ch-pad-row">
+            <button type="button" id="ch-zoom-out" title="Zoom out" aria-label="Zoom out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+            <button type="button" id="ch-zoom-in" title="Zoom in" aria-label="Zoom in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button>
+            <button type="button" id="ch-pad-north" title="Compass: tap to face north" aria-label="Compass: face north"><svg class="ch-needle" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l3.6 6.5H8.4z" class="ch-needle-n"/><text x="12" y="20.5" text-anchor="middle">N</text></svg></button>
+        </div>
     </div>
 
-    <p class="ch-panel ch-fly-label" id="ch-fly-label" hidden aria-live="polite"></p>
+    <p class="ch-credits maplibregl-ctrl" id="ch-credits">© swisstopo</p>
     <p class="ch-toast" id="ch-toast" role="status" hidden></p>
-
-    {{- /* the card of a canton, summit, glacier, snow station or avalanche region (part 40) */}}
-    <aside class="ch-panel ch-card" id="ch-card" hidden aria-live="polite">
-        <button type="button" class="ch-close" id="ch-card-close" aria-label="Close">×</button>
-        <div id="ch-card-body"></div>
-    </aside>
-
     <p class="ch-status" id="ch-status" role="status" hidden></p>
 </div>
 <script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss | jsonify | safeJS }}</script>
 {{- $parts := slice }}
-{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-fly" "70-search-share" "80-hud" "90-boot" }}
+{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "70-search-share" "80-hud" "90-boot" }}
 {{- $parts = $parts | append (resources.Get (printf "js/switzerland/%s.js" .)) }}
 {{- end }}
 {{- $js := $parts | resources.Concat "js/switzerland.js" | minify | fingerprint }}

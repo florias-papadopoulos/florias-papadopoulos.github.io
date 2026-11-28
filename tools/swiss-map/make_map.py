@@ -13,6 +13,7 @@ Sources (download into a folder, then run `python3 -I tools/swiss-map/make_map.p
 Federal geodata (geo.admin.ch) is free to use with the source named is free to use with the source named (credited on the page and in LICENSE.md).
 """
 import json, math, os, sys
+from xml.sax.saxutils import escape   # names from the services are written into SVG text: escaped
 
 SRC = sys.argv[1]
 OUT = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'switzerland', 'map.svg')
@@ -111,16 +112,16 @@ out.append('<defs><clipPath id="ch-clip"><path d="%s"/></clipPath></defs>' % cou
 out.append('<path class="ch-land" d="%s"/>' % country)
 out.append('<g class="ch-cantons">')
 for ak, name, d, _ in cantons:
-    out.append('<path data-canton="%s" d="%s"><title>%s</title></path>' % (ak, d, name))
+    out.append('<path data-canton="%s" d="%s"><title>%s</title></path>' % (escape(ak), d, escape(name)))
 out.append('</g>')
 out.append('<g class="ch-lakes" clip-path="url(#ch-clip)">')
 for name, d in lakes:
-    out.append('<path d="%s"><title>%s</title></path>' % (d, name))
+    out.append('<path d="%s"><title>%s</title></path>' % (d, escape(name)))
 out.append('</g>')
 out.append('<path class="ch-border" d="%s"/>' % country)
 out.append('<g class="ch-labels" aria-hidden="true">')
 for ak, _, _, (cx, cy) in cantons:
-    out.append('<text x="%.0f" y="%.0f">%s</text>' % (cx, cy, ak))
+    out.append('<text x="%.0f" y="%.0f">%s</text>' % (cx, cy, escape(ak)))
 out.append('</g>')
 out.append('</svg>')
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -152,3 +153,10 @@ for i in range(1, 27):
 os.makedirs(os.path.dirname(GJ), exist_ok=True)
 json.dump({'type': 'FeatureCollection', 'features': feats}, open(GJ, 'w'), separators=(',', ':'), ensure_ascii=False)
 print(GJ, os.path.getsize(GJ), 'bytes')
+
+# the country border as a line for the live map (shown on the aerial photo and the relief), simplified to about 100 m
+BJ = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'switzerland', 'border.json')
+lines = [simplify_ll(r) for p in polys(land) for r in p]
+json.dump({'type': 'Feature', 'properties': {}, 'geometry': {'type': 'MultiLineString', 'coordinates': [l for l in lines if len(l) >= 4]}},
+          open(BJ, 'w'), separators=(',', ':'))
+print(BJ, os.path.getsize(BJ), 'bytes')

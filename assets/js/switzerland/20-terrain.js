@@ -4,8 +4,13 @@
    the slopes from that direction and height (a hillshade layer). It shows which slopes face the sun; it does not cast
    the shadows of one mountain onto another. swisstopo's terrain covers Switzerland and a narrow strip around it (tiles
    elsewhere answer 403), so it is asked for only there; beyond, the map lies flat at 300 m. */
-async function terrainSource() {
-    if (terrainSpec) return terrainSpec;
+let terrainLoading = null, pending3D = false;
+function terrainSource() {
+    if (terrainSpec) return Promise.resolve(terrainSpec);
+    if (!terrainLoading) terrainLoading = loadTerrain().catch((e) => { terrainLoading = null; throw e; });
+    return terrainLoading;
+}
+async function loadTerrain() {
     const [plugin, dec] = await Promise.all([import(app.dataset.terrain), import(app.dataset.decoder)]);
     const dataset = await plugin.loadQuantizedMeshDataset('https://3d.geo.admin.ch/ch.swisstopo.terrain.3d/v1/layer.json', {
         attribution: ATTR, boundsOverride: { west: 5.6, south: 45.5, east: 11.0, north: 48.2 }, maxZoom: 12
@@ -20,29 +25,37 @@ function terrainOn(m) {
     m.setTerrain({ source: 'terrain', exaggeration: 1.25 });
     if (m.setSky) m.setSky(DAY_SKY);
 }
-/* opts.fly: false keeps the camera (a shared link, Fly me somewhere) */
+/* opts.fly: false keeps the camera (a shared link) */
 async function set3D(on, opts) {
     opts = opts || {};
-    if (on === threeD) return true;
+    if (on === threeD || (on && pending3D)) return true;
     const btn = $('ch-3d');
     if (on) {
         status('Loading the mountains…');
+        pending3D = true;
+        tools();
         try { await terrainSource(); } catch (e) {
+            pending3D = false;
+            tools();
             status('');
             toast('The 3D terrain could not be loaded right now.', 4000);
             return false;
         }
+        pending3D = false;
         status('');
         threeD = true;
         btn.setAttribute('aria-pressed', 'true');
-        if (compare) setCompare(compare);
+        only('3d');
+        // 3D is the aerial photo only: the maps' lettering would lie on the slopes
+        if (base !== 'aerial') setBase('aerial');
         terrainOn(mapA);
         if (opts.fly !== false) {
             // tilt where the visitor is: from far out, a little closer so the relief shows; very close in, a step back
             // so the camera does not sit inside the slope. The direction stays as it is.
             mapA.easeTo({ pitch: 60, zoom: clamp(mapA.getZoom(), 9, 13.2), duration: reduced ? 0 : 1400 });
         }
-        $('ch-pad').hidden = false;
+        document.querySelector('.ch-pad-3d').hidden = false;
+        compass();
         let seen = false;
         try { seen = localStorage.getItem('ch-3d-hint') === '1'; localStorage.setItem('ch-3d-hint', '1'); } catch (e) { /* no storage */ }
         if (!seen) toast(matchMedia('(pointer: coarse)').matches
@@ -52,10 +65,12 @@ async function set3D(on, opts) {
         if (sunOn) setSun(false);
         threeD = false;
         btn.setAttribute('aria-pressed', 'false');
-        $('ch-pad').hidden = true;
+        document.querySelector('.ch-pad-3d').hidden = true;
+        compass();
         mapA.setTerrain(null);
         mapA.easeTo({ pitch: 0, bearing: 0, duration: reduced ? 0 : 900 });
     }
+    tools();
     writeHash();
     return true;
 }
@@ -121,7 +136,6 @@ async function setSun(on) {
     if (on === sunOn) return;
     if (on) {
         if (!threeD && !(await set3D(true))) return;
-        dock('sun');
         sunOn = true;
         if (!sunDate) { sunDate = today(); $('ch-sun-day').value = sunDate; }
         applySun();
@@ -134,11 +148,10 @@ async function setSun(on) {
     $('ch-sun').setAttribute('aria-pressed', String(sunOn));
     $('ch-sun-panel').hidden = !sunOn;
 }
-docks.sun = { open: () => sunOn, close: () => setSun(false) };
+modes['3d'] = { on: () => threeD, off: () => set3D(false) };
 
 /* the 3D pad: turn, tilt and face north with buttons, for those without a right mouse button or two fingers free */
 function pad(turn, tilt) {
-    stopOrbit();
     mapA.easeTo({ bearing: mapA.getBearing() + turn, pitch: clamp(mapA.getPitch() + tilt, 0, 80), duration: reduced ? 0 : 450 });
 }
 function wireTerrain() {
@@ -147,7 +160,6 @@ function wireTerrain() {
     $('ch-pad-right').addEventListener('click', () => pad(30, 0));
     $('ch-pad-up').addEventListener('click', () => pad(0, 12));
     $('ch-pad-down').addEventListener('click', () => pad(0, -12));
-    $('ch-pad-north').addEventListener('click', () => { stopOrbit(); mapA.easeTo({ bearing: 0, duration: reduced ? 0 : 600 }); });
     $('ch-sun').addEventListener('click', () => setSun(!sunOn));
     $('ch-sun-close').addEventListener('click', () => setSun(false));
     const range = $('ch-sun-time'), day = $('ch-sun-day');

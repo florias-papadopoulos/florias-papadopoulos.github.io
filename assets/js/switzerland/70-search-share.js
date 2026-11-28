@@ -1,7 +1,7 @@
-/* Part 70: search and share. Search asks swisstopo's search service (api3.geo.admin.ch, place names, addresses,
-   municipalities) as the visitor types, and flies to the chosen place with a red pin. Share: the address of the page
-   carries the view (#lat,lon,zoom,bearing,pitch,map[,3d]); it updates as the map moves, the Share button hands it to
-   the phone's share sheet or copies it, and a link opened later puts the map back there. */
+/* Part 70: search and the view in the address. Search asks swisstopo's search service (api3.geo.admin.ch, place names,
+   addresses, municipalities) as the visitor types, and flies to the chosen place with a red pin. The address of the page
+   carries the view (#lat,lon,zoom,bearing,pitch,map[,3d]) and updates as the map moves, so a copied link opens the
+   map there again. */
 let searchAbort = null, searchTimer = null, results = [];
 const ZOOM_BY_ORIGIN = { kantone: 9, district: 10, gg25: 12.5, zipcode: 13, gazetteer: 14, sn25: 14, address: 17, parcel: 17 };
 
@@ -34,7 +34,7 @@ async function search(q) {
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
         results = (data && Array.isArray(data.results) ? data.results : []).map((r) => r && r.attrs).filter((a) => a && isFinite(a.lon) && isFinite(a.lat))
-            .map((a, i) => ({ label: tidy(plain(a.label)), lon: +a.lon, lat: +a.lat, zoom: ZOOM_BY_ORIGIN[a.origin] || 14, rank: rankOf(a, i) }))
+            .map((a, i) => ({ label: tidy(plain(a.label)), lon: +a.lon, lat: +a.lat, zoom: own(ZOOM_BY_ORIGIN, a.origin) ? ZOOM_BY_ORIGIN[a.origin] : 14, rank: rankOf(a, i) }))
             .sort((x, y) => x.rank - y.rank).slice(0, 8);
     } catch (e) {
         if (e && e.name === 'AbortError') return;
@@ -56,22 +56,23 @@ async function search(q) {
 function pick(i) {
     const r = results[i];
     if (!r) return;
-    stopOrbit();
     $('ch-results').hidden = true;
     $('ch-search').value = r.label;
     $('ch-search').blur();
+    $('ch-search-box').hidden = true;
+    $('ch-search-btn').setAttribute('aria-expanded', 'false');
     mapA.getSource('pin').setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [r.lon, r.lat] }, properties: {} }] });
     mapA.flyTo({ center: [r.lon, r.lat], zoom: r.zoom, duration: reduced ? 0 : 2400, essential: true });
 }
 
 /* ---------- the view in the address ---------- */
 function readHash() {
-    const m = /^#(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(\d+(?:\.\d+)?),([a-z]+)(,3d)?$/.exec(location.hash);
+    const m = /^#(-?\d{1,2}(?:\.\d{1,7})?),(-?\d{1,3}(?:\.\d{1,7})?),(\d{1,2}(?:\.\d{1,4})?),(-?\d{1,3}(?:\.\d{1,4})?),(\d{1,2}(?:\.\d{1,4})?),([a-z]{1,12})(,3d)?$/.exec(location.hash);
     if (!m) return null;
     const lat = +m[1], lon = +m[2];
     if (lat < AREA[1] || lat > AREA[3] || lon < AREA[0] || lon > AREA[2]) return null;
-    return { center: [lon, lat], zoom: clamp(+m[3], 6.5, 19), bearing: +m[4] % 360, pitch: clamp(+m[5], 0, 80),
-             base: BASES[m[6]] ? m[6] : 'map', threeD: !!m[7] };
+    return { center: [lon, lat], zoom: clamp(+m[3], 5.6, 19), bearing: +m[4] % 360, pitch: clamp(+m[5], 0, 80),
+             base: own(BASES, m[6]) ? m[6] : 'map', threeD: !!m[7] };
 }
 let hashTimer = null;
 function writeHash() {
@@ -84,18 +85,9 @@ function writeHash() {
         if (h !== location.hash) history.replaceState(null, '', location.pathname + location.search + h);
     }, 400);
 }
-async function share() {
-    writeHash();
-    await new Promise((r) => setTimeout(r, 450));
-    const url = location.href;
-    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-        try { await navigator.share({ title: document.title, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-    }
-    try { await navigator.clipboard.writeText(url); toast('Link to this view copied'); }
-    catch (e) { toast('Copy this link: ' + url, 8000); }
-}
 onLoad.push((view) => {
     if (view) {
+        if (view.threeD) terrainSource().catch(() => {});
         if (view.base !== base) setBase(view.base);
         if (view.threeD) set3D(true, { fly: false });
     }
@@ -103,15 +95,26 @@ onLoad.push((view) => {
 });
 
 function wireSearch() {
-    const input = $('ch-search'), list = $('ch-results');
+    const input = $('ch-search'), list = $('ch-results'), btn = $('ch-search-btn'), box = $('ch-search-box');
+    const open = (on) => {
+        box.hidden = !on;
+        btn.setAttribute('aria-expanded', String(on));
+        if (on) input.focus(); else { list.hidden = true; }
+    };
+    btn.addEventListener('click', () => open(box.hidden));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !input.value) { open(false); btn.focus(); } });
     input.addEventListener('input', () => {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => search(input.value.trim()), 250);
+        searchTimer = setTimeout(() => { searchTimer = null; search(input.value.trim()); }, 250);
     });
     input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); if (results.length) pick(0); }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (searchTimer) { clearTimeout(searchTimer); searchTimer = null; search(input.value.trim()).then(() => { if (results.length) pick(0); }); }
+            else if (results.length) pick(0);
+        }
         else if (e.key === 'Escape') { list.hidden = true; }
-        else if (e.key === 'ArrowDown' && results.length) { e.preventDefault(); $('ch-result-0').focus(); }
+        else if (e.key === 'ArrowDown' && results.length) { e.preventDefault(); list.hidden = false; $('ch-result-0').focus(); }
     });
     list.addEventListener('keydown', (e) => {
         const items = [...list.querySelectorAll('.ch-result')], i = items.indexOf(document.activeElement);
@@ -120,5 +123,4 @@ function wireSearch() {
         if (e.key === 'Escape') { list.hidden = true; input.focus(); }
     });
     document.addEventListener('click', (e) => { if (!e.target.closest('.ch-search-box')) list.hidden = true; });
-    $('ch-share').addEventListener('click', share);
 }
