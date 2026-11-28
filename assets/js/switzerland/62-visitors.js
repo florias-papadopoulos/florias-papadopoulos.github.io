@@ -2,9 +2,9 @@
    /switzerland/#visitors) with three tabs: Places (data/switzerland.yaml, guests; a legend of kinds that also filters,
    pins in the kind's colour, bubbles where they crowd, a card each; listed near (inside Ostwind) and far), Travel (the trains from Zurich Airport, with the
    next one drawn stop by stop from transport.opendata.ch, the Ostwind day ticket, and the Ostwind area shaded on the
-   map: static/switzerland/ostwind.json from tools/swiss-map/make_ostwind.py), and Now: the next departures from
-   St. Gallen (transport.opendata.ch) and the weather in St. Gallen and on the Säntis (MeteoSwiss, as part 60). The
-   map moves to the region when it opens. */
+   map on request: static/switzerland/ostwind.json from tools/swiss-map/make_ostwind.py), and Now: the next departures
+   from St. Gallen (transport.opendata.ch) and the weather in St. Gallen and on the Säntis (MeteoSwiss, as part 60).
+   St. Gallen is the base: every trip is counted from there. The map stays where it is when the sheet opens. */
 const guests = facts.guests || { places: [], tickets: [] };
 const KINDS = guests.kinds || [];
 const kindOf = (p) => (Array.isArray(p.kinds) && p.kinds[0]) || '';
@@ -22,31 +22,26 @@ function guestFeatures() {
         properties: { i, o: vNum[i], n: String(vNum[i] + 1), name: String(p.name), colour: kindColour(kindOf(p)) } }))
         .filter((f) => !vKind || ((guests.places[f.properties.i].kinds || []).includes(vKind)));
 }
-let visitorsOn = false, depTimer = null, styleReady = false;
+let visitorsOn = false, depTimer = null, styleReady = false, ostwindOn = false;   // the Ostwind area only when asked for
 onLoad.push(() => { styleReady = true; });
 
 function visitorsLayers() {
     if (mapA.getSource('guests')) return;
     mapA.addSource('ostwind', { type: 'geojson', data: app.dataset.ostwind });
-    mapA.addLayer({ id: 'ostwind-fill', type: 'fill', source: 'ostwind', filter: ['==', ['get', 'kind'], 'area'],
+    mapA.addLayer({ id: 'ostwind-fill', type: 'fill', source: 'ostwind', filter: ['==', ['get', 'kind'], 'area'], layout: { visibility: 'none' },
                     paint: { 'fill-color': '#0d9488', 'fill-opacity': 0.16 } }, 'canton-fill');
     mapA.addLayer({ id: 'ostwind-edge', type: 'line', source: 'ostwind', filter: ['==', ['get', 'kind'], 'edge'],
-                    layout: { 'line-join': 'round' }, paint: { 'line-color': '#0f766e', 'line-width': 2.5, 'line-opacity': 0.9, 'line-dasharray': [3, 2] } }, 'canton-fill');
-    // pins that would touch become one bubble ("1–3"); a tap on it zooms in until they part
-    mapA.addSource('guests', { type: 'geojson', cluster: true, clusterRadius: 26, clusterMaxZoom: 14,
-        clusterProperties: { lo: ['min', ['get', 'o']], hi: ['max', ['get', 'o']] },
-        data: { type: 'FeatureCollection', features: guestFeatures() } });
+                    layout: { 'line-join': 'round', visibility: 'none' }, paint: { 'line-color': '#0f766e', 'line-width': 2.5, 'line-opacity': 0.9, 'line-dasharray': [3, 2] } }, 'canton-fill');
+    // every pin at its own place: small dots from afar, numbered pins from closer in (no bubbles that sit in between)
+    showOstwind();
+    mapA.addSource('guests', { type: 'geojson', data: { type: 'FeatureCollection', features: guestFeatures() } });
     mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests',
-                    paint: { 'circle-radius': ['case', ['has', 'point_count'], 15, 11], 'circle-color': ['case', ['has', 'point_count'], '#374151', ['get', 'colour']],
-                             'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } });
-    mapA.addLayer({ id: 'guests-n', type: 'symbol', source: 'guests',
-                    // a bubble (dark, unlike the coloured pins): its numbers as a range when they follow each other, otherwise how many places it holds
-                    layout: { 'text-field': ['case', ['has', 'point_count'],
-                                             ['case', ['==', ['-', ['get', 'hi'], ['get', 'lo']], ['-', ['get', 'point_count'], 1]],
-                                              ['concat', ['to-string', ['+', ['get', 'lo'], 1]], '–', ['to-string', ['+', ['get', 'hi'], 1]]],
-                                              ['to-string', ['get', 'point_count']]], ['get', 'n']], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
+                    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 4, 9.5, 5.5, 10, 11], 'circle-color': ['get', 'colour'],
+                             'circle-stroke-color': '#ffffff', 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 1.5, 10, 2] } });
+    mapA.addLayer({ id: 'guests-n', type: 'symbol', source: 'guests', minzoom: 10,
+                    layout: { 'text-field': ['get', 'n'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
                     paint: { 'text-color': '#ffffff' } });
-    mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 9, filter: ['!', ['has', 'point_count']],
+    mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 11,
                     layout: { 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1.3], 'text-anchor': 'top', 'text-padding': 2 },
                     paint: { 'text-color': '#1f2937', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
 }
@@ -54,18 +49,21 @@ function showVisitors(on) {
     // the map's style must be there before layers are added (the link can open the sheet while the map loads)
     if (on && !styleReady) { onLoad.push(() => { if (!$('ch-visitors').hidden) showVisitors(true); }); return; }
     visitorsOn = on;
-    if (on) visitorsLayers();
-    ['ostwind-fill', 'ostwind-edge', 'guests-dot', 'guests-n', 'guests-name', 'trip-line', 'trip-stop', 'trip-name'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
+    // the sheet turns the place pins on; they stay when it closes (Layers, Visitor places, turns them off)
+    if (on && !layerOn.guests) setLayer(LAYERS.find((d) => d.id === 'guests'), true);
+    ['trip-line', 'trip-stop', 'trip-name'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
+    // the map stays where it is: the list moves it to a place when one is chosen
     if (on) {
-        const r = guests.region || [8.45, 47.05, 9.75, 47.75];
-        const pad = matchMedia('(max-width: 900px)').matches ? { top: 60, bottom: Math.round(innerHeight * 0.5), left: 20, right: 60 } : { top: 40, bottom: 40, left: 380, right: 60 };
-        mapA.fitBounds([[r[0], r[1]], [r[2], r[3]]], { padding: pad, pitch: threeD ? 50 : 0, duration: reduced ? 0 : 1200 });
         vTab(vCurrent);
     } else {
         clearInterval(depTimer); depTimer = null;
     }
 }
 
+/* the Ostwind area, shaded only while its switch is on */
+function showOstwind() {
+    ['ostwind-fill', 'ostwind-edge'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', layerOn.guests && ostwindOn ? 'visible' : 'none'));
+}
 /* a place's card */
 function guestCard(i) {
     const p = (guests.places || [])[i];
@@ -166,7 +164,7 @@ function vPlaces() {
         const num = el('span', 'ch-v-num', String(vNum[i] + 1));
         num.style.background = kindColour(kindOf(p));
         const txt = el('span', 'ch-v-txt');
-        txt.append(el('strong', null, String(p.name)), el('span', null, String(p.trip)));
+        txt.append(el('strong', null, String(p.name)), el('span', null, String(p.area || '')));
         btn.append(num, txt);
         btn.addEventListener('click', () => {
             mapA.flyTo({ center: [+p.lon, +p.lat], zoom: Math.max(mapA.getZoom(), 12), duration: reduced ? 0 : 1400, essential: true });
@@ -199,6 +197,8 @@ function buildVisitors() {
         chips.appendChild(b);
     });
     vPlaces();
+    const ow = $('ch-v-ostwind');
+    ow.addEventListener('change', () => { ostwindOn = ow.checked; if (ostwindOn && styleReady) visitorsLayers(); showOstwind(); });
     const al = $('ch-v-arrival');
     (guests.arrival || []).forEach((a) => {
         const li = el('li');
@@ -277,6 +277,12 @@ function wireVisitors() {
     btn.addEventListener('click', () => { const on = panel.hidden; sheet('ch-visitors', on); showVisitors(on); });
     $('ch-visitors-close').addEventListener('click', () => { sheet('ch-visitors', false); showVisitors(false); btn.focus(); });
     document.querySelectorAll('.ch-v-tab').forEach((b) => b.addEventListener('click', () => vTab(b.dataset.tab)));
-    // the link for guests
-    if (location.hash === '#visitors') { sheet('ch-visitors', true); showVisitors(true); }
+    // Visitors is the page's main view: it opens at the start (on a phone as a low sheet over the map) unless the
+    // address asks for a place or a mode of its own; the pins are on from the start and stay until turned off
+    if (!location.hash || location.hash === '#visitors') {
+        sheet('ch-visitors', true);
+        if (matchMedia('(max-width: 900px)').matches) panel.classList.add('ch-small');
+        showVisitors(true);
+    }
+    onLoad.push(() => { if (layerOn.guests) visitorsLayers(); });
 }

@@ -3,6 +3,7 @@
    from SLF only when its entry is first turned on; the glacier entry also offers three glaciers to fly to. */
 const LAYERS = [
     { id: 'peaks', name: 'Summits', ids: PEAK_LAYERS, on: true, minzoom: 9, note: 'Name and height in metres, shown from closer in. Tap a summit for its card.' },
+    { id: 'guests', name: 'Visitor places', ids: ['guests-dot', 'guests-n', 'guests-name'], on: true, note: 'The places of the Visitors sheet. Tap one for its card.' },
     { id: 'caves', name: 'Big caves', ids: ['caves', 'caves-label'], note: 'The longest cave systems and the caves you can visit. Tap one for its card.' },
     { id: 'trails', name: 'Hiking trails', ids: ['trails'], minzoom: 10, lines: true,
       legend: [['#fdc200', 'Hiking trail (yellow signs, T1)'], ['#ff0000', 'Mountain trail (white-red-white, T2 to T3)'], ['#0000fd', 'Alpine trail (white-blue-white, T4 to T5)']],
@@ -38,7 +39,7 @@ const WEATHER = [
       note: 'Temperatures of the last 10 minutes at about 160 automatic stations of MeteoSwiss (CC BY 4.0), loaded when you turn this on. Tap a station for wind, gusts, rain and sunshine.' }
 ];
 const layerOn = {};
-const LAYER_ICONS = {"peaks": "M3 19l6-10 4 6 2-3 6 7z", "caves": "M4 20v-7a8 8 0 0 1 16 0v7M9 20v-4a3 3 0 0 1 6 0v4", "trails": "M12 3v18M12 5h6l2 2-2 2h-6M12 11H6l-2 2 2 2h6", "slopes": "M3 20h18M3 20L18 6M10 20a8 8 0 0 0-2.3-5.7", "ski": "M6 21L19 4M10 21L21 7M4 17l3 1", "snowshoe": "M12 3c3 0 5 3.5 5 9s-2 9-5 9-5-3.5-5-9 2-9 5-9zM7 12h10M8.5 7h7M8.5 17h7", "glaciers": "M3 19l5-10 3 4 3-7 7 13zM8 9l1 4M14 6l1.5 5", "avalanche": "M12 3l10 18H2zM12 10v5M12 18h.01", "weather": "M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0zM12 9v7", "snowcover": "M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2 3-2M9 20.5l3-2 3 2", "rain": "M7 15h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 15zM8 18l-1 3M12 18l-1 3M16 18l-1 3", "temp": "M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z", "cloud": "M7 19h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 19z"};
+const LAYER_ICONS = {"guests": "M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z", "peaks": "M3 19l6-10 4 6 2-3 6 7z", "caves": "M4 20v-7a8 8 0 0 1 16 0v7M9 20v-4a3 3 0 0 1 6 0v4", "trails": "M12 3v18M12 5h6l2 2-2 2h-6M12 11H6l-2 2 2 2h6", "slopes": "M3 20h18M3 20L18 6M10 20a8 8 0 0 0-2.3-5.7", "ski": "M6 21L19 4M10 21L21 7M4 17l3 1", "snowshoe": "M12 3c3 0 5 3.5 5 9s-2 9-5 9-5-3.5-5-9 2-9 5-9zM7 12h10M8.5 7h7M8.5 17h7", "glaciers": "M3 19l5-10 3 4 3-7 7 13zM8 9l1 4M14 6l1.5 5", "avalanche": "M12 3l10 18H2zM12 10v5M12 18h.01", "weather": "M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0zM12 9v7", "snowcover": "M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2 3-2M9 20.5l3-2 3 2", "rain": "M7 15h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 15zM8 18l-1 3M12 18l-1 3M16 18l-1 3", "temp": "M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z", "cloud": "M7 19h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 19z"};
 const ALL_LAYERS = () => LAYERS.concat(WEATHER);
 /* the credits under the title name every source on the map (as the CC BY licences of SLF and MeteoSwiss and the ODbL of OpenStreetMap ask) */
 function credits() {
@@ -47,6 +48,8 @@ function credits() {
 
 function setLayer(def, on, opts) {
     layerOn[def.id] = on;
+    if (def.id === 'guests' && on && styleReady) visitorsLayers();   // made on first use
+    if (def.id === 'guests') showOstwind();
     if (def.id === 'peaks') peakVisibility();
     else def.ids.forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
     const box = $('ch-ly-' + def.id);
@@ -62,7 +65,7 @@ function setLayer(def, on, opts) {
     if (on && (def.id === 'temp' || def.id === 'cloud')) fieldOn(def.id);
     if (!on && def.id === 'rain' && rainTimer) rainPlay();
     credits();
-    $('ch-layers-btn').classList.toggle('ch-has', LAYERS.some((d) => d.id !== 'peaks' && layerOn[d.id]));
+    $('ch-layers-btn').classList.toggle('ch-has', LAYERS.some((d) => d.id !== 'peaks' && d.id !== 'guests' && layerOn[d.id]));
     $('ch-weather-btn').classList.toggle('ch-has', WEATHER.some((d) => layerOn[d.id]));
 }
 

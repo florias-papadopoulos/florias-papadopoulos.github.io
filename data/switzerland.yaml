@@ -187,7 +187,6 @@ guests:
       from: "Zürich Flughafen"
       to: "St. Gallen"
       text: "Direct trains to St. Gallen (IC 5, IR 13, IC 1), 49 to 61 min, several each hour. Tickets in the SBB Mobile app or at the machines at the airport station."
-  region: [8.45, 47.05, 9.75, 47.75]
   tickets:
     - name: "9 am day pass, all zones"
       price: "CHF 40"

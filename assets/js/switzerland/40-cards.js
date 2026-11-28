@@ -36,13 +36,8 @@ function onClick(e) {
         profileAdd(e.lngLat);
         return;
     }
-    const gp = visitorsOn ? mapA.queryRenderedFeatures(e.point, { layers: visible(['guests-dot']) }) : [];
-    if (gp.length && gp[0].properties.point_count) {
-        // a bubble of several places: zoom in to where they part
-        mapA.getSource('guests').getClusterExpansionZoom(gp[0].properties.cluster_id)
-            .then((z) => mapA.easeTo({ center: gp[0].geometry.coordinates, zoom: z + 0.3, duration: reduced ? 0 : 700 })).catch(() => {});
-        return;
-    }
+    // a place's pin (small from afar, so a little room around the finger)
+    const gp = mapA.getLayer('guests-dot') ? mapA.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: visible(['guests-dot']) }) : [];
     if (gp.length && guestCard(gp[0].properties.i)) { hiCanton(''); return; }
     const peaks = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit')) });
     if (peaks.length) {
