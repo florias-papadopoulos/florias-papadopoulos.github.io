@@ -186,23 +186,23 @@ guests:
     - name: "From Zürich Airport"
       from: "Zürich Flughafen"
       to: "St. Gallen"
-      text: "Direct trains to St. Gallen (IC 5, IR 13, IC 1), 49 to 61 min, several each hour. Tickets in the SBB Mobile app or at the machines at the airport station."
+      text: "Direct trains, 49 to 61 min, several an hour."
   tickets:
     - name: "9 am day pass, all zones"
       price: "CHF 40"
       half: "CHF 20"
-      note: "Mon to Fri from 9:00, weekends all day, until 5:00 the next morning. Trains and buses in the whole Ostwind area, no boats. CHF 41 from 13 December 2026."
+      note: "Eastern Switzerland, trains and buses. Weekdays from 9:00, weekends all day. CHF 41 from 13 Dec."
       best: true
     - name: "Saver Day Pass, all of Switzerland"
       price: "from CHF 52"
       half: "from CHF 29"
       half_label: "With Half Fare"
-      note: "For the day trips beyond Ostwind: trains, buses and most boats in all of Switzerland for one day. These are the lowest prices: each day has a few cheap passes, and once they are sold the price goes up a lot (a few days ahead it can be about twice as much). Buy it as early as you can, 6 months to 1 day ahead, in the SBB Mobile app; not on the day itself."
+      note: "All of Switzerland, for the far trips. The price rises as passes sell: buy early, by the day before."
     - name: "Day Pass for Half Fare holders"
       half: "CHF 81"
       half_label: "With Half Fare"
-      note: "The fixed-price day pass for all of Switzerland, for holders of a Half Fare card; can be bought on the day. CHF 78 until 12 December 2026."
-  tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich, Luzern and the places marked \"Extra ticket\" are outside Ostwind."
+      note: "All of Switzerland, fixed price, also on the day. CHF 78 until 12 Dec."
+  tickets_note: "In the SBB Mobile app or at a ticket machine."
   # St. Gallen is the base. far: beyond the Ostwind area (an extra ticket). mins: the trip from St. Gallen station to
   # the start (SBB timetable; the way inside Ostwind where there is one), which groups the list; months: when it is open or doable (none = all year); rain: good
   # in bad weather; stop: the SBB stop for the card's train button; hike, grade (T1 to T3), line (a drawn path in

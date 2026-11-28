@@ -7,7 +7,7 @@
      tools/swiss-map/make_visitor_routes.py). A star puts a place on "My plan" (kept in this browser, localStorage
      'ch-plan'), which can be sent as a link (#plan=id,id); a single place has a link too (#visitors/id).
    - Travel: the trains from Zurich Airport (drawn stop by stop) and the day tickets.
-   - Now: the next departures from St. Gallen and the weather in St. Gallen and on the Säntis (MeteoSwiss).
+   - Now: the next departures from St. Gallen and the weather in St. Gallen (MeteoSwiss).
    The pins are on from the start and stay when the sheet closes (Layers, Visitor places). The map is not moved
    when the sheet opens. */
 const guests = facts.guests || { places: [], tickets: [] };
@@ -384,7 +384,7 @@ async function showTrip(from, to, title) {
         tripBuilding = true;
         card((b) => {
             b.append(el('p', 'ch-card-kind', 'By train'), el('h2', null, title));
-            const dl = el('dl', 'ch-card-facts');
+            const dl = el('dl', 'ch-card-facts ch-trip');
             stops.forEach((q) => row(dl, q.time, q.name));
             b.appendChild(dl);
             b.appendChild(el('p', 'ch-card-src', 'Next connection: ' + stops[0].line + '. SBB timetable (transport.opendata.ch); the line joins the stops.'));
@@ -474,7 +474,7 @@ function buildVisitors() {
         const li = el('li');
         const b = el('button', 'ch-v-ticket ch-v-trip');
         b.type = 'button';
-        b.append(el('strong', 'ch-v-tname', String(a.name)), el('span', 'ch-v-ttext', String(a.text)), el('span', 'ch-v-show', 'Show the train on the map'));
+        b.append(el('strong', 'ch-v-tname', String(a.name)), el('span', 'ch-v-ttext', String(a.text)), el('span', 'ch-v-show', 'Show on the map'));
         if (a.from && a.to) b.addEventListener('click', () => showTrip(String(a.from), String(a.to), String(a.name)));
         li.appendChild(b);
         al.appendChild(li);
@@ -495,7 +495,7 @@ function lineName(cat, num) {
     cat = String(cat || ''); num = String(num || '');
     return /^(S|SN)$/.test(cat) || !num ? cat + num : cat + ' ' + num;
 }
-/* now: departures and the weather of two stations */
+/* now: departures and the weather in St. Gallen */
 async function loadNow() {
     const ul = $('ch-v-deps'), st = $('ch-v-deps-state');
     try {
@@ -518,7 +518,7 @@ async function loadNow() {
     } catch (e) {
         st.textContent = 'The departures could not be loaded right now.';
     }
-    [['STG', 'ch-v-wx-stg'], ['SAE', 'ch-v-wx-sae']].forEach(async ([id, out]) => {
+    [['STG', 'ch-v-wx-stg']].forEach(async ([id, out]) => {
         try {
             const r = await fetch(WX_HOST + 'ch.meteoschweiz.ogd-smn/' + id.toLowerCase() + '/ogd-smn_' + id.toLowerCase() + '_t_now.csv', { credentials: 'omit', referrerPolicy: 'no-referrer' });
             if (!r.ok) throw new Error(r.status);
