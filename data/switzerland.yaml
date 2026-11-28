@@ -240,12 +240,12 @@ guests:
       season: "All year"
       link: "https://www.appenzell.ch/en/appenzell.html"
     - id: ebenalp
-      kinds: [summer]
+      kinds: [summer, winter]
       name: "Ebenalp and Äscher"
       area: "Appenzell"
       lon: 9.41426
       lat: 47.28333
-      why: "Cable car up the Alpstein, the Wildkirchli caves and the guesthouse built into the cliff."
+      why: "Cable car up the Alpstein, the Wildkirchli caves and the guesthouse built into the cliff. In winter: a short groomed path at the top, a snowshoe trail with snowshoes to try for free, and a small ski area."
       trip: "51 min to Wasserauen (S21, change at Appenzell), then the cable car"
       ostwind: "train yes, cable car no"
       extra: "Cable car CHF 24 up, CHF 36 return (half with Half Fare)"
@@ -308,3 +308,63 @@ guests:
       extra: "Half Fare, GA, the SBB app and FAIRTIQ are not valid on the Walensee boats"
       season: "The crossing to Quinten runs all year"
       link: "https://walenseeschiff.ch/"
+    - id: kronberg
+      kinds: [winter]
+      name: "Kronberg sledge run"
+      area: "Appenzell"
+      lon: 9.32818
+      lat: 47.32008
+      why: "About 7 km down from the summit to Jakobsbad, the longest sledge run in eastern Switzerland."
+      trip: "34 min by train to Jakobsbad (S81, change at Herisau), then the cable car"
+      ostwind: "train yes, cable car no"
+      extra: "Cable car CHF 32 for one ride up (half with Half Fare); sledge hire CHF 15 a day"
+      season: "1 December 2026 to 28 February 2027, only with natural snow; not for small children"
+      link: "https://www.kronberg.ch/"
+    - id: saentispark
+      kinds: [water, winter]
+      name: "Säntispark pools"
+      area: "St. Gallen"
+      lon: 9.31502
+      lat: 47.41749
+      why: "Pools and a world of water slides: the plan for a grey or rainy day."
+      trip: "15 min by bus (3 or 4) to Abtwil, Säntispark"
+      ostwind: "yes"
+      extra: "Pools and slides CHF 34 for 2 h, CHF 42 for 4 h"
+      season: "Daily 09:00 to 22:00; 24 and 31 December until 16:00"
+      link: "https://www.saentispark-freizeit.ch/"
+    - id: tamina
+      kinds: [water, winter]
+      name: "Tamina Therme"
+      area: "Bad Ragaz"
+      lon: 9.50539
+      lat: 46.99987
+      why: "Warm spring water from the Tamina gorge, in indoor and outdoor pools."
+      trip: "1 h 05 by train to Bad Ragaz (IR 13, direct), then bus 456"
+      ostwind: "yes"
+      extra: "Entry for 2 h or more; see the prices on the website"
+      season: "All year"
+      link: "https://www.taminatherme.ch/"
+    - id: lerchenfeld
+      kinds: [winter]
+      name: "Lerchenfeld ice rink"
+      area: "St. Gallen"
+      lon: 9.34190
+      lat: 47.41515
+      why: "Public skating on an indoor and an outdoor rink, also in the evening."
+      trip: "7 min by bus (1 or 2) to Lerchenfeld"
+      ostwind: "yes"
+      extra: "Entry CHF 7, skate hire CHF 6"
+      season: "Until 14 March 2027; times on the website"
+      link: "https://sport.stadt.sg.ch/home/eissport/oeffentlicher-eislauf.html"
+    - id: sternenstadt
+      kinds: [culture, winter]
+      name: "Sternenstadt"
+      area: "St. Gallen"
+      lon: 9.3765
+      lat: 47.4237
+      why: "Christmas stars over the old town's lanes, and a Christmas market by the Abbey."
+      trip: "About 10 min on foot"
+      ostwind: "not needed (on foot)"
+      extra: "Free"
+      season: "26 November to 24 December 2026"
+      link: "https://www.sternenstadt.ch/"
