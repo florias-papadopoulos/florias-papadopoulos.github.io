@@ -41,7 +41,8 @@ function setLayer(def, on, opts) {
     if (box) box.checked = on;
     const more = $('ch-ly-more-' + def.id);
     if (more) more.hidden = !on;
-    if (on && !(opts && opts.restore) && def.minzoom && mapA.getZoom() < def.minzoom) mapA.easeTo({ zoom: def.minzoom + 1, duration: reduced ? 0 : 800 });
+    // a layer seen only from closer in: a word, not a jump of the map
+    if (on && !(opts && opts.restore) && def.minzoom && mapA.getZoom() < def.minzoom) toast('Zoom in to see the ' + def.name.toLowerCase() + '.', 3000);
     if (on && def.id === 'avalanche') loadAvalanche();
     if (on && def.id === 'snow') loadSnow();
     if (on && def.id === 'weather') loadWeather();
