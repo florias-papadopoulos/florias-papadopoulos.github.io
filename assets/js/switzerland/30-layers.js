@@ -24,6 +24,9 @@ const LAYERS = [
     { id: 'snow', name: 'Snow depth', ids: ['snow-dots', 'snow-text'],
       legend: [['#e0f2fe', 'under 20 cm'], ['#7dd3fc', '20 to 50 cm'], ['#38bdf8', '50 to 100 cm'], ['#0369a1', 'over 1 m']],
       note: 'Measured this morning at 7:00 at about 250 stations of MeteoSwiss (CC BY 4.0), loaded when you turn this on.' },
+    { id: 'snowcover', name: 'Snow cover from space', ids: ['snowcover'],
+      legend: [['#b8e5fd', 'A little snow'], ['#5192ef', 'Mostly snow'], ['#246ee9', 'Fully covered']],
+      note: 'Where snow lay yesterday, seen by the NOAA-20 satellite (NASA GIBS, open data), about 400 m a pixel. Not how deep it is; clouds leave gaps.' },
     { id: 'weather', name: 'Weather now', ids: ['wx-dots', 'wx-text'],
       legend: [['#3b82f6', 'below −5 °C'], ['#e0f2fe', 'around 0 °C'], ['#fde68a', 'around 10 °C'], ['#f97316', 'around 20 °C']],
       note: 'Temperatures of the last 10 minutes at about 160 automatic stations of MeteoSwiss (CC BY 4.0), loaded when you turn this on. Tap a station for wind, gusts, rain and sunshine.' }
@@ -42,8 +45,9 @@ function setLayer(def, on, opts) {
     if (on && def.id === 'avalanche') loadAvalanche();
     if (on && def.id === 'snow') loadSnow();
     if (on && def.id === 'weather') loadWeather();
+    if (on && def.id === 'snowcover') snowCoverOn();
     // the credits under the title name every source on the map (as the CC BY licences of SLF and MeteoSwiss ask)
-    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.snow || layerOn.weather ? ' · MeteoSwiss' : '');
+    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.snow || layerOn.weather ? ' · MeteoSwiss' : '') + (layerOn.snowcover ? ' · NASA' : '');
     const any = LAYERS.some((d) => d.id !== 'peaks' && layerOn[d.id]);
     $('ch-layers-btn').classList.toggle('ch-has', any);
 }
@@ -91,7 +95,7 @@ function buildLayers() {
             more.appendChild(ul);
         }
         if (def.note) more.appendChild(el('p', 'ch-ly-note', def.note));
-        if (def.id === 'avalanche' || def.id === 'snow' || def.id === 'weather') { const s = el('p', 'ch-ly-note ch-ly-state'); s.id = 'ch-' + def.id + '-state'; more.appendChild(s); }
+        if (def.id === 'avalanche' || def.id === 'snow' || def.id === 'weather' || def.id === 'snowcover') { const s = el('p', 'ch-ly-note ch-ly-state'); s.id = 'ch-' + def.id + '-state'; more.appendChild(s); }
         if (def.id === 'avalanche') {
             const a = el('a', 'ch-ly-link', 'Report an observation to SLF');
             a.href = 'https://pro.slf.ch/reply/public/#/'; a.target = '_blank'; a.rel = 'noopener noreferrer';

@@ -136,3 +136,55 @@ async function nearestStop(lon, lat, dl) {
         row(dl, 'Nearest stop', best.name + (kinds.length ? ' (' + kinds.join(', ') + ')' : '') + ', ' + km + ' as the crow flies');
     } catch (e) { /* no line then */ }
 }
+
+/* ---------- snow cover from space (NASA GIBS, NOAA-20 VIIRS NDSI snow cover, yesterday's picture) ----------
+   Open data of NASA (no restrictions; acknowledgement: imagery from NASA's Global Imagery Browse Services, GIBS, part
+   of NASA's Earth Science Data and Information System, ESDIS). Daily, about 400 m a pixel, up to zoom 8 (enlarged
+   beyond). It shows where snow lies, not how deep; where it was cloudy there is a gap. NASA's colours (pale yellow to
+   red) are turned into one blue, paler where less of the ground is covered: the tile goes through chsnow://, which
+   reads each pixel's class from NASA's colour table (MODIS_NDSI_Snow_Cover colormap: 1 to 100). */
+const SNOW_LAYER = 'VIIRS_NOAA20_NDSI_Snow_Cover';
+const SNOW_GROUPS = { 240: 1, 210: 21, 180: 41, 150: 61, 128: 81 };
+let snowCoverDay = '';
+function snowCoverOn() {
+    if (mapA.getSource('snowcover')) return;
+    // yesterday in UTC: today's picture is still being put together
+    snowCoverDay = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    ml.addProtocol('chsnow', async ({ url }, abort) => {
+        const m = /^chsnow:\/\/(\d{1,2})\/(\d{1,4})\/(\d{1,4})$/.exec(url);
+        if (!m) throw new Error('url');
+        const res = await fetch('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/' + SNOW_LAYER + '/default/' + snowCoverDay +
+                                '/GoogleMapsCompatible_Level8/' + m[1] + '/' + m[3] + '/' + m[2] + '.png',
+                                { credentials: 'omit', referrerPolicy: 'no-referrer', signal: abort && abort.signal });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const bmp = await createImageBitmap(await res.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+        const c = new OffscreenCanvas(bmp.width, bmp.height), g = c.getContext('2d', { willReadFrequently: true });
+        g.drawImage(bmp, 0, 0);
+        bmp.close();
+        const img = g.getImageData(0, 0, c.width, c.height), d = img.data;
+        for (let i = 0; i < d.length; i += 4) {
+            if (!d[i + 3]) continue;
+            // NASA's classes, read with a little tolerance (decoding can move a colour by a step or two)
+            let v = 0;
+            const r = d[i], gg = d[i + 1], b = d[i + 2];
+            if (r > 245 && gg < 20 && b < 20) v = 100;
+            else if (Math.abs(r - 240) <= 3) {
+                const grp = [240, 210, 180, 150, 128].find((k) => Math.abs(gg - k) <= 3);
+                if (grp) v = clamp(SNOW_GROUPS[grp] + b - 128, 1, 100);
+            }
+            if (!v) { d[i + 3] = 0; continue; }
+            // light blue for a little snow, deep blue for full cover
+            const t = v / 100;
+            d[i] = Math.round(186 - 150 * t); d[i + 1] = Math.round(230 - 120 * t); d[i + 2] = Math.round(253 - 20 * t);
+            d[i + 3] = Math.round(255 * (0.45 + 0.45 * t));
+        }
+        g.putImageData(img, 0, 0);
+        return { data: await createImageBitmap(c) };
+    });
+    mapA.addSource('snowcover', { type: 'raster', tiles: ['chsnow://{z}/{x}/{y}'], tileSize: 256, maxzoom: 8, bounds: AREA,
+        attribution: '<a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer">NASA GIBS</a>' });
+    mapA.addLayer({ id: 'snowcover', type: 'raster', source: 'snowcover', layout: { visibility: layerOn.snowcover ? 'visible' : 'none' },
+                    paint: { 'raster-opacity': 0.8, 'raster-resampling': 'linear' } }, 'avalanche');
+    const s = $('ch-snowcover-state');
+    if (s) s.textContent = 'Picture of ' + new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(snowCoverDay + 'T12:00:00Z')) + '.';
+}

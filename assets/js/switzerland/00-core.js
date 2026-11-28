@@ -326,6 +326,8 @@ async function start() {
     mapA.on('click', onClick);
     mapA.on('mousemove', onHover);
     mapA.on('move', syncB);
+    mapA.on('moveend', fineLines);
+    mapA.once('idle', fineLines);
     mapA.once('idle', warmTerrain);
     // the summits and towns, loaded alongside the map's first tiles
     const labelData = Promise.all(['peaks', 'towns'].map((k) => fetch(app.dataset[k]).then((r) => r.ok ? r.json() : []).catch(() => [])));
@@ -370,6 +372,16 @@ function peakVisibility() {
     mapA.setLayoutProperty('peaks-hit', 'visibility', on && base === 'map' ? 'visible' : 'none');
 }
 /* the base map: a new raster source under everything else */
+/* the canton and country lines: a light version (about 100 m) from the start, the precise one (about 10 m, about
+   330 KB to download) once the lines are seen from close in, on the aerial photo or the relief */
+let fineState = 0;   // 0 not yet, 1 loading, 2 done
+function fineLines() {
+    if (fineState || !mapA || base === 'map' || mapA.getZoom() < 10) return;
+    fineState = 1;
+    Promise.all([app.dataset.cantonsFine, app.dataset.borderFine].map((u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })))
+        .then(([c, b]) => { mapA.getSource('cantons').setData(c); mapA.getSource('border').setData(b); fineState = 2; })
+        .catch(() => { fineState = 0; });
+}
 function airportZoom() {
     if (mapA.getLayer('airports')) mapA.setLayerZoomRange('airports', base === 'map' ? 9.5 : 0, 24);
 }
@@ -385,6 +397,7 @@ function setBase(key) {
     ['bnd-canton', 'bnd-country', 'towns', 'featured-photo'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'map' ? 'none' : 'visible'));
     ['featured-map', 'featured-map-abroad'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'map' ? 'visible' : 'none'));
     airportZoom();
+    fineLines();
     peakVisibility();
     if (sunOn) applySun();
     if (compare) labels();

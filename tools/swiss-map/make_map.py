@@ -128,35 +128,37 @@ os.makedirs(os.path.dirname(OUT), exist_ok=True)
 open(OUT, 'w').write('\n'.join(out) + '\n')
 print(OUT, os.path.getsize(OUT), 'bytes,', len(lakes), 'lakes')
 
-# the cantons for the live map (assets/js/switzerland/map.js): outlines in longitude/latitude, simplified to about
-# 100 m, with the canton's code, name and area (swissBOUNDARIES3D 'flaeche', in hectares) -> static/switzerland/cantons.json
-GJ = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'switzerland', 'cantons.json')
+OUTDIR = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'switzerland')
 
 
-def simplify_ll(ring, tol=0.0012):
+def simplify_ll(ring, tol):
     m = len(ring) // 2
     a = dp([tuple(p) for p in ring[:m + 1]], tol)[:-1] + dp([tuple(p) for p in ring[m:]], tol)
-    return [[round(x, 4), round(y, 4)] for x, y in a]
+    nd = 4 if tol >= 0.001 else 5
+    return [[round(x, nd), round(y, nd)] for x, y in a]
 
 
-feats = []
-for i in range(1, 27):
-    f = json.load(open(os.path.join(SRC, 'k%d.json' % i)))['feature']
-    pp = []
-    for p in polys(f['geometry']):
-        rings = [simplify_ll(r) for r in p]
-        rings = [r for r in rings if len(r) >= 4]
-        if rings:
-            pp.append(rings)
-    feats.append({'type': 'Feature', 'properties': {'code': f['properties']['ak'], 'name': f['properties']['name'],
-                  'area_ha': f['properties']['flaeche']}, 'geometry': {'type': 'MultiPolygon', 'coordinates': pp}})
-os.makedirs(os.path.dirname(GJ), exist_ok=True)
-json.dump({'type': 'FeatureCollection', 'features': feats}, open(GJ, 'w'), separators=(',', ':'), ensure_ascii=False)
-print(GJ, os.path.getsize(GJ), 'bytes')
-
-# the country border as a line for the live map (shown on the aerial photo and the relief), simplified to about 100 m
-BJ = os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'switzerland', 'border.json')
-lines = [simplify_ll(r) for p in polys(land) for r in p]
-json.dump({'type': 'Feature', 'properties': {}, 'geometry': {'type': 'MultiLineString', 'coordinates': [l for l in lines if len(l) >= 4]}},
-          open(BJ, 'w'), separators=(',', ':'))
-print(BJ, os.path.getsize(BJ), 'bytes')
+# two versions of each: about 100 m (cantons.json, border.json: loaded at the start, enough for the overview and
+# for tapping a canton) and about 10 m (cantons-fine.json, border-fine.json: loaded once the visitor zooms in on the
+# aerial photo or the relief, so the lines lie on swisstopo's own borders; the light ones drifted up to 50 m)
+for suffix, tol in (('', 0.0012), ('-fine', 0.0001)):
+    feats = []
+    for i in range(1, 27):
+        f = json.load(open(os.path.join(SRC, 'k%d.json' % i)))['feature']
+        pp = []
+        for p in polys(f['geometry']):
+            rings = [simplify_ll(r, tol) for r in p]
+            rings = [r for r in rings if len(r) >= 4]
+            if rings:
+                pp.append(rings)
+        feats.append({'type': 'Feature', 'properties': {'code': f['properties']['ak'], 'name': f['properties']['name'],
+                      'area_ha': f['properties']['flaeche']}, 'geometry': {'type': 'MultiPolygon', 'coordinates': pp}})
+    GJ = os.path.join(OUTDIR, 'cantons%s.json' % suffix)
+    json.dump({'type': 'FeatureCollection', 'features': feats}, open(GJ, 'w'), separators=(',', ':'), ensure_ascii=False)
+    print(GJ, os.path.getsize(GJ), 'bytes')
+    # the country border as a line (shown on the aerial photo and the relief)
+    BJ = os.path.join(OUTDIR, 'border%s.json' % suffix)
+    lines = [simplify_ll(r, tol) for p in polys(land) for r in p]
+    json.dump({'type': 'Feature', 'properties': {}, 'geometry': {'type': 'MultiLineString', 'coordinates': [l for l in lines if len(l) >= 4]}},
+              open(BJ, 'w'), separators=(',', ':'))
+    print(BJ, os.path.getsize(BJ), 'bytes')
