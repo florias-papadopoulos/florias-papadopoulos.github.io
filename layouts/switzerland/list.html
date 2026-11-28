@@ -59,7 +59,8 @@
             <p>This is my map of Switzerland, made for friends, family and anyone visiting St. Gallen. The places on it are ones I have been to and liked: walks, hikes, lakes, museums and winter days out, each with how to get there from St. Gallen by train and bus.</p>
             <p>It is still being built. More places, my own photos and more details will keep coming. The facts were checked against two sources each, but prices, seasons and timetables change, so look at the official website before you go.</p>
             {{- with $d.instagram }}
-            <p class="ch-about-insta">Pictures from these places are on my Instagram: <a href="{{ . }}" target="_blank" rel="noopener noreferrer">open Instagram</a>.</p>
+            <p class="ch-about-insta">Pictures from these places are on my Instagram:</p>
+            <a class="ch-insta" href="{{ . }}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg><span>@{{ strings.TrimSuffix "/" . | path.Base }}</span></a>
             {{- end }}
         </section>
         <section class="ch-panel ch-sheet ch-facts" id="ch-facts" hidden aria-labelledby="ch-facts-h">
