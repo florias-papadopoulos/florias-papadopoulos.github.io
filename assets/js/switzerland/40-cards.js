@@ -8,7 +8,7 @@ function card(build) {
 }
 function closeCard() {
     $('ch-card').hidden = true;
-    if (mapA) mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
+    if (mapA) hiCanton('');
 }
 function visible(ids) {
     return ids.filter((l) => mapA.getLayer(l) && mapA.getLayoutProperty(l, 'visibility') !== 'none');
@@ -29,7 +29,7 @@ function onClick(e) {
     const peaks = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit')) });
     if (peaks.length) {
         const p = peaks[0].properties;
-        mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
+        hiCanton('');
         card((b) => {
             b.append(el('p', 'ch-card-kind', 'Summit'), el('h2', null, p.name || 'Summit'));
             const dl = el('dl', 'ch-card-facts');
@@ -47,7 +47,7 @@ function onClick(e) {
     if (cv.length) {
         const c = (facts.caves || [])[cv[0].properties.i];
         if (c) {
-            mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
+            hiCanton('');
             card((b) => {
                 b.append(el('p', 'ch-card-kind', 'Cave'), el('h2', null, String(c.name)));
                 const dl = el('dl', 'ch-card-facts');
@@ -68,31 +68,27 @@ function onClick(e) {
     const air = mapA.getLayer('airports') ? mapA.queryRenderedFeatures(e.point, { layers: ['airports'] }) : [];
     if (air.length) {
         const p = air[0].properties;
-        mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
+        hiCanton('');
         card((b) => { b.append(el('p', 'ch-card-kind', 'Airport ' + p.code), el('h2', null, p.name)); });
         return;
     }
     if (layerOn.avalanche && avalanche) {
         const a = mapA.queryRenderedFeatures(e.point, { layers: ['avalanche'] });
-        if (a.length && avalancheCard(a[0].properties.i)) { mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']); return; }
+        if (a.length && avalancheCard(a[0].properties.i)) { hiCanton(''); return; }
     }
     if (layerOn.weather && wx) {
         const w = mapA.queryRenderedFeatures(e.point, { layers: visible(['wx-dots']) });
-        if (w.length) { mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']); weatherCard(w[0].properties); return; }
+        if (w.length) { hiCanton(''); weatherCard(w[0].properties); return; }
     }
     const c = cantonAt(e.point);
     if (!c) { closeCard(); return; }
     const pr = c.properties, f = facts.cantons[pr.code] || {};
-    mapA.setFilter('canton-hi', ['==', ['get', 'code'], pr.code]);
+    hiCanton(pr.code);
+    // minimal: the name and one line
     card((b) => {
-        b.append(el('p', 'ch-card-kind', 'Canton ' + pr.code), el('h2', null, pr.name));
-        const dl = el('dl', 'ch-card-facts');
-        if (f.capital) row(dl, 'Capital', f.capital);
-        if (f.languages) row(dl, f.languages.indexOf(',') > 0 ? 'Languages' : 'Language', f.languages);
-        row(dl, 'Area', fmt(pr.area_ha / 100) + ' km²');
-        if (f.joined) row(dl, 'Joined', String(f.joined));
-        b.appendChild(dl);
-        b.appendChild(el('p', 'ch-card-src', 'Outline and area: swisstopo. Capital, languages and year: checked against two sources each.'));
+        b.append(el('p', 'ch-card-kind', 'Canton'), el('h2', null, pr.name));
+        const bits = [f.capital, f.languages, fmt(pr.area_ha / 100) + ' km²'].filter(Boolean).map(String);
+        b.appendChild(el('p', 'ch-card-line', bits.join(' · ')));
     });
 }
 function cantonAt(point) {

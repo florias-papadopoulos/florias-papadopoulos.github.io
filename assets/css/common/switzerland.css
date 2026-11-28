@@ -279,3 +279,4 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
     .ch-app :is(.ch-sheet, .ch-card, .ch-dock) { transition: transform .2s ease, opacity .25s ease; }
     .ch-app :is(.ch-sheet, .ch-card, .ch-dock).ch-small { max-height: 32vh; }
 }
+.ch-card-line { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ch-quiet); }

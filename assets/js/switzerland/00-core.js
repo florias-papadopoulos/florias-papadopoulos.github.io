@@ -211,7 +211,10 @@ function styleA() {
             { id: 'ski', type: 'raster', source: 'ski', layout: hidden },
             { id: 'snowshoe', type: 'raster', source: 'snowshoe', layout: hidden },
             { id: 'canton-fill', type: 'fill', source: 'cantons', paint: { 'fill-color': '#d52b1e', 'fill-opacity': 0 } },
-            { id: 'canton-hi', type: 'line', source: 'cantons', filter: ['==', ['get', 'code'], ''],
+            // the tapped canton: a soft tint, and from zoom 9 its outline too (zoomed out, the national map draws the canton
+            // borders simplified and moved for legibility, and an exact outline did not lie on them)
+            { id: 'canton-tint', type: 'fill', source: 'cantons', filter: ['==', ['get', 'code'], ''], paint: { 'fill-color': '#d52b1e', 'fill-opacity': 0.14 } },
+            { id: 'canton-hi', type: 'line', source: 'cantons', minzoom: 9, filter: ['==', ['get', 'code'], ''],
               paint: { 'line-color': '#d52b1e', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 2.5, 12, 4] } },
             { id: 'profile-line', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'],
               layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#d52b1e', 'line-width': 4 } },
@@ -383,6 +386,9 @@ function fineLines() {
     Promise.all([app.dataset.cantonsFine, app.dataset.borderFine].map((u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })))
         .then(([c, b]) => { mapA.getSource('cantons').setData(c); mapA.getSource('border').setData(b); fineState = 2; })
         .catch(() => { fineState = 0; });
+}
+function hiCanton(code) {
+    ['canton-tint', 'canton-hi'].forEach((id) => mapA.getLayer(id) && mapA.setFilter(id, ['==', ['get', 'code'], code || '']));
 }
 function airportZoom() {
     if (mapA.getLayer('airports')) mapA.setLayerZoomRange('airports', base === 'map' ? 9.5 : 0, 24);
