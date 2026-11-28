@@ -157,7 +157,16 @@ async function placeWeather(p, dd) {
 }
 
 /* ---- My plan: starred places, kept in this browser; a plan or a place can be sent as a link ---- */
-const planClean = (a) => (Array.isArray(a) ? a : []).map(String).filter((id, k, all) => /^[a-z0-9]{1,24}$/.test(id) && placeIndex(id) >= 0 && all.indexOf(id) === k).slice(0, 60);
+const PLACE_IDS = new Set(PLACES.map((p) => String(p.id)));
+function planClean(a) {
+    const out = new Set();
+    for (const v of (Array.isArray(a) ? a : [])) {
+        const id = String(v);
+        if (/^[a-z0-9]{1,24}$/.test(id) && PLACE_IDS.has(id)) out.add(id);
+        if (out.size >= 60) break;
+    }
+    return [...out];
+}
 let plan = [];
 try { plan = planClean(JSON.parse(localStorage.getItem('ch-plan') || '[]')); } catch (e) { plan = []; }
 let sharedPlan = null;   // a plan opened from a link, until it is saved or dismissed
@@ -328,7 +337,12 @@ function guestCard(i, move) {
     const src = el('p', 'ch-card-src');
     const om = el('a', null, 'Open-Meteo');
     om.href = 'https://open-meteo.com/'; om.target = '_blank'; om.rel = 'noopener noreferrer';
-    src.append(document.createTextNode('Forecast: '), om, document.createTextNode(' (CC BY 4.0).' + (LINES.has(id) ? ' Path: © OpenStreetMap contributors, BRouter.' : '')));
+    src.append(document.createTextNode('Forecast: '), om, document.createTextNode(' (CC BY 4.0).'));
+    if (LINES.has(id)) {
+        const osm = el('a', null, 'OpenStreetMap');
+        osm.href = 'https://www.openstreetmap.org/copyright'; osm.target = '_blank'; osm.rel = 'noopener noreferrer';
+        src.append(document.createTextNode(' Path: © '), osm, document.createTextNode(' contributors, BRouter.'));
+    }
     b.appendChild(src);
     // on a phone the panel starts low, so the map and the path stay in sight above it
     dock.classList.toggle('ch-small', matchMedia('(max-width: 900px)').matches);
@@ -392,14 +406,13 @@ async function showTrip(from, to, title) {
         stops.forEach((q) => { w = Math.min(w, q.lon); e = Math.max(e, q.lon); so = Math.min(so, q.lat); n = Math.max(n, q.lat); });
         mapA.fitBounds([[w, so], [e, n]], { padding: cardPad(), bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
         tripBuilding = true;
-        card((b) => {
+        try { card((b) => {
             b.append(el('p', 'ch-card-kind', 'By train'), el('h2', null, title));
             const dl = el('dl', 'ch-card-facts ch-trip');
             stops.forEach((q) => row(dl, q.time, q.name));
             b.appendChild(dl);
             b.appendChild(el('p', 'ch-card-src', 'Next connection: ' + stops[0].line + '. SBB timetable (transport.opendata.ch); the line joins the stops.'));
-        });
-        tripBuilding = false;
+        }); } finally { tripBuilding = false; }
     } catch (e) {
         if (req === tripReq) toast('The train could not be loaded right now.', 3000);
     }
@@ -571,7 +584,14 @@ function wireVisitors() {
     // Links: #visitors/<place> opens that place's card, #plan=<place>,<place> offers a plan someone sent.
     const h = location.hash;
     const one = /^#visitors\/([a-z0-9]{1,24})$/.exec(h), sent = /^#plan=([a-z0-9,]{1,1600})$/.exec(h);
-    if (sent) { sharedPlan = planClean(sent[1].split(',')); planOnly = sharedPlan.length ? sharedPlan.slice() : null; renderPlan(); vPlaces(); vCurrent = 'plan'; }
+    if (sent) {
+        // a plan link with no known place in it is dropped at once, so the address keeps following the map
+        const c = planClean(sent[1].split(','));
+        sharedPlan = c.length ? c : null;
+        planOnly = sharedPlan ? sharedPlan.slice() : null;
+        if (!sharedPlan) history.replaceState(null, '', location.pathname + '#visitors');
+        renderPlan(); vPlaces(); vCurrent = 'plan';
+    }
     if (!h || h === '#visitors' || one || sent || /,v$/.test(h)) {
         sheet('ch-visitors', true);
         if (matchMedia('(max-width: 900px)').matches && !one && !sent) panel.classList.add('ch-small');

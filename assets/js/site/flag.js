@@ -5,7 +5,7 @@
 (function () {
     'use strict';
     var flag = document.querySelector('.flag-btn'), box = document.getElementById('ch-flag-consent');
-    if (!flag || !box || flag.getAttribute('aria-current') === 'page') return;
+    if (!flag || !box || flag.hasAttribute('data-here')) return;
     var back = box.parentNode;
     function ok() {
         try { return localStorage.getItem('ch-maps-ok') === '1' || sessionStorage.getItem('ch-maps-ok') === '1'; } catch (e) { return false; }
