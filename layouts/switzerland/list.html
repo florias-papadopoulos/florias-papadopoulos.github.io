@@ -108,6 +108,7 @@
             </div>
             <div class="ch-seg ch-v-tabs" role="tablist" aria-label="Visitors">
                 <button type="button" class="ch-v-tab" role="tab" data-tab="places" aria-selected="true">Places</button>
+                <button type="button" class="ch-v-tab" role="tab" data-tab="plan" aria-selected="false">My plan<span class="ch-v-count" id="ch-v-plan-n" hidden></span></button>
                 <button type="button" class="ch-v-tab" role="tab" data-tab="tickets" aria-selected="false">Travel</button>
                 <button type="button" class="ch-v-tab" role="tab" data-tab="now" aria-selected="false">Now</button>
             </div>
@@ -117,8 +118,10 @@
                 <label class="ch-ly-row ch-v-owrow"><span class="ch-ly-name">Places on the map</span><input type="checkbox" id="ch-v-pins" checked></label>
                 <label class="ch-ly-row ch-v-owrow"><span class="ch-ly-name" id="ch-v-open-name">Open this month</span><input type="checkbox" id="ch-v-open"></label>
                 <label class="ch-ly-row ch-v-owrow"><span class="ch-v-key"></span><span class="ch-ly-name">Ostwind area on the map</span><input type="checkbox" id="ch-v-ostwind"></label>
-                <div id="ch-v-plan"></div>
                 <ol class="ch-v-list" id="ch-v-places"></ol>
+            </div>
+            <div class="ch-v-pane" data-tab="plan" role="tabpanel" hidden>
+                <div id="ch-v-plan"></div>
             </div>
             <div class="ch-v-pane" data-tab="tickets" role="tabpanel" hidden>
                 <h3 class="ch-v-h">Getting here</h3>

@@ -35,7 +35,7 @@ const shown = (p) => (p.kinds || []).some((k) => !kindOff.has(k)) && !groupOff.h
 const LINES = new Set(PLACES.filter((p) => p.line).map((p) => String(p.id)));   // the places with a drawn path
 function guestFeatures() {
     return PLACES.map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] },
-        properties: { i, name: String(p.name), colour: kindColour(kindOf(p)) } })).filter((f) => shown(PLACES[f.properties.i]));
+        properties: { i, name: String(p.name), colour: kindColour(kindOf(p)), plan: plan.includes(String(p.id)) } })).filter((f) => shown(PLACES[f.properties.i]));
 }
 let visitorsOn = false, depTimer = null, styleReady = false, ostwindOn = false;   // the Ostwind area only when asked for
 onLoad.push(() => { styleReady = true; });
@@ -53,6 +53,9 @@ function visitorsLayers() {
     mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests', layout: { visibility: layerOn.guests ? 'visible' : 'none' },
                     paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 4.5, 10, 7, 13, 9], 'circle-color': ['get', 'colour'],
                              'circle-stroke-color': '#ffffff', 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 1.5, 10, 2] } });
+    mapA.addLayer({ id: 'guests-ring', type: 'circle', source: 'guests', filter: ['==', ['get', 'plan'], true], layout: { visibility: layerOn.guests ? 'visible' : 'none' },
+                    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 8, 10, 11, 13, 13], 'circle-color': 'rgba(0,0,0,0)',
+                             'circle-stroke-color': '#d4a017', 'circle-stroke-width': 3 } });
     mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 10.5,
                     layout: { visibility: layerOn.guests ? 'visible' : 'none', 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1], 'text-anchor': 'top', 'text-padding': 2 },
                     paint: { 'text-color': '#1f2937', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
@@ -182,8 +185,10 @@ function planRows(ul, ids) {
     });
 }
 function renderPlan() {
-    const box = $('ch-v-plan');
+    const box = $('ch-v-plan'), n = $('ch-v-plan-n');
     box.textContent = '';
+    n.hidden = !plan.length;
+    n.textContent = String(plan.length);
     if (sharedPlan && sharedPlan.length) {
         const sec = el('div', 'ch-v-planbox ch-v-shared');
         sec.appendChild(el('p', 'ch-v-group', 'A plan sent to you (' + sharedPlan.length + ')'));
@@ -192,26 +197,31 @@ function renderPlan() {
         const acts = el('div', 'ch-v-acts');
         const save = el('button', 'ch-chip', 'Save to my plan'), no = el('button', 'ch-chip', 'Dismiss');
         save.type = no.type = 'button';
-        save.addEventListener('click', () => { plan = planClean(plan.concat(sharedPlan)); savePlan(); sharedPlan = null; history.replaceState(null, '', location.pathname + '#visitors'); renderPlan(); toast('Saved in this browser', 2000); });
+        save.addEventListener('click', () => { plan = planClean(plan.concat(sharedPlan)); savePlan(); sharedPlan = null; history.replaceState(null, '', location.pathname + '#visitors'); renderPlan(); vPlaces(); toast('Saved in this browser', 2000); });
         no.addEventListener('click', () => { sharedPlan = null; history.replaceState(null, '', location.pathname + '#visitors'); renderPlan(); });
         acts.append(save, no);
         sec.append(ul, acts);
         box.appendChild(sec);
     }
-    if (plan.length) {
-        const sec = el('div', 'ch-v-planbox');
-        sec.appendChild(el('p', 'ch-v-group', 'My plan (' + plan.length + ')'));
-        const ul = el('ol', 'ch-v-list');
-        planRows(ul, plan);
-        const acts = el('div', 'ch-v-acts');
-        const send = el('button', 'ch-chip', 'Send as a link'), clear = el('button', 'ch-chip', 'Clear');
-        send.type = clear.type = 'button';
-        send.addEventListener('click', () => shareLink(pageUrl() + '#plan=' + plan.join(','), 'My plan in Switzerland'));
-        clear.addEventListener('click', () => { if (window.confirm('Remove all places from your plan?')) { plan = []; savePlan(); renderPlan(); } });
-        acts.append(send, clear);
-        sec.append(ul, acts);
-        box.appendChild(sec);
+    if (!plan.length) {
+        if (!sharedPlan) box.appendChild(el('p', 'ch-ly-note', 'Your plan is empty. Open a place and tap \u2606 Add to my plan: it collects here, with a gold ring on the map. The plan stays in this browser, and you can send it to someone as a link.'));
+        return;
     }
+    const ul = el('ol', 'ch-v-list');
+    planRows(ul, plan);
+    const acts = el('div', 'ch-v-acts');
+    const show = el('button', 'ch-chip', 'Show all on the map'), send = el('button', 'ch-chip', 'Send as a link'), clear = el('button', 'ch-chip', 'Clear');
+    show.type = send.type = clear.type = 'button';
+    show.addEventListener('click', () => {
+        let w = 180, s = 90, e = -180, nn = -90;
+        plan.forEach((id) => { const p = PLACES[placeIndex(id)]; w = Math.min(w, +p.lon); e = Math.max(e, +p.lon); s = Math.min(s, +p.lat); nn = Math.max(nn, +p.lat); });
+        closePlace();
+        mapA.fitBounds([[w, s], [e, nn]], { padding: cardPad(), maxZoom: 12, bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
+    });
+    send.addEventListener('click', () => shareLink(pageUrl() + '#plan=' + plan.join(','), 'My plan in Switzerland'));
+    clear.addEventListener('click', () => { if (window.confirm('Remove all places from your plan?')) { plan = []; savePlan(); renderPlan(); vPlaces(); } });
+    acts.append(show, send, clear);
+    box.append(ul, acts, el('p', 'ch-ly-note', 'Kept in this browser. "Send as a link" opens the same plan for someone else, who can save it too.'));
 }
 
 /* ---- a place's panel: at the bottom, under its path; all it needs on one screen ---- */
@@ -280,7 +290,7 @@ function guestCard(i, move) {
     const star = el('button', 'ch-chip ch-v-star');
     const paint = () => { const on = plan.includes(id); star.textContent = on ? '★ In my plan' : '☆ Add to my plan'; star.classList.toggle('ch-v-starred', on); };
     star.type = 'button'; paint();
-    star.addEventListener('click', () => { togglePlan(id); paint(); });
+    star.addEventListener('click', () => { togglePlan(id); paint(); toast(plan.includes(id) ? 'Added to My plan (a tab in Visitors)' : 'Removed from My plan', 2200); });
     const link = el('button', 'ch-chip', 'Share');
     link.type = 'button'; link.title = 'Send a link to this place';
     link.addEventListener('click', () => shareLink(pageUrl() + '#visitors/' + id, String(p.name)));
@@ -543,11 +553,10 @@ function wireVisitors() {
     // Links: #visitors/<place> opens that place's card, #plan=<place>,<place> offers a plan someone sent.
     const h = location.hash;
     const one = /^#visitors\/([a-z0-9]{1,24})$/.exec(h), sent = /^#plan=([a-z0-9,]{1,1600})$/.exec(h);
-    if (sent) { sharedPlan = planClean(sent[1].split(',')); renderPlan(); }
+    if (sent) { sharedPlan = planClean(sent[1].split(',')); renderPlan(); vCurrent = 'plan'; }
     if (!h || h === '#visitors' || one || sent || /,v$/.test(h)) {
         sheet('ch-visitors', true);
         if (matchMedia('(max-width: 900px)').matches && !one && !sent) panel.classList.add('ch-small');
-        if (sent) setTimeout(() => { const b = $('ch-v-plan'); if (b && b.firstChild) b.scrollIntoView({ block: 'start' }); }, 300);
         showVisitors(true);
     }
     onLoad.push(() => {
