@@ -6,28 +6,101 @@ instagram: https://www.instagram.com/florias.pap/
 
 # First time in Switzerland? (the about sheet). Each tip checked on 2026-11-28 against two sources, listed per tip.
 visitors:
-  # ch.ch emergencies page; rega.ch emergency numbers (Rega 1414, in Valais 144)
-  - { title: "Emergency.", text: "112 general, 117 police, 118 fire, 144 ambulance, 1414 Rega air rescue (in Valais call 144)." }
   # SAC safety when hiking; SLF about the avalanche bulletin
   - { title: "Mountains.", text: "Weather changes fast: check MeteoSwiss before you go, and in winter the SLF avalanche bulletin (White Risk app)." }
   # MySwitzerland, can I use euros; Wise, money in Switzerland
   - { title: "Money.", text: "Swiss francs (CHF). Cards work almost everywhere; places that take euros give change in francs." }
   # BAV fact sheet on public transport; SBB offers for guests from abroad; SBB Half Fare Card
-  - { title: "Getting around.", text: "Trains, buses and boats share one timetable and one ticket. Visitors can buy a Swiss Travel Pass (3 to 15 days unlimited) or a Half Fare Card (CHF 150 for a month)." }
+  - title: "Getting around."
+    text: "Trains, buses and boats share one timetable and one ticket."
+    links:
+      - { text: "Timetable", url: "https://www.sbb.ch/en" }
+      - { text: "Swiss Travel Pass", url: "https://www.sbb.ch/en/offers/guests-from-abroad" }
+      - { text: "Half Fare Card", url: "https://www.sbb.ch/en/offers/swiss-half-fare-card" }
   # BAZG vignette FAQ; ch.ch motorway vignette
   - { title: "Driving.", text: "Motorways need a vignette: CHF 40, valid from 1 December to 31 January of the year after. Buy the e-vignette at via.admin.ch." }
   # canton Aargau fountain labelling leaflet; The Local on Swiss drinking water
-  - { title: "Water.", text: "Tap and fountain water is drinkable unless a sign says it is not (Kein Trinkwasser, eau non potable)." }
+  - title: "Water."
+    text: "Tap and fountain water is drinkable unless a sign says it is not (Kein Trinkwasser, eau non potable)."
+    links:
+      - { text: "What the signs look like", url: "https://www.ag.ch/media/kanton-aargau/dgs/dokumente/verbraucherschutz/lebensmittelkontrolle/trinkwasser/merkblatt-kennzeichnung-laufbrunnen.pdf" }
   # Zurich Tourism electric power; MySwitzerland electricity
-  - { title: "Plugs.", text: "Type J sockets, 230 V. Two-pin Europlugs fit; for earthed plugs bring a Type J adapter." }
+  - title: "Plugs."
+    text: "Type J sockets, 230 V. Two-pin Europlugs fit; for earthed plugs bring a Type J adapter."
+    plug: true
+    links:
+      - { text: "More on plugs", url: "https://www.zuerich.com/en/electric-power-and-internet" }
   # MySwitzerland business hours; swissinfo on Sunday opening
   - { title: "Sundays.", text: "Most shops close; those at stations, airports and many petrol stations stay open." }
-  # MySwitzerland tipping; UBS tipping culture
-  - { title: "Tipping.", text: "Service is included in prices; rounding up is common but optional." }
   # FOPH (BAG) tick-borne encephalitis page and its 2024 vaccination recommendation
   - { title: "Ticks.", text: "They live up to about 2000 m; the TBE vaccine is recommended everywhere except Ticino." }
-  # FOCA (BAZL) drone operator registration; ch.ch drones
-  - { title: "Drones.", text: "EU drone rules apply: register unless the drone weighs under 250 g and has no camera." }
+
+# The big caves (the map's Caves layer). Each figure checked on 2026-11-28 against two sources (named per cave); positions
+# from swisstopo's place names (cave entrances; Hoelloch at the bus stop by its entrance; Siebenhengste at the ridge
+# above the system).
+caves:
+  - name: "Hölloch"
+    lon: 8.7827
+    lat: 46.9769
+    facts:
+      - { label: "Length", value: "213 km surveyed (2022)" }
+      - { label: "Height range", value: "1033 m" }
+      - { label: "Visit", value: "Guided tours only, booking needed" }
+    note: "The longest cave in Switzerland and one of the longest in the world (about 12th)."
+    link: "https://www.trekking.ch/hoelloch"
+    source: "Hoelloch research group (AGH) cave list; Trekking Team, the tour operator."
+  - name: "Siebenhengste-Hohgant cave system"
+    lon: 7.8181
+    lat: 46.7575
+    facts:
+      - { label: "Length", value: "164.5 km" }
+      - { label: "Depth", value: "1340 m" }
+      - { label: "Visit", value: "Cavers only" }
+    note: "The second longest in Switzerland. The Bärenschacht nearby (84 km) may one day be joined to it."
+    source: "SGH Bern (Swiss Society for Speleology); SRF (2023)."
+  - name: "St. Beatus Caves"
+    lon: 7.7819
+    lat: 46.6847
+    facts:
+      - { label: "Explored", value: "about 14 km" }
+      - { label: "Open to visitors", value: "about 1 km, self-guided" }
+      - { label: "Visit", value: "All year" }
+    link: "https://www.beatushoehlen.swiss/en/"
+    source: "St. Beatus Caves; Interlaken Tourism."
+  - name: "Lac souterrain de Saint-Léonard"
+    lon: 7.426
+    lat: 46.257
+    facts:
+      - { label: "Lake", value: "300 m long" }
+      - { label: "Visit", value: "Guided boat tours, mid-March to 1 November" }
+    note: "An underground lake you cross by rowing boat."
+    link: "https://www.lac-souterrain.com/"
+    source: "Lac souterrain de Saint-Léonard; Valais Tourism."
+  - name: "Grottes de Vallorbe"
+    lon: 6.3458
+    lat: 46.6981
+    facts:
+      - { label: "Route", value: "1 km, about an hour" }
+      - { label: "Visit", value: "Self-guided, March to November" }
+    note: "The underground river Orbe and its dripstone halls."
+    link: "https://grottesdevallorbe.ch/"
+    source: "Grottes de Vallorbe; showcaves.com."
+  - name: "Höllgrotten"
+    lon: 8.5574
+    lat: 47.186
+    facts:
+      - { label: "Found", value: "1863, while quarrying tufa" }
+      - { label: "Visit", value: "Self-guided, April to October" }
+    link: "https://www.hoellgrotten.ch/"
+    source: "Höllgrotten; Zug Tourism."
+  - name: "Grottes de Réclère"
+    lon: 6.9135
+    lat: 47.3586
+    facts:
+      - { label: "Found", value: "1886, open to visitors since 1890" }
+      - { label: "Visit", value: "Guided tours, April to early November" }
+    link: "https://www.prehisto.ch/"
+    source: "Préhisto-Parc et Grottes de Réclère; showcaves.com."
 
 signs:
   - { id: yellow, name: "Hiking trail", scale: "T1", text: "Yellow signposts and diamonds. No special demands on the hiker." }

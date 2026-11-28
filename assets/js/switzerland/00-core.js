@@ -37,6 +37,14 @@ const RASTERS = {
     snowshoe: 'ch.swisstopo-karto.schneeschuhrouten'
 };
 const FIRST_YEAR = 1844, LAST_YEAR = 2021;
+/* the big caves (data/switzerland.yaml, caves): a cave mouth, the name from closer in; added with the airports */
+const CAVE_LAYERS = [
+    { id: 'caves', type: 'symbol', source: 'caves', layout: { 'icon-image': 'cave', 'icon-allow-overlap': true, 'icon-ignore-placement': true } },
+    { id: 'caves-label', type: 'symbol', source: 'caves', minzoom: 9,
+      layout: { 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-max-width': 10,
+                'text-variable-anchor': ['left', 'right'], 'text-radial-offset': 1.2, 'text-justify': 'auto' },
+      paint: { 'text-color': '#3b2f2a', 'text-halo-color': 'rgba(255,255,255,0.95)', 'text-halo-width': 1.5 } }
+];
 /* the airports (added once their plane is drawn, see start) */
 const AIRPORT_LAYER = { id: 'airports', type: 'symbol', source: 'airports',
               layout: { 'icon-image': 'plane', 'icon-size': 1, 'icon-allow-overlap': true, 'icon-ignore-placement': true } };
@@ -148,7 +156,9 @@ function styleA() {
         pin: { type: 'geojson', data: EMPTY },
         pin2: { type: 'geojson', data: EMPTY },
         featured: { type: 'geojson', data: FEATURED },
-        airports: { type: 'geojson', data: AIRPORTS }
+        airports: { type: 'geojson', data: AIRPORTS },
+        caves: { type: 'geojson', data: { type: 'FeatureCollection', features: (facts.caves || []).map((c, i) => ({
+            type: 'Feature', geometry: { type: 'Point', coordinates: [+c.lon, +c.lat] }, properties: { i, name: String(c.name) } })) } }
     };
     Object.keys(RASTERS).forEach((k) => { sources[k] = overlaySource(RASTERS[k]); });
     const hidden = { visibility: 'none' };
@@ -285,6 +295,17 @@ async function start() {
         g.fill(new Path2D('M0 -11 C1.4 -11 2 -9.6 2 -8.3 V-3 L10 2 V4.3 L2 1.8 V7 L4.5 9 V10.8 L0 9.6 L-4.5 10.8 V9 L-2 7 V1.8 L-10 4.3 V2 L-2 -3 V-8.3 C-2 -9.6 -1.4 -11 0 -11 Z'));
         mapA.addImage('plane', g.getImageData(0, 0, sz, sz), { pixelRatio: r });
         mapA.addLayer(AIRPORT_LAYER, 'peaks-hit');
+        // the caves' symbol: a white disc with a dark brown cave mouth
+        const c2 = document.createElement('canvas');
+        c2.width = c2.height = sz;
+        const h = c2.getContext('2d');
+        h.fillStyle = '#ffffff'; h.beginPath(); h.arc(sz / 2, sz / 2, sz / 2 - r, 0, Math.PI * 2); h.fill();
+        h.strokeStyle = 'rgba(59,47,42,0.4)'; h.lineWidth = r; h.stroke();
+        h.fillStyle = '#5b4636'; h.translate(sz / 2, sz / 2); h.scale(r * 0.62, r * 0.62);
+        h.fill(new Path2D('M-11 7 L-6 -4 L-2 -8 L3 -7 L7 -2 L11 7 Z'));
+        h.fillStyle = '#1b130e'; h.fill(new Path2D('M-5 7 C-5 1 -2.5 -2 0 -2 C2.5 -2 5 1 5 7 Z'));
+        mapA.addImage('cave', h.getImageData(0, 0, sz, sz), { pixelRatio: r });
+        CAVE_LAYERS.forEach((l) => mapA.addLayer({ ...l, layout: { ...l.layout, visibility: layerOn.caves === false ? 'none' : 'visible' } }, 'peaks-hit'));
         labelData.then(([peaks, towns]) => {
             const pt = (rows, props) => ({ type: 'FeatureCollection', features: rows.map((r) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [r[0], r[1]] }, properties: props(r) })) });
             mapA.getSource('peaks').setData(pt(peaks, (r) => ({ name: r[2], ele: r[3], rank: r[4] })));

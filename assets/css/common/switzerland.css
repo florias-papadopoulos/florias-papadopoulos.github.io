@@ -53,6 +53,10 @@ html[data-side="travel"] .top-link { display: none; }
 .ch-title .ch-search-box { margin: 4px 4px 4px; width: 260px; max-width: calc(100vw - 48px); }
 .ch-tips { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; line-height: 1.45; }
 .ch-tips strong { color: var(--ch-ink); }
+.ch-tip-links { display: block; margin-top: 1px; font-size: 12px; }
+.ch-plug { width: 22px; height: 22px; vertical-align: -6px; margin-left: 2px; fill: none; stroke: var(--ch-ink); stroke-width: 1.4; }
+.ch-plug circle { fill: var(--ch-ink); stroke: none; }
+.ch-head-bare { justify-content: flex-end; margin: -6px -8px 0 0; height: 24px; }
 .ch-title .ch-search-box { margin: 6px 0 4px; }
 .ch-icon-btn { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 8px; background: none; color: var(--ch-ink); cursor: pointer; }
 .ch-icon-btn:hover { background: var(--ch-hover); }

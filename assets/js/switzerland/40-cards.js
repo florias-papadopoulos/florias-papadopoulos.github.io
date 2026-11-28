@@ -21,7 +21,7 @@ function onHover(e) {
     if (!hoverFrame) hoverFrame = requestAnimationFrame(() => { hoverFrame = 0; hoverCheck(hoverEvent); });
 }
 function hoverCheck(e) {
-    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports')) }).length;
+    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves')) }).length;
     mapA.getCanvas().style.cursor = hit ? 'pointer' : '';
 }
 function onClick(e) {
@@ -40,6 +40,27 @@ function onClick(e) {
             b.appendChild(el('p', 'ch-card-src', 'Name and height: swisstopo'));
         });
         return;
+    }
+    const cv = mapA.getLayer('caves') ? mapA.queryRenderedFeatures(e.point, { layers: visible(['caves']) }) : [];
+    if (cv.length) {
+        const c = (facts.caves || [])[cv[0].properties.i];
+        if (c) {
+            mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
+            card((b) => {
+                b.append(el('p', 'ch-card-kind', 'Cave'), el('h2', null, String(c.name)));
+                const dl = el('dl', 'ch-card-facts');
+                (c.facts || []).forEach((x) => row(dl, String(x.label), String(x.value)));
+                b.appendChild(dl);
+                if (c.note) b.appendChild(el('p', 'ch-card-note', String(c.note)));
+                if (typeof c.link === 'string' && c.link.indexOf('https://') === 0) {
+                    const a = el('a', 'ch-card-link', 'Official website');
+                    a.href = c.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+                    b.appendChild(a);
+                }
+                if (c.source) b.appendChild(el('p', 'ch-card-src', 'Facts: ' + String(c.source)));
+            });
+            return;
+        }
     }
     const air = mapA.getLayer('airports') ? mapA.queryRenderedFeatures(e.point, { layers: ['airports'] }) : [];
     if (air.length) {

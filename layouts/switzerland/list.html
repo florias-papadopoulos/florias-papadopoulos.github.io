@@ -51,19 +51,17 @@
             </div>
         </header>
         <section class="ch-panel ch-sheet ch-facts" id="ch-facts" hidden aria-labelledby="ch-facts-h">
-            <div class="ch-facts-head">
-                <h2 id="ch-facts-h">About this map</h2>
+            <div class="ch-facts-head ch-head-bare">
+                <h2 id="ch-facts-h" class="ch-vh">About this map</h2>
                 <button type="button" class="ch-close" id="ch-facts-close" aria-label="Close">×</button>
             </div>
-            {{- /* first-time visitors: filled from data/switzerland.yaml (visitors), each tip checked against two sources */}}
-            {{- with $d.visitors }}
-            <h2>First time in Switzerland?</h2>
+            {{- /* first-time visitors: data/switzerland.yaml (visitors), each tip checked against two sources */}}
             <ul class="ch-tips">
-                {{- range . }}
-                <li><strong>{{ .title }}</strong> {{ .text }}</li>
+                {{- range $d.visitors }}
+                <li><strong>{{ .title }}</strong> {{ .text }}{{ if .plug }} <svg class="ch-plug" viewBox="0 0 24 24" role="img" aria-label="A Swiss type J socket: three round holes"><title>Swiss type J socket</title><path d="M7 4h10l4 7-4 9H7l-4-9z"/><circle cx="8.5" cy="10" r="1.4"/><circle cx="15.5" cy="10" r="1.4"/><circle cx="12" cy="14" r="1.4"/></svg>{{ end }}
+                    {{- with .links }}<span class="ch-tip-links">{{ range $i, $l := . }}{{ if $i }} · {{ end }}<a href="{{ $l.url }}" target="_blank" rel="noopener noreferrer">{{ $l.text }}</a>{{ end }}</span>{{ end }}</li>
                 {{- end }}
             </ul>
-            {{- end }}
             <h2>Hiking trail signs</h2>
             <ul class="ch-signs">
                 {{- range $d.signs }}
@@ -152,7 +150,7 @@
     <p class="ch-toast" id="ch-toast" role="status" hidden></p>
     <p class="ch-status" id="ch-status" role="status" hidden></p>
 </div>
-<script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss | jsonify | safeJS }}</script>
+<script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss "caves" $d.caves | jsonify | safeJS }}</script>
 {{- $parts := slice }}
 {{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "70-search-share" "80-hud" "90-boot" }}
 {{- $parts = $parts | append (resources.Get (printf "js/switzerland/%s.js" .)) }}
