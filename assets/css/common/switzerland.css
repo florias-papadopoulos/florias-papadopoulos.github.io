@@ -5,14 +5,12 @@
    bottom left, the maps; bottom centre, one dock (year or route); bottom right, MapLibre's corner with the
    controls, the scale and the sources. Phones and tablets (900px and less): the sheets, the card and the docks open
    as one bottom sheet, one at a time (the card first, then a sheet, then a dock), and the maps and controls make room. */
-/* the look (owner's choice, 2026-11-28): old Swiss travel posters: warm paper, deep blue, pine green, the flag red, a
-   serif for names (Fraunces, SIL OFL, static/fonts/fraunces) */
-@font-face { font-family: "Fraunces"; src: url("/fonts/fraunces/fraunces-600-latin.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+/* the look (owner's choice, 2026-11-28): the legend box of a printed map: white panels with a thin black frame and
+   square corners, no shadows, titles in spaced capitals, tick boxes for the kinds (the rules at the end of this file) */
 html[data-side="travel"] {
-    --ch-ink: #22283a; --ch-quiet: #625d52; --ch-faint: #a39d90; --ch-red: #d52b1e; --ch-red-dark: #b3241a;
-    --ch-tint: #fbe3dd; --ch-hover: #f2ead7; --ch-line: #e5dbc5; --ch-card: rgba(252, 248, 239, .97);
-    --ch-paper: #fcf8ef; --ch-blue: #1f3a68; --ch-green: #3f6b3a; --ch-gold: #e2ad3b;
-    --ch-serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --ch-ink: #1d1d1b; --ch-quiet: #5c5c57; --ch-faint: #a3a39c; --ch-red: #d52b1e; --ch-red-dark: #b3241a;
+    --ch-tint: #fbe3dd; --ch-hover: #f3f3f0; --ch-line: #1d1d1b; --ch-card: #fff;
+    --ch-paper: #fff; --ch-blue: #1f3a68; --ch-frame: 1.5px solid #1d1d1b;
     --ch-shadow: 0 2px 10px rgba(15, 23, 42, .14), 0 1px 2px rgba(15, 23, 42, .08);
     --ch-edge: 12px; --ch-gap: 10px;
     --ch-bases-w: 236px;   /* the maps panel and its margin */
@@ -34,8 +32,8 @@ html[data-side="travel"] .top-link { display: none; }
 .ch-sheet, .ch-card, .ch-dock { padding: 12px 14px; background: var(--ch-paper); }
 .ch-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .ch-app h2 { margin: 0; font-size: 16px; line-height: 1.25; }
-/* names in the poster serif: the sheets' titles, a place's name, a card's title */
-.ch-app :is(.ch-sheet, .ch-card, .ch-dock) h2, .ch-pl-name { font-family: var(--ch-serif); font-weight: 600; letter-spacing: -.005em; color: var(--ch-blue); }
+/* titles as on a map's legend: spaced capitals */
+.ch-app :is(.ch-sheet, .ch-card, .ch-dock) h2, .ch-pl-name { color: var(--ch-ink); text-transform: uppercase; letter-spacing: .14em; font-size: 13px; font-weight: 800; }
 .ch-close { flex: none; width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--ch-quiet); font-size: 20px; line-height: 1; cursor: pointer; }
 .ch-close:hover { background: var(--ch-hover); color: var(--ch-ink); }
 .ch-app :focus-visible { outline: 2px solid var(--ch-red); outline-offset: 1px; }
@@ -391,3 +389,30 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-trip div { grid-template-columns: auto 1fr; }
 .ch-v-only { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 6px 8px; border-radius: 8px; background: #fffbeb; font-size: 12.5px; }
 .ch-v-only .ch-chip { height: 26px; font-size: 12px; }
+
+/* ---------- the legend-box look (owner's choice 4, 2026-11-28): every panel framed like a printed map's legend ---------- */
+.ch-app .ch-panel, .ch-app :is(.ch-sheet, .ch-card, .ch-dock, .ch-place) { border-radius: 0; box-shadow: none; border: var(--ch-frame); }
+#ch-visitors > .ch-head, #ch-visitors > div:first-child { margin: -12px -14px 10px; padding: 8px 14px; border-bottom: var(--ch-frame); }
+.ch-v-tabs { padding: 0; border: var(--ch-frame); border-radius: 0; background: none; }
+.ch-v-tabs .ch-v-tab { border-radius: 0; border-right: var(--ch-frame); }
+.ch-v-tabs .ch-v-tab:last-child { border-right: 0; }
+.ch-v-tabs .ch-v-tab[aria-selected="true"] { background: var(--ch-ink); color: #fff; box-shadow: none; }
+/* the kinds and the time groups as tick boxes in two columns */
+.ch-v-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.ch-v-kind { height: 24px; padding: 0; border: 0; border-radius: 0; background: none; justify-content: flex-start; font-weight: 500; }
+.ch-v-kind::before { content: ""; flex: none; width: 12px; height: 12px; margin-right: 2px; border: var(--ch-frame); }
+.ch-v-kind[aria-pressed="true"] { border: 0; }
+.ch-v-kind[aria-pressed="true"]::before { background: var(--ch-ink); box-shadow: inset 0 0 0 2px #fff; }
+.ch-v-kind[aria-pressed="false"] { opacity: 1; color: #8a8a85; }
+.ch-v-kind:hover { border: 0; }
+.ch-v-kind.ch-v-time { padding: 0; }
+.ch-v-rain[aria-pressed="true"] { background: none; }
+#ch-v-times { margin-top: 2px; padding-top: 6px; border-top: 1px dashed var(--ch-ink); }
+.ch-v-group { color: var(--ch-ink); border-bottom: 1px solid var(--ch-ink); padding-bottom: 2px; letter-spacing: .14em; }
+.ch-v-btn { border-radius: 0; border-bottom: 1px dotted #b5b5ad; }
+.ch-pl-stats li { background: none; border: 1px solid var(--ch-ink); border-radius: 0; }
+.ch-pl-facts { border-top: var(--ch-frame); }
+.ch-app .ch-chip, .ch-v-ticket, .ch-v-planbox, .ch-v-only { border-radius: 0; border-color: var(--ch-ink); }
+.ch-icons, .ch-tools, .ch-tool, .ch-icon-btn, .ch-bases .ch-base, .ch-base::after, .ch-base img { border-radius: 0; }
+/* the frames make the boxes a little bigger: on phones the 3D pad keeps clear of the maps panel */
+@media (max-width: 900px) { .ch-app .maplibregl-ctrl.ch-pad { margin-bottom: 10px; } }
