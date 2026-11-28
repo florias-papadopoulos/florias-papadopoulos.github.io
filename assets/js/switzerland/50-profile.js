@@ -12,10 +12,9 @@
    flat, 300 m an hour up, 500 m an hour down; the larger of the horizontal and vertical times plus half the smaller):
    an estimate for a fit walker without breaks. */
 let profilePts = [], profileData = null, profileReq = 0, profileAbort = null;
-let routes = [], routeSel = 0, closures = [], routeNote = '';
+let routes = [], routeSel = 0, closures = [], routeNote = '', profileWait = 0;
 const BROUTER = 'https://brouter.de/brouter';
 const DIFF_COLOUR = { 1: '#f2c200', 2: '#e2001a', 3: '#1f5fbf' };
-const DIFF_NAME = { 1: 'Hiking trail (T1)', 2: 'Mountain trail (T2 to T3)', 3: 'Alpine route (T4 to T6)' };
 
 function setProfile(on) {
     if (on === (mode === 'profile')) return;
@@ -26,7 +25,9 @@ function setProfile(on) {
         toast('Tap the map to add points along your route.', 3200);
     } else {
         mode = null;
+        profileReq++;
         if (profileAbort) profileAbort.abort();
+        clearTimeout(profileWait);
         profilePts = []; profileData = null; routes = []; closures = []; routeNote = '';
         drawProfileLine();
         drawRoutes();
@@ -42,7 +43,12 @@ modes.profile = { on: () => mode === 'profile', off: () => setProfile(false) };
 function profileAdd(ll) {
     if (profilePts.length >= 40) { toast('A route can have at most 40 points.'); return; }
     profilePts.push([ll.lng, ll.lat]);
-    fetchProfile();
+    // the volunteers' route server is asked once the taps pause (0.4 s), not after each of a quick series
+    if (profileAbort) { profileAbort.abort(); profileAbort = null; }
+    profileReq++;
+    drawProfileLine();
+    clearTimeout(profileWait);
+    profileWait = setTimeout(fetchProfile, 400);
 }
 function drawProfileLine() {
     const f = profilePts.map((c) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { kind: 'pt' } }));
@@ -70,7 +76,7 @@ async function fetchProfile() {
         let r = null;
         for (let attempt = 0; attempt < 2 && !r; attempt++) {
             try { r = await brouter(alt, signal); } catch (e) {
-                if (e && e.name === 'AbortError') return;
+                if (signal.aborted) return;   // a newer request, or Route closed (a timeout is retried)
                 if (attempt === 0) await new Promise((ok) => setTimeout(ok, 1200));
             }
             if (id !== profileReq) return;
@@ -79,24 +85,31 @@ async function fetchProfile() {
         // a route that is nearly the same as one already found is not offered again
         if (routes.some((q) => Math.abs(q.km - r.km) < 0.05 * r.km && Math.abs(q.up - r.up) < 0.1 * Math.max(50, r.up))) continue;
         routes.push(r);
-        if (routes.length === 1) { selectRoute(0); lookClosures(id, signal); } else { drawRoutes(); renderProfile(); }
+        if (routes.length === 1) selectRoute(0); else { drawRoutes(); renderProfile(); }
     }
     if (id !== profileReq) return;
-    if (routes.length) { drawRoutes(); renderProfile(); return; }
+    // the closures once all routes are in, so each of them is checked
+    if (routes.length) { drawRoutes(); renderProfile(); lookClosures(id, signal); return; }
     routeNote = 'The trail route finder did not answer, so this is the straight line between your points.';
     await fetchStraight(id, signal);
 }
 /* one route from BRouter, cut into sections by difficulty */
 async function brouter(alt, signal) {
     const ll = profilePts.map((c) => c[0].toFixed(5) + ',' + c[1].toFixed(5)).join('|');
-    const res = await fetch(BROUTER + '?lonlats=' + ll + '&profile=hiking-mountain&alternativeidx=' + alt + '&format=geojson',
-                            { credentials: 'omit', referrerPolicy: 'no-referrer', signal });
-    if (!res.ok) throw new Error(res.status);
-    const text = await res.text();
+    // the volunteers' server can hang: after 20 s the request is given up (and retried, then the straight line)
+    const ac = new AbortController(), stop = () => ac.abort(), timer = setTimeout(stop, 20000);
+    signal.addEventListener('abort', stop);
+    let text;
+    try {
+        const res = await fetch(BROUTER + '?lonlats=' + ll + '&profile=hiking-mountain&alternativeidx=' + alt + '&format=geojson',
+                                { credentials: 'omit', referrerPolicy: 'no-referrer', signal: ac.signal });
+        if (!res.ok) throw new Error(res.status);
+        text = await res.text();
+    } finally { clearTimeout(timer); signal.removeEventListener('abort', stop); }
     if (text.charAt(0) !== '{') throw new Error('busy');   // e.g. "operation killed by thread-priority-watchdog"
     const f = (JSON.parse(text).features || [])[0];
     const coords = f && f.geometry && f.geometry.coordinates;
-    if (!Array.isArray(coords) || coords.length < 2) throw new Error('empty');
+    if (!Array.isArray(coords) || coords.length < 2 || coords.length > 50000) throw new Error('empty');
     const msgs = (f.properties && Array.isArray(f.properties.messages)) ? f.properties.messages.slice(1) : [];
     // the difficulty of each piece: the messages list where the way's tags change (their end points, in millionths)
     const ends = msgs.map((m) => {
@@ -116,7 +129,7 @@ async function brouter(alt, signal) {
         const diff = ends.length ? ends[Math.min(e, ends.length - 1)].diff : 1;
         if (!cur || cur.diff !== diff) {
             if (cur) cur.coords.push([c[0], c[1]]);
-            cur = { diff, coords: cur ? [cur.coords[cur.coords.length - 1]] : [] };
+            cur = { diff, coords: [] };
             segs.push(cur);
         }
         cur.coords.push([c[0], c[1]]);
@@ -173,6 +186,7 @@ function drawRoutes() {
     mapA.getSource('closures').setData({ type: 'FeatureCollection', features: closures });
     // with routes, the straight line between the points is not drawn
     mapA.setLayoutProperty('profile-line', 'visibility', routes.length ? 'none' : 'visible');
+    credits();
 }
 /* the official closures and diversions around the routes (ASTRA, through api3); a route within 40 m of one is flagged */
 async function lookClosures(id, signal) {
@@ -182,28 +196,55 @@ async function lookClosures(id, signal) {
         profilePts.forEach((c) => { w = Math.min(w, c[0]); e = Math.max(e, c[0]); s = Math.min(s, c[1]); n = Math.max(n, c[1]); });
         all.forEach((r) => r.pts.forEach((q) => { w = Math.min(w, q.lon); e = Math.max(e, q.lon); s = Math.min(s, q.lat); n = Math.max(n, q.lat); }));
         const [x1, y1] = toLV95(w - 0.02, s - 0.02), [x2, y2] = toLV95(e + 0.02, n + 0.02);
-        const url = API + 'api/MapServer/identify?geometryType=esriGeometryEnvelope&geometry=' + [x1, y1, x2, y2].map(Math.round).join(',') +
+        const base = API + 'api/MapServer/identify?geometryType=esriGeometryEnvelope&geometry=' + [x1, y1, x2, y2].map(Math.round).join(',') +
             '&sr=2056&layers=all:ch.astra.wanderland-sperrungen_umleitungen&tolerance=0&returnGeometry=true&geometryFormat=geojson&limit=50&lang=en';
-        const res = await fetch(url, { credentials: 'omit', referrerPolicy: 'no-referrer', signal });
-        if (!res.ok) throw new Error(res.status);
-        const d = await res.json();
-        if (id !== profileReq) return;
-        closures = (Array.isArray(d.results) ? d.results : []).map((r) => {
-            const p = r.properties || {}, g = r.geometry || {};
-            const lines = g.type === 'LineString' ? [g.coordinates] : g.type === 'MultiLineString' ? g.coordinates : [];
-            const ll = lines.map((l) => l.filter((c) => isFinite(c[0]) && isFinite(c[1])).map((c) => fromLV95(c[0], c[1])));
-            return { type: 'Feature', geometry: { type: 'MultiLineString', coordinates: ll },
-                     properties: { kind: String(p.sperrungen_type || ''), title: String(p.title_en || p.title_de || ''),
-                                   reason: String(p.reason_en || ''), until: String(p.duration_en || ''), type: String(p.sperrungen_type_en || '') } };
-        }).filter((f) => f.geometry.coordinates.length);
+        // api3 gives 50 at a time; up to four pages, and at most 20 000 points of closures in all
+        const found = [];
+        let left = 20000;
+        for (let page = 0; page < 4; page++) {
+            const res = await fetch(base + '&offset=' + page * 50, { credentials: 'omit', referrerPolicy: 'no-referrer', signal });
+            if (!res.ok) throw new Error(res.status);
+            const d = await res.json();
+            if (id !== profileReq) return;
+            const got = Array.isArray(d.results) ? d.results : [];
+            got.forEach((r) => {
+                const p = r.properties || {}, g = r.geometry || {};
+                const lines = g.type === 'LineString' ? [g.coordinates] : g.type === 'MultiLineString' ? g.coordinates : [];
+                const ll = [];
+                lines.forEach((l) => {
+                    if (!Array.isArray(l) || left <= 0) return;
+                    const q = l.slice(0, left).filter((c) => Array.isArray(c) && isFinite(c[0]) && isFinite(c[1])).map((c) => fromLV95(c[0], c[1]));
+                    left -= q.length;
+                    if (q.length > 1) ll.push(q);
+                });
+                if (ll.length) found.push({ type: 'Feature', geometry: { type: 'MultiLineString', coordinates: ll },
+                                            properties: { kind: String(p.sperrungen_type || ''), title: String(p.title_en || p.title_de || ''),
+                                                          reason: String(p.reason_en || ''), until: String(p.duration_en || ''), type: String(p.sperrungen_type_en || '') } });
+            });
+            if (got.length < 50 || left <= 0) break;
+        }
+        closures = found;
         markClosed();
         drawRoutes();
         renderProfile();
     } catch (e) { /* no closures shown then */ }
 }
 function markClosed() {
+    // each closed way is compared only with the route points inside its box, widened by about 50 m
+    const boxes = closures.filter((c) => c.properties.kind === 'closed_way').map((c) => {
+        let w = 180, s = 90, e = -180, n = -90;
+        c.geometry.coordinates.forEach((l) => l.forEach((a) => { w = Math.min(w, a[0]); e = Math.max(e, a[0]); s = Math.min(s, a[1]); n = Math.max(n, a[1]); }));
+        return { c, w: w - 0.0007, e: e + 0.0007, s: s - 0.0005, n: n + 0.0005 };
+    });
     routes.forEach((r) => {
-        r.closed = closures.filter((c) => c.properties.kind === 'closed_way' && c.geometry.coordinates.some((l) => l.some((a, k) => k && r.pts.some((q, j) => j % 3 === 0 && nearSeg([q.lon, q.lat], l[k - 1], a) < 40))));
+        r.closed = boxes.filter((b) => {
+            const near = r.pts.filter((q) => q.lon >= b.w && q.lon <= b.e && q.lat >= b.s && q.lat <= b.n);
+            if (!near.length) return false;
+            // route points near the closure's segments, and the closure's points near the route's steps (a short closure between two route points)
+            if (b.c.geometry.coordinates.some((l) => l.some((a, k) => k && near.some((q) => nearSeg([q.lon, q.lat], l[k - 1], a) < 40)))) return true;
+            return r.pts.some((q, j) => j && (near.includes(q) || near.includes(r.pts[j - 1])) &&
+                               b.c.geometry.coordinates.some((l) => l.some((a) => nearSeg(a, [r.pts[j - 1].lon, r.pts[j - 1].lat], [q.lon, q.lat]) < 40)));
+        }).map((b) => b.c);
     });
 }
 /* metres from a point to a short segment (flat Earth, fine over a few hundred metres) */
@@ -258,6 +299,7 @@ function renderProfile() {
     $('ch-pf-undo').disabled = !profilePts.length;
     $('ch-pf-clear').disabled = !profilePts.length;
     // the chart takes room only once there is something to draw: before that the panel is just the hint and buttons
+    routeChooser();   // also empties the choices, warnings and legend of routes that are gone
     svg.toggleAttribute('hidden', !profileData);
     stats.hidden = !profileData;
     if (!profileData) {
@@ -266,7 +308,6 @@ function renderProfile() {
     }
     state.textContent = routeNote;
     const p = profileData, s = profileStats(p);
-    routeChooser();
     const W = 600, H = 150, L = 44, B = 22, T = 8;
     const maxD = p[p.length - 1].d || 1, lo = Math.floor((s.min - 20) / 50) * 50, hi = Math.ceil((s.max + 20) / 50) * 50;
     const X = (d) => L + (d / maxD) * (W - L - 6), Y = (h) => T + (1 - (h - lo) / (hi - lo || 1)) * (H - T - B);
@@ -337,6 +378,6 @@ function routeChooser() {
 function wireProfile() {
     $('ch-profile').addEventListener('click', () => setProfile(mode !== 'profile'));
     $('ch-profile-close').addEventListener('click', () => setProfile(false));
-    $('ch-pf-undo').addEventListener('click', () => { profilePts.pop(); fetchProfile(); });
-    $('ch-pf-clear').addEventListener('click', () => { profilePts = []; fetchProfile(); });
+    $('ch-pf-undo').addEventListener('click', () => { clearTimeout(profileWait); profilePts.pop(); fetchProfile(); });
+    $('ch-pf-clear').addEventListener('click', () => { clearTimeout(profileWait); profilePts = []; fetchProfile(); });
 }

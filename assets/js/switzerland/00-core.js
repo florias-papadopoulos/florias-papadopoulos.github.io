@@ -11,7 +11,8 @@
    - this site's own small files: summits, towns, borders and cantons (static/switzerland/, made by tools/swiss-map/);
    - only when the visitor turns them on: SLF's avalanche bulletin (aws.slf.ch), MeteoSwiss's stations and radar
      (data.geo.admin.ch), the temperature and cloud maps (api.open-meteo.com), NASA's snow cover
-     (gibs.earthdata.nasa.gov), the departures from St. Gallen (transport.opendata.ch). */
+     (gibs.earthdata.nasa.gov), the trains for Visitors (transport.opendata.ch), routes along trails (brouter.de,
+     OpenStreetMap data) with the official trail closures (ASTRA, through api3.geo.admin.ch). */
 const app = document.getElementById('ch-app');
 const $ = (id) => document.getElementById(id);
 const WMTS = 'https://wmts.geo.admin.ch/1.0.0/';

@@ -30,7 +30,9 @@ function onClick(e) {
     if (mode === 'profile') {
         // a tap on one of the other routes chooses it; anywhere else adds a point
         const other = routes.length > 1 && mapA.getLayer('rt-other') ? mapA.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: ['rt-other'] }) : [];
-        if (other.length) { selectRoute(other[0].properties.r); return; }
+        // the chosen route under the finger wins: there the tap adds a point (the routes often share stretches)
+        const chosen = other.length ? mapA.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: ['rt-case'] }) : [];
+        if (other.length && !chosen.length) { selectRoute(other[0].properties.r); return; }
         profileAdd(e.lngLat);
         return;
     }

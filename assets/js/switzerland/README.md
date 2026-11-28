@@ -13,7 +13,7 @@ can call another's. Check after a change: `cat assets/js/switzerland/[0-9]*.js >
 | 40-cards | what a tap shows: route point, visitors' place, summit, cave, airport, weather station, avalanche region, canton |
 | 50-profile | Route: up to three routes along trails between the tapped points (BRouter, OpenStreetMap data), coloured by difficulty like the trail signs, official closures (ASTRA via api3) flagged; the chosen route's heights, distance, climb and DIN 33466 walking time; the straight line (swisstopo profile) when BRouter cannot answer |
 | 60-live | Weather now (MeteoSwiss stations, a station's 10-minute values on a tap), snow cover from space (NASA GIBS, recoloured through chsnow://) and the nearest public transport stop on summit and cave cards |
-| 62-visitors | Visitors (St. Gallen guests): places with pins and cards, Ostwind tickets and area, next departures and weather |
+| 62-visitors | Visitors (St. Gallen guests): places with a kinds legend and filter, pins and cards, the airport train drawn on the map, Ostwind tickets and area, next departures and weather |
 | 64-weather | the Weather sheet's country-wide maps: rain radar (MeteoSwiss HDF5 read with jsfive, last hour playable), temperature and cloud cover now (ICON-CH1 via Open-Meteo); the Weather and Layers lists are built by part 30 |
 | 70-search-share | place search (swisstopo search service) and the view in the address (#lat,lon,zoom,bearing,pitch,map[,3d]), so a copied link reopens it |
 | 80-hud | the panels fade out while the map moves and come back when it stops |

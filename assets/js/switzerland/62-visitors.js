@@ -1,8 +1,10 @@
 /* Part 62: Visitors, for guests staying in St. Gallen. A sheet of its own (the suitcase in the icon row, or the link
-   /switzerland/#visitors) with three tabs: the places (data/switzerland.yaml, guests; numbered pins on the map, a
-   card each), the Ostwind day tickets (and the Ostwind area shaded on the map: static/switzerland/ostwind.json from
-   tools/swiss-map/make_ostwind.py), and now: the next departures from St. Gallen (transport.opendata.ch) and the
-   weather in St. Gallen and on the Säntis (MeteoSwiss, as part 60). The map moves to the region when it opens. */
+   /switzerland/#visitors) with three tabs: Places (data/switzerland.yaml, guests; a legend of kinds that also filters,
+   pins in the kind's colour, bubbles where they crowd, a card each), Travel (the trains from Zurich Airport, with the
+   next one drawn stop by stop from transport.opendata.ch, the Ostwind day ticket, and the Ostwind area shaded on the
+   map: static/switzerland/ostwind.json from tools/swiss-map/make_ostwind.py), and Now: the next departures from
+   St. Gallen (transport.opendata.ch) and the weather in St. Gallen and on the Säntis (MeteoSwiss, as part 60). The
+   map moves to the region when it opens. */
 const guests = facts.guests || { places: [], tickets: [] };
 const KINDS = guests.kinds || [];
 const kindOf = (p) => (Array.isArray(p.kinds) && p.kinds[0]) || '';
@@ -90,7 +92,7 @@ async function showTrip(from, to, title) {
                                 { credentials: 'omit', referrerPolicy: 'no-referrer' });
         if (!res.ok) throw new Error(res.status);
         const d = await res.json();
-        if (req !== tripReq) return;
+        if (req !== tripReq || !visitorsOn) return;
         const c = (d.connections || [])[0];
         const stops = [];
         ((c && c.sections) || []).forEach((sec) => {
@@ -98,7 +100,7 @@ async function showTrip(from, to, title) {
             if (!j || !Array.isArray(j.passList)) return;
             j.passList.forEach((p) => {
                 const co = p.station && p.station.coordinate, lat = Number(co && co.x), lon = Number(co && co.y);
-                const t = new Date(Number(p.departureTimestamp || p.arrivalTimestamp) * 1000);
+                const ts = Number(p.departureTimestamp || p.arrivalTimestamp), t = new Date(ts > 0 ? ts * 1000 : NaN);
                 if (!isFinite(lat) || !isFinite(lon) || lat < 44 || lat > 49 || lon < 5 || lon > 12) return;
                 if (stops.length && stops[stops.length - 1].name === String(p.station.name || '')) return;
                 stops.push({ name: String(p.station.name || ''), lon, lat, time: isNaN(t) ? '' : t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }),
@@ -122,7 +124,7 @@ async function showTrip(from, to, title) {
         let w = 180, so = 90, e = -180, n = -90;
         stops.forEach((q) => { w = Math.min(w, q.lon); e = Math.max(e, q.lon); so = Math.min(so, q.lat); n = Math.max(n, q.lat); });
         const pad = matchMedia('(max-width: 900px)').matches ? { top: 60, bottom: Math.round(innerHeight * 0.5), left: 30, right: 60 } : { top: 60, bottom: 60, left: 380, right: 340 };
-        mapA.fitBounds([[w, so], [e, n]], { padding: pad, pitch: 0, duration: reduced ? 0 : 1200 });
+        mapA.fitBounds([[w, so], [e, n]], { padding: pad, duration: reduced ? 0 : 1200 });
         card((b) => {
             b.append(el('p', 'ch-card-kind', 'By train'), el('h2', null, title));
             const dl = el('dl', 'ch-card-facts');
@@ -196,7 +198,7 @@ function buildVisitors() {
         const li = el('li');
         const b = el('button', 'ch-v-ticket ch-v-trip');
         b.type = 'button';
-        b.append(el('strong', 'ch-v-tname', String(a.name)), el('p', null, String(a.text)), el('span', 'ch-v-show', 'Show the train on the map'));
+        b.append(el('strong', 'ch-v-tname', String(a.name)), el('span', 'ch-v-ttext', String(a.text)), el('span', 'ch-v-show', 'Show the train on the map'));
         if (a.from && a.to) b.addEventListener('click', () => showTrip(String(a.from), String(a.to), String(a.name)));
         li.appendChild(b);
         al.appendChild(li);
