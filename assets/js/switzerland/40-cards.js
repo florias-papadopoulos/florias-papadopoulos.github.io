@@ -21,7 +21,7 @@ function onHover(e) {
     if (!hoverFrame) hoverFrame = requestAnimationFrame(() => { hoverFrame = 0; hoverCheck(hoverEvent); });
 }
 function hoverCheck(e) {
-    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves')) }).length;
+    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves', 'wx-dots', 'snow-dots')) }).length;
     mapA.getCanvas().style.cursor = hit ? 'pointer' : '';
 }
 function onClick(e) {
@@ -37,7 +37,9 @@ function onClick(e) {
             const c = cantonAt(e.point);
             if (c) row(dl, 'Canton', c.properties.name);
             b.appendChild(dl);
-            b.appendChild(el('p', 'ch-card-src', 'Name and height: swisstopo'));
+            b.appendChild(el('p', 'ch-card-src', 'Name and height: swisstopo. Stops: Federal Office of Transport.'));
+            const g = peaks[0].geometry && peaks[0].geometry.coordinates;
+            nearestStop(g ? g[0] : e.lngLat.lng, g ? g[1] : e.lngLat.lat, dl);
         });
         return;
     }
@@ -51,6 +53,7 @@ function onClick(e) {
                 const dl = el('dl', 'ch-card-facts');
                 (c.facts || []).forEach((x) => row(dl, String(x.label), String(x.value)));
                 b.appendChild(dl);
+                nearestStop(+c.lon, +c.lat, dl);
                 if (c.note) b.appendChild(el('p', 'ch-card-note', String(c.note)));
                 if (typeof c.link === 'string' && c.link.indexOf('https://') === 0) {
                     const a = el('a', 'ch-card-link', 'Official website');
@@ -72,6 +75,10 @@ function onClick(e) {
     if (layerOn.avalanche && avalanche) {
         const a = mapA.queryRenderedFeatures(e.point, { layers: ['avalanche'] });
         if (a.length && avalancheCard(a[0].properties.i)) { mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']); return; }
+    }
+    if (layerOn.weather && wx) {
+        const w = mapA.queryRenderedFeatures(e.point, { layers: visible(['wx-dots']) });
+        if (w.length) { mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']); weatherCard(w[0].properties); return; }
     }
     if (layerOn.snow && snow) {
         const sn = mapA.queryRenderedFeatures(e.point, { layers: visible(['snow-dots']) });

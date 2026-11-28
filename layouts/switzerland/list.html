@@ -69,7 +69,7 @@
                 {{- end }}
             </ul>
             <h2>Sources</h2>
-            <p class="ch-facts-src">Maps, terrain, names and heights: <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>. Avalanche bulletin: <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">WSL Institute for Snow and Avalanche Research SLF</a> (CC BY 4.0). Snow depths: <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a> (CC BY 4.0). Facts checked against two sources each: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
+            <p class="ch-facts-src">Maps, terrain, names and heights: <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>. Avalanche bulletin: <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">WSL Institute for Snow and Avalanche Research SLF</a> (CC BY 4.0). Snow depths and weather: <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a> (CC BY 4.0). Public transport stops: Federal Office of Transport (through swisstopo). Facts checked against two sources each: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
             <p class="ch-facts-src"><a href="{{ "privacy/" | relURL }}">Privacy</a>: what this map loads from whom. <button type="button" class="ch-link-btn" id="ch-forget">Forget my choice</button> to be asked again before the maps load.</p>
         </section>
         <section class="ch-panel ch-sheet ch-layers" id="ch-layers" hidden aria-labelledby="ch-layers-h">
@@ -152,7 +152,7 @@
 </div>
 <script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss "caves" $d.caves | jsonify | safeJS }}</script>
 {{- $parts := slice }}
-{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "70-search-share" "80-hud" "90-boot" }}
+{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-live" "70-search-share" "80-hud" "90-boot" }}
 {{- $parts = $parts | append (resources.Get (printf "js/switzerland/%s.js" .)) }}
 {{- end }}
 {{- $js := $parts | resources.Concat "js/switzerland.js" | minify | fingerprint }}
