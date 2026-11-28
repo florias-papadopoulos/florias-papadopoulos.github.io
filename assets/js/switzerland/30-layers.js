@@ -43,13 +43,16 @@ const LAYER_ICONS = {"guests": "M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 1
 const ALL_LAYERS = () => LAYERS.concat(WEATHER);
 /* the credits under the title name every source on the map (as the CC BY licences of SLF and MeteoSwiss and the ODbL of OpenStreetMap ask) */
 function credits() {
-    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.weather || layerOn.rain || layerOn.temp || layerOn.cloud ? ' · MeteoSwiss' : '') + (layerOn.temp || layerOn.cloud ? ' · Open-Meteo' : '') + (layerOn.snowcover ? ' · NASA' : '') + (routes.length ? ' · Routes © OpenStreetMap, BRouter' : '');
+    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.weather || layerOn.rain || layerOn.temp || layerOn.cloud ? ' · MeteoSwiss' : '') + (layerOn.temp || layerOn.cloud ? ' · Open-Meteo' : '') + (layerOn.snowcover ? ' · NASA' : '') + (routes.length || (typeof vRouteId !== 'undefined' && vRouteId) ? ' · Routes © OpenStreetMap, BRouter' : '');
 }
 
 function setLayer(def, on, opts) {
     layerOn[def.id] = on;
     if (def.id === 'guests' && on && styleReady) visitorsLayers();   // made on first use
-    if (def.id === 'guests') showOstwind();
+    if (def.id === 'guests') {
+        if ($('ch-v-pins')) $('ch-v-pins').checked = on;
+        if (!on) { closePlace(); clearTrip(); }   // the place panel, its path and a train go with the pins
+    }
     if (def.id === 'peaks') peakVisibility();
     else def.ids.forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
     const box = $('ch-ly-' + def.id);
@@ -81,6 +84,9 @@ function lockLayers(lock) {
         btn.disabled = true;
         btn.title = 'Layers are off in this mode';
         $('ch-weather-btn').disabled = true;
+        if ($('ch-v-pins')) $('ch-v-pins').disabled = true;
+        if (typeof closePlace === 'function') { closePlace(); clearTrip(); }
+        if (typeof showOstwind === 'function') showOstwind();
         $('ch-weather-btn').title = 'Weather maps are off in this mode';
     } else if (!lock && layersSaved) {
         const saved = layersSaved;
@@ -88,6 +94,8 @@ function lockLayers(lock) {
         btn.disabled = false;
         btn.title = 'Summits, caves, trails, slopes, glaciers and avalanches';
         $('ch-weather-btn').disabled = false;
+        if ($('ch-v-pins')) $('ch-v-pins').disabled = false;
+        if (typeof showOstwind === 'function') showOstwind();
         $('ch-weather-btn').title = 'Rain radar, temperature, clouds, weather stations, snow cover';
         ALL_LAYERS().forEach((d) => { if (d.id !== 'peaks' && saved[d.id]) setLayer(d, true, { restore: true }); });
     }

@@ -196,11 +196,17 @@ guests:
     - name: "Saver Day Pass, all of Switzerland"
       price: "from CHF 52"
       half: "from CHF 29"
-      note: "For the day trips beyond Ostwind: trains, buses and most boats in all of Switzerland for one day. The price rises as the passes sell: buy it 1 day to 6 months ahead in the SBB Mobile app."
-  tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich, Luzern and the places under \"Day trips further away\" are outside Ostwind."
-  # St. Gallen is the base. far: beyond the Ostwind area (an extra ticket). mins: the fastest trip from St. Gallen
-  # station (SBB timetable), which groups the list; months: when it is open or doable (none = all year); rain: good
-  # in bad weather; stop: the SBB stop for the card's train button. Facts and sources:
+      half_label: "With Half Fare"
+      note: "For the day trips beyond Ostwind: trains, buses and most boats in all of Switzerland for one day. These are the lowest prices: each day has a few cheap passes, and once they are sold the price goes up a lot (a few days ahead it can be about twice as much). Buy it as early as you can, 6 months to 1 day ahead, in the SBB Mobile app; not on the day itself."
+    - name: "Day Pass for Half Fare holders"
+      half: "CHF 81"
+      half_label: "With Half Fare"
+      note: "The fixed-price day pass for all of Switzerland, for holders of a Half Fare card; can be bought on the day. CHF 78 until 12 December 2026."
+  tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich, Luzern and the places marked \"Extra ticket\" are outside Ostwind."
+  # St. Gallen is the base. far: beyond the Ostwind area (an extra ticket). mins: the trip from St. Gallen station to
+  # the start (SBB timetable; the way inside Ostwind where there is one), which groups the list; months: when it is open or doable (none = all year); rain: good
+  # in bad weather; stop: the SBB stop for the card's train button; hike, grade (T1 to T3), line (a drawn path in
+  # static/switzerland/visitor-routes.json): the walk's key facts. Facts and sources:
   # __NotOnline/switzerland-guests/catalogue.md.
   places:
     # ---- near, with the Ostwind pass ----
@@ -245,6 +251,9 @@ guests:
       season: "26 November to 24 December 2026"
       link: "https://www.sternenstadt.ch/"
     - id: weieren
+      hike: "5.6 km · 1 h 30"
+      grade: T1
+      line: true
       mins: 10
       kinds: [walk, water, winter]
       name: "Drei Weieren to Wenigerweiher"
@@ -258,6 +267,9 @@ guests:
       season: "All year; in winter the paths can be icy, and the Buebenweiher is opened for skating when the ice holds"
       link: "https://www.muehleggbahn.ch/"
     - id: haggen
+      hike: "3 km · 45 min"
+      grade: T1
+      line: true
       mins: 10
       stop: "St. Gallen, Oberhofstetten"
       kinds: [walk]
@@ -376,6 +388,9 @@ guests:
       season: "All year"
       link: "https://www.appenzell.ch/en/appenzell.html"
     - id: ebenalp
+      hike: "6 km · 2 h 30 to 3 h"
+      grade: T2
+      line: true
       mins: 52
       months: [1, 2, 3, 5, 6, 7, 8, 9, 10, 11]
       stop: "Wasserauen"
@@ -392,6 +407,9 @@ guests:
       season: "Cable car closed until 24 December 2026, 30 March to 27 April and from 22 November 2027; last ride down 17:30 to 19:00 depending on the month. The loop June to October, when the Äscher and Schäfler inns are open"
       link: "https://www.ebenalp.ch/"
     - id: seealpsee
+      hike: "2.7 km · 1 h"
+      grade: T1
+      line: true
       mins: 51
       stop: "Wasserauen"
       kinds: [walk, water, winter]
@@ -420,6 +438,9 @@ guests:
       season: "1 December 2026 to 28 February 2027, only with natural snow; not for small children"
       link: "https://www.kronberg.ch/"
     - id: faelensee
+      hike: "12 km · 4 h"
+      grade: T2
+      line: true
       mins: 90
       months: [6, 7, 8, 9, 10]
       stop: "Frümsen, Rathaus / Staubern"
@@ -436,7 +457,7 @@ guests:
       season: "Late June to October; the cable car runs daily May to October, the Bollenwees inn mid-May to October"
       link: "https://www.staubern.ch/bergbahn/"
     - id: walensee
-      mins: 70
+      mins: 95
       stop: "Murg"
       kinds: [water]
       name: "Walensee and Quinten"
@@ -450,6 +471,9 @@ guests:
       season: "The crossing to Quinten runs all year"
       link: "https://walenseeschiff.ch/"
     - id: flumserberg
+      hike: "15 km · 5 h 30"
+      grade: T2
+      line: true
       mins: 110
       months: [6, 7, 8, 9, 10]
       stop: "Unterterzen"
@@ -466,6 +490,9 @@ guests:
       season: "Lifts 12 June to 24 October 2027"
       link: "https://www.flumserberg.ch/en/tour/7-Peak-Tour-Flumserberg_23430142"
     - id: pizol
+      hike: "10 km · 4 h"
+      grade: T2
+      line: true
       mins: 77
       months: [7, 8, 9, 10]
       stop: "Wangs, Pizolbahn"
@@ -482,6 +509,9 @@ guests:
       season: "July to October (snow can lie until early July); be at the Gaffia chairlift by 16:30"
       link: "https://pizol.com/wanderwege/5-seen-wanderung/"
     - id: batoeni
+      hike: "8 km · 3 h 20"
+      grade: T2
+      line: true
       mins: 106
       months: [7, 8, 9, 10]
       stop: "Weisstannen, Oberdorf"
@@ -543,6 +573,9 @@ guests:
       season: "Courtyard all year; chapel and rose garden Sundays May to October, 10:00 to 17:00"
       link: "https://www.burg-gutenberg.li/"
     - id: braunwald
+      hike: "9 km · 2 h 30 to 3 h"
+      grade: T1
+      line: true
       mins: 106
       months: [5, 6, 7, 8, 9, 10]
       stop: "Linthal Braunwaldbahn"
@@ -560,6 +593,8 @@ guests:
       know: "The path down from Brunnenberg is closed (fallen trees): if the cable car does not run, walk back to Braunwald"
       link: "https://www.braunwald.ch/"
     - id: schraehbach
+      hike: "13 km · 3 h 30 round the lake"
+      grade: T1
       mins: 105
       stop: "Innerthal, Staumauer"
       kinds: [water, walk]
@@ -610,7 +645,7 @@ guests:
       lat: 47.67772
       why: "Europe's most powerful waterfall, from platforms right above the water at Schloss Laufen or free from the north bank."
       trip: "Inside Ostwind about 2 h (S1 to Schaffhausen, then 5 min to Schloss Laufen am Rheinfall); 1 h via Winterthur needs another ticket"
-      ostwind: "yes, the way via Schaffhausen"
+      ostwind: "yes, with the S1 to Schaffhausen"
       extra: "Schloss Laufen side CHF 5, children CHF 3; rock boat CHF 22.50"
       season: "Platforms all year; no boats 30 November 2026 to 26 February 2027, the rock boat April to October; lights at Schloss Laufen until 3 January 2027"
       know: "Arrive at Schloss Laufen, cross the railway bridge on foot to the free north bank and leave from Neuhausen Rheinfall"
@@ -626,7 +661,7 @@ guests:
       lat: 47.69454
       why: "More than 230 watches and archive pieces on the Schaffhausen watchmaker since 1868, a short walk from the old town and the Rhine."
       trip: "Inside Ostwind 1 h 54 (S1 direct), then 10 min on foot; 1 h 09 via Winterthur needs another ticket"
-      ostwind: "yes, the way via Kreuzlingen"
+      ostwind: "yes, with the S1 (the way along the lake)"
       extra: "CHF 10, children up to 16 free"
       season: "Tuesday to Friday 9:00 to 17:30, Saturday 9:00 to 15:30; closed 25 to 28 December and 1 to 4 January"
       know: "Register online to be safe. Pairs with the Rhine Falls"
@@ -666,6 +701,9 @@ guests:
       season: "All year on set dates; 6 °C inside, bring warm clothes and sturdy shoes"
       link: "https://www.trekking.ch/hoelloch"
     - id: flims
+      hike: "15.6 km · 5 h (short loop 10 km)"
+      grade: T1
+      line: true
       mins: 125
       stop: "Flims Waldhaus, Camping"
       far: true
@@ -682,6 +720,9 @@ guests:
       season: "May to October (go early: the two small lakes dry out); in winter a groomed path past Il Spir and the Caumasee"
       link: "https://www.flimslaax.com/en/outdoor-activities/mountain-lakes/lake-cauma"
     - id: lenzerheide
+      hike: "3.5 km · 1 h"
+      grade: T3
+      line: true
       mins: 134
       months: [7, 8, 9, 10]
       stop: "Lenzerheide/Lai, Post"
@@ -698,24 +739,44 @@ guests:
       extra: "Rothorn CHF 36 one way, Urdenbahn CHF 9 (no Half Fare), or the crossing ticket CHF 50 (2026)"
       season: "Lifts daily 25 June to 17 October 2027; last Urdenbahn 16:30"
       link: "https://arosalenzerheide.swiss/"
-    - id: davos
-      mins: 152
-      months: [12, 1, 2, 3, 6, 7, 8, 9, 10]
+    - id: schatzalp
+      mins: 162
+      months: [11, 12, 1, 2, 3, 5, 6, 7, 8, 9, 10]
       stop: "Davos Platz"
       far: true
-      kinds: [winter, hike]
-      name: "Davos: Schatzalp and Jakobshorn"
+      kinds: [winter, culture]
+      name: "Schatzalp, Davos"
+      area: "Graubünden"
+      lon: 9.82146
+      lat: 46.79714
+      why: "The old 'Magic Mountain' sanatorium of 1900 above Davos, reached by a funicular of 1899: a 2.8 km sledge run down to the town in winter, an alpine garden of mountain plants in summer."
+      trip: "2 h 32 to Davos Platz (change at Landquart), then 10 min on foot to the funicular"
+      walk: "Winter: the sledge run 2.8 km down to Davos Platz"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Funicular CHF 10 one way, CHF 20 return; sledging day ticket CHF 36; sledge hire CHF 10 at the bottom"
+      season: "Funicular 28 November 2026 to 21 March 2027 (the sledge run from mid-December, with snow); summer 2027 dates not out yet (2026: 1 May to 25 October)"
+      link: "https://www.schatzalp.ch/en/sledging/"
+    - id: jakobshorn
+      mins: 152
+      months: [12, 1, 2, 3, 4, 6, 7, 8, 9, 10]
+      stop: "Davos Platz"
+      far: true
+      kinds: [hike, winter]
+      name: "Jakobshorn, Davos"
       area: "Graubünden"
       lon: 9.82212
       lat: 46.79168
-      why: "Two mountain days in one valley: the old 'Magic Mountain' sanatorium of Schatzalp with a sledge run and an alpine garden, or a cable car up the 2,590 m Jakobshorn."
-      trip: "2 h 32: train to Landquart, RE to Davos Platz; back about 2 h 30"
-      walk: "Winter: Schatzalp sledge run 2.8 km down to Davos. Summer: the ridge from the Jakobshorn over the Jatzhorn"
+      why: "A cable car from beside Davos Platz station up to the 2,590 m Jakobshorn: a ridge walk over the Jatzhorn in summer, a short walk to the Stadlersee and a snowshoe trail in winter."
+      trip: "2 h 32 to Davos Platz (change at Landquart); the cable car is next to the station"
       ostwind: "no: a Saver Day Pass"
-      extra: "Schatzalp funicular CHF 10 one way, sledge day CHF 36, sledge hire CHF 10; Jakobshorn return CHF 51 in winter, CHF 50 in summer"
-      season: "Schatzalp funicular 28 November 2026 to 21 March 2027 (sledge run from mid-December, with snow); Jakobshorn summer 12 June to 17 October 2027"
-      link: "https://www.davos.ch/"
+      extra: "Up and down CHF 51 in winter, CHF 50 in summer"
+      season: "Winter 4 December 2026 to 11 April 2027; summer 12 June to 17 October 2027"
+      know: "Cold and windy at the top in winter"
+      link: "https://www.davos.ch/en/discover/mountains/jakobshorn"
     - id: joeriseen
+      hike: "11 km · 4 h 30"
+      grade: T3
+      line: true
       mins: 170
       months: [7, 8, 9, 10]
       stop: "Davos Dorf"
@@ -747,6 +808,9 @@ guests:
       season: "All year from the road"
       link: "https://www.tor-alva.ch/de/"
     - id: corvatsch
+      hike: "9 km · 3 h 30"
+      grade: T2
+      line: true
       mins: 240
       months: [7, 8, 9, 10]
       stop: "Surlej, Corvatschbahn"
@@ -763,23 +827,43 @@ guests:
       extra: "Lifts about CHF 80 to 90 for the day (2026)"
       season: "Corvatsch 19 June and Furtschellas 26 June to 22 October 2027; last ride down at Furtschellas 17:05"
       link: "https://www.corvatsch-diavolezza.ch/"
-    - id: meiringen
-      mins: 219
-      months: [5, 6, 7, 8, 9, 10]
-      stop: "Meiringen"
+    - id: aareschlucht
+      hike: "1.4 km · 1 h"
+      grade: T1
+      mins: 221
+      months: [4, 5, 6, 7, 8, 9, 10]
+      stop: "Aareschlucht West"
       far: true
-      kinds: [water, culture]
-      name: "Aare Gorge and Reichenbach Falls"
+      kinds: [water]
+      name: "Aare Gorge"
       area: "Meiringen"
       lon: 8.20482
       lat: 46.72009
-      why: "Wooden walkways along a narrow canyon just above the Aare, and a funicular of 1899 to the falls where Conan Doyle sent Sherlock Holmes over the edge."
-      trip: "3 h 39: train via Luzern to Meiringen; home 16:41, St. Gallen about 20:10"
-      walk: "Through the gorge 1.4 km, about 1 h one way, then the train back"
+      why: "Wooden walkways and short tunnels along a narrow limestone canyon, just above the rushing Aare."
+      trip: "3 h 41: train via Luzern to Meiringen, then 2 min to Aareschlucht West; home from Meiringen 16:41, St. Gallen about 20:10"
+      walk: "Through the gorge 1.4 km, about 1 h one way, then the train back from Aareschlucht Ost"
       ostwind: "no: a Saver Day Pass"
-      extra: "Gorge CHF 13, funicular CHF 15 return, both together CHF 25; Sherlock Holmes Museum CHF 7"
-      season: "Best 6 May to 3 October 2027, when both are open; closed in winter (the museum opens weekend afternoons)"
+      extra: "CHF 13, children 6 to 15 CHF 8; with the Reichenbach funicular CHF 25"
+      season: "West entrance 26 March to 1 November 2027, 8:30 to 17:30 (summer to 18:30); you can walk through only from 6 May, when the East entrance opens"
+      know: "Pairs with the Reichenbach Falls in one day"
       link: "https://www.aareschlucht.ch/"
+    - id: reichenbach
+      mins: 226
+      months: [5, 6, 7, 8, 9]
+      stop: "Willigen (Reichenbachfallbahn)"
+      far: true
+      kinds: [culture, water]
+      name: "Reichenbach Falls"
+      area: "Meiringen"
+      lon: 8.18771
+      lat: 46.71949
+      why: "A wooden funicular of 1899 climbs beside a big waterfall to the spot where Conan Doyle sent Sherlock Holmes over the edge in 'The Final Problem'."
+      trip: "3 h 39 to Meiringen, then bus 174 to Willigen, Reichenbachfallbahn (5 min)"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Funicular CHF 15 return, children CHF 10; Sherlock Holmes Museum in Meiringen CHF 7"
+      season: "Funicular 1 May to 3 October 2027, 9:00 to 17:30; the museum also opens weekend afternoons in winter"
+      know: "Pairs with the Aare Gorge in one day"
+      link: "https://www.grimselwelt.ch/en/railways/reichenbachfall-bahn/"
     - id: bellinzona
       mins: 209
       stop: "Bellinzona"
@@ -828,6 +912,9 @@ guests:
       season: "Funicular closed 9 November 2026 to 12 March 2027; from 13 March daily 9:00 to 18:00 (July and August until 22:30)"
       link: "https://www.montesansalvatore.ch/"
     - id: luenersee
+      hike: "9 km · 3 to 4 h"
+      grade: T2
+      line: true
       mins: 170
       months: [6, 7, 8, 9, 10]
       stop: "Bludenz"

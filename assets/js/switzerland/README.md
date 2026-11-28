@@ -9,13 +9,13 @@ can call another's. Check after a change: `cat assets/js/switzerland/[0-9]*.js >
 | 00-core | constants, shared state, helpers (cards' small builders, LV95 formulas), the first map's style, start(), the four base maps (Map: swisstopo's light base map from static/switzerland/lightbase.json; Topo: the national map), the modes (one at a time), the left sheets, the map controls |
 | 10-compare | Then and now (a second map with an old national map, clipped at the divider) |
 | 20-terrain | 3D (swisstopo terrain, made by terrain-worker.js); the Sun feature was removed (kept in __NotOnline/switzerland-sun) |
-| 30-layers | the Layers panel: summits, trails, slopes, ski and snowshoe routes, glaciers (with Go to), avalanche bulletin (SLF) |
+| 30-layers | the Layers panel: Visitor places, summits, trails, slopes, ski and snowshoe routes, glaciers (with Go to), avalanche bulletin (SLF); the credits under the title |
 | 40-cards | what a tap shows: route point, visitors' place, summit, cave, airport, weather station, avalanche region, canton |
 | 50-profile | Route: up to three routes along trails between the tapped points (BRouter, OpenStreetMap data), coloured by difficulty like the trail signs, official closures (ASTRA via api3) flagged; the chosen route's heights, distance, climb and DIN 33466 walking time; the straight line (swisstopo profile) when BRouter cannot answer |
 | 60-live | Weather now (MeteoSwiss stations, a station's 10-minute values on a tap), snow cover from space (NASA GIBS, recoloured through chsnow://) and the nearest public transport stop on summit and cave cards |
-| 62-visitors | Visitors (St. Gallen guests): places with a kinds legend and filter, pins and cards, the airport train drawn on the map, Ostwind tickets and area, next departures and weather |
+| 62-visitors | Visitors, the main view (St. Gallen as the base): places grouped by the time from St. Gallen, chips for kinds, time groups and a rainy day, an open-this-month switch, pins on their own switch; a place's panel at the bottom with its path (visitor-routes.json), the next train, the forecast (Open-Meteo), a share link (#visitors/id) and My plan (localStorage ch-plan, sent as #plan=); the airport train, tickets, the Ostwind area on request, next departures and weather |
 | 64-weather | the Weather sheet's country-wide maps: rain radar (MeteoSwiss HDF5 read with jsfive, last hour playable), temperature and cloud cover now (ICON-CH1 via Open-Meteo); the Weather and Layers lists are built by part 30 |
-| 70-search-share | place search (swisstopo search service) and the view in the address (#lat,lon,zoom,bearing,pitch,map[,3d]), so a copied link reopens it |
+| 70-search-share | place search (swisstopo search service) and the view in the address (#lat,lon,zoom,bearing,pitch,map[,3d][,v], v = Visitors open), so a copied link reopens it; Visitors' own links are read in part 62 |
 | 80-hud | the panels fade out while the map moves and come back when it stops |
 | 90-boot | wiring of the controls, the facts drawer, and the question before anything loads |
 

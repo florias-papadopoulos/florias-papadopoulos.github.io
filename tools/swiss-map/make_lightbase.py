@@ -23,6 +23,7 @@ for l in s['layers']:
 # the site's choices (2026-11-28, by the owner): names in normal letters (no capitals); when zoomed out only the
 # cities of 50,000 people or more, plus the tourist towns visitors look for; towns from zoom 9, villages from 11; no
 # country name across the map
+SWISS = ['Schweiz', 'Suisse', 'Svizzera', 'Svizra', 'Switzerland']
 KEEP = ['Lugano', 'Sion', 'Chur', 'Interlaken', 'Zermatt', 'St. Moritz', 'Davos', 'Grindelwald']
 pop = ['to-number', ['get', 'population'], 0]
 kept = []
@@ -45,6 +46,19 @@ for l in layers:
         k['minzoom'] = 5
         k['filter'] = ['all', ['match', ['get', 'class'], ['town', 'village'], True, False], ['in', ['get', 'name:latin'], ['literal', KEEP]]]
         kept.append(k)
+    if l['id'] == 'lb-boundary':
+        # Switzerland's own borders as swisstopo draws them; the borders of its neighbours with each other (Liechtenstein
+        # and Austria) thinner and paler, so Liechtenstein does not look like part of Switzerland (owner, 2026-11-28)
+        swiss = lambda side: ['match', ['coalesce', ['get', 'adm2_' + side], ''], SWISS, True, False]
+        base = ['all', ['match', ['get', 'admin_level'], [2, 4], True, False], ['!=', ['get', 'maritime'], 1],
+                ['!=', ['get', 'disputed'], 1], ['==', ['geometry-type'], 'LineString']]
+        l['filter'] = base + [['any', ['!=', ['get', 'admin_level'], 2], swiss('l'), swiss('r')]]
+        f = json.loads(json.dumps(l))
+        f['id'] = 'lb-boundary_foreign'
+        f['filter'] = base + [['==', ['get', 'admin_level'], 2], ['!', swiss('l')], ['!', swiss('r')]]
+        f['paint'] = {'line-color': 'hsl(300, 18%, 72%)', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.8, 12, 1.6],
+                      'line-dasharray': [3, 2]}
+        kept.append(f)
     kept.append(l)
 layers = kept
 out = {'version': s.get('metadata', {}).get('version') or s.get('name'), 'sprite': s['sprite'], 'glyphs': s['glyphs'],

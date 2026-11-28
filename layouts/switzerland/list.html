@@ -13,7 +13,7 @@
      data-terrain-worker="{{ (resources.Get "js/switzerland/terrain-worker.js" | minify | fingerprint).RelPermalink }}"
      data-decoder="{{ printf "engines/%s/index.js" $eng.decoder | relURL }}"
      data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-border="{{ "switzerland/border.json" | relURL }}"
-     data-ostwind="{{ "switzerland/ostwind.json" | relURL }}" data-vroutes="{{ "switzerland/visitor-routes.json" | relURL }}" data-lightbase="{{ "switzerland/lightbase.json" | relURL }}"
+     data-ostwind="{{ "switzerland/ostwind.json" | relURL }}" data-vroutes="{{ "switzerland/visitor-routes.json" | relURL }}" data-photos="{{ "switzerland/places/" | relURL }}" data-lightbase="{{ "switzerland/lightbase.json" | relURL }}"
      data-jsfive="{{ printf "engines/%s/index.mjs" $eng.jsfive | relURL }}"
      data-cantons-fine="{{ "switzerland/cantons-fine.json" | relURL }}" data-border-fine="{{ "switzerland/border-fine.json" | relURL }}"
      data-peaks="{{ "switzerland/peaks.json" | relURL }}" data-towns="{{ "switzerland/towns.json" | relURL }}" data-home="{{ "" | relURL }}">
@@ -44,10 +44,8 @@
                     {{- with $d.guests }}
                     <button type="button" class="ch-icon-btn" id="ch-visitors-btn" aria-expanded="false" aria-controls="ch-visitors" title="For visitors: places, tickets, next trains" aria-label="For visitors"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="16.5" cy="7" r="2.6"/><path d="M16.5 2.2v1M21.3 7h-1M19.9 3.6l-.7.7M2.5 20l6-9 3.5 5 2.5-3 5.5 7z"/></svg></button>
                     {{- end }}
-                    <button type="button" class="ch-icon-btn" id="ch-facts-btn" aria-expanded="false" aria-controls="ch-facts" title="About this map: facts, trail signs, sources, privacy" aria-label="About this map"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></button>
-                    {{- with $d.instagram }}
-                    <a class="ch-icon-btn" href="{{ . }}" target="_blank" rel="noopener noreferrer" title="My trip photos on Instagram" aria-label="My trip photos on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></a>
-                    {{- end }}
+                    <button type="button" class="ch-icon-btn" id="ch-facts-btn" aria-expanded="false" aria-controls="ch-facts" title="Facts, trail signs, sources and privacy" aria-label="Facts and sources"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3h8l4 4v14h-12z"/><path d="M14.5 3v4h4M9 12h6.5M9 15.5h6.5M9 8.5h3"/></svg></button>
+                    <button type="button" class="ch-icon-btn" id="ch-about-btn" aria-expanded="false" aria-controls="ch-about" title="About this map" aria-label="About this map"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></button>
                 </div>
             </div>
             <div class="ch-search-box" id="ch-search-box" role="search" hidden>
@@ -56,9 +54,17 @@
                 <ul class="ch-results" id="ch-results" hidden></ul>
             </div>
         </header>
+        <section class="ch-panel ch-sheet ch-about" id="ch-about" hidden aria-labelledby="ch-about-h">
+            <div class="ch-dock-head"><h2 id="ch-about-h">About this map</h2><button type="button" class="ch-close" id="ch-about-close" aria-label="Close">×</button></div>
+            <p>This is my map of Switzerland, made for friends, family and anyone visiting St. Gallen. The places on it are ones I have been to and liked: walks, hikes, lakes, museums and winter days out, each with how to get there from St. Gallen by train and bus.</p>
+            <p>It is still being built. More places, my own photos and more details will keep coming. The facts were checked against two sources each, but prices, seasons and timetables change, so look at the official website before you go.</p>
+            {{- with $d.instagram }}
+            <p class="ch-about-insta">Pictures from these places are on my Instagram: <a href="{{ . }}" target="_blank" rel="noopener noreferrer">open Instagram</a>.</p>
+            {{- end }}
+        </section>
         <section class="ch-panel ch-sheet ch-facts" id="ch-facts" hidden aria-labelledby="ch-facts-h">
             <div class="ch-facts-head ch-head-bare">
-                <h2 id="ch-facts-h" class="ch-vh">About this map</h2>
+                <h2 id="ch-facts-h" class="ch-vh">Facts and sources</h2>
                 <button type="button" class="ch-close" id="ch-facts-close" aria-label="Close">×</button>
             </div>
             {{- /* first-time visitors: data/switzerland.yaml (visitors), each tip checked against two sources */}}
@@ -75,7 +81,7 @@
                 {{- end }}
             </ul>
             <h2>Sources</h2>
-            <p class="ch-facts-src">Maps, terrain, names and heights: <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>. Avalanche bulletin: <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">WSL Institute for Snow and Avalanche Research SLF</a> (CC BY 4.0). Weather: <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a> (CC BY 4.0). Public transport stops: Federal Office of Transport (through swisstopo). Temperature and cloud cover now: MeteoSwiss model ICON-CH1 through <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> (CC BY 4.0). Snow cover from space: imagery from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS). Routes along trails: <a href="https://brouter.de/" target="_blank" rel="noopener noreferrer">BRouter</a> with map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors (ODbL); trail closures: Federal Roads Office ASTRA (through swisstopo). Trains: SBB timetable through <a href="https://transport.opendata.ch/" target="_blank" rel="noopener noreferrer">transport.opendata.ch</a>. Facts checked against two sources each: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
+            <p class="ch-facts-src">Maps, terrain, names and heights: <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>. Avalanche bulletin: <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">WSL Institute for Snow and Avalanche Research SLF</a> (CC BY 4.0). Weather: <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a> (CC BY 4.0). Public transport stops: Federal Office of Transport (through swisstopo). Temperature and cloud cover now, and the forecast at the Visitors places: MeteoSwiss model ICON-CH1 and others through <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> (CC BY 4.0). Snow cover from space: imagery from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS). Routes along trails: <a href="https://brouter.de/" target="_blank" rel="noopener noreferrer">BRouter</a> with map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors (ODbL); trail closures: Federal Roads Office ASTRA (through swisstopo). Trains: SBB timetable through <a href="https://transport.opendata.ch/" target="_blank" rel="noopener noreferrer">transport.opendata.ch</a>. Facts checked against two sources each: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
             <p class="ch-facts-src"><a href="{{ "privacy/" | relURL }}">Privacy</a>: what this map loads from whom. <button type="button" class="ch-link-btn" id="ch-forget">Forget my choice</button> to be asked again before the maps load.</p>
         </section>
         <section class="ch-panel ch-sheet ch-layers" id="ch-layers" hidden aria-labelledby="ch-layers-h">
@@ -105,7 +111,9 @@
                 <button type="button" class="ch-v-tab" role="tab" data-tab="now" aria-selected="false">Now</button>
             </div>
             <div class="ch-v-pane" data-tab="places" role="tabpanel">
-                <div class="ch-v-kinds" id="ch-v-kinds" role="group" aria-label="Show only"></div>
+                <div class="ch-v-kinds" id="ch-v-kinds" role="group" aria-label="Kinds of places shown"></div>
+                <div class="ch-v-kinds" id="ch-v-times" role="group" aria-label="How far from St. Gallen"></div>
+                <label class="ch-ly-row ch-v-owrow"><span class="ch-ly-name">Places on the map</span><input type="checkbox" id="ch-v-pins" checked></label>
                 <label class="ch-ly-row ch-v-owrow"><span class="ch-ly-name" id="ch-v-open-name">Open this month</span><input type="checkbox" id="ch-v-open"></label>
                 <label class="ch-ly-row ch-v-owrow"><span class="ch-v-key"></span><span class="ch-ly-name">Ostwind area on the map</span><input type="checkbox" id="ch-v-ostwind"></label>
                 <div id="ch-v-plan"></div>
@@ -152,6 +160,11 @@
         <button type="button" class="ch-base" role="radio" aria-checked="{{ cond (eq (index . 0) "map") "true" "false" }}" data-base="{{ index . 0 }}"><img src="{{ printf "switzerland/%s.jpg" (index . 0) | relURL }}" alt="" width="46" height="46"><span>{{ index . 1 }}</span></button>
         {{- end }}
     </div>
+
+    <section class="ch-panel ch-dock ch-place" id="ch-place" hidden aria-live="polite" aria-label="Place">
+        <button type="button" class="ch-close" id="ch-place-close" aria-label="Close">×</button>
+        <div id="ch-place-body"></div>
+    </section>
 
     <div class="ch-panel ch-dock ch-years" id="ch-years" hidden>
         <label for="ch-year">Old map</label>

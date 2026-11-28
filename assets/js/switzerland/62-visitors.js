@@ -28,9 +28,11 @@ function fmtMins(m) {
 const V_GROUPS = [{ max: 20, name: 'In town' }, { max: 60, name: 'Under 1 h' }, { max: 119, name: '1 to 2 h' }, { max: Infinity, name: 'Long day (2 h and more)' }];
 const groupOf = (p) => V_GROUPS.findIndex((g) => (Number(p.mins) || 0) <= g.max);
 const V_ORDER = PLACES.map((p, i) => i).sort((a, b) => (Number(PLACES[a].mins) || 0) - (Number(PLACES[b].mins) || 0) || a - b);
-let vKind = '';     // a kind, 'rain' (good in bad weather) or '' (all)
+const kindOff = new Set(), groupOff = new Set();   // the kinds and the time groups turned off (some, or all)
+let vRain = false;  // only places good in bad weather
 let vOpen = false;  // only what is open this month
-const shown = (p) => (!vKind || (vKind === 'rain' ? !!p.rain : (p.kinds || []).includes(vKind))) && (!vOpen || isOpen(p, thisMonth()));
+const shown = (p) => (p.kinds || []).some((k) => !kindOff.has(k)) && !groupOff.has(groupOf(p)) && (!vRain || !!p.rain) && (!vOpen || isOpen(p, thisMonth()));
+const LINES = new Set(PLACES.filter((p) => p.line).map((p) => String(p.id)));   // the places with a drawn path
 function guestFeatures() {
     return PLACES.map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] },
         properties: { i, name: String(p.name), colour: kindColour(kindOf(p)) } })).filter((f) => shown(PLACES[f.properties.i]));
@@ -48,11 +50,11 @@ function visitorsLayers() {
     showOstwind();
     // every pin at its own place, in its kind's colour; names from closer in
     mapA.addSource('guests', { type: 'geojson', data: { type: 'FeatureCollection', features: guestFeatures() } });
-    mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests',
+    mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests', layout: { visibility: layerOn.guests ? 'visible' : 'none' },
                     paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 4.5, 10, 7, 13, 9], 'circle-color': ['get', 'colour'],
                              'circle-stroke-color': '#ffffff', 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 1.5, 10, 2] } });
     mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 10.5,
-                    layout: { 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1], 'text-anchor': 'top', 'text-padding': 2 },
+                    layout: { visibility: layerOn.guests ? 'visible' : 'none', 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1], 'text-anchor': 'top', 'text-padding': 2 },
                     paint: { 'text-color': '#1f2937', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
 }
 function showVisitors(on) {
@@ -60,47 +62,56 @@ function showVisitors(on) {
     if (on && !styleReady) { onLoad.push(() => { if (!$('ch-visitors').hidden) showVisitors(true); }); return; }
     visitorsOn = on;
     // the sheet turns the place pins on; they stay when it closes (Layers, Visitor places, turns them off)
-    if (on && !layerOn.guests) setLayer(LAYERS.find((d) => d.id === 'guests'), true);
+    // (not in Then and now, which keeps the extra layers off until it ends)
+    if (on && !layerOn.guests && !layersSaved) setLayer(LAYERS.find((d) => d.id === 'guests'), true);
     ['trip-line', 'trip-stop', 'trip-name'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
     if (on) vTab(vCurrent);
     else { clearInterval(depTimer); depTimer = null; }
+    writeHash();
 }
 /* the Ostwind area, shaded only while its switch is on */
 function showOstwind() {
-    ['ostwind-fill', 'ostwind-edge'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', layerOn.guests && ostwindOn ? 'visible' : 'none'));
+    ['ostwind-fill', 'ostwind-edge'].forEach((id) => mapA.getLayer(id) && mapA.setLayoutProperty(id, 'visibility', ostwindOn && !layersSaved ? 'visible' : 'none'));
 }
 
 /* ---- a hike's line, drawn while its card is open, in the trail sign colours (as the Route tool) ---- */
 let vRoutes = null, vRouteId = '';
 async function showVRoute(id, move) {
     vRouteId = id;
+    if (!LINES.has(id)) { clearVRoute(); return; }
     if (!vRoutes) {
         try { const r = await fetch(app.dataset.vroutes, { credentials: 'omit' }); vRoutes = r.ok ? await r.json() : { features: [] }; }
         catch (e) { vRoutes = { features: [] }; }
     }
     if (vRouteId !== id || !mapA || !styleReady) return;
     const f = (Array.isArray(vRoutes.features) ? vRoutes.features : []).filter((x) => x && x.properties && x.properties.id === id);
-    if (!mapA.getSource('vroute')) {
-        mapA.addSource('vroute', { type: 'geojson', data: EMPTY });
+    if (!mapA.getLayer('vroute-case')) {
+        if (!mapA.getSource('vroute')) mapA.addSource('vroute', { type: 'geojson', data: EMPTY });
+        const under = mapA.getLayer('guests-dot') ? 'guests-dot' : undefined;
         mapA.addLayer({ id: 'vroute-case', type: 'line', source: 'vroute', layout: { 'line-join': 'round', 'line-cap': 'round' },
-                        paint: { 'line-color': ['case', ['==', ['get', 'diff'], 1], '#6b5a00', '#ffffff'], 'line-width': ['case', ['==', ['get', 'diff'], 1], 7, 8] } }, 'guests-dot');
+                        paint: { 'line-color': ['case', ['==', ['get', 'diff'], 1], '#6b5a00', '#ffffff'], 'line-width': ['case', ['==', ['get', 'diff'], 1], 7, 8] } }, under);
         mapA.addLayer({ id: 'vroute-fill', type: 'line', source: 'vroute', layout: { 'line-join': 'round', 'line-cap': 'round' },
-                        paint: { 'line-color': ['match', ['get', 'diff'], 1, DIFF_COLOUR[1], 2, DIFF_COLOUR[2], DIFF_COLOUR[3]], 'line-width': ['case', ['==', ['get', 'diff'], 1], 5, 3] } }, 'guests-dot');
+                        paint: { 'line-color': ['match', ['get', 'diff'], 1, DIFF_COLOUR[1], 2, DIFF_COLOUR[2], DIFF_COLOUR[3]], 'line-width': ['case', ['==', ['get', 'diff'], 1], 5, 3] } }, under);
     }
     mapA.getSource('vroute').setData({ type: 'FeatureCollection', features: f });
+    credits();
     if (move && f.length) {
         let w = 180, s = 90, e = -180, n = -90;
-        f.forEach((x) => x.geometry.coordinates.forEach((c) => { w = Math.min(w, c[0]); e = Math.max(e, c[0]); s = Math.min(s, c[1]); n = Math.max(n, c[1]); }));
-        mapA.fitBounds([[w, s], [e, n]], { padding: cardPad(), maxZoom: 14, duration: reduced ? 0 : 1200 });
+        f.forEach((x) => (Array.isArray(x.geometry && x.geometry.coordinates) ? x.geometry.coordinates : []).forEach((c) => { w = Math.min(w, c[0]); e = Math.max(e, c[0]); s = Math.min(s, c[1]); n = Math.max(n, c[1]); }));
+        mapA.fitBounds([[w, s], [e, n]], { padding: cardPad(), maxZoom: 14, bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
     }
 }
 function clearVRoute() {
     vRouteId = '';
     if (mapA && mapA.getSource('vroute')) mapA.getSource('vroute').setData(EMPTY);
+    if (mapA) credits();
 }
-/* room for the sheet and the card around what is shown */
+/* room around what is shown: the Visitors sheet on the left, the place panel at the bottom, the tools on the right */
 function cardPad() {
-    return matchMedia('(max-width: 900px)').matches ? { top: 60, bottom: Math.round(innerHeight * 0.5), left: 30, right: 60 } : { top: 60, bottom: 60, left: 380, right: 340 };
+    const dock = $('ch-place'), dh = dock && !dock.hidden ? dock.getBoundingClientRect().height : 0;
+    if (matchMedia('(max-width: 900px)').matches) return { top: 70, bottom: Math.round(dh || innerHeight * 0.4) + 20, left: 30, right: 70 };
+    const sheetOpen = !$('ch-visitors').hidden;
+    return { top: 70, bottom: Math.round(dh) + 30, left: sheetOpen ? 380 : 60, right: $('ch-card').hidden ? 90 : 340 };
 }
 
 /* ---- the forecast at a place: today and tomorrow (Open-Meteo, which receives the place's position) ---- */
@@ -121,13 +132,14 @@ function wxWord(c) {
 }
 async function placeWeather(p, dd) {
     try {
-        let d = wxCache[p.id];
+        const key = p.id + '@' + new Date().toDateString();
+        let d = wxCache[key];
         if (!d) {
             const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + (+p.lat).toFixed(3) + '&longitude=' + (+p.lon).toFixed(3) +
                 '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe%2FZurich&forecast_days=2';
             const r = await fetch(url, { credentials: 'omit', referrerPolicy: 'no-referrer' });
             if (!r.ok) throw new Error(r.status);
-            d = wxCache[p.id] = await r.json();
+            d = wxCache[key] = await r.json();
         }
         const D = (d && d.daily) || {}, pick = (k, j) => Number((Array.isArray(D[k]) ? D[k] : [])[j]);
         const parts = [0, 1].map((j) => {
@@ -202,63 +214,124 @@ function renderPlan() {
     }
 }
 
-/* ---- a place's card ---- */
+/* ---- a place's panel: at the bottom, under its path; all it needs on one screen ---- */
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/* open months as ranges: "Jul to Oct", "Dec to Mar, May to Oct", or "All year" */
+function monthsText(m) {
+    if (!Array.isArray(m) || m.length >= 12) return 'All year';
+    const on = (k) => m.includes(((k - 1 + 12) % 12) + 1), runs = [];
+    for (let k = 1; k <= 12; k++) {
+        if (!on(k) || on(k - 1)) continue;
+        let e = k;
+        while (on(e + 1) && e - k < 11) e++;
+        runs.push(MON[k - 1] + (e > k ? ' to ' + MON[(e - 1) % 12] : ''));
+    }
+    return runs.join(', ');
+}
+const GRADES = { T1: 'T1 easy trail', T2: 'T2 mountain trail', T3: 'T3 demanding' };
+function passShort(p) {
+    if (p.far) return 'Extra ticket';
+    const o = String(p.ostwind || '');
+    return /^yes/i.test(o) ? 'Ostwind' : /^not needed/i.test(o) ? 'On foot' : 'Ostwind + extra';
+}
+let placeNow = -1;
+function closePlace() {
+    placeNow = -1;
+    const d = $('ch-place');
+    if (d) { d.hidden = true; d.classList.remove('ch-small'); }
+    clearVRoute();
+}
 function guestCard(i, move) {
     const p = PLACES[i];
     if (!p) return false;
-    const id = String(p.id);
-    card((b) => {
-        const kinds = (p.kinds || []).map((k) => KINDS.find((x) => x.id === k)).filter(Boolean).map((k) => String(k.name)).join(' · ');
-        b.append(el('p', 'ch-card-kind', kinds || String(p.area || 'Visitors')), el('h2', null, String(p.name)));
-        b.appendChild(el('p', 'ch-card-line', String(p.why || '')));
-        const acts = el('div', 'ch-v-acts');
-        if (p.stop) {
-            const t = el('button', 'ch-chip', 'Train from St. Gallen');
-            t.type = 'button';
-            t.addEventListener('click', () => showTrip('St. Gallen', String(p.stop), 'To ' + String(p.name)));
-            acts.appendChild(t);
-        }
-        const star = el('button', 'ch-chip ch-v-star', plan.includes(id) ? '★ In my plan' : '☆ Add to my plan');
-        star.type = 'button';
-        star.setAttribute('aria-pressed', String(plan.includes(id)));
-        star.addEventListener('click', () => { togglePlan(id); star.textContent = plan.includes(id) ? '★ In my plan' : '☆ Add to my plan'; star.setAttribute('aria-pressed', String(plan.includes(id))); });
-        const link = el('button', 'ch-chip', 'Link');
-        link.type = 'button'; link.title = 'Send a link to this place';
-        link.addEventListener('click', () => shareLink(pageUrl() + '#visitors/' + id, String(p.name)));
-        acts.append(star, link);
-        b.appendChild(acts);
-        const dl = el('dl', 'ch-card-facts ch-card-facts-wide');
-        row(dl, 'From St. Gallen', String(p.trip));
-        if (!isOpen(p, thisMonth())) row(dl, 'Now', 'Not open in ' + MONTHS[thisMonth() - 1] + ' (see When)');
-        if (p.walk) row(dl, 'On foot', String(p.walk));
-        if (p.ostwind) row(dl, 'Ostwind pass', String(p.ostwind));
-        if (p.extra) row(dl, 'Costs', String(p.extra));
-        if (p.season) row(dl, 'When', String(p.season));
-        if (p.know) row(dl, 'Good to know', String(p.know));
-        const wd = el('div'), dd = el('dd', null, 'Loading…');
-        wd.append(el('dt', null, 'Weather there'), dd);
-        dl.appendChild(wd);
-        b.appendChild(dl);
-        placeWeather(p, dd);
-        if (typeof p.link === 'string' && p.link.indexOf('https://') === 0) {
-            const a = el('a', 'ch-card-link', 'Website');
-            a.href = p.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
-            b.appendChild(a);
-        }
-        b.appendChild(el('p', 'ch-card-src', 'Forecast: Open-Meteo (CC BY 4.0). Walks: OpenStreetMap contributors, BRouter.'));
+    const id = String(p.id), dock = $('ch-place'), b = $('ch-place-body');
+    placeNow = i;
+    b.textContent = '';
+    if (typeof p.photo === 'string' && /^[a-z0-9][a-z0-9._-]{0,80}\.(jpg|jpeg|png|webp)$/.test(p.photo)) {
+        const img = el('img', 'ch-pl-photo');
+        img.src = app.dataset.photos + p.photo; img.alt = String(p.name); img.loading = 'lazy'; img.decoding = 'async';
+        b.appendChild(img);
+    }
+    const kinds = el('p', 'ch-pl-kinds');
+    (p.kinds || []).map((k) => KINDS.find((x) => x.id === k)).filter(Boolean).forEach((k) => {
+        const s = el('span'), dot = el('i');
+        dot.style.background = String(k.colour);
+        s.append(dot, document.createTextNode(String(k.name)));
+        kinds.appendChild(s);
     });
+    b.append(kinds, el('h2', 'ch-pl-name', String(p.name)));
+    // the key facts at a glance
+    const stats = el('ul', 'ch-pl-stats');
+    const stat = (k, v) => { const li = el('li'); li.append(el('span', null, k), el('strong', null, v)); stats.appendChild(li); };
+    stat('From St. Gallen', fmtMins(p.mins));
+    if (p.hike) stat('Walk', String(p.hike));
+    if (p.grade && GRADES[p.grade]) stat('Trail', GRADES[p.grade]);
+    stat('Season', monthsText(p.months) + (isOpen(p, thisMonth()) ? '' : ' (closed now)'));
+    stat('Ticket', passShort(p));
+    b.appendChild(stats);
+    b.appendChild(el('p', 'ch-pl-why', String(p.why || '')));
+    const acts = el('div', 'ch-v-acts');
+    if (p.stop) {
+        const t = el('button', 'ch-chip', 'Train from St. Gallen');
+        t.type = 'button';
+        t.addEventListener('click', () => showTrip('St. Gallen', String(p.stop), 'To ' + String(p.name)));
+        acts.appendChild(t);
+    }
+    const star = el('button', 'ch-chip ch-v-star');
+    const paint = () => { const on = plan.includes(id); star.textContent = on ? '★ In my plan' : '☆ Add to my plan'; star.classList.toggle('ch-v-starred', on); };
+    star.type = 'button'; paint();
+    star.addEventListener('click', () => { togglePlan(id); paint(); });
+    const link = el('button', 'ch-chip', 'Share');
+    link.type = 'button'; link.title = 'Send a link to this place';
+    link.addEventListener('click', () => shareLink(pageUrl() + '#visitors/' + id, String(p.name)));
+    acts.append(star, link);
+    if (typeof p.link === 'string' && p.link.indexOf('https://') === 0) {
+        const a = el('a', 'ch-chip ch-pl-web', 'Website');
+        a.href = p.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        acts.appendChild(a);
+    }
+    b.appendChild(acts);
+    // the details
+    const dl = el('dl', 'ch-pl-facts');
+    const fact = (k, v) => { if (v) { const d = el('div'); d.append(el('dt', null, k), el('dd', null, String(v))); dl.appendChild(d); } };
+    fact('Getting there', p.trip);
+    fact('On foot', p.walk);
+    fact('Costs', p.extra);
+    fact('When', p.season);
+    fact('Ostwind pass', p.ostwind);
+    fact('Good to know', p.know);
+    const wd = el('div'), dd = el('dd', null, 'Loading…');
+    wd.append(el('dt', null, 'Weather there'), dd);
+    dl.appendChild(wd);
+    b.appendChild(dl);
+    placeWeather(p, dd);
+    const src = el('p', 'ch-card-src');
+    const om = el('a', null, 'Open-Meteo');
+    om.href = 'https://open-meteo.com/'; om.target = '_blank'; om.rel = 'noopener noreferrer';
+    src.append(document.createTextNode('Forecast: '), om, document.createTextNode(' (CC BY 4.0).' + (LINES.has(id) ? ' Path: © OpenStreetMap contributors, BRouter.' : '')));
+    b.appendChild(src);
+    // on a phone the panel starts low, so the map and the path stay in sight above it
+    dock.classList.toggle('ch-small', matchMedia('(max-width: 900px)').matches);
+    dock.hidden = false;
+    dock.scrollTop = 0;
+    closeCard();
     showVRoute(id, move);
-    if (move && !(vRoutes && (vRoutes.features || []).some((x) => x.properties && x.properties.id === id))) {
-        mapA.flyTo({ center: [+p.lon, +p.lat], zoom: Math.max(mapA.getZoom(), 12), padding: cardPad(), duration: reduced ? 0 : 1400, essential: true });
+    if (move && !LINES.has(id)) {
+        mapA.flyTo({ center: [+p.lon, +p.lat], zoom: Math.max(mapA.getZoom(), 13), padding: cardPad(), duration: reduced ? 0 : 1400, essential: true });
     }
     return true;
 }
 
 /* a train trip on the map: the next connection's stops from the SBB timetable (transport.opendata.ch), joined by a
    line from stop to stop (the stations are exact, the line between them is straight) */
-let tripReq = 0;
+let tripReq = 0, tripBuilding = false;
+function clearTrip() {
+    tripReq++;
+    if (mapA && mapA.getSource('trip')) mapA.getSource('trip').setData(EMPTY);
+}
 async function showTrip(from, to, title) {
     const req = ++tripReq;
+    if (!styleReady) { toast('The map is still loading.', 2000); return; }
     try {
         const res = await fetch('https://transport.opendata.ch/v1/connections?limit=1&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to),
                                 { credentials: 'omit', referrerPolicy: 'no-referrer' });
@@ -280,12 +353,13 @@ async function showTrip(from, to, title) {
             });
         });
         if (stops.length < 2) throw new Error('empty');
-        if (!mapA.getSource('trip')) {
-            mapA.addSource('trip', { type: 'geojson', data: EMPTY });
+        if (!mapA.getLayer('trip-line')) {
+            if (!mapA.getSource('trip')) mapA.addSource('trip', { type: 'geojson', data: EMPTY });
+            const under = mapA.getLayer('guests-dot') ? 'guests-dot' : undefined;
             mapA.addLayer({ id: 'trip-line', type: 'line', source: 'trip', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-join': 'round', 'line-cap': 'round' },
-                            paint: { 'line-color': '#d52b1e', 'line-width': 4, 'line-opacity': 0.85 } }, 'guests-dot');
+                            paint: { 'line-color': '#d52b1e', 'line-width': 4, 'line-opacity': 0.85 } }, under);
             mapA.addLayer({ id: 'trip-stop', type: 'circle', source: 'trip', filter: ['==', ['geometry-type'], 'Point'],
-                            paint: { 'circle-radius': 5, 'circle-color': '#ffffff', 'circle-stroke-color': '#d52b1e', 'circle-stroke-width': 2.5 } }, 'guests-dot');
+                            paint: { 'circle-radius': 5, 'circle-color': '#ffffff', 'circle-stroke-color': '#d52b1e', 'circle-stroke-width': 2.5 } }, under);
             mapA.addLayer({ id: 'trip-name', type: 'symbol', source: 'trip', filter: ['==', ['geometry-type'], 'Point'],
                             layout: { 'text-field': ['get', 'label'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-offset': [0, -1.1], 'text-anchor': 'bottom', 'text-padding': 2 },
                             paint: { 'text-color': '#7f1d1d', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
@@ -296,7 +370,8 @@ async function showTrip(from, to, title) {
             ...stops.map((q) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [q.lon, q.lat] }, properties: { label: q.name } }))] });
         let w = 180, so = 90, e = -180, n = -90;
         stops.forEach((q) => { w = Math.min(w, q.lon); e = Math.max(e, q.lon); so = Math.min(so, q.lat); n = Math.max(n, q.lat); });
-        mapA.fitBounds([[w, so], [e, n]], { padding: cardPad(), duration: reduced ? 0 : 1200 });
+        mapA.fitBounds([[w, so], [e, n]], { padding: cardPad(), bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
+        tripBuilding = true;
         card((b) => {
             b.append(el('p', 'ch-card-kind', 'By train'), el('h2', null, title));
             const dl = el('dl', 'ch-card-facts');
@@ -304,6 +379,7 @@ async function showTrip(from, to, title) {
             b.appendChild(dl);
             b.appendChild(el('p', 'ch-card-src', 'Next connection: ' + stops[0].line + '. SBB timetable (transport.opendata.ch); the line joins the stops.'));
         });
+        tripBuilding = false;
     } catch (e) {
         if (req === tripReq) toast('The train could not be loaded right now.', 3000);
     }
@@ -325,13 +401,15 @@ function placeRow(i) {
     return li;
 }
 function vPlaces() {
-    document.querySelectorAll('.ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === vKind)));
+    // a chip pressed = shown; a kind or a time group can be turned off, the rainy-day chip keeps only those places
+    document.querySelectorAll('#ch-v-kinds .ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === 'rain' ? vRain : !kindOff.has(b.dataset.kind))));
+    document.querySelectorAll('#ch-v-times .ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(!groupOff.has(Number(b.dataset.group)))));
     const list = $('ch-v-places');
     list.textContent = '';
     let group = -1;
     V_ORDER.filter((i) => shown(PLACES[i])).forEach((i) => {
         const g = groupOf(PLACES[i]);
-        if (g !== group) { group = g; list.appendChild(el('li', 'ch-v-group', V_GROUPS[g].name)); }
+        if (g !== group) { group = g; const h = el('li', 'ch-v-group', V_GROUPS[g].name); h.setAttribute('role', 'presentation'); list.appendChild(h); }
         list.appendChild(placeRow(i));
     });
     if (!list.children.length) list.appendChild(el('li', 'ch-ly-note', 'Nothing matches these choices.'));
@@ -347,17 +425,33 @@ function vTab(t) {
     if (t === 'now' && visitorsOn) { loadNow(); depTimer = setInterval(() => { if (!document.hidden) loadNow(); }, 60000); }
 }
 function buildVisitors() {
-    // the legend: one chip per kind, which also shows only that kind (tap again for all), and one for a rainy day
+    // the legend: one chip per kind, each turns its places off and on (on the list and the map); one for a rainy day
     const chips = $('ch-v-kinds');
-    KINDS.concat([{ id: 'rain', name: 'Good in bad weather', short: 'Rainy day', colour: '#64748b' }]).forEach((k) => {
+    KINDS.forEach((k) => {
         const b = el('button', 'ch-v-kind');
-        b.type = 'button'; b.dataset.kind = String(k.id); b.setAttribute('aria-pressed', 'false');
+        b.type = 'button'; b.dataset.kind = String(k.id);
         const dot = el('span', 'ch-v-dot'); dot.style.background = String(k.colour);
         b.append(dot, el('span', null, String(k.short || k.name)));
-        b.title = String(k.name);
-        b.addEventListener('click', () => { vKind = vKind === k.id ? '' : String(k.id); vPlaces(); });
+        b.title = 'Show or hide: ' + String(k.name);
+        b.addEventListener('click', () => { if (kindOff.has(k.id)) kindOff.delete(k.id); else kindOff.add(k.id); vPlaces(); });
         chips.appendChild(b);
     });
+    const rain = el('button', 'ch-v-kind ch-v-rain');
+    rain.type = 'button'; rain.dataset.kind = 'rain'; rain.title = 'Only places that are good in bad weather';
+    rain.append(el('span', 'ch-v-dot'), el('span', null, 'Rainy day only'));
+    rain.addEventListener('click', () => { vRain = !vRain; vPlaces(); });
+    chips.appendChild(rain);
+    // the time groups, also on and off
+    const times = $('ch-v-times');
+    V_GROUPS.forEach((g, k) => {
+        const b = el('button', 'ch-v-kind ch-v-time', g.name);
+        b.type = 'button'; b.dataset.group = String(k); b.title = 'Show or hide: ' + g.name;
+        b.addEventListener('click', () => { if (groupOff.has(k)) groupOff.delete(k); else groupOff.add(k); vPlaces(); });
+        times.appendChild(b);
+    });
+    // the pins' own switch, the same as Layers, Visitor places
+    const pins = $('ch-v-pins');
+    pins.addEventListener('change', () => setLayer(LAYERS.find((d) => d.id === 'guests'), pins.checked));
     const op = $('ch-v-open');
     $('ch-v-open-name').textContent = 'Open in ' + MONTHS[thisMonth() - 1];
     op.addEventListener('change', () => { vOpen = op.checked; vPlaces(); });
@@ -380,7 +474,7 @@ function buildVisitors() {
         const li = el('li', 'ch-v-ticket' + (t.best ? ' ch-v-best' : ''));
         li.appendChild(el('strong', 'ch-v-tname', String(t.name)));
         const pr = el('dl', 'ch-v-prices');
-        [['Adults', t.price], ['Half Fare or child', t.half]].forEach(([k, v]) => { if (v) { const d = el('div'); d.append(el('dt', null, k), el('dd', null, String(v))); pr.appendChild(d); } });
+        [['Adults', t.price], [String(t.half_label || 'Half Fare or child'), t.half]].forEach(([k, v]) => { if (v) { const d = el('div'); d.append(el('dt', null, k), el('dd', null, String(v))); pr.appendChild(d); } });
         li.append(pr, el('p', null, String(t.note)));
         tl.appendChild(li);
     });
@@ -441,6 +535,7 @@ function wireVisitors() {
     buildVisitors();
     const btn = $('ch-visitors-btn'), panel = $('ch-visitors');
     btn.addEventListener('click', () => { const on = panel.hidden; sheet('ch-visitors', on); showVisitors(on); });
+    $('ch-place-close').addEventListener('click', closePlace);
     $('ch-visitors-close').addEventListener('click', () => { sheet('ch-visitors', false); showVisitors(false); btn.focus(); });
     document.querySelectorAll('.ch-v-tab').forEach((b) => b.addEventListener('click', () => vTab(b.dataset.tab)));
     // Visitors is the page's main view: it opens at the start (on a phone as a low sheet over the map) unless the
@@ -449,9 +544,10 @@ function wireVisitors() {
     const h = location.hash;
     const one = /^#visitors\/([a-z0-9]{1,24})$/.exec(h), sent = /^#plan=([a-z0-9,]{1,1600})$/.exec(h);
     if (sent) { sharedPlan = planClean(sent[1].split(',')); renderPlan(); }
-    if (!h || h === '#visitors' || one || sent) {
+    if (!h || h === '#visitors' || one || sent || /,v$/.test(h)) {
         sheet('ch-visitors', true);
-        if (matchMedia('(max-width: 900px)').matches && !one) panel.classList.add('ch-small');
+        if (matchMedia('(max-width: 900px)').matches && !one && !sent) panel.classList.add('ch-small');
+        if (sent) setTimeout(() => { const b = $('ch-v-plan'); if (b && b.firstChild) b.scrollIntoView({ block: 'start' }); }, 300);
         showVisitors(true);
     }
     onLoad.push(() => {

@@ -1,7 +1,8 @@
 /* Part 70: search and the view in the address. Search asks swisstopo's search service (api3.geo.admin.ch, place names,
    addresses, municipalities) as the visitor types, and flies to the chosen place with a red pin. The address of the page
-   carries the view (#lat,lon,zoom,bearing,pitch,map[,3d]) and updates as the map moves, so a copied link opens the
-   map there again. */
+   carries the view (#lat,lon,zoom,bearing,pitch,map[,3d][,v]; v = the Visitors sheet open) and updates as the map
+   moves, so a copied link opens the map there again. Visitors' own links (#visitors, #visitors/<place>, #plan=...)
+   are read in part 62. */
 let searchAbort = null, searchTimer = null, results = [];
 const ZOOM_BY_ORIGIN = { kantone: 9, district: 10, gg25: 12.5, zipcode: 13, gazetteer: 14, sn25: 14, address: 17, parcel: 17 };
 
@@ -67,7 +68,7 @@ function pick(i) {
 
 /* ---------- the view in the address ---------- */
 function readHash() {
-    const m = /^#(-?\d{1,2}(?:\.\d{1,7})?),(-?\d{1,3}(?:\.\d{1,7})?),(\d{1,2}(?:\.\d{1,4})?),(-?\d{1,3}(?:\.\d{1,4})?),(\d{1,2}(?:\.\d{1,4})?),([a-z]{1,12})(,3d)?$/.exec(location.hash);
+    const m = /^#(-?\d{1,2}(?:\.\d{1,7})?),(-?\d{1,3}(?:\.\d{1,7})?),(\d{1,2}(?:\.\d{1,4})?),(-?\d{1,3}(?:\.\d{1,4})?),(\d{1,2}(?:\.\d{1,4})?),([a-z]{1,12})(,3d)?(,v)?$/.exec(location.hash);
     if (!m) return null;
     const lat = +m[1], lon = +m[2];
     if (lat < AREA[1] || lat > AREA[3] || lon < AREA[0] || lon > AREA[2]) return null;
@@ -76,13 +77,13 @@ function readHash() {
 }
 let hashTimer = null;
 function writeHash() {
-    // the guests' link (#visitors) stays in the address while their sheet is open, so a reload opens it again
-    if (!mapA || (typeof visitorsOn !== 'undefined' && visitorsOn)) return;
+    // a plan sent as a link stays in the address until it is saved or dismissed
+    if (!mapA || (typeof sharedPlan !== 'undefined' && sharedPlan)) return;
     clearTimeout(hashTimer);
     hashTimer = setTimeout(() => {
         const c = mapA.getCenter();
         const h = '#' + c.lat.toFixed(5) + ',' + c.lng.toFixed(5) + ',' + mapA.getZoom().toFixed(2) + ',' +
-                  Math.round(mapA.getBearing()) + ',' + Math.round(mapA.getPitch()) + ',' + base + (threeD ? ',3d' : '');
+                  Math.round(mapA.getBearing()) + ',' + Math.round(mapA.getPitch()) + ',' + base + (threeD ? ',3d' : '') + (visitorsOn ? ',v' : '');
         if (h !== location.hash) history.replaceState(null, '', location.pathname + location.search + h);
     }, 400);
 }

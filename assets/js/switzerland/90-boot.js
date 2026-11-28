@@ -22,6 +22,7 @@ function wire() {
         else if (!$('ch-layers').hidden) $('ch-layers-close').click();
         else if (!$('ch-weather').hidden) $('ch-weather-close').click();
         else if (!$('ch-facts').hidden) $('ch-facts-close').click();
+        else if (!$('ch-about').hidden) $('ch-about-close').click();
         else if ($('ch-visitors') && !$('ch-visitors').hidden) $('ch-visitors-close').click();
     });
 }
@@ -30,6 +31,10 @@ function wire() {
     const btn = $('ch-facts-btn'), box = $('ch-facts');
     btn.addEventListener('click', () => sheet('ch-facts', box.hidden));
     $('ch-facts-close').addEventListener('click', () => { sheet('ch-facts', false); btn.focus(); });
+    // About: why this map is here, that it is still being built, and the photos on Instagram
+    const ab = $('ch-about-btn');
+    ab.addEventListener('click', () => sheet('ch-about', $('ch-about').hidden));
+    $('ch-about-close').addEventListener('click', () => { sheet('ch-about', false); ab.focus(); });
     $('ch-forget').addEventListener('click', () => {
         try { localStorage.removeItem('ch-maps-ok'); sessionStorage.removeItem('ch-maps-ok'); } catch (e) { /* no storage */ }
         toast('Done: the site will ask again next time.');

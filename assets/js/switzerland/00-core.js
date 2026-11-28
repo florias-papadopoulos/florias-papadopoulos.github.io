@@ -444,6 +444,8 @@ const CLASH = { '3d': ['time'], time: ['3d', 'profile'], profile: ['time'] };
 function only(id) {
     // a mode starting lets go of a tapped canton too
     if (tinted && typeof closeCard === 'function') closeCard();
+    // drawing a route or the old maps have the bottom of the screen: a place's panel closes
+    if ((id === 'profile' || id === 'time') && typeof closePlace === 'function') closePlace();
     (CLASH[id] || []).forEach((k) => { if (modes[k] && modes[k].on()) modes[k].off(); });
 }
 /* Which tools go together. A tool that would make a poor pair with the mode that is on is greyed out (its tooltip
@@ -474,7 +476,8 @@ function tools() {
 function sheet(id, open) {
     // opening a sheet lets go of a tapped canton (its tint and its card)
     if (open && tinted && typeof closeCard === 'function') closeCard();
-    ['ch-facts', 'ch-layers', 'ch-weather', 'ch-visitors'].forEach((s) => {
+    if (open && id !== 'ch-visitors' && typeof closePlace === 'function') closePlace();
+    ['ch-facts', 'ch-about', 'ch-layers', 'ch-weather', 'ch-visitors'].forEach((s) => {
         if (!$(s)) return;
         const on = s === id ? open : false;
         $(s).hidden = !on;
@@ -483,7 +486,7 @@ function sheet(id, open) {
     });
     // a sheet closed by opening another one comes back full size next time
     document.querySelectorAll('.ch-small').forEach((p) => { if (p.hidden) p.classList.remove('ch-small'); });
-    // the visitors' pins and area go with their sheet
+    // the Visitors sheet's timers stop with it (its pins stay on the map)
     if (visitorsOn && $('ch-visitors') && $('ch-visitors').hidden) showVisitors(false);
 }
 function compass() {

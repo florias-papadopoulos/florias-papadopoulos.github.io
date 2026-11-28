@@ -4,14 +4,14 @@
 function card(build, fit) {
     const body = $('ch-card-body');
     body.textContent = '';
-    clearVRoute();   // a hike's line belongs to its own card
+    if (!tripBuilding) clearTrip();   // a train's line belongs to its own card
     build(body);
     $('ch-card').classList.toggle('ch-card-fit', !!fit);
     $('ch-card').hidden = false;
 }
 function closeCard() {
     $('ch-card').hidden = true;
-    clearVRoute();
+    clearTrip();
     if (mapA) hiCanton('');
 }
 function visible(ids) {
@@ -25,7 +25,9 @@ function onHover(e) {
     if (!hoverFrame) hoverFrame = requestAnimationFrame(() => { hoverFrame = 0; hoverCheck(hoverEvent); });
 }
 function hoverCheck(e) {
-    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves', 'wx-dots', 'guests-dot')) }).length;
+    const box = [[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]];   // the pins' tap area, as in onClick
+    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves', 'wx-dots')) }).length ||
+                mapA.queryRenderedFeatures(box, { layers: visible(['guests-dot']) }).length;
     mapA.getCanvas().style.cursor = hit ? 'pointer' : '';
 }
 function onClick(e) {
