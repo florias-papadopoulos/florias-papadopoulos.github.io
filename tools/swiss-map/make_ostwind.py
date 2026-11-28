@@ -3,10 +3,16 @@
 
 Source: SBB's "Tarifverbundkarte" (one polygon per municipality, field partners), open data on opendata.swiss:
   https://sbb.opendatasoft.com/api/v2/catalog/datasets/tarifverbundkarte/exports/geojson   (about 4.5 MB)
-Download it, then run `python3 -I tools/swiss-map/make_ostwind.py <file.geojson>`. The municipalities whose partners
-include Ostwind (some shared with ZVV) are merged into one outline: a border two of them share cancels out, the
-others are chained into rings, which are then simplified to about 50 m. Liechtenstein, also in Ostwind, is not in the
-dataset (the page says so).
+Download it, then run `python3 -I tools/swiss-map/make_ostwind.py <file.geojson> [<liechtenstein.json>]`. The
+municipalities whose partners include Ostwind (some shared with ZVV) are merged into one outline: a border two of them
+share cancels out, the others are chained into rings, which are then simplified to about 50 m.
+
+Liechtenstein (LIEmobil, Ostwind zones 301 to 307) is not in SBB's dataset. Its outline comes from swisstopo's
+swissBOUNDARIES3D, through api3 (the answer saved as a file):
+  https://api3.geo.admin.ch/rest/services/api/MapServer/identify?geometryType=esriGeometryPoint&geometry=9.52,47.14&sr=4326&layers=all:ch.swisstopo.swissboundaries3d-land-flaeche.fill&tolerance=0&returnGeometry=true&geometryFormat=geojson
+The two datasets draw the Rhine border with different points, so it is joined loosely: Liechtenstein is a part of
+its own in the shaded area, and on the outline the stretches of either border that lie within 120 m of the other are
+left out, so no line runs between St. Gallen and Liechtenstein.
 """
 import collections, json, os, sys
 
@@ -99,8 +105,45 @@ for r in loops:
         host.append(r)
     else:
         parts.append([r])
+if len(sys.argv) > 2:
+    import math
+    li = json.load(open(sys.argv[2]))['results'][0]['geometry']
+    li_rings = [simplify([tuple(c) for c in poly[0]]) for poly in li['coordinates']]
+    K = math.pi / 180
+
+    def metres(p, a, b):
+        cx, cy = math.cos(p[1] * K) * 6371000 * K, 6371000 * K
+        ax, ay, bx, by = (a[0] - p[0]) * cx, (a[1] - p[1]) * cy, (b[0] - p[0]) * cx, (b[1] - p[1]) * cy
+        dx, dy = bx - ax, by - ay
+        t = max(0, min(1, -(ax * dx + ay * dy) / ((dx * dx + dy * dy) or 1)))
+        return math.hypot(ax + t * dx, ay + t * dy)
+
+    def near(p, rings, tol=120):
+        return any(metres(p, a, b) < tol for r in rings for a, b in zip(r, r[1:])
+                   if min(a[0], b[0]) - 0.003 < p[0] < max(a[0], b[0]) + 0.003 and min(a[1], b[1]) - 0.003 < p[1] < max(a[1], b[1]) + 0.003)
+
+    def cut(r, other):
+        # the ring as lines, without the stretches that run along the other outline
+        out, cur = [], []
+        for a, b in zip(r, r[1:]):
+            mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+            if near(mid, other):
+                if len(cur) > 1:
+                    out.append(cur)
+                cur = []
+            else:
+                cur = cur or [a]
+                cur.append(b)
+        if len(cur) > 1:
+            out.append(cur)
+        return out
+
+    edges = [l for r in loops for l in cut(r, li_rings)] + [l for r in li_rings for l in cut(r, loops)]
+    parts += [[r] for r in li_rings]
+else:
+    edges = loops
 geo = {'type': 'FeatureCollection', 'features': [
     {'type': 'Feature', 'properties': {'kind': 'area'}, 'geometry': {'type': 'MultiPolygon', 'coordinates': parts}},
-    {'type': 'Feature', 'properties': {'kind': 'edge'}, 'geometry': {'type': 'MultiLineString', 'coordinates': loops}}]}
+    {'type': 'Feature', 'properties': {'kind': 'edge'}, 'geometry': {'type': 'MultiLineString', 'coordinates': [[list(c) for c in l] for l in edges]}}]}
 json.dump(geo, open(OUT, 'w'), separators=(',', ':'))
 print(len(sel), 'municipalities,', len(loops), 'rings,', os.path.getsize(OUT) // 1024, 'KB ->', OUT)

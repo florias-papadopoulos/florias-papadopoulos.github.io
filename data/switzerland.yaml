@@ -173,11 +173,13 @@ sources:
 # second source each where one exists; details and URLs in __NotOnline/switzerland-guests/plan.md).
 guests:
   # the Places tab's legend and filter, and the colour of each place's pin (a place may have several kinds; the first
-  # gives its group and colour). A first proposal, to be corrected by the site's owner.
+  # gives its colour). Six kinds, chosen by the site's owner on 2026-11-28.
   kinds:
-    - { id: summer, name: "Summer hikes", short: "Summer", colour: "#2e8540" }
+    - { id: walk, name: "Walks", short: "Walks", colour: "#4d7c0f" }
+    - { id: hike, name: "Mountain hikes", short: "Hikes", colour: "#b45309" }
     - { id: winter, name: "Winter", short: "Winter", colour: "#2b6cb0" }
-    - { id: culture, name: "Culture and history", short: "Culture", colour: "#7b3fa0" }
+    - { id: family, name: "Animals and family", short: "Family", colour: "#c0267a" }
+    - { id: culture, name: "Culture and museums", short: "Culture", colour: "#7b3fa0" }
     - { id: water, name: "Lakes and water", short: "Water", colour: "#0d8a8a" }
   # getting here (SBB timetable through transport.opendata.ch, checked 2026-11-28 for a Tuesday morning)
   arrival:
@@ -192,8 +194,15 @@ guests:
       half: "CHF 20"
       note: "Mon to Fri from 9:00, weekends all day, until 5:00 the next morning. Trains and buses in the whole Ostwind area, no boats. CHF 41 from 13 December 2026."
       best: true
-  tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich and Luzern are outside Ostwind: they need a normal SBB ticket."
+    - name: "Saver Day Pass, all of Switzerland"
+      price: "from CHF 52"
+      half: "from CHF 29"
+      note: "For the day trips beyond Ostwind: trains, buses and most boats in all of Switzerland for one day. The price rises as the passes sell: buy it 1 day to 6 months ahead in the SBB Mobile app."
+  tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich, Luzern and the places under \"Day trips further away\" are outside Ostwind."
+  # near: inside the Ostwind area (the 9 am day pass covers the trains and buses); far: a day trip beyond it, with
+  # an extra ticket. Facts in __NotOnline/switzerland-guests/catalogue.md, each with its sources.
   places:
+    # ---- near, with the Ostwind pass ----
     - id: abbey
       kinds: [culture]
       name: "Abbey Library"
@@ -217,145 +226,6 @@ guests:
       ostwind: "not needed (on foot)"
       season: "All year"
       link: "https://www.st.gallen-bodensee.ch/"
-    - id: weieren
-      kinds: [water, winter]
-      name: "Drei Weieren"
-      area: "St. Gallen"
-      lon: 9.39048
-      lat: 47.42264
-      why: "Old ponds above the town with a view over St. Gallen; swimming in summer."
-      trip: "The Mühleggbahn funicular from near the old town, then about 15 min on foot"
-      ostwind: "yes"
-      season: "All year"
-      link: "https://www.muehleggbahn.ch/"
-    - id: appenzell
-      kinds: [culture]
-      name: "Appenzell"
-      area: "Appenzell"
-      lon: 9.40953
-      lat: 47.32853
-      why: "Painted houses on the Hauptgasse and the square of the open-air assembly."
-      trip: "36 min by train (S21, direct, every 30 min)"
-      ostwind: "yes"
-      season: "All year"
-      link: "https://www.appenzell.ch/en/appenzell.html"
-    - id: ebenalp
-      kinds: [summer, winter]
-      name: "Ebenalp and Äscher"
-      area: "Appenzell"
-      lon: 9.41426
-      lat: 47.28333
-      why: "Cable car up the Alpstein, the Wildkirchli caves and the guesthouse built into the cliff. In winter: a short groomed path at the top, a snowshoe trail with snowshoes to try for free, and a small ski area."
-      trip: "51 min to Wasserauen (S21, change at Appenzell), then the cable car"
-      ostwind: "train yes, cable car no"
-      extra: "Cable car CHF 24 up, CHF 36 return (half with Half Fare)"
-      season: "Cable car closed until 24 December 2026 and 30 March to 27 April 2027; the Äscher opens May to October"
-      link: "https://www.ebenalp.ch/"
-    - id: seealpsee
-      kinds: [summer, winter]
-      name: "Seealpsee"
-      area: "Appenzell"
-      lon: 9.40210
-      lat: 47.26970
-      why: "A mountain lake below the Säntis, reached on a quiet road."
-      trip: "51 min to Wasserauen, then about 1 h on foot"
-      ostwind: "yes"
-      season: "All year; best May to October"
-      link: "https://www.appenzell.ch/"
-    - id: bodensee
-      kinds: [water]
-      name: "Lake Constance"
-      area: "Lakes"
-      lon: 9.49292
-      lat: 47.47859
-      why: "Lake promenade at Rorschach and boats along the Swiss shore."
-      trip: "21 min by train to Rorschach"
-      ostwind: "train yes, boat no (separate ticket)"
-      season: "Boats from 26 March to 10 October 2027"
-      link: "https://www.bodensee-schiffe.ch/"
-    - id: rheinfall
-      kinds: [water]
-      name: "Rhine Falls"
-      area: "Lakes"
-      lon: 8.61570
-      lat: 47.67772
-      why: "Europe's largest waterfall; a small boat goes to the rock in the middle."
-      trip: "About 1 h via Winterthur, or 2 h inside Ostwind via Stein am Rhein"
-      ostwind: "only the slow way via Stein am Rhein; via Winterthur needs another ticket"
-      extra: "Schloss Laufen side CHF 5; rock boat CHF 22.50"
-      season: "Rock boat April to October; most water in early summer"
-      link: "https://www.rheinfall.ch/"
-    - id: stein
-      kinds: [culture]
-      name: "Stein am Rhein"
-      area: "Lakes"
-      lon: 8.85962
-      lat: 47.65927
-      why: "A medieval little town on the Rhine with painted facades."
-      trip: "1 h 24 by train (S1, direct along the lake)"
-      ostwind: "yes"
-      season: "All year"
-      link: "https://www.steinamrhein.ch/"
-    - id: walensee
-      kinds: [summer, water]
-      name: "Walensee and Quinten"
-      area: "Lakes"
-      lon: 9.21601
-      lat: 47.12890
-      why: "A fjord-like lake below the Churfirsten; Quinten, a car-free wine village, is reached only by boat."
-      trip: "1 h 10 by train to Murg, then the boat across (about 1 h 35 in all)"
-      ostwind: "train yes, boat no (separate ticket)"
-      extra: "Half Fare, GA, the SBB app and FAIRTIQ are not valid on the Walensee boats"
-      season: "The crossing to Quinten runs all year"
-      link: "https://walenseeschiff.ch/"
-    - id: kronberg
-      kinds: [winter]
-      name: "Kronberg sledge run"
-      area: "Appenzell"
-      lon: 9.32818
-      lat: 47.32008
-      why: "About 7 km down from the summit to Jakobsbad, the longest sledge run in eastern Switzerland."
-      trip: "34 min by train to Jakobsbad (S81, change at Herisau), then the cable car"
-      ostwind: "train yes, cable car no"
-      extra: "Cable car CHF 32 for one ride up (half with Half Fare); sledge hire CHF 15 a day"
-      season: "1 December 2026 to 28 February 2027, only with natural snow; not for small children"
-      link: "https://www.kronberg.ch/"
-    - id: saentispark
-      kinds: [water, winter]
-      name: "Säntispark pools"
-      area: "St. Gallen"
-      lon: 9.31502
-      lat: 47.41749
-      why: "Pools and a world of water slides: the plan for a grey or rainy day."
-      trip: "15 min by bus (3 or 4) to Abtwil, Säntispark"
-      ostwind: "yes"
-      extra: "Pools and slides CHF 34 for 2 h, CHF 42 for 4 h"
-      season: "Daily 09:00 to 22:00; 24 and 31 December until 16:00"
-      link: "https://www.saentispark-freizeit.ch/"
-    - id: tamina
-      kinds: [water, winter]
-      name: "Tamina Therme"
-      area: "Bad Ragaz"
-      lon: 9.50539
-      lat: 46.99987
-      why: "Warm spring water from the Tamina gorge, in indoor and outdoor pools."
-      trip: "1 h 05 by train to Bad Ragaz (IR 13, direct), then bus 456"
-      ostwind: "yes"
-      extra: "Entry for 2 h or more; see the prices on the website"
-      season: "All year"
-      link: "https://www.taminatherme.ch/"
-    - id: lerchenfeld
-      kinds: [winter]
-      name: "Lerchenfeld ice rink"
-      area: "St. Gallen"
-      lon: 9.34190
-      lat: 47.41515
-      why: "Public skating on an indoor and an outdoor rink, also in the evening."
-      trip: "7 min by bus (1 or 2) to Lerchenfeld"
-      ostwind: "yes"
-      extra: "Entry CHF 7, skate hire CHF 6"
-      season: "Until 14 March 2027; times on the website"
-      link: "https://sport.stadt.sg.ch/home/eissport/oeffentlicher-eislauf.html"
     - id: sternenstadt
       kinds: [culture, winter]
       name: "Sternenstadt"
@@ -368,3 +238,502 @@ guests:
       extra: "Free"
       season: "26 November to 24 December 2026"
       link: "https://www.sternenstadt.ch/"
+    - id: weieren
+      kinds: [walk, water, winter]
+      name: "Drei Weieren to Wenigerweiher"
+      area: "St. Gallen"
+      lon: 9.39048
+      lat: 47.42264
+      why: "Old bathing ponds above the town with a view over St. Gallen, then on along the signed Panoramaweg to the quiet Wenigerweiher, a nature reserve."
+      trip: "On foot from the station, or the Mühleggbahn funicular from the old town; back from Schwarzer Bären by train (S21, S22, 15 min)"
+      walk: "About 5.6 km, 250 m up, 1 h 30"
+      ostwind: "yes"
+      season: "All year; in winter the paths can be icy, and the Buebenweiher is opened for skating when the ice holds"
+      link: "https://www.muehleggbahn.ch/"
+    - id: haggen
+      kinds: [walk]
+      name: "Menzlen forest and the Haggen bridge"
+      area: "St. Gallen"
+      lon: 9.33937
+      lat: 47.39965
+      why: "A short forest walk over the Menzlen ridge to the Haggenbrücke, the 'Ganggelibrugg': a steel footbridge 355 m long and about 98 m above the Sitter, opened in 1937."
+      trip: "Bus 10 to Oberhofstetten, 10 min; back over the bridge to St. Gallen Haggen station (15 min on foot, then S4 or S81)"
+      walk: "About 3 km, 80 m up, 45 min"
+      ostwind: "yes"
+      season: "All year; icy in winter, and the bridge sways in the wind"
+    - id: wildpark
+      kinds: [family, winter]
+      name: "Wildpark Peter und Paul"
+      area: "St. Gallen"
+      lon: 9.38877
+      lat: 47.44905
+      why: "A free wildlife park on the hill above the town with ibex, chamois, marmots, deer, wild boar, lynx and wildcats."
+      trip: "Bus 5 to Sonne, 7 min, then about 20 min on foot"
+      ostwind: "yes"
+      extra: "Free"
+      season: "Open all year, at any time"
+      link: "https://www.wildpark-peterundpaul.ch/"
+    - id: lerchenfeld
+      kinds: [winter, family]
+      name: "Lerchenfeld ice rink"
+      area: "St. Gallen"
+      lon: 9.34190
+      lat: 47.41515
+      why: "Public skating on an indoor and an outdoor rink, also in the evening."
+      trip: "7 min by bus (1 or 2) to Lerchenfeld"
+      ostwind: "yes"
+      extra: "Entry CHF 7, skate hire CHF 6"
+      season: "Until 14 March 2027; times on the website"
+      link: "https://sport.stadt.sg.ch/home/eissport/oeffentlicher-eislauf.html"
+    - id: saentispark
+      kinds: [family, water]
+      name: "Säntispark pools"
+      area: "St. Gallen"
+      lon: 9.31502
+      lat: 47.41749
+      why: "Pools and a world of water slides: the plan for a grey or rainy day."
+      trip: "15 min by bus (3 or 4) to Abtwil, Säntispark"
+      ostwind: "yes"
+      extra: "Pools and slides CHF 34 for 2 h, CHF 42 for 4 h"
+      season: "Daily 09:00 to 22:00; 24 and 31 December until 16:00"
+      link: "https://www.saentispark-freizeit.ch/"
+    - id: walterzoo
+      kinds: [family]
+      name: "Walter Zoo"
+      area: "Gossau"
+      lon: 9.28496
+      lat: 47.42010
+      why: "About 900 animals of about 100 kinds, from tigers and chimpanzees to red pandas, with playgrounds."
+      trip: "23 min: train to Gossau, then bus 155 to Walter Zoo"
+      ostwind: "yes"
+      extra: "CHF 24, children 4 to 15 CHF 12 (from 14 March 2027: CHF 28 and 14)"
+      season: "Every day of the year; November to February 9:00 to 17:00, March to October 9:00 to 18:00"
+      know: "Mostly outdoors, with a few warm animal houses"
+      link: "https://www.walterzoo.ch/"
+    - id: chocolarium
+      kinds: [family, culture]
+      name: "Maestrani's Chocolarium"
+      area: "Flawil"
+      lon: 9.16505
+      lat: 47.41336
+      why: "A self-guided tour of a chocolate factory, with tasting; on weekdays you watch the chocolate being made."
+      trip: "26 min: train to Flawil, then bus 741 to Flawil, Maestrani (at the door)"
+      ostwind: "yes"
+      extra: "CHF 16, children 6 to 16 CHF 9, family CHF 39"
+      season: "Tuesday to Friday 10:00 to 18:00, weekends 10:00 to 17:00, closed Mondays; 24 December until 16:00, closed 25 and 26 December and 1 January"
+      know: "Chocolate is made only Tuesday to Friday, not on holidays"
+      link: "https://www.chocolarium.ch/"
+    - id: autobau
+      kinds: [culture]
+      name: "autobau erlebniswelt"
+      area: "Romanshorn"
+      lon: 9.37538
+      lat: 47.55782
+      why: "A private collection of racing and sports cars in an old factory hall by Lake Constance, with Formula 1 cars."
+      trip: "18 min by train (RE 1) to Romanshorn, then about 15 min on foot"
+      ostwind: "yes"
+      extra: "CHF 24 with one child up to 15 included; each further child CHF 8.50"
+      season: "Sundays 10:00 to 17:00, and some holidays (26 December, 2 January)"
+      know: "Most weeks it opens only on Sunday"
+      link: "https://www.autobau.ch/"
+    - id: appenzell
+      kinds: [culture]
+      name: "Appenzell"
+      area: "Appenzell"
+      lon: 9.40953
+      lat: 47.32853
+      why: "Painted houses on the Hauptgasse and the square of the open-air assembly."
+      trip: "36 min by train (S21, direct, every 30 min)"
+      ostwind: "yes"
+      season: "All year"
+      link: "https://www.appenzell.ch/en/appenzell.html"
+    - id: ebenalp
+      kinds: [hike, winter]
+      name: "Ebenalp, Äscher and Schäfler"
+      area: "Appenzell"
+      lon: 9.41426
+      lat: 47.28333
+      why: "Cable car up the Alpstein, through the Wildkirchli caves to the guesthouse built into the cliff, then up to the Schäfler for the view of the Säntis ridge. In winter: a short groomed path at the top, snowshoes to try for free and a small ski area."
+      trip: "52 min to Wasserauen (S21, change at Appenzell), then the cable car"
+      walk: "Loop from the top station about 6 km, 600 m up and down, 2 h 30 to 3 h; mountain trail, the climb above the Äscher is steep and partly exposed (gentler the other way round)"
+      ostwind: "train yes, cable car no"
+      extra: "Cable car CHF 24 up, CHF 36 return (half with Half Fare)"
+      season: "Cable car closed until 24 December 2026, 30 March to 27 April and from 22 November 2027; last ride down 17:30 to 19:00 depending on the month. The loop June to October, when the Äscher and Schäfler inns are open"
+      link: "https://www.ebenalp.ch/"
+    - id: seealpsee
+      kinds: [walk, water, winter]
+      name: "Seealpsee"
+      area: "Appenzell"
+      lon: 9.40210
+      lat: 47.26970
+      why: "A mountain lake below the Säntis, reached on a quiet road."
+      trip: "51 min to Wasserauen, then about 1 h on foot"
+      ostwind: "yes"
+      season: "All year; best May to October"
+      link: "https://www.appenzell.ch/"
+    - id: kronberg
+      kinds: [winter]
+      name: "Kronberg sledge run"
+      area: "Appenzell"
+      lon: 9.32818
+      lat: 47.32008
+      why: "About 7 km down from the summit to Jakobsbad, the longest sledge run in eastern Switzerland."
+      trip: "34 min by train to Jakobsbad (S81, change at Herisau), then the cable car"
+      ostwind: "train yes, cable car no"
+      extra: "Cable car CHF 32 for one ride up (half with Half Fare); sledge hire CHF 15 a day"
+      season: "1 December 2026 to 28 February 2027, only with natural snow; not for small children"
+      link: "https://www.kronberg.ch/"
+    - id: faelensee
+      kinds: [hike, water]
+      name: "Saxer Lücke and Fälensee"
+      area: "Appenzell"
+      lon: 9.45327
+      lat: 47.26067
+      why: "A ridge walk with the Rhine valley on one side and the Alpstein on the other, then lunch at the Bollenwees inn above a deep green lake, and down to Brülisau."
+      trip: "About 1 h 30 to Frümsen (S4 to Salez-Sennwald, buses 300 and 411), then the Staubern cable car; back from Brülisau by bus 192 and train, 1 h"
+      walk: "About 12 km, 250 m up and 1,100 m down, 4 h; mountain trail with a short exposed stretch secured by ropes, then a long steep descent"
+      ostwind: "trains and buses yes, cable car no"
+      extra: "Staubern cable car CHF 20 one way (2026)"
+      season: "Late June to October; the cable car runs daily May to October, the Bollenwees inn mid-May to October"
+      link: "https://www.staubern.ch/bergbahn/"
+    - id: walensee
+      kinds: [water]
+      name: "Walensee and Quinten"
+      area: "Lakes"
+      lon: 9.21601
+      lat: 47.12890
+      why: "A fjord-like lake below the Churfirsten; Quinten, a car-free wine village, is reached only by boat."
+      trip: "1 h 10 by train to Murg, then the boat across (about 1 h 35 in all)"
+      ostwind: "train yes, boat no (separate ticket)"
+      extra: "Half Fare, GA, the SBB app and FAIRTIQ are not valid on the Walensee boats"
+      season: "The crossing to Quinten runs all year"
+      link: "https://walenseeschiff.ch/"
+    - id: flumserberg
+      kinds: [hike]
+      name: "Flumserberg 7-peak tour"
+      area: "Flumserberg"
+      lon: 9.25465
+      lat: 47.06998
+      why: "A whole day on a high grassy ridge over Ziger, Leist, Rainissalts, Gulmen, Cuncels and the two Güslen, with small moor lakes and the Churfirsten across the Walensee."
+      trip: "About 1 h 50 to Maschgenkamm: train to Unterterzen, gondolas via Tannenboden; back by gondola and train, about 1 h 30"
+      walk: "About 14 to 15 km, 800 m up and 1,400 m down, 5 h 30; mountain trail, no food until the Seebenalp (you can turn back after four peaks)"
+      ostwind: "trains yes, the Maschgenkamm gondola no"
+      extra: "Unterterzen to Maschgenkamm CHF 34.60, CHF 17.30 with Half Fare (2026)"
+      season: "Lifts 12 June to 24 October 2027"
+      link: "https://www.flumserberg.ch/en/tour/7-Peak-Tour-Flumserberg_23430142"
+    - id: pizol
+      kinds: [hike, water]
+      name: "Pizol five lakes hike"
+      area: "Pizol"
+      lon: 9.41708
+      lat: 46.97891
+      why: "Past five clear mountain lakes (Wangsersee, Wildsee, Schottensee, Schwarzsee, Baschalvasee) and over a rocky pass at about 2,500 m, with the lifts doing most of the climbing."
+      trip: "1 h 17: train to Sargans, bus 430 to Wangs, Pizolbahn, then a gondola and two chairlifts to the Pizolhütte"
+      walk: "About 10 km, 600 m up and 950 m down, 4 h; mountain trail with scree, wear boots"
+      ostwind: "trains and buses yes, lifts no"
+      extra: "Lifts for the hike CHF 54, CHF 27 with Half Fare (2026)"
+      season: "July to October (snow can lie until early July); be at the Gaffia chairlift by 16:30"
+      link: "https://pizol.com/wanderwege/5-seen-wanderung/"
+    - id: batoeni
+      kinds: [hike, water]
+      name: "Waterfall Arena Batöni"
+      area: "Weisstannental"
+      lon: 9.35305
+      lat: 46.95832
+      why: "Three high waterfalls (45 to 86 m) drop side by side into a wild cirque, with a suspension bridge at the end; chamois and ibex are often seen."
+      trip: "1 h 46: train to Sargans, then bus 432 to Weisstannen, Oberdorf (hourly)"
+      walk: "Out and back about 8 km, 550 m up, 3 h 20; mountain trail, nothing to buy on the way"
+      ostwind: "yes"
+      extra: "Free"
+      season: "July to October, best in July with the snowmelt"
+      link: "https://unesco-sardona.ch/en/erlebnis/waterfall-arena-batoeni"
+    - id: tamina
+      kinds: [water, winter]
+      name: "Tamina Therme"
+      area: "Bad Ragaz"
+      lon: 9.50539
+      lat: 46.99987
+      why: "Warm spring water from the Tamina gorge, in indoor and outdoor pools."
+      trip: "1 h 05 by train to Bad Ragaz (IR 13, direct), then bus 456"
+      ostwind: "yes"
+      extra: "Entry for 2 h or more; see the prices on the website"
+      season: "All year"
+      link: "https://www.taminatherme.ch/"
+    - id: taminaschlucht
+      kinds: [culture, water]
+      name: "Tamina gorge and the Old Baths of Pfäfers"
+      area: "Bad Ragaz"
+      lon: 9.48795
+      lat: 46.97379
+      why: "A walkway through a 70 m deep slot gorge to the cave of the hot spring that made Bad Ragaz, and a baroque bath house with a free museum."
+      trip: "1 h 05 to Bad Ragaz, then the gorge bus (18 min) or 4 km on foot up the car-free gorge road (about 1 h 15)"
+      ostwind: "trains yes; the gorge bus from 2027 (it had its own fare before)"
+      extra: "Gorge about CHF 5 (2026); museum free"
+      season: "Closed in winter; in 2026 open 2 May to 25 October, the 2027 dates are not out yet"
+      know: "Wet in places: good shoes. Pairs well with the Tamina Therme"
+      link: "https://www.altes-bad-pfaefers.ch/"
+    - id: gutenberg
+      kinds: [culture]
+      name: "Burg Gutenberg"
+      area: "Liechtenstein"
+      lon: 9.50082
+      lat: 47.06542
+      why: "A castle on a 70 m rock in Balzers, rebuilt about 1910, with a free courtyard and a view over the Rhine valley."
+      trip: "1 h 21 on weekdays: train to Sargans, bus 12E to Balzers, Gagoz (every day: bus 11, about 1 h 40); then 10 min up on foot"
+      ostwind: "yes (Liechtenstein's buses are in Ostwind)"
+      extra: "Courtyard free; inside only on a booked group tour, May to October, CHF 170 per group"
+      season: "Courtyard all year; chapel and rose garden Sundays May to October, 10:00 to 17:00"
+      link: "https://www.burg-gutenberg.li/"
+    - id: braunwald
+      kinds: [hike, water]
+      name: "Braunwald to the Oberblegisee"
+      area: "Glarus"
+      lon: 9.01319
+      lat: 46.98019
+      why: "From a car-free mountain village along a balcony path past an alp cheese dairy to a deep green lake under the Glärnisch cliffs, and down in a tiny cable car."
+      trip: "1 h 46 to Linthal (S4, S17, S25), then the Braunwald funicular; back from Luchsingen-Hätzingen at :51"
+      walk: "About 9 km, 350 m up and 500 m down, 2 h 30 to 3 h; easy trail, the Bächibeizli alp inn on the way (May to October)"
+      ostwind: "trains and the funicular yes; the Brunnenberg cable car no"
+      extra: "Brunnenberg cable car down CHF 12 (no Half Fare)"
+      season: "Summer; the cable car ran 2 May to 1 November 2026, hourly at :30 until 17:30 (no 12:30); in winter only when booked the day before (+41 58 817 11 12)"
+      know: "The path down from Brunnenberg is closed (fallen trees): if the cable car does not run, walk back to Braunwald"
+      link: "https://www.braunwald.ch/"
+    - id: schraehbach
+      kinds: [water, walk]
+      name: "Schrähbach waterfall and the Wägitalersee"
+      area: "Wägital"
+      lon: 8.90006
+      lat: 47.10427
+      why: "A tall stepped waterfall beside the lake road at the dam of the Wägitalersee, a reservoir lake you can walk around."
+      trip: "1 h 45: train to Uznach, buses 521 and 523 to Innerthal, Staumauer; then about 10 min on foot"
+      walk: "Around the lake about 13 km, 3 h 30, flat"
+      ostwind: "yes"
+      season: "All year; most water with the snowmelt or after rain"
+      link: "https://www.postauto.ch/fr/offres-de-loisirs/idees-d-excursions/2022/autour-du-waegitalersee"
+    - id: bodensee
+      kinds: [water]
+      name: "Lake Constance"
+      area: "Lakes"
+      lon: 9.49292
+      lat: 47.47859
+      why: "Lake promenade at Rorschach and boats along the Swiss shore."
+      trip: "21 min by train to Rorschach"
+      ostwind: "train yes, boat no (separate ticket)"
+      season: "Boats from 26 March to 10 October 2027"
+      link: "https://www.bodensee-schiffe.ch/"
+    - id: stein
+      kinds: [culture]
+      name: "Stein am Rhein and St. Otmar's island"
+      area: "Lakes"
+      lon: 8.85962
+      lat: 47.65927
+      why: "A medieval little town on the Rhine with painted facades; 20 min upstream on foot, the chapel on Werd island marks where St. Otmar, the first abbot of St. Gallen, died in exile in 759."
+      trip: "1 h 24 by train (S1, direct along the lake)"
+      ostwind: "yes"
+      extra: "Free"
+      season: "All year"
+      link: "https://www.steinamrhein.ch/"
+    - id: rheinfall
+      kinds: [water, winter]
+      name: "Rhine Falls"
+      area: "Lakes"
+      lon: 8.61570
+      lat: 47.67772
+      why: "Europe's most powerful waterfall, from platforms right above the water at Schloss Laufen or free from the north bank."
+      trip: "Inside Ostwind about 2 h (S1 to Schaffhausen, then 5 min to Schloss Laufen am Rheinfall); 1 h via Winterthur needs another ticket"
+      ostwind: "yes, the way via Schaffhausen"
+      extra: "Schloss Laufen side CHF 5, children CHF 3; rock boat CHF 22.50"
+      season: "Platforms all year; no boats 30 November 2026 to 26 February 2027, the rock boat April to October; lights at Schloss Laufen until 3 January 2027"
+      know: "Arrive at Schloss Laufen, cross the railway bridge on foot to the free north bank and leave from Neuhausen Rheinfall"
+      link: "https://www.rheinfall.ch/"
+    - id: iwc
+      kinds: [culture]
+      name: "IWC Museum, Schaffhausen"
+      area: "Schaffhausen"
+      lon: 8.63685
+      lat: 47.69454
+      why: "More than 230 watches and archive pieces on the Schaffhausen watchmaker since 1868, a short walk from the old town and the Rhine."
+      trip: "Inside Ostwind 1 h 54 (S1 direct), then 10 min on foot; 1 h 09 via Winterthur needs another ticket"
+      ostwind: "yes, the way via Kreuzlingen"
+      extra: "CHF 10, children up to 16 free"
+      season: "Tuesday to Friday 9:00 to 17:30, Saturday 9:00 to 15:30; closed 25 to 28 December and 1 to 4 January"
+      know: "Register online to be safe. Pairs with the Rhine Falls"
+      link: "https://www.iwc.com/"
+    # ---- far: day trips beyond Ostwind ----
+    - id: hoellgrotten
+      far: true
+      kinds: [culture, family]
+      name: "Höllgrotten caves"
+      area: "Zug"
+      lon: 8.55737
+      lat: 47.18597
+      why: "Dripstone caves inside a mound of spring tufa, found by quarry workers in 1863: a 45 min walk through on your own, at about 10 °C."
+      trip: "1 h 48: via Zürich to Zug, bus 602 to Baar, Tobelbrücke-Höllgrotten, then about 30 min on foot along the Lorze"
+      ostwind: "no: an SBB ticket or a Saver Day Pass"
+      extra: "CHF 14, children 6 to 15 CHF 7"
+      season: "Closed in winter; open daily 9:00 to 17:00 from late March or 1 April to 31 October 2027"
+      link: "https://www.hoellgrotten.ch/"
+    - id: hoelloch
+      far: true
+      kinds: [culture, winter]
+      name: "Hölloch cave"
+      area: "Muotathal"
+      lon: 8.78839
+      lat: 46.97664
+      why: "A guided walk with helmet and lamp into one of the longest caves on Earth (more than 210 km), the same in any weather."
+      trip: "2 h 37: train via Arth-Goldau to Schwyz, bus 501 to Muotathal, Hölloch"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Short tour about 2 h CHF 39, ages 16 to 19 CHF 25, 5 to 15 CHF 15; booking needed"
+      season: "All year on set dates; 6 °C inside, bring warm clothes and sturdy shoes"
+      link: "https://www.trekking.ch/hoelloch"
+    - id: flims
+      far: true
+      kinds: [walk, water]
+      name: "Flims: forest lakes, Caumasee and the Rhine Gorge"
+      area: "Graubünden"
+      lon: 9.29556
+      lat: 46.82013
+      why: "Through a forest on the largest rockslide in the Alps, past the turquoise Caumasee to the Il Spir platform over the 'Swiss Grand Canyon'."
+      trip: "About 2 h 05: train to Chur, PostBus 80 to Flims Waldhaus, Camping"
+      walk: "Full loop down to the Rhine 15.6 km, 600 m up and down, 5 h; without the Rhine 10 km, 2 h 30 to 3 h; easy trails, steep steps to the river"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Caumasee lift and Il Spir free; the lake's lido charges in summer"
+      season: "May to October (go early: the two small lakes dry out); in winter a groomed path past Il Spir and the Caumasee"
+      link: "https://www.flimslaax.com/en/outdoor-activities/mountain-lakes/lake-cauma"
+    - id: lenzerheide
+      far: true
+      kinds: [hike, family]
+      name: "Lenzerheide to Arosa over the Rothorn"
+      area: "Graubünden"
+      lon: 9.55757
+      lat: 46.74045
+      why: "Feed squirrels by hand in a lakeside forest, ride up the Parpaner Rothorn (about 2,860 m), walk a high path and cross to Arosa on a cable car with no pylons."
+      trip: "Leave 07:25: via Sargans and Chur, PostBus 182 to Lenzerheide (2 h 15); home from Arosa 16:49, St. Gallen 19:35"
+      walk: "Rothorn to Urdenfürggli 3.5 km, mostly down, 1 h; steep in parts with a gallery, boots needed. The squirrel forest about 1 km, open all year (bring hazelnuts)"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Rothorn CHF 36 one way, Urdenbahn CHF 9 (no Half Fare), or the crossing ticket CHF 50 (2026)"
+      season: "Lifts daily 25 June to 17 October 2027; last Urdenbahn 16:30"
+      link: "https://arosalenzerheide.swiss/"
+    - id: davos
+      far: true
+      kinds: [winter, hike]
+      name: "Davos: Schatzalp and Jakobshorn"
+      area: "Graubünden"
+      lon: 9.82212
+      lat: 46.79168
+      why: "Two mountain days in one valley: the old 'Magic Mountain' sanatorium of Schatzalp with a sledge run and an alpine garden, or a cable car up the 2,590 m Jakobshorn."
+      trip: "2 h 32: train to Landquart, RE to Davos Platz; back about 2 h 30"
+      walk: "Winter: Schatzalp sledge run 2.8 km down to Davos. Summer: the ridge from the Jakobshorn over the Jatzhorn"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Schatzalp funicular CHF 10 one way, sledge day CHF 36, sledge hire CHF 10; Jakobshorn return CHF 51 in winter, CHF 50 in summer"
+      season: "Schatzalp funicular 28 November 2026 to 21 March 2027 (sledge run from mid-December, with snow); Jakobshorn summer 12 June to 17 October 2027"
+      link: "https://www.davos.ch/"
+    - id: joeriseen
+      far: true
+      kinds: [hike, water]
+      name: "Jöri lakes loop"
+      area: "Graubünden"
+      lon: 9.96785
+      lat: 46.77863
+      why: "A bare high cirque with milky green and deep blue lakes below a shrinking glacier and the Silvretta peaks."
+      trip: "About 2 h 50: train to Davos Dorf, PostAuto over the Flüela pass to Wägerhus (14 min); last bus back 18:34"
+      walk: "About 11 km, 900 m up and down, 4 h 30, highest about 2,790 m; demanding mountain trail with ropes, no huts"
+      ostwind: "no: a Saver Day Pass"
+      season: "July to October; the pass bus ran 27 June to 25 October 2026"
+      link: "https://www.graubuenden.ch/de/touren/joeriseen-rundweg"
+    - id: mulegns
+      far: true
+      kinds: [culture]
+      name: "White Tower of Mulegns"
+      area: "Graubünden"
+      lon: 9.62101
+      lat: 46.52361
+      why: "A 30 m white tower 3D-printed with ETH Zürich, a small stage in a pass village; it stands until about 2030, then moves. You see it free from the bus over the Julier."
+      trip: "2 h 51: train to Chur and Thusis, bus 577 to Mulegns, vischnanca; on over the Julier to St. Moritz and home by the Albula line"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Seeing it is free; inside only on a show or tour (CHF 80 to 100)"
+      season: "All year from the road"
+      link: "https://www.tor-alva.ch/de/"
+    - id: corvatsch
+      far: true
+      kinds: [hike]
+      name: "Piz Corvatsch and the high trail to Furtschellas"
+      area: "Engadin"
+      lon: 9.81458
+      lat: 46.45504
+      why: "Up to the highest cable car station in Graubünden (3,303 m) for the glaciers, then a balcony path above the Engadine lakes facing Piz Bernina."
+      trip: "About 4 h each way (leave 05:25; home about 20:30)"
+      walk: "Murtèl to Fuorcla Surlej and back, then on to Furtschellas: about 9 km, 3 h 30; mountain trail, high all day"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Lifts about CHF 80 to 90 for the day (2026)"
+      season: "Corvatsch 19 June and Furtschellas 26 June to 22 October 2027; last ride down at Furtschellas 17:05"
+      link: "https://www.corvatsch-diavolezza.ch/"
+    - id: meiringen
+      far: true
+      kinds: [water, culture]
+      name: "Aare Gorge and Reichenbach Falls"
+      area: "Meiringen"
+      lon: 8.20482
+      lat: 46.72009
+      why: "Wooden walkways along a narrow canyon just above the Aare, and a funicular of 1899 to the falls where Conan Doyle sent Sherlock Holmes over the edge."
+      trip: "3 h 39: train via Luzern to Meiringen; home 16:41, St. Gallen about 20:10"
+      walk: "Through the gorge 1.4 km, about 1 h one way, then the train back"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Gorge CHF 13, funicular CHF 15 return, both together CHF 25; Sherlock Holmes Museum CHF 7"
+      season: "Best 6 May to 3 October 2027, when both are open; closed in winter (the museum opens weekend afternoons)"
+      link: "https://www.aareschlucht.ch/"
+    - id: bellinzona
+      far: true
+      kinds: [culture]
+      name: "Castles of Bellinzona"
+      area: "Ticino"
+      lon: 9.02198
+      lat: 46.19284
+      why: "Three medieval castles and a wall across the valley above an Italian-feeling old town, UNESCO World Heritage."
+      trip: "3 h 29 through the Gotthard (change at Arth-Goldau); home about 20:55"
+      ostwind: "no: a Saver Day Pass"
+      extra: "All three castles CHF 28 (Castelgrande alone CHF 15); the Swiss Museum Pass is valid"
+      season: "Summer daily 10:00 to 18:00; in winter (until 18 March 2027) only Castelgrande is fully open, 10:30 to 16:00; closed 25 December"
+      link: "https://fortezzabellinzona.ch/en/visit/"
+    - id: madonnasasso
+      far: true
+      kinds: [culture, winter]
+      name: "Madonna del Sasso, Locarno"
+      area: "Ticino"
+      lon: 8.79391
+      lat: 46.17519
+      why: "A pilgrimage church on a rock above Locarno, from a vision in 1480, with a wide view over Lake Maggiore."
+      trip: "About 4 h 15 each way (change at Arth-Goldau); about 5 h in Locarno"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Funicular CHF 8 return (Half Fare and GA not valid), or 20 min on foot up the Via Crucis"
+      season: "Church daily 7:00 to 18:30, all year; the funicular stops for about three weeks in November"
+      link: "https://www.ascona-locarno.com/"
+    - id: salvatore
+      far: true
+      kinds: [walk, culture]
+      name: "Monte San Salvatore, Lugano"
+      area: "Ticino"
+      lon: 8.94730
+      lat: 45.97690
+      why: "A funicular to the 912 m summit over Lake Lugano, the church roof as a viewpoint and a short nature trail along the ridge."
+      trip: "3 h 45 each way (change at Arth-Goldau); then 3 min by train to Lugano-Paradiso"
+      walk: "The ridge trail is short and flat; on foot down to Carona about 1 h, or to Morcote about 3 h"
+      ostwind: "no: a Saver Day Pass"
+      extra: "Funicular CHF 32 return, CHF 16 with Half Fare"
+      season: "Funicular closed 9 November 2026 to 12 March 2027; from 13 March daily 9:00 to 18:00 (July and August until 22:30)"
+      link: "https://www.montesansalvatore.ch/"
+    - id: luenersee
+      far: true
+      kinds: [hike, water]
+      name: "Lünersee and the Gafalljoch"
+      area: "Austria"
+      lon: 9.75472
+      lat: 47.05967
+      why: "A cable car up to a turquoise lake at almost 2,000 m in Austria, a walk all round it and a short climb to a pass on the Swiss border."
+      trip: "About 2 h 45 to 3 h: train via St. Margrethen or Buchs to Bludenz, then bus 580 to Brand, Lünerseebahn (50 min); last bus down 17:30"
+      walk: "Round the lake and up to the Gafalljoch about 9 km, 350 m up and down, 3 to 4 h; the lake alone about 6 km, 2 h"
+      ostwind: "only with a combined ticket: Ostwind plus all of Vorarlberg (Kombi day ticket OTV-VVV), or the Lünersee Green Ticket from the border"
+      extra: "Cable car EUR 26 return (2026); the Green Ticket (EUR 33) includes it and the Austrian trains and buses"
+      season: "Cable car 22 May to 26 October 2027, 8:00 to 17:00 (last down 17:00)"
+      know: "Take an ID and euros. If you miss the last cable car, the only way down is the steep Böser Tritt path"
+      link: "https://luenersee.at/en/service-prices/opening-times"

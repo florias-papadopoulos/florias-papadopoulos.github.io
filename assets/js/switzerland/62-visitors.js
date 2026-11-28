@@ -1,6 +1,6 @@
 /* Part 62: Visitors, for guests staying in St. Gallen. A sheet of its own (the suitcase in the icon row, or the link
    /switzerland/#visitors) with three tabs: Places (data/switzerland.yaml, guests; a legend of kinds that also filters,
-   pins in the kind's colour, bubbles where they crowd, a card each), Travel (the trains from Zurich Airport, with the
+   pins in the kind's colour, bubbles where they crowd, a card each; listed near (inside Ostwind) and far), Travel (the trains from Zurich Airport, with the
    next one drawn stop by stop from transport.opendata.ch, the Ostwind day ticket, and the Ostwind area shaded on the
    map: static/switzerland/ostwind.json from tools/swiss-map/make_ostwind.py), and Now: the next departures from
    St. Gallen (transport.opendata.ch) and the weather in St. Gallen and on the Säntis (MeteoSwiss, as part 60). The
@@ -10,9 +10,16 @@ const KINDS = guests.kinds || [];
 const kindOf = (p) => (Array.isArray(p.kinds) && p.kinds[0]) || '';
 const kindColour = (id) => { const k = KINDS.find((x) => x.id === id); return k ? String(k.colour) : '#d52b1e'; };
 let vKind = '';   // the chip chosen in the Places tab ('' = all)
+/* the order of the list (near before far, then by first kind in the legend's order), which also numbers the pins */
+const V_ORDER = (guests.places || []).map((p, i) => i).sort((a, b) => {
+    const p = guests.places[a], q = guests.places[b], order = KINDS.map((k) => k.id);
+    return (!!p.far - !!q.far) || order.indexOf(kindOf(p)) - order.indexOf(kindOf(q)) || a - b;
+});
+const vNum = [];
+V_ORDER.forEach((i, k) => { vNum[i] = k; });
 function guestFeatures() {
     return (guests.places || []).map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] },
-        properties: { i, n: String(i + 1), name: String(p.name), colour: kindColour(kindOf(p)) } }))
+        properties: { i, o: vNum[i], n: String(vNum[i] + 1), name: String(p.name), colour: kindColour(kindOf(p)) } }))
         .filter((f) => !vKind || ((guests.places[f.properties.i].kinds || []).includes(vKind)));
 }
 let visitorsOn = false, depTimer = null, styleReady = false;
@@ -27,7 +34,7 @@ function visitorsLayers() {
                     layout: { 'line-join': 'round' }, paint: { 'line-color': '#0f766e', 'line-width': 2.5, 'line-opacity': 0.9, 'line-dasharray': [3, 2] } }, 'canton-fill');
     // pins that would touch become one bubble ("1–3"); a tap on it zooms in until they part
     mapA.addSource('guests', { type: 'geojson', cluster: true, clusterRadius: 26, clusterMaxZoom: 14,
-        clusterProperties: { lo: ['min', ['get', 'i']], hi: ['max', ['get', 'i']] },
+        clusterProperties: { lo: ['min', ['get', 'o']], hi: ['max', ['get', 'o']] },
         data: { type: 'FeatureCollection', features: guestFeatures() } });
     mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests',
                     paint: { 'circle-radius': ['case', ['has', 'point_count'], 15, 11], 'circle-color': ['case', ['has', 'point_count'], '#374151', ['get', 'colour']],
@@ -69,9 +76,11 @@ function guestCard(i) {
         b.appendChild(el('p', 'ch-card-line', String(p.why || '')));
         const dl = el('dl', 'ch-card-facts ch-card-facts-wide');
         row(dl, 'From St. Gallen', String(p.trip));
+        if (p.walk) row(dl, 'On foot', String(p.walk));
         if (p.ostwind) row(dl, 'Ostwind pass', String(p.ostwind));
-        if (p.extra) row(dl, 'Also', String(p.extra));
+        if (p.extra) row(dl, 'Costs', String(p.extra));
         if (p.season) row(dl, 'When', String(p.season));
+        if (p.know) row(dl, 'Good to know', String(p.know));
         b.appendChild(dl);
         if (typeof p.link === 'string' && p.link.indexOf('https://') === 0) {
             const a = el('a', 'ch-card-link', 'Website');
@@ -136,28 +145,25 @@ async function showTrip(from, to, title) {
         if (req === tripReq) toast('The train could not be loaded right now.', 3000);
     }
 }
-/* the places, grouped by their first kind, in the order of the legend */
+/* the places in two groups, near (inside Ostwind) and the day trips beyond it; in each, by their first kind in the
+   order of the legend */
+const V_GROUPS = [{ far: false, name: 'Near, with the Ostwind pass' }, { far: true, name: 'Day trips further away (extra ticket)' }];
 function vPlaces() {
     document.querySelectorAll('.ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === vKind)));
     const list = $('ch-v-places');
     list.textContent = '';
-    const order = KINDS.map((k) => k.id);
-    const items = (guests.places || []).map((p, i) => ({ p, i }))
-        .filter(({ p }) => !vKind || (p.kinds || []).includes(vKind))
-        .sort((a, b) => order.indexOf(kindOf(a.p)) - order.indexOf(kindOf(b.p)) || a.i - b.i);
+    const items = V_ORDER.map((i) => ({ p: guests.places[i], i })).filter(({ p }) => !vKind || (p.kinds || []).includes(vKind));
     let group = null;
     items.forEach(({ p, i }) => {
-        const k = vKind || kindOf(p);
-        if (k !== group) {
-            group = k;
-            const kd = KINDS.find((x) => x.id === k);
-            const h = el('li', 'ch-v-group', kd ? String(kd.name) : '');
-            list.appendChild(h);
+        const g = V_GROUPS[p.far ? 1 : 0];
+        if (g !== group) {
+            group = g;
+            list.appendChild(el('li', 'ch-v-group', g.name));
         }
         const li = el('li', 'ch-v-place');
         const btn = el('button', 'ch-v-btn');
         btn.type = 'button';
-        const num = el('span', 'ch-v-num', String(i + 1));
+        const num = el('span', 'ch-v-num', String(vNum[i] + 1));
         num.style.background = kindColour(kindOf(p));
         const txt = el('span', 'ch-v-txt');
         txt.append(el('strong', null, String(p.name)), el('span', null, String(p.trip)));
