@@ -9,7 +9,7 @@ can call another's. Check after a change: `cat assets/js/switzerland/[0-9]*.js >
 | 00-core | constants, shared state, helpers (cards' small builders, LV95 formulas), the first map's style, start(), the three base maps, the modes (one at a time), the left sheets, the map controls |
 | 10-compare | Then and now (a second map with an old national map, clipped at the divider) |
 | 20-terrain | 3D (swisstopo terrain) and the sun (sun position, hillshade from that direction) |
-| 30-layers | the Layers panel: summits, trails, slopes, ski and snowshoe routes, glaciers (with Go to), avalanche bulletin (SLF), snow depth (MeteoSwiss) |
+| 30-layers | the Layers panel: summits, trails, slopes, ski and snowshoe routes, glaciers (with Go to), avalanche bulletin (SLF) |
 | 40-cards | what a tap shows: profile point, summit, avalanche region, snow station, canton |
 | 50-profile | the elevation profile (swisstopo profile service) with distance, climb, descent and DIN 33466 walking time |
 | 60-live | Weather now (MeteoSwiss stations, a station's 10-minute values on a tap), snow cover from space (NASA GIBS, recoloured through chsnow://) and the nearest public transport stop on summit and cave cards |

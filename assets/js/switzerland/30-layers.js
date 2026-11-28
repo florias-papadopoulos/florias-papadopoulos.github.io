@@ -21,9 +21,6 @@ const LAYERS = [
     { id: 'avalanche', name: 'Avalanche danger today', ids: ['avalanche'],
       legend: [['#ccff66', '1 Low'], ['#ffff00', '2 Moderate'], ['#ff9900', '3 Considerable'], ['#ff0000', '4 High'], ['#7a0000', '5 Very high']],
       note: 'The official bulletin of the WSL Institute for Snow and Avalanche Research SLF (CC BY 4.0), loaded from slf.ch when you turn this on. Tap a region for details.' },
-    { id: 'snow', name: 'Snow depth', ids: ['snow-dots', 'snow-text'],
-      legend: [['#e0f2fe', 'under 20 cm'], ['#7dd3fc', '20 to 50 cm'], ['#38bdf8', '50 to 100 cm'], ['#0369a1', 'over 1 m']],
-      note: 'Measured this morning at 7:00 at about 250 stations of MeteoSwiss (CC BY 4.0), loaded when you turn this on.' },
     { id: 'snowcover', name: 'Snow cover from space', ids: ['snowcover'],
       legend: [['#b8e5fd', 'A little snow'], ['#5192ef', 'Mostly snow'], ['#246ee9', 'Fully covered']],
       note: 'Where snow lay yesterday, seen by the NOAA-20 satellite (NASA GIBS, open data), about 400 m a pixel. Not how deep it is; clouds leave gaps.' },
@@ -44,11 +41,10 @@ function setLayer(def, on, opts) {
     // a layer seen only from closer in: a word, not a jump of the map
     if (on && !(opts && opts.restore) && def.minzoom && mapA.getZoom() < def.minzoom) toast('Zoom in to see the ' + def.name.toLowerCase() + '.', 3000);
     if (on && def.id === 'avalanche') loadAvalanche();
-    if (on && def.id === 'snow') loadSnow();
     if (on && def.id === 'weather') loadWeather();
     if (on && def.id === 'snowcover') snowCoverOn();
     // the credits under the title name every source on the map (as the CC BY licences of SLF and MeteoSwiss ask)
-    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.snow || layerOn.weather ? ' · MeteoSwiss' : '') + (layerOn.snowcover ? ' · NASA' : '');
+    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.weather ? ' · MeteoSwiss' : '') + (layerOn.snowcover ? ' · NASA' : '');
     const any = LAYERS.some((d) => d.id !== 'peaks' && layerOn[d.id]);
     $('ch-layers-btn').classList.toggle('ch-has', any);
 }
@@ -96,7 +92,7 @@ function buildLayers() {
             more.appendChild(ul);
         }
         if (def.note) more.appendChild(el('p', 'ch-ly-note', def.note));
-        if (def.id === 'avalanche' || def.id === 'snow' || def.id === 'weather' || def.id === 'snowcover') { const s = el('p', 'ch-ly-note ch-ly-state'); s.id = 'ch-' + def.id + '-state'; more.appendChild(s); }
+        if (def.id === 'avalanche' || def.id === 'weather' || def.id === 'snowcover') { const s = el('p', 'ch-ly-note ch-ly-state'); s.id = 'ch-' + def.id + '-state'; more.appendChild(s); }
         if (def.id === 'avalanche') {
             const a = el('a', 'ch-ly-link', 'Report an observation to SLF');
             a.href = 'https://pro.slf.ch/reply/public/#/'; a.target = '_blank'; a.rel = 'noopener noreferrer';
@@ -189,47 +185,6 @@ function avalancheCard(i) {
         b.appendChild(a);
     });
     return true;
-}
-
-/* ---------- snow depth (MeteoSwiss manual stations, read at 7:00; coordinates in LV95) ---------- */
-let snow = null, snowLoading = false;
-async function loadSnow() {
-    if (snow || snowLoading) return;
-    snowLoading = true;
-    const state = $('ch-snow-state');
-    state.textContent = 'Loading the measurements…';
-    try {
-        const res = await fetch('https://data.geo.admin.ch/ch.meteoschweiz.messwerte-gesamtschnee-1d/ch.meteoschweiz.messwerte-gesamtschnee-1d_en.json', { credentials: 'omit', referrerPolicy: 'no-referrer' });
-        if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
-        let ref = '';
-        snow = (Array.isArray(data.features) ? data.features : []).map((f) => {
-            const c = f && f.geometry && f.geometry.coordinates, p = (f && f.properties) || {};
-            const v = Number(p.value);
-            if (!Array.isArray(c) || !isFinite(c[0]) || !isFinite(c[1]) || !isFinite(v) || v < 0) return null;
-            ref = ref || p.reference_ts;
-            return { type: 'Feature', geometry: { type: 'Point', coordinates: fromLV95(+c[0], +c[1]) },
-                     properties: { cm: Math.round(v), name: String(p.station_name || ''), alt: Math.round(Number(p.altitude) || 0) } };
-        }).filter(Boolean);
-        if (!mapA.getSource('snow')) mapA.addSource('snow', { type: 'geojson', data: EMPTY, attribution: '© <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a>' });
-        mapA.getSource('snow').setData({ type: 'FeatureCollection', features: snow });
-        if (!mapA.getLayer('snow-dots')) {
-            const vis = { visibility: layerOn.snow ? 'visible' : 'none' };
-            mapA.addLayer({ id: 'snow-dots', type: 'circle', source: 'snow', layout: vis,
-                            paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 5, 12, 9],
-                                     'circle-color': ['step', ['get', 'cm'], '#e0f2fe', 20, '#7dd3fc', 50, '#38bdf8', 100, '#0369a1'],
-                                     'circle-stroke-color': '#0f172a', 'circle-stroke-width': 1, 'circle-opacity': ['case', ['==', ['get', 'cm'], 0], 0.35, 1] } }, 'peaks');
-            mapA.addLayer({ id: 'snow-text', type: 'symbol', source: 'snow', minzoom: 8.5, layout: { ...vis,
-                            'text-field': ['concat', ['to-string', ['get', 'cm']], ' cm'], 'text-font': ['Frutiger Neue Italic'],
-                            'text-size': 12, 'text-offset': [0, 1.1], 'text-anchor': 'top' },
-                            paint: { 'text-color': '#0c4a6e', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } }, 'peaks');
-        }
-        state.textContent = snow.length ? 'Measured ' + when(ref) + '. Tap a station for its card.' : 'No measurements right now.';
-    } catch (e) {
-        snow = null;
-        state.textContent = 'The measurements could not be loaded. Try again later.';
-    }
-    snowLoading = false;
 }
 
 /* ---------- glaciers ---------- */

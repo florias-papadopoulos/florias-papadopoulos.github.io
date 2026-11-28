@@ -21,7 +21,7 @@ function onHover(e) {
     if (!hoverFrame) hoverFrame = requestAnimationFrame(() => { hoverFrame = 0; hoverCheck(hoverEvent); });
 }
 function hoverCheck(e) {
-    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves', 'wx-dots', 'snow-dots')) }).length;
+    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves', 'wx-dots')) }).length;
     mapA.getCanvas().style.cursor = hit ? 'pointer' : '';
 }
 function onClick(e) {
@@ -79,22 +79,6 @@ function onClick(e) {
     if (layerOn.weather && wx) {
         const w = mapA.queryRenderedFeatures(e.point, { layers: visible(['wx-dots']) });
         if (w.length) { mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']); weatherCard(w[0].properties); return; }
-    }
-    if (layerOn.snow && snow) {
-        const sn = mapA.queryRenderedFeatures(e.point, { layers: visible(['snow-dots']) });
-        if (sn.length) {
-            const p = sn[0].properties;
-            mapA.setFilter('canton-hi', ['==', ['get', 'code'], '']);
-            card((b) => {
-                b.append(el('p', 'ch-card-kind', 'Snow station'), el('h2', null, p.name));
-                const dl = el('dl', 'ch-card-facts');
-                row(dl, 'Snow depth', p.cm + ' cm');
-                if (+p.alt) row(dl, 'Altitude', fmt(+p.alt) + ' m');
-                b.appendChild(dl);
-                b.appendChild(el('p', 'ch-card-src', 'Measured by hand at 7:00. Source: MeteoSwiss, CC BY 4.0.'));
-            });
-            return;
-        }
     }
     const c = cantonAt(e.point);
     if (!c) { closeCard(); return; }
