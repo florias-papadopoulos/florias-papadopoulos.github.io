@@ -349,6 +349,8 @@ async function start() {
             const pt = (rows, props) => ({ type: 'FeatureCollection', features: rows.map((r) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [r[0], r[1]] }, properties: props(r) })) });
             mapA.getSource('peaks').setData(pt(peaks, (r) => ({ name: r[2], ele: r[3], rank: r[4] })));
             mapA.getSource('towns').setData(pt(towns, (r) => ({ name: r[2], class: r[3] })));
+            // names for saved areas (part 65): towns and the better-known summits
+            offPlaces = towns.concat(peaks.filter((r) => r[4] <= 3));
         });
         status('');
         onLoad.forEach((f) => f(view));
@@ -419,10 +421,10 @@ function tools() {
 }
 /* the left column holds one sheet at a time: the facts or the layers */
 function sheet(id, open) {
-    ['ch-facts', 'ch-layers'].forEach((s) => {
+    ['ch-facts', 'ch-layers', 'ch-offline'].forEach((s) => {
         const on = s === id ? open : false;
         $(s).hidden = !on;
-        const b = $(s === 'ch-facts' ? 'ch-facts-btn' : 'ch-layers-btn');
+        const b = $(s + '-btn');
         b.setAttribute('aria-expanded', String(on));
     });
 }

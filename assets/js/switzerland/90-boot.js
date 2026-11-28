@@ -11,12 +11,14 @@ function wire() {
     wireProfile();
     wireSearch();
     wireHud();
+    wireOffline();
     wireGrips();
     tools();
     addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         if (!$('ch-card').hidden) closeCard();
         else if (!$('ch-layers').hidden) $('ch-layers-close').click();
+        else if (!$('ch-offline').hidden) $('ch-offline-close').click();
         else if (!$('ch-facts').hidden) $('ch-facts-close').click();
     });
 }
