@@ -1,14 +1,15 @@
 /* Part 62: Visitors, the page's main view, for people visiting St. Gallen: St. Gallen is the base of every trip.
-   A sheet (open at the start, or the sun-and-mountain icon) with four tabs:
-   - Places (data/switzerland.yaml, guests): grouped by the time it takes from St. Gallen station; chips that turn the
-     six kinds and the four time groups off and on, one for a rainy day; switches for the pins, "open this month" and
+   "Places to go", a sheet (open at the start, or the sun-and-mountain icon) with three tabs:
+   - Places (data/switzerland.yaml, guests): grouped by the time it takes from St. Gallen station; chips to tick kinds and
+     time groups (nothing ticked shows all), one for a rainy day; switches for the pins, "open this month" and
      the Ostwind area (static/switzerland/ostwind.json, tools/swiss-map/make_ostwind.py). A place opens a panel at the
      bottom (#ch-place) with the next train from St. Gallen (transport.opendata.ch),
      the forecast there (Open-Meteo), and for hikes the line of the walk (static/switzerland/visitor-routes.json,
      tools/swiss-map/make_visitor_routes.py). A star puts a place on "My plan".
    - My plan: the starred places (kept in this browser, localStorage 'ch-plan'), sent as a link (#plan=id,id) that
      shows only those places; a single place has a link too (#visitors/id).
-   - Travel: the trains from Zurich Airport (drawn stop by stop) and the day tickets.
+   The trains from Zurich Airport (drawn stop by stop) and the day passes are built here into the Practical info
+   sheet (the document icon, layouts/switzerland/list.html).
    - Now: the next departures from St. Gallen and the weather in St. Gallen (MeteoSwiss).
    The pins are on from the start and stay when the sheet closes (Layers, Visitor places). The map is not moved
    when the sheet opens. */
@@ -40,15 +41,17 @@ function fmtMins(m) {
 const V_GROUPS = [{ max: 20, name: 'In town' }, { max: 60, name: 'Under 1 hour' }, { max: 119, name: '1 to 2 hours' }, { max: Infinity, name: '2+ hours' }];
 const groupOf = (p) => V_GROUPS.findIndex((g) => (Number(p.mins) || 0) <= g.max);
 const V_ORDER = PLACES.map((p, i) => i).sort((a, b) => (Number(PLACES[a].mins) || 0) - (Number(PLACES[b].mins) || 0) || a - b);
-const kindOff = new Set(), groupOff = new Set();   // the kinds and the time groups turned off (some, or all)
+// filters as usual on the web: nothing ticked shows everything; ticked kinds (any of them) and ticked time groups (any
+// of them) narrow the list, and both must match when both are used
+const kindOn = new Set(), groupOn = new Set();
 let vRain = false;  // only places good in bad weather
 let vOpen = false;  // only what is open this month
 let planOnly = null;   // the ids of a plan when only its places are shown (a plan sent as a link opens like this)
-const shown = (p) => planOnly ? planOnly.includes(String(p.id)) : (p.kinds || []).some((k) => !kindOff.has(k)) && !groupOff.has(groupOf(p)) && (!vRain || !!p.rain) && (!vOpen || isOpen(p, thisMonth()));
+const shown = (p) => planOnly ? planOnly.includes(String(p.id)) : (!kindOn.size || (p.kinds || []).some((k) => kindOn.has(k))) && (!groupOn.size || groupOn.has(groupOf(p))) && (!vRain || !!p.rain) && (!vOpen || isOpen(p, thisMonth()));
 const LINES = new Set(PLACES.filter((p) => p.line).map((p) => String(p.id)));   // the places with a drawn path
 function guestFeatures() {
     return PLACES.map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] },
-        properties: { i, name: String(p.name), colour: kindColour(kindOf(p)), plan: plan.includes(String(p.id)) } })).filter((f) => shown(PLACES[f.properties.i]));
+        properties: { i, name: String(p.name), colour: kindColour(kindOf(p)), kind: kindOf(p), plan: plan.includes(String(p.id)) } })).filter((f) => shown(PLACES[f.properties.i]));
 }
 let visitorsOn = false, depTimer = null, styleReady = false, ostwindOn = false;   // the Ostwind area only when asked for
 onLoad.push(() => { styleReady = true; });
@@ -63,14 +66,27 @@ function visitorsLayers() {
     showOstwind();
     // every pin at its own place, in its kind's colour; names from closer in
     mapA.addSource('guests', { type: 'geojson', data: { type: 'FeatureCollection', features: guestFeatures() } });
+    // the pins: a framed square in the kind's colour with its white pictogram (drawn here, sharp at twice the size)
+    KINDS.forEach((k) => {
+        const id = 'pin-' + k.id, c = document.createElement('canvas'), g = c.getContext('2d');
+        c.width = c.height = 52;
+        g.fillStyle = '#1d1d1b'; g.fillRect(2, 2, 48, 48);
+        g.fillStyle = '#fff'; g.fillRect(5, 5, 42, 42);
+        g.fillStyle = String(k.colour); g.fillRect(8, 8, 36, 36);
+        g.save(); g.translate(11, 11); g.scale(2, 2); g.fillStyle = '#fff'; g.fill(new Path2D(PICTOS[k.id] || PICTOS.walk)); g.restore();
+        if (!mapA.hasImage(id)) mapA.addImage(id, g.getImageData(0, 0, 52, 52), { pixelRatio: 2 });
+    });
+    // guests-dot: an invisible circle under each pin, the tap area (clicks and hover ask this layer)
     mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests', layout: { visibility: layerOn.guests ? 'visible' : 'none' },
-                    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 4.5, 10, 7, 13, 9], 'circle-color': ['get', 'colour'],
-                             'circle-stroke-color': '#ffffff', 'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 1.5, 10, 2] } });
+                    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 8, 10, 11, 13, 13], 'circle-color': '#000', 'circle-opacity': 0 } });
+    mapA.addLayer({ id: 'guests-icon', type: 'symbol', source: 'guests', layout: { visibility: layerOn.guests ? 'visible' : 'none',
+                    'icon-image': ['concat', 'pin-', ['get', 'kind']], 'icon-size': ['interpolate', ['linear'], ['zoom'], 6, 0.62, 10, 0.85, 13, 1],
+                    'icon-allow-overlap': true, 'icon-ignore-placement': true } });
     mapA.addLayer({ id: 'guests-ring', type: 'circle', source: 'guests', filter: ['==', ['get', 'plan'], true], layout: { visibility: layerOn.guests ? 'visible' : 'none' },
-                    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 8, 10, 11, 13, 13], 'circle-color': 'rgba(0,0,0,0)',
+                    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 12, 10, 16, 13, 19], 'circle-color': 'rgba(0,0,0,0)',
                              'circle-stroke-color': '#d4a017', 'circle-stroke-width': 3 } });
     mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 10.5,
-                    layout: { visibility: layerOn.guests ? 'visible' : 'none', 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1], 'text-anchor': 'top', 'text-padding': 2 },
+                    layout: { visibility: layerOn.guests ? 'visible' : 'none', 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1.25], 'text-anchor': 'top', 'text-padding': 2 },
                     paint: { 'text-color': '#1f2937', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
 }
 function showVisitors(on) {
@@ -465,8 +481,8 @@ function placeRow(i) {
 }
 function vPlaces() {
     // a chip pressed = shown; a kind or a time group can be turned off, the rainy-day chip keeps only those places
-    document.querySelectorAll('#ch-v-kinds .ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === 'rain' ? vRain : !kindOff.has(b.dataset.kind))));
-    document.querySelectorAll('#ch-v-times .ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(!groupOff.has(Number(b.dataset.group)))));
+    document.querySelectorAll('#ch-v-kinds .ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === 'rain' ? vRain : kindOn.has(b.dataset.kind))));
+    document.querySelectorAll('#ch-v-times .ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(groupOn.has(Number(b.dataset.group)))));
     const list = $('ch-v-places');
     list.textContent = '';
     if (planOnly) {
@@ -486,7 +502,7 @@ function vPlaces() {
     if (!list.children.length) list.appendChild(el('li', 'ch-ly-note', 'Nothing matches these choices.'));
     if (mapA && mapA.getSource('guests')) mapA.getSource('guests').setData({ type: 'FeatureCollection', features: guestFeatures() });
 }
-/* the sheet's four tabs */
+/* the sheet's three tabs */
 let vCurrent = 'places';
 function vTab(t) {
     vCurrent = t;
@@ -503,8 +519,8 @@ function buildVisitors() {
         b.type = 'button'; b.dataset.kind = String(k.id);
         const dot = picto(String(k.id), String(k.colour), 'ch-v-dot');
         b.append(dot, el('span', null, String(k.short || k.name)));
-        b.title = 'Show or hide: ' + String(k.name);
-        b.addEventListener('click', () => { planOnly = null; if (kindOff.has(k.id)) kindOff.delete(k.id); else kindOff.add(k.id); vPlaces(); renderPlan(); });
+        b.title = 'Show only: ' + String(k.name) + ' (tick more to add)';
+        b.addEventListener('click', () => { planOnly = null; if (kindOn.has(k.id)) kindOn.delete(k.id); else kindOn.add(k.id); vPlaces(); renderPlan(); });
         chips.appendChild(b);
     });
     const rain = el('button', 'ch-v-kind ch-v-rain');
@@ -516,8 +532,8 @@ function buildVisitors() {
     const times = $('ch-v-times');
     V_GROUPS.forEach((g, k) => {
         const b = el('button', 'ch-v-kind ch-v-time', g.name);
-        b.type = 'button'; b.dataset.group = String(k); b.title = 'Show or hide: ' + g.name;
-        b.addEventListener('click', () => { planOnly = null; if (groupOff.has(k)) groupOff.delete(k); else groupOff.add(k); vPlaces(); renderPlan(); });
+        b.type = 'button'; b.dataset.group = String(k); b.title = 'Show only: ' + g.name + ' (tick more to add)';
+        b.addEventListener('click', () => { planOnly = null; if (groupOn.has(k)) groupOn.delete(k); else groupOn.add(k); vPlaces(); renderPlan(); });
         times.appendChild(b);
     });
     // the pins' own switch, the same as Layers, Visitor places
@@ -607,6 +623,9 @@ function wireVisitors() {
     const btn = $('ch-visitors-btn'), panel = $('ch-visitors');
     btn.addEventListener('click', () => { const on = panel.hidden; sheet('ch-visitors', on); showVisitors(on); });
     $('ch-place-close').addEventListener('click', closePlace);
+    // the panel made small (its grip) or tall again: the map fits the trail to the room left
+    new MutationObserver(() => { if (vRouteId && !$('ch-place').hidden) setTimeout(() => showVRoute(vRouteId, true), 220); })
+        .observe($('ch-place'), { attributes: true, attributeFilter: ['class'] });
     $('ch-visitors-close').addEventListener('click', () => { sheet('ch-visitors', false); showVisitors(false); btn.focus(); });
     document.querySelectorAll('.ch-v-tab').forEach((b) => b.addEventListener('click', () => vTab(b.dataset.tab)));
     // Visitors is the page's main view: it opens at the start (on a phone as a low sheet over the map) unless the

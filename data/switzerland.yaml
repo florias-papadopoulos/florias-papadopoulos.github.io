@@ -188,7 +188,7 @@ guests:
       to: "St. Gallen"
       text: "Direct trains, 49 to 61 min, several an hour."
   tickets:
-    - name: "9 am day pass, all zones"
+    - name: "Ostwind 9 am day pass, all zones"
       price: "CHF 40"
       half: "CHF 20"
       note: "Eastern Switzerland, trains and buses. Weekdays from 9:00, weekends all day. CHF 41 from 13 Dec."

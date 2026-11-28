@@ -100,6 +100,8 @@ function onClick(e) {
     const c = cantonAt(e.point);
     if (!c) { closeCard(); return; }
     const pr = c.properties, f = facts.cantons[pr.code] || {};
+    // a second tap on the canton already shown lets it go
+    if (tinted === pr.code) { closeCard(); return; }
     hiCanton(pr.code);
     // minimal: the name, the capital and the languages
     card((b) => {

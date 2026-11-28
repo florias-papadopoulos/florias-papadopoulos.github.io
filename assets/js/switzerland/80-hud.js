@@ -43,7 +43,8 @@ function wireGrips() {
             else if (Math.abs(dy) < 6) panel.classList.toggle('ch-small');
         };
         grip.addEventListener('pointerdown', (e) => {
-            if (!PHONE.matches || id !== null) return;
+            // phones: every panel; laptops: the place panel (made small to see its trail)
+            if ((!PHONE.matches && !panel.classList.contains('ch-place')) || id !== null) return;
             id = e.pointerId; y0 = e.clientY; t0 = performance.now(); dy = 0;
             grip.setPointerCapture(e.pointerId);
             panel.style.transition = 'none';
