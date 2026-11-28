@@ -13,6 +13,7 @@
      data-terrain-worker="{{ (resources.Get "js/switzerland/terrain-worker.js" | minify | fingerprint).RelPermalink }}"
      data-decoder="{{ printf "engines/%s/index.js" $eng.decoder | relURL }}"
      data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-border="{{ "switzerland/border.json" | relURL }}"
+     data-ostwind="{{ "switzerland/ostwind.json" | relURL }}"
      data-cantons-fine="{{ "switzerland/cantons-fine.json" | relURL }}" data-border-fine="{{ "switzerland/border-fine.json" | relURL }}"
      data-peaks="{{ "switzerland/peaks.json" | relURL }}" data-towns="{{ "switzerland/towns.json" | relURL }}" data-home="{{ "" | relURL }}">
 
@@ -43,6 +44,9 @@
                     <a class="ch-icon-btn" href="{{ . }}" target="_blank" rel="noopener noreferrer" title="My trip photos on Instagram" aria-label="My trip photos on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></a>
                     {{- end }}
                     <button type="button" class="ch-icon-btn" id="ch-facts-btn" aria-expanded="false" aria-controls="ch-facts" title="About this map: facts, trail signs, sources, privacy" aria-label="About this map"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></button>
+                    {{- with $d.guests }}
+                    <button type="button" class="ch-icon-btn" id="ch-visitors-btn" aria-expanded="false" aria-controls="ch-visitors" title="Visiting St. Gallen: places, tickets, next trains" aria-label="Visiting St. Gallen"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M9 8V5.5h6V8M4 13h16"/></svg></button>
+                    {{- end }}
                 </div>
             </div>
             <div class="ch-search-box" id="ch-search-box" role="search" hidden>
@@ -80,6 +84,39 @@
             </div>
             <ul class="ch-layers-list" id="ch-layers-list"></ul>
         </section>
+        {{- /* Visitors (part 62): data/switzerland.yaml, guests */}}
+        {{- with $d.guests }}
+        <section class="ch-panel ch-sheet ch-visitors" id="ch-visitors" hidden aria-labelledby="ch-visitors-h">
+            <div class="ch-facts-head">
+                <h2 id="ch-visitors-h">Visiting St. Gallen</h2>
+                <button type="button" class="ch-close" id="ch-visitors-close" aria-label="Close">×</button>
+            </div>
+            <div class="ch-seg ch-v-tabs" role="tablist" aria-label="Visitors">
+                <button type="button" class="ch-v-tab" role="tab" data-tab="places" aria-selected="true">Places</button>
+                <button type="button" class="ch-v-tab" role="tab" data-tab="tickets" aria-selected="false">Tickets</button>
+                <button type="button" class="ch-v-tab" role="tab" data-tab="now" aria-selected="false">Now</button>
+            </div>
+            <div class="ch-v-pane" data-tab="places" role="tabpanel">
+                <ol class="ch-v-list" id="ch-v-places"></ol>
+            </div>
+            <div class="ch-v-pane" data-tab="tickets" role="tabpanel" hidden>
+                <p class="ch-ly-note"><span class="ch-v-key"></span> The shaded area on the map is the Ostwind fare network (Liechtenstein too, not shaded).</p>
+                <ul class="ch-v-list" id="ch-v-tickets"></ul>
+                <p class="ch-ly-note">{{ .tickets_note }}</p>
+            </div>
+            <div class="ch-v-pane" data-tab="now" role="tabpanel" hidden>
+                <h3 class="ch-v-h">Next departures</h3>
+                <ul class="ch-v-list" id="ch-v-deps"></ul>
+                <p class="ch-ly-note" id="ch-v-deps-state" aria-live="polite">Loading…</p>
+                <h3 class="ch-v-h">Weather now</h3>
+                <dl class="ch-card-facts">
+                    <div><dt>St. Gallen</dt><dd id="ch-v-wx-stg">…</dd></div>
+                    <div><dt>Säntis, 2502 m</dt><dd id="ch-v-wx-sae">…</dd></div>
+                </dl>
+                <p class="ch-ly-note">Departures: SBB timetable (transport.opendata.ch). Weather: MeteoSwiss (CC BY 4.0).</p>
+            </div>
+        </section>
+        {{- end }}
     </div>
     <div class="ch-col ch-col-right">
         <div class="ch-panel ch-tools" role="toolbar" aria-label="Map tools">
@@ -151,9 +188,9 @@
     <p class="ch-toast" id="ch-toast" role="status" hidden></p>
     <p class="ch-status" id="ch-status" role="status" hidden></p>
 </div>
-<script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss "caves" $d.caves | jsonify | safeJS }}</script>
+<script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss "caves" $d.caves "guests" $d.guests | jsonify | safeJS }}</script>
 {{- $parts := slice }}
-{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-live" "70-search-share" "80-hud" "90-boot" }}
+{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-live" "62-visitors" "70-search-share" "80-hud" "90-boot" }}
 {{- $parts = $parts | append (resources.Get (printf "js/switzerland/%s.js" .)) }}
 {{- end }}
 {{- $js := $parts | resources.Concat "js/switzerland.js" | minify | fingerprint }}

@@ -12,6 +12,7 @@ function wire() {
     wireSearch();
     wireHud();
     forgetOffline();
+    wireVisitors();
     wireGrips();
     tools();
     addEventListener('keydown', (e) => {
@@ -19,6 +20,7 @@ function wire() {
         if (!$('ch-card').hidden) closeCard();
         else if (!$('ch-layers').hidden) $('ch-layers-close').click();
         else if (!$('ch-facts').hidden) $('ch-facts-close').click();
+        else if ($('ch-visitors') && !$('ch-visitors').hidden) $('ch-visitors-close').click();
     });
 }
 

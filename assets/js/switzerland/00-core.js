@@ -447,12 +447,15 @@ function tools() {
 }
 /* the left column holds one sheet at a time: the facts or the layers */
 function sheet(id, open) {
-    ['ch-facts', 'ch-layers'].forEach((s) => {
+    ['ch-facts', 'ch-layers', 'ch-visitors'].forEach((s) => {
+        if (!$(s)) return;
         const on = s === id ? open : false;
         $(s).hidden = !on;
         const b = $(s + '-btn');
         b.setAttribute('aria-expanded', String(on));
     });
+    // the visitors' pins and area go with their sheet
+    if (visitorsOn && $('ch-visitors') && $('ch-visitors').hidden) showVisitors(false);
 }
 function compass() {
     if (mapA) $('ch-pad-north').hidden = !(threeD || Math.abs(mapA.getBearing()) > 0.5);

@@ -21,11 +21,13 @@ function onHover(e) {
     if (!hoverFrame) hoverFrame = requestAnimationFrame(() => { hoverFrame = 0; hoverCheck(hoverEvent); });
 }
 function hoverCheck(e) {
-    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves', 'wx-dots')) }).length;
+    const hit = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit', 'airports', 'caves', 'wx-dots', 'guests-dot')) }).length;
     mapA.getCanvas().style.cursor = hit ? 'pointer' : '';
 }
 function onClick(e) {
     if (mode === 'profile') { profileAdd(e.lngLat); return; }
+    const gp = visitorsOn ? mapA.queryRenderedFeatures(e.point, { layers: visible(['guests-dot']) }) : [];
+    if (gp.length && guestCard(gp[0].properties.i)) { hiCanton(''); return; }
     const peaks = mapA.queryRenderedFeatures(e.point, { layers: visible(PEAK_LAYERS.concat('peaks-hit')) });
     if (peaks.length) {
         const p = peaks[0].properties;
