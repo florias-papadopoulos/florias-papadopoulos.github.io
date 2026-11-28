@@ -14,6 +14,7 @@
      data-decoder="{{ printf "engines/%s/index.js" $eng.decoder | relURL }}"
      data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-border="{{ "switzerland/border.json" | relURL }}"
      data-ostwind="{{ "switzerland/ostwind.json" | relURL }}" data-lightbase="{{ "switzerland/lightbase.json" | relURL }}"
+     data-jsfive="{{ printf "engines/%s/index.mjs" $eng.jsfive | relURL }}"
      data-cantons-fine="{{ "switzerland/cantons-fine.json" | relURL }}" data-border-fine="{{ "switzerland/border-fine.json" | relURL }}"
      data-peaks="{{ "switzerland/peaks.json" | relURL }}" data-towns="{{ "switzerland/towns.json" | relURL }}" data-home="{{ "" | relURL }}">
 
@@ -40,12 +41,12 @@
             <div class="ch-head">
                 <div class="ch-icons">
                     <button type="button" class="ch-icon-btn" id="ch-search-btn" aria-expanded="false" aria-controls="ch-search-box" title="Search a place or summit" aria-label="Search a place or summit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/></svg></button>
-                    {{- with $d.instagram }}
-                    <a class="ch-icon-btn" href="{{ . }}" target="_blank" rel="noopener noreferrer" title="My trip photos on Instagram" aria-label="My trip photos on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></a>
-                    {{- end }}
                     <button type="button" class="ch-icon-btn" id="ch-facts-btn" aria-expanded="false" aria-controls="ch-facts" title="About this map: facts, trail signs, sources, privacy" aria-label="About this map"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></button>
                     {{- with $d.guests }}
                     <button type="button" class="ch-icon-btn" id="ch-visitors-btn" aria-expanded="false" aria-controls="ch-visitors" title="For visitors: places, tickets, next trains" aria-label="For visitors"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="16.5" cy="7" r="2.6"/><path d="M16.5 2.2v1M21.3 7h-1M19.9 3.6l-.7.7M2.5 20l6-9 3.5 5 2.5-3 5.5 7z"/></svg></button>
+                    {{- end }}
+                    {{- with $d.instagram }}
+                    <a class="ch-icon-btn" href="{{ . }}" target="_blank" rel="noopener noreferrer" title="My trip photos on Instagram" aria-label="My trip photos on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></a>
                     {{- end }}
                 </div>
             </div>
@@ -74,7 +75,7 @@
                 {{- end }}
             </ul>
             <h2>Sources</h2>
-            <p class="ch-facts-src">Maps, terrain, names and heights: <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>. Avalanche bulletin: <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">WSL Institute for Snow and Avalanche Research SLF</a> (CC BY 4.0). Weather: <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a> (CC BY 4.0). Public transport stops: Federal Office of Transport (through swisstopo). Snow cover from space: imagery from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS). Facts checked against two sources each: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
+            <p class="ch-facts-src">Maps, terrain, names and heights: <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener noreferrer">swisstopo</a>. Avalanche bulletin: <a href="https://www.slf.ch/" target="_blank" rel="noopener noreferrer">WSL Institute for Snow and Avalanche Research SLF</a> (CC BY 4.0). Weather: <a href="https://www.meteoswiss.admin.ch/" target="_blank" rel="noopener noreferrer">MeteoSwiss</a> (CC BY 4.0). Public transport stops: Federal Office of Transport (through swisstopo). Temperature and cloud cover now: MeteoSwiss model ICON-CH1 through <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> (CC BY 4.0). Snow cover from space: imagery from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS). Facts checked against two sources each: {{ range $i, $s := $d.sources }}{{ if $i }}, {{ end }}<a href="{{ $s.url }}" target="_blank" rel="noopener noreferrer">{{ $s.name }}</a>{{ end }}.</p>
             <p class="ch-facts-src"><a href="{{ "privacy/" | relURL }}">Privacy</a>: what this map loads from whom. <button type="button" class="ch-link-btn" id="ch-forget">Forget my choice</button> to be asked again before the maps load.</p>
         </section>
         <section class="ch-panel ch-sheet ch-layers" id="ch-layers" hidden aria-labelledby="ch-layers-h">
@@ -83,6 +84,13 @@
                 <button type="button" class="ch-close" id="ch-layers-close" aria-label="Close">×</button>
             </div>
             <ul class="ch-layers-list" id="ch-layers-list"></ul>
+        </section>
+        <section class="ch-panel ch-sheet ch-layers ch-weather" id="ch-weather" hidden aria-labelledby="ch-weather-h">
+            <div class="ch-facts-head">
+                <h2 id="ch-weather-h">Weather</h2>
+                <button type="button" class="ch-close" id="ch-weather-close" aria-label="Close">×</button>
+            </div>
+            <ul class="ch-layers-list" id="ch-weather-list"></ul>
         </section>
         {{- /* Visitors (part 62): data/switzerland.yaml, guests */}}
         {{- with $d.guests }}
@@ -124,6 +132,7 @@
             <button type="button" class="ch-tool" id="ch-time" aria-pressed="false" title="Old maps from 1844 to today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="ch-tool-text">Then and now</span></button>
             <button type="button" class="ch-tool" id="ch-profile" aria-pressed="false" title="Draw a route: its distance, climb and walking time"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l5-8 4 5 3-6 6 9z"/><path d="M3 21h18"/></svg><span class="ch-tool-text">Route</span></button>
             <button type="button" class="ch-tool" id="ch-layers-btn" aria-expanded="false" aria-controls="ch-layers" title="Trails, slopes, glaciers, snow and avalanches"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5"/></svg><span class="ch-tool-text">Layers</span></button>
+            <button type="button" class="ch-tool" id="ch-weather-btn" aria-expanded="false" aria-controls="ch-weather" title="Rain radar, temperature, clouds, weather stations, snow cover"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 17z"/><path d="M9 20l-.5 1.5M13 20l-.5 1.5"/></svg><span class="ch-tool-text">Weather</span></button>
         </div>
         <aside class="ch-panel ch-card" id="ch-card" hidden aria-live="polite">
             <button type="button" class="ch-close" id="ch-card-close" aria-label="Close">×</button>
@@ -178,7 +187,7 @@
 </div>
 <script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss "caves" $d.caves "guests" $d.guests | jsonify | safeJS }}</script>
 {{- $parts := slice }}
-{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-live" "62-visitors" "70-search-share" "80-hud" "90-boot" }}
+{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-live" "62-visitors" "64-weather" "70-search-share" "80-hud" "90-boot" }}
 {{- $parts = $parts | append (resources.Get (printf "js/switzerland/%s.js" .)) }}
 {{- end }}
 {{- $js := $parts | resources.Concat "js/switzerland.js" | minify | fingerprint }}

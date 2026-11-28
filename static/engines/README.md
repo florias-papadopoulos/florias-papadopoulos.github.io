@@ -56,3 +56,15 @@ a6ec1aa35ffe71025a70a701f5c7f1e9730d3ee3407c1114ffb7b37827cc80fc  quantized-mesh
 To update one: `npm pack <name>@<version>` in a scratch folder, check `npm view <name>@<version> dist.integrity`
 against the tarball, copy the same files into a new folder, change `params.switzerland` in config.yml and this file,
 check the page (3D, Sun, Then and now), then delete the old folder.
+
+## jsfive-0.4.2
+
+Reads MeteoSwiss's radar files (HDF5) for the Switzerland page's rain radar (assets/js/switzerland/64-weather.js),
+loaded only when the visitor turns the radar on. The npm package `jsfive` 0.4.2, `dist/esm/index.mjs` and
+`LICENSE.txt`, copied unchanged (registry integrity
+`sha512-OLcs8QNnk/p2kUGjTLAB7GzVS0+5+oClrl2bCLfL7dl0/vIB13902oDINJhQM++QT9QQdP+tiZTxT4oX5YkdjQ==`). Licence: public domain,
+based on pyfive (c) 2016 Jonathan J. Helmus. Pure JavaScript, no WebAssembly.
+
+```
+f62905261e96f018d2ef572dc8f8076ca9a454307b985cdb8e56f190a18d4741  jsfive-0.4.2/index.mjs
+```

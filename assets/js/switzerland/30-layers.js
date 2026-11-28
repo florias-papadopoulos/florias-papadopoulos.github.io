@@ -21,14 +21,25 @@ const LAYERS = [
     { id: 'avalanche', name: 'Avalanche danger today', ids: ['avalanche'],
       legend: [['#ccff66', '1 Low'], ['#ffff00', '2 Moderate'], ['#ff9900', '3 Considerable'], ['#ff0000', '4 High'], ['#7a0000', '5 Very high']],
       note: 'The official bulletin of the WSL Institute for Snow and Avalanche Research SLF (CC BY 4.0), loaded from slf.ch when you turn this on. Tap a region for details.' },
+];
+/* the Weather sheet's entries (parts 60 and 64), built the same way into their own list */
+const WEATHER = [
+    { id: 'rain', name: 'Rain radar', ids: ['rain'],
+      legend: [['#9ecae1', 'light'], ['#3182bd', '1 mm/h'], ['#31a354', '2 mm/h'], ['#fdd835', '5 mm/h'], ['#fb8c00', '10 mm/h'], ['#e53935', '20 mm/h and more']] },
+    { id: 'temp', name: 'Temperature now', ids: ['field-temp'],
+      legend: [['#4575b4', '−10 °C'], ['#e0f3f8', '0 °C'], ['#fdae61', '10 °C'], ['#f46d43', '20 °C'], ['#d73027', '30 °C']] },
+    { id: 'cloud', name: 'Cloud cover now', ids: ['field-cloud'],
+      legend: [['rgba(90,100,115,0.25)', 'a few clouds'], ['rgba(90,100,115,0.6)', 'cloudy'], ['rgba(90,100,115,0.85)', 'overcast']] },
     { id: 'snowcover', name: 'Snow cover from space', ids: ['snowcover'],
       legend: [['#b8e5fd', 'A little snow'], ['#5192ef', 'Mostly snow'], ['#246ee9', 'Fully covered']],
       note: 'Where snow lay yesterday, seen by the NOAA-20 satellite (NASA GIBS, open data), about 400 m a pixel. Not how deep it is; clouds leave gaps.' },
-    { id: 'weather', name: 'Weather now', ids: ['wx-dots', 'wx-text'],
+    { id: 'weather', name: 'Weather stations', ids: ['wx-dots', 'wx-text'],
       legend: [['#3b82f6', 'below −5 °C'], ['#e0f2fe', 'around 0 °C'], ['#fde68a', 'around 10 °C'], ['#f97316', 'around 20 °C']],
       note: 'Temperatures of the last 10 minutes at about 160 automatic stations of MeteoSwiss (CC BY 4.0), loaded when you turn this on. Tap a station for wind, gusts, rain and sunshine.' }
 ];
 const layerOn = {};
+const LAYER_ICONS = {"peaks": "M3 19l6-10 4 6 2-3 6 7z", "caves": "M4 20v-7a8 8 0 0 1 16 0v7M9 20v-4a3 3 0 0 1 6 0v4", "trails": "M12 3v18M12 5h6l2 2-2 2h-6M12 11H6l-2 2 2 2h6", "slopes": "M3 20h18M3 20L18 6M10 20a8 8 0 0 0-2.3-5.7", "ski": "M6 21L19 4M10 21L21 7M4 17l3 1", "snowshoe": "M12 3c3 0 5 3.5 5 9s-2 9-5 9-5-3.5-5-9 2-9 5-9zM7 12h10M8.5 7h7M8.5 17h7", "glaciers": "M3 19l5-10 3 4 3-7 7 13zM8 9l1 4M14 6l1.5 5", "avalanche": "M12 3l10 18H2zM12 10v5M12 18h.01", "weather": "M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0zM12 9v7", "snowcover": "M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2 3-2M9 20.5l3-2 3 2", "rain": "M7 15h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 15zM8 18l-1 3M12 18l-1 3M16 18l-1 3", "temp": "M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z", "cloud": "M7 19h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 19z"};
+const ALL_LAYERS = () => LAYERS.concat(WEATHER);
 
 function setLayer(def, on, opts) {
     layerOn[def.id] = on;
@@ -43,10 +54,13 @@ function setLayer(def, on, opts) {
     if (on && def.id === 'avalanche') loadAvalanche();
     if (on && def.id === 'weather') loadWeather();
     if (on && def.id === 'snowcover') snowCoverOn();
+    if (on && def.id === 'rain') rainOn();
+    if (on && (def.id === 'temp' || def.id === 'cloud')) fieldOn(def.id);
+    if (!on && def.id === 'rain' && rainTimer) rainPlay();
     // the credits under the title name every source on the map (as the CC BY licences of SLF and MeteoSwiss ask)
-    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.weather ? ' · MeteoSwiss' : '') + (layerOn.snowcover ? ' · NASA' : '');
-    const any = LAYERS.some((d) => d.id !== 'peaks' && layerOn[d.id]);
-    $('ch-layers-btn').classList.toggle('ch-has', any);
+    $('ch-credits').textContent = '© swisstopo' + (layerOn.avalanche ? ' · SLF' : '') + (layerOn.weather || layerOn.rain || layerOn.temp || layerOn.cloud ? ' · MeteoSwiss' : '') + (layerOn.temp || layerOn.cloud ? ' · Open-Meteo' : '') + (layerOn.snowcover ? ' · NASA' : '');
+    $('ch-layers-btn').classList.toggle('ch-has', LAYERS.some((d) => d.id !== 'peaks' && layerOn[d.id]));
+    $('ch-weather-btn').classList.toggle('ch-has', WEATHER.some((d) => layerOn[d.id]));
 }
 
 /* Then and now and Months show a map of their own: the Layers button is off while they are on, the extra layers are
@@ -56,7 +70,7 @@ function lockLayers(lock) {
     const btn = $('ch-layers-btn');
     if (lock && !layersSaved) {
         layersSaved = { ...layerOn };
-        LAYERS.forEach((d) => { if (d.id !== 'peaks' && layerOn[d.id]) setLayer(d, false); });
+        ALL_LAYERS().forEach((d) => { if (d.id !== 'peaks' && layerOn[d.id]) setLayer(d, false); });
         if (!$('ch-layers').hidden) sheet('ch-layers', false);
         btn.disabled = true;
         btn.title = 'Layers are off in this mode';
@@ -65,18 +79,26 @@ function lockLayers(lock) {
         layersSaved = null;
         btn.disabled = false;
         btn.title = 'Trails, slopes, glaciers, snow and avalanches';
-        LAYERS.forEach((d) => { if (d.id !== 'peaks' && saved[d.id]) setLayer(d, true, { restore: true }); });
+        ALL_LAYERS().forEach((d) => { if (d.id !== 'peaks' && saved[d.id]) setLayer(d, true, { restore: true }); });
     }
 }
 function buildLayers() {
-    const list = $('ch-layers-list');
-    LAYERS.forEach((def) => {
+    buildList(LAYERS, $('ch-layers-list'));
+    buildList(WEATHER, $('ch-weather-list'));
+}
+function buildList(defs, list) {
+    defs.forEach((def) => {
         const li = el('li', 'ch-ly');
         const label = el('label', 'ch-ly-row');
         const box = el('input');
         box.type = 'checkbox'; box.id = 'ch-ly-' + def.id; box.checked = !!def.on;
         box.addEventListener('change', () => setLayer(def, box.checked));
-        label.append(box, el('span', 'ch-ly-name', def.name));
+        const ic = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        ic.setAttribute('viewBox', '0 0 24 24'); ic.setAttribute('aria-hidden', 'true'); ic.setAttribute('class', 'ch-ly-icon');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', LAYER_ICONS[def.id] || '');
+        ic.appendChild(path);
+        label.append(ic, el('span', 'ch-ly-name', def.name), box);
         li.appendChild(label);
         const more = el('div', 'ch-ly-more');
         more.id = 'ch-ly-more-' + def.id;
@@ -92,7 +114,16 @@ function buildLayers() {
             more.appendChild(ul);
         }
         if (def.note) more.appendChild(el('p', 'ch-ly-note', def.note));
-        if (def.id === 'avalanche' || def.id === 'weather' || def.id === 'snowcover') { const s = el('p', 'ch-ly-note ch-ly-state'); s.id = 'ch-' + def.id + '-state'; more.appendChild(s); }
+        if (['avalanche', 'weather', 'snowcover', 'rain', 'temp', 'cloud'].includes(def.id)) { const s = el('p', 'ch-ly-note ch-ly-state'); s.id = 'ch-' + def.id + '-state'; more.appendChild(s); }
+        if (def.id === 'rain') {
+            // the last hour: a slider and a play button
+            const row = el('div', 'ch-rain-row'); row.id = 'ch-rain-play-row'; row.hidden = true;
+            const play = el('button', 'ch-chip', 'Play'); play.type = 'button'; play.id = 'ch-rain-play';
+            const sl = el('input'); sl.type = 'range'; sl.id = 'ch-rain-slider'; sl.min = '0'; sl.max = '0'; sl.step = '1'; sl.setAttribute('aria-label', 'Time of the radar picture');
+            const t = el('output', 'ch-rain-time'); t.id = 'ch-rain-time';
+            row.append(play, sl, t);
+            more.appendChild(row);
+        }
         if (def.id === 'avalanche') {
             const a = el('a', 'ch-ly-link', 'Report an observation to SLF');
             a.href = 'https://pro.slf.ch/reply/public/#/'; a.target = '_blank'; a.rel = 'noopener noreferrer';

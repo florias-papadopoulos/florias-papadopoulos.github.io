@@ -173,6 +173,7 @@ params:
   switzerland:
     maplibre: "maplibre-gl-6.16.0"
     decoder: "quantized-mesh-decoder-1.2.8"
+    jsfive: "jsfive-0.4.2"
   cover:
     hiddenInList: false
     hiddenInSingle: true

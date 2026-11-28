@@ -112,6 +112,9 @@ function fromLV95(e, n) {
 const lettered = (k) => k === 'map' || k === 'topo';
 let LB = null;   // the light base map's style (sources, layers, sprite), loaded with the engine
 function lbLayers() { return LB ? LB.layers : []; }
+/* Web Mercator: a latitude's y (0 at the top of the world, 1 at the bottom), and back */
+function mercY(lat) { const r = lat * Math.PI / 180; return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2; }
+function latOfY(y) { return Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180 / Math.PI; }
 function rasterSource(key, time) {
     const b = BASES[key];
     // no bounds: swisstopo's maps reach beyond the border, so the zoomed-out view has no blank corners. The national
@@ -463,7 +466,7 @@ function tools() {
 }
 /* the left column holds one sheet at a time: the facts or the layers */
 function sheet(id, open) {
-    ['ch-facts', 'ch-layers', 'ch-visitors'].forEach((s) => {
+    ['ch-facts', 'ch-layers', 'ch-weather', 'ch-visitors'].forEach((s) => {
         if (!$(s)) return;
         const on = s === id ? open : false;
         $(s).hidden = !on;

@@ -13,12 +13,14 @@ function wire() {
     wireHud();
     forgetOffline();
     wireVisitors();
+    wireWeather();
     wireGrips();
     tools();
     addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         if (!$('ch-card').hidden) closeCard();
         else if (!$('ch-layers').hidden) $('ch-layers-close').click();
+        else if (!$('ch-weather').hidden) $('ch-weather-close').click();
         else if (!$('ch-facts').hidden) $('ch-facts-close').click();
         else if ($('ch-visitors') && !$('ch-visitors').hidden) $('ch-visitors-close').click();
     });

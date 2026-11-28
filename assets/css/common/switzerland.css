@@ -313,3 +313,15 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-v-prices div { display: grid; }
 .ch-v-prices dt { font-size: 11px; color: var(--ch-quiet); }
 .ch-v-prices dd { margin: 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* layer rows (part 30): an icon, the name and a switch */
+.ch-ly-row { display: flex; align-items: center; gap: 10px; }
+.ch-ly-icon { flex: none; width: 20px; height: 20px; fill: none; stroke: var(--ch-ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
+.ch-ly-row .ch-ly-name { flex: 1; }
+.ch-ly-row input[type="checkbox"] { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 34px; height: 20px; margin: 0; border-radius: 10px; background: #d5dbe3; cursor: pointer; transition: background .15s; }
+.ch-ly-row input[type="checkbox"]::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .25); transition: transform .15s; }
+.ch-ly-row input[type="checkbox"]:checked { background: var(--ch-red); }
+.ch-ly-row input[type="checkbox"]:checked::after { transform: translateX(14px); }
+.ch-ly-row input[type="checkbox"]:focus-visible { outline: 2px solid var(--ch-red); outline-offset: 2px; }
+.ch-rain-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.ch-rain-row input[type="range"] { flex: 1; min-width: 0; accent-color: var(--ch-red); }
+.ch-rain-time { min-width: 3em; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }

@@ -23,7 +23,7 @@ for l in s['layers']:
 # the site's choices (2026-11-28, by the owner): names in normal letters (no capitals); when zoomed out only the
 # cities of 50,000 people or more, plus the tourist towns visitors look for; towns from zoom 9, villages from 11; no
 # country name across the map
-KEEP = ['Lugano', 'Interlaken', 'Zermatt', 'St. Moritz', 'Davos', 'Grindelwald']
+KEEP = ['Lugano', 'Sion', 'Interlaken', 'Zermatt', 'St. Moritz', 'Davos', 'Grindelwald']
 pop = ['to-number', ['get', 'population'], 0]
 kept = []
 for l in layers:
@@ -32,12 +32,19 @@ for l in layers:
         lay['text-transform'] = 'none'
     if l['id'] == 'lb-place_country':
         continue
+    if l['id'] == 'lb-place_town_village':
+        # the other towns as swisstopo draws them: towns from zoom 9, villages from 11 (the kept ones have their own layer)
+        l['filter'] = ['all', ['match', ['get', 'class'], ['town', 'village'], True, False],
+                       ['!', ['in', ['get', 'name:latin'], ['literal', KEEP]]],
+                       ['step', ['zoom'], False, 9, ['==', ['get', 'class'], 'town'], 11, True]]
     if l['id'] == 'lb-place_city':
         l['filter'] = ['all', ['==', ['get', 'class'], 'city'], ['step', ['zoom'], ['>=', pop, 50000], 8, ['>=', pop, 15000], 9, True]]
-    if l['id'] == 'lb-place_town_village':
-        l['filter'] = ['all', ['match', ['get', 'class'], ['town', 'village'], True, False],
-                       ['any', ['in', ['get', 'name:latin'], ['literal', KEEP]],
-                        ['step', ['zoom'], False, 9, ['==', ['get', 'class'], 'town'], 11, True]]]
+        # the kept towns, written exactly like the cities, from zoom 6 (swisstopo's own village style fades them out)
+        k = json.loads(json.dumps(l))
+        k['id'] = 'lb-place_keep'
+        k['minzoom'] = 5
+        k['filter'] = ['all', ['match', ['get', 'class'], ['town', 'village'], True, False], ['in', ['get', 'name:latin'], ['literal', KEEP]]]
+        kept.append(k)
     kept.append(l)
 layers = kept
 out = {'version': s.get('metadata', {}).get('version') or s.get('name'), 'sprite': s['sprite'], 'glyphs': s['glyphs'],

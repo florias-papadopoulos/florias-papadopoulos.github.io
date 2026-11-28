@@ -13,9 +13,9 @@
 {{- /* the Switzerland page (assets/js/switzerland/README.md): MapLibre fetches tiles and data from these federal services
        (connect-src), shows map pictures from wmts.geo.admin.ch and blob: images, and runs its worker from this site */}}
 {{- if eq .Section "switzerland" }}
-{{- $geo := "https://api3.geo.admin.ch https://data.geo.admin.ch https://aws.slf.ch https://wmts.geo.admin.ch https://3d.geo.admin.ch https://vectortiles.geo.admin.ch https://gibs.earthdata.nasa.gov https://transport.opendata.ch" }}
+{{- $geo := "https://api3.geo.admin.ch https://data.geo.admin.ch https://aws.slf.ch https://wmts.geo.admin.ch https://3d.geo.admin.ch https://vectortiles.geo.admin.ch https://gibs.earthdata.nasa.gov https://transport.opendata.ch https://api.open-meteo.com" }}
 {{- $csp = replace $csp "img-src 'self' data:" "img-src 'self' data: blob: https://wmts.geo.admin.ch" }}
-{{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' %s" $geo) }}
+{{- $csp = replace $csp "connect-src 'self'" (printf "connect-src 'self' blob: %s" $geo) }}
 {{- $csp = printf "%s; worker-src 'self'" $csp }}
 {{- end }}
 {{- if eq .Section "doctools" }}
