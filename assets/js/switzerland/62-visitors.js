@@ -451,7 +451,7 @@ async function showTrip(from, to, title) {
 /* ---- the list: one line a place, grouped by the time from St. Gallen ---- */
 function placeRow(i) {
     const p = PLACES[i];
-    const li = el('li', 'ch-v-place' + (isOpen(p, thisMonth()) ? '' : ' ch-v-closed'));
+    const li = el('li', 'ch-v-place k-' + kindOf(p) + (isOpen(p, thisMonth()) ? '' : ' ch-v-closed'));
     const btn = el('button', 'ch-v-btn');
     btn.type = 'button';
     const dot = picto(kindOf(p), kindColour(kindOf(p)), 'ch-v-pin');
