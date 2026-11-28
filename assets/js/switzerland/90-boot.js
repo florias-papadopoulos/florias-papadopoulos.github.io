@@ -11,14 +11,13 @@ function wire() {
     wireProfile();
     wireSearch();
     wireHud();
-    wireOffline();
+    forgetOffline();
     wireGrips();
     tools();
     addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         if (!$('ch-card').hidden) closeCard();
         else if (!$('ch-layers').hidden) $('ch-layers-close').click();
-        else if (!$('ch-offline').hidden) $('ch-offline-close').click();
         else if (!$('ch-facts').hidden) $('ch-facts-close').click();
     });
 }
@@ -54,3 +53,11 @@ function wire() {
     });
     box.querySelector('.ch-consent-yes').focus();
 })();
+
+/* the Offline feature was removed (2026-11-28): a browser that saved areas with it drops them and its helper */
+function forgetOffline() {
+    try {
+        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => { if (/\/switzerland\/$/.test(r.scope)) r.unregister(); })).catch(() => {});
+        if ('caches' in window) caches.keys().then((ks) => ks.forEach((k) => { if (k.indexOf('ch-area-') === 0 || k === 'ch-shell-v1') caches.delete(k); })).catch(() => {});
+    } catch (e) { /* nothing to forget */ }
+}

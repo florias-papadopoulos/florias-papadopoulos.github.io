@@ -13,7 +13,6 @@ can call another's. Check after a change: `cat assets/js/switzerland/[0-9]*.js >
 | 40-cards | what a tap shows: profile point, summit, avalanche region, snow station, canton |
 | 50-profile | the elevation profile (swisstopo profile service) with distance, climb, descent and DIN 33466 walking time |
 | 60-live | Weather now (MeteoSwiss stations, a station's 10-minute values on a tap) and the nearest public transport stop on summit and cave cards |
-| 65-offline | Offline: Save this area (2D map and trails, 3D aerial photo and terrain) into Cache Storage, the list of saved areas; static/switzerland/sw.js serves them |
 | 70-search-share | place search (swisstopo search service) and the view in the address (#lat,lon,zoom,bearing,pitch,map[,3d]), so a copied link reopens it |
 | 80-hud | the panels fade out while the map moves and come back when it stops |
 | 90-boot | wiring of the controls, the facts drawer, and the question before anything loads |

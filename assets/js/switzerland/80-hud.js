@@ -36,7 +36,7 @@ function wireGrips() {
             const h = panel.offsetHeight, fast = dy > 60 && dy / Math.max(1, performance.now() - t0) > 0.8;
             panel.style.transition = '';
             panel.style.transform = '';
-            if (e.type === 'pointercancel') return;
+            // a cancelled drag (the browser took the gesture over, as phones do near the screen's edge) counts as let go
             if (close && (dy > Math.min(220, h * 0.6) || fast)) { panel.classList.remove('ch-small'); close.click(); }
             else if (dy > 40) panel.classList.add('ch-small');
             else if (dy < -30) panel.classList.remove('ch-small');
@@ -51,11 +51,15 @@ function wireGrips() {
         });
         grip.addEventListener('pointermove', (e) => {
             if (id !== e.pointerId) return;
+            e.preventDefault();
             dy = e.clientY - y0;
             // down follows the finger; up only a little (it springs back to full size on release)
             panel.style.transform = 'translateY(' + (dy > 0 ? dy : dy / 4) + 'px)';
         });
         grip.addEventListener('pointerup', end);
         grip.addEventListener('pointercancel', end);
+        grip.addEventListener('lostpointercapture', end);
+        // older phone browsers start scrolling the page from a touch unless told not to
+        grip.addEventListener('touchmove', (e) => { if (id !== null) e.preventDefault(); }, { passive: false });
     });
 }

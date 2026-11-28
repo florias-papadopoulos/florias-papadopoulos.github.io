@@ -231,15 +231,22 @@ function styleA() {
               filter: ['all', ['!', ['in', ['get', 'name'], ['literal', FEATURED_NAMES]]],
                        ['step', ['zoom'], ['==', ['get', 'class'], 'city'], 9, ['match', ['get', 'class'], ['city', 'town'], true, false], 11.5, ['match', ['get', 'class'], ['city', 'town', 'village'], true, false]]],
               paint: { 'text-color': '#ffffff', 'text-halo-color': 'rgba(17,24,39,0.75)', 'text-halo-width': 1.4 } },
-            // the national map: dark bold like its own towns, only at the overview scales where it leaves these out
-            { id: 'featured-map', type: 'symbol', source: 'featured', maxzoom: 8.6, layout: { visibility: base === 'map' ? 'visible' : 'none',
+            // the national map: dark bold like its own towns, only at the overview scales where it leaves these out.
+            // The Swiss towns follow the size of the map's own city names (Zürich, Bern), measured on screen: those
+            // grow with the zoom like the picture they are part of (a size that depends on the zoom alone changes
+            // smoothly; one that also depends on the town only at whole zoom steps, hence two layers).
+            { id: 'featured-map', type: 'symbol', source: 'featured', maxzoom: 8.6, filter: ['!', ['get', 'abroad']],
+              layout: { visibility: base === 'map' ? 'visible' : 'none',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
-              // the Swiss towns as large and as dark as the map's own city names (Zürich, Bern, Basel), measured on
-              // screen: about 13 px wide out, 19 px from zoom 7.3
-              'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, ['case', ['get', 'big'], 13, ['get', 'abroad'], 11, 13],
-                            7.3, ['case', ['get', 'big'], 16, ['get', 'abroad'], 13, 19], 8.6, ['case', ['get', 'big'], 17, ['get', 'abroad'], 14, 20]],
+              'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, 12, 6.5, 12, 6.8, 12, 7.1, 16, 7.4, 20, 7.7, 25, 8, 30, 8.3, 32, 8.6, 36],
               'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
-              paint: { 'text-color': ['case', ['get', 'abroad'], '#5b6470', '#101010'], 'text-halo-color': 'rgba(255,255,255,0.9)', 'text-halo-width': 1.6 } },
+              paint: { 'text-color': '#101010', 'text-halo-color': 'rgba(255,255,255,0.9)', 'text-halo-width': 1.6 } },
+            { id: 'featured-map-abroad', type: 'symbol', source: 'featured', maxzoom: 8.6, filter: ['get', 'abroad'],
+              layout: { visibility: base === 'map' ? 'visible' : 'none',
+              'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
+              'text-size': ['interpolate', ['linear'], ['zoom'], 5.6, ['case', ['get', 'big'], 13, 11], 8.6, ['case', ['get', 'big'], 17, 14]],
+              'text-letter-spacing': 0.02, 'text-variable-anchor': ['center', 'left', 'right'], 'text-radial-offset': 0.4 },
+              paint: { 'text-color': '#5b6470', 'text-halo-color': 'rgba(255,255,255,0.9)', 'text-halo-width': 1.6 } },
             // the aerial photo and the relief: white like the other names there, at every zoom
             { id: 'featured-photo', type: 'symbol', source: 'featured', layout: { visibility: base === 'map' ? 'none' : 'visible',
               'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'],
@@ -349,8 +356,6 @@ async function start() {
             const pt = (rows, props) => ({ type: 'FeatureCollection', features: rows.map((r) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [r[0], r[1]] }, properties: props(r) })) });
             mapA.getSource('peaks').setData(pt(peaks, (r) => ({ name: r[2], ele: r[3], rank: r[4] })));
             mapA.getSource('towns').setData(pt(towns, (r) => ({ name: r[2], class: r[3] })));
-            // names for saved areas (part 65): towns and the better-known summits
-            offPlaces = towns.concat(peaks.filter((r) => r[4] <= 3));
         });
         status('');
         onLoad.forEach((f) => f(view));
@@ -378,7 +383,7 @@ function setBase(key) {
     mapA.addSource('base', rasterSource(key));
     mapA.addLayer({ id: 'base', type: 'raster', source: 'base', paint: { 'raster-fade-duration': 150 } }, mapA.getLayer('sun-shade') ? 'sun-shade' : 'slopes');
     ['bnd-canton', 'bnd-country', 'towns', 'featured-photo'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'map' ? 'none' : 'visible'));
-    mapA.setLayoutProperty('featured-map', 'visibility', key === 'map' ? 'visible' : 'none');
+    ['featured-map', 'featured-map-abroad'].forEach((id) => mapA.setLayoutProperty(id, 'visibility', key === 'map' ? 'visible' : 'none'));
     airportZoom();
     peakVisibility();
     if (sunOn) applySun();
@@ -421,7 +426,7 @@ function tools() {
 }
 /* the left column holds one sheet at a time: the facts or the layers */
 function sheet(id, open) {
-    ['ch-facts', 'ch-layers', 'ch-offline'].forEach((s) => {
+    ['ch-facts', 'ch-layers'].forEach((s) => {
         const on = s === id ? open : false;
         $(s).hidden = !on;
         const b = $(s + '-btn');

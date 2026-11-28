@@ -13,7 +13,6 @@
      data-terrain-worker="{{ (resources.Get "js/switzerland/terrain-worker.js" | minify | fingerprint).RelPermalink }}"
      data-decoder="{{ printf "engines/%s/index.js" $eng.decoder | relURL }}"
      data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-border="{{ "switzerland/border.json" | relURL }}"
-     data-sw="{{ "switzerland/sw.js" | relURL }}" data-sw-scope="{{ "switzerland/" | relURL }}"
      data-peaks="{{ "switzerland/peaks.json" | relURL }}" data-towns="{{ "switzerland/towns.json" | relURL }}" data-home="{{ "" | relURL }}">
 
     {{- /* before the visitor agrees: the drawn map and the question */}}
@@ -80,28 +79,6 @@
             </div>
             <ul class="ch-layers-list" id="ch-layers-list"></ul>
         </section>
-        {{- /* offline: assets/js/switzerland/65-offline.js and static/switzerland/sw.js */}}
-        <section class="ch-panel ch-sheet ch-offline" id="ch-offline" hidden aria-labelledby="ch-offline-h">
-            <div class="ch-facts-head">
-                <h2 id="ch-offline-h">Offline</h2>
-                <button type="button" class="ch-close" id="ch-offline-close" aria-label="Close">×</button>
-            </div>
-            <p class="ch-ly-note">Keep the maps of what you see now on this device, for hikes without signal. The page and the saved areas then open in this browser without a connection.</p>
-            <label class="ch-off-opt"><input type="checkbox" id="ch-off-2d" checked> <span><strong>2D</strong> national map and hiking trails</span></label>
-            <label class="ch-off-opt"><input type="checkbox" id="ch-off-3d" checked> <span><strong>3D</strong> aerial photo and terrain</span></label>
-            <p class="ch-ly-note ch-ly-state" id="ch-off-est" aria-live="polite"></p>
-            <progress class="ch-off-prog" id="ch-off-prog" max="1" value="0" hidden></progress>
-            <div class="ch-pf-btns">
-                <button type="button" class="ch-chip ch-chip-main" id="ch-off-save">Save this area</button>
-                <button type="button" class="ch-chip" id="ch-off-stop" hidden>Stop</button>
-            </div>
-            <div id="ch-off-saved" hidden>
-                <h3 class="ch-off-h">Saved areas</h3>
-                <ul class="ch-off-list" id="ch-off-list"></ul>
-            </div>
-            <p class="ch-ly-note" id="ch-off-use"></p>
-            <p class="ch-ly-note">Search, profiles, weather and the other live layers need a connection. On an iPhone, Safari may clear saved maps of a site not opened for a few weeks: open this page now and then, or add it to the home screen.</p>
-        </section>
     </div>
     <div class="ch-col ch-col-right">
         <div class="ch-panel ch-tools" role="toolbar" aria-label="Map tools">
@@ -110,7 +87,6 @@
             <button type="button" class="ch-tool" id="ch-time" aria-pressed="false" title="Old maps from 1844 to today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="ch-tool-text">Then and now</span></button>
             <button type="button" class="ch-tool" id="ch-profile" aria-pressed="false" title="Draw a route and see its elevation profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l5-8 4 5 3-6 6 9z"/><path d="M3 21h18"/></svg><span class="ch-tool-text">Profile</span></button>
             <button type="button" class="ch-tool" id="ch-layers-btn" aria-expanded="false" aria-controls="ch-layers" title="Trails, slopes, glaciers, snow and avalanches"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5"/></svg><span class="ch-tool-text">Layers</span></button>
-            <button type="button" class="ch-tool" id="ch-offline-btn" aria-expanded="false" aria-controls="ch-offline" title="Save this area for use without signal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4 15.5v3.5h16v-3.5"/></svg><span class="ch-tool-text">Offline</span></button>
         </div>
         <aside class="ch-panel ch-card" id="ch-card" hidden aria-live="polite">
             <button type="button" class="ch-close" id="ch-card-close" aria-label="Close">×</button>
@@ -176,7 +152,7 @@
 </div>
 <script type="application/json" id="ch-facts-data">{{ dict "cantons" $d.cantons "glaciers" $d.glaciers "glacier_loss" $d.glacier_loss "caves" $d.caves | jsonify | safeJS }}</script>
 {{- $parts := slice }}
-{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-live" "65-offline" "70-search-share" "80-hud" "90-boot" }}
+{{- range slice "00-core" "10-compare" "20-terrain" "30-layers" "40-cards" "50-profile" "60-live" "70-search-share" "80-hud" "90-boot" }}
 {{- $parts = $parts | append (resources.Get (printf "js/switzerland/%s.js" .)) }}
 {{- end }}
 {{- $js := $parts | resources.Concat "js/switzerland.js" | minify | fingerprint }}
