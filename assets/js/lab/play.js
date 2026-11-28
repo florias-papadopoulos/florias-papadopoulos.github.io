@@ -2,7 +2,7 @@
    decides its side: the lab's home page, Games and the Toolbox are the playful side (baseof.html sets html[data-mode="play"] there, with the
    play navigation of layouts/partials/play-nav.html, the pet and warm colours, all in assets/css/common/play.css), every
    other page is the normal site. Turning the key on a normal page opens the
-   lab's home page (/lab/); turning it back ("About me") opens the normal home page. No animation of
+   lab's home page (/lab/); turning it back (a house, "Home") opens the normal home page. No animation of
    its own: the other side's page is fetched ahead and appears at once, with no page transition (assets/js/site/door.js).
    No sound. Bundled after
    assets/js/lab/cat-picker.js. */
@@ -16,7 +16,8 @@
     function mark() {
         var on = isOn();
         key.setAttribute('aria-pressed', on ? 'true' : 'false');
-        key.title = on ? 'Turn the key back: about me' : 'Turn the key: the lab';
+        key.title = on ? 'Back to the home page' : 'Turn the key: the lab';
+        key.setAttribute('aria-label', on ? 'Back to the home page' : 'The lab: games and toolbox');
     }
     /* the lab opens on its own home page (data-play), leaving it always goes to the normal home page (data-home) */
     function remember() { try { sessionStorage.removeItem('side-play'); localStorage.removeItem('site-mode'); } catch (e) { /* no storage */ } }

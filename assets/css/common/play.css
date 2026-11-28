@@ -252,4 +252,7 @@ html[data-mode="play"] .tb-task[aria-pressed="true"] { border-color: var(--sec);
     .lab-head h1, .lab-head .tl-h1 { font-size: 36px !important; }
     .lab-head h1::after, .lab-head .tl-h1::after, .lab-home .name-block::after { width: 52px; height: 5px; margin-top: 10px; }
 }
-
+/* in the lab the key shows a house (the way home) instead of a key turned over */
+.key-btn .key-home { display: none; }
+html[data-mode="play"] .key-btn .key-key { display: none; }
+html[data-mode="play"] .key-btn .key-home { display: block; transform: none !important; }
