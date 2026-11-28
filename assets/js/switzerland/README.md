@@ -10,8 +10,8 @@ can call another's. Check after a change: `cat assets/js/switzerland/[0-9]*.js >
 | 10-compare | Then and now (a second map with an old national map, clipped at the divider) |
 | 20-terrain | 3D (swisstopo terrain, made by terrain-worker.js); the Sun feature was removed (kept in __NotOnline/switzerland-sun) |
 | 30-layers | the Layers panel: summits, trails, slopes, ski and snowshoe routes, glaciers (with Go to), avalanche bulletin (SLF) |
-| 40-cards | what a tap shows: profile point, summit, avalanche region, snow station, canton |
-| 50-profile | the elevation profile (swisstopo profile service) with distance, climb, descent and DIN 33466 walking time |
+| 40-cards | what a tap shows: route point, visitors' place, summit, cave, airport, weather station, avalanche region, canton |
+| 50-profile | Route: the elevation profile of a drawn route (swisstopo profile service) with distance, climb, descent and DIN 33466 walking time |
 | 60-live | Weather now (MeteoSwiss stations, a station's 10-minute values on a tap), snow cover from space (NASA GIBS, recoloured through chsnow://) and the nearest public transport stop on summit and cave cards |
 | 62-visitors | Visitors (St. Gallen guests): places with pins and cards, Ostwind tickets and area, next departures and weather |
 | 64-weather | the Weather sheet's country-wide maps: rain radar (MeteoSwiss HDF5 read with jsfive, last hour playable), temperature and cloud cover now (ICON-CH1 via Open-Meteo); the Weather and Layers lists are built by part 30 |

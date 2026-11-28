@@ -1,6 +1,6 @@
 /* Part 80: the panels know when to step aside. While the map moves (a drag, a zoom, a flight to a search result or a
    glacier) the panels and corner buttons fade out, and they come back half a second after it stops. The docks in use
-   (year, sun, profile), the map controls and messages stay. Styles: body.ch-hud-off in switzerland.css. */
+   (year, route), the map controls and messages stay. Styles: body.ch-hud-off in switzerland.css. */
 let hudTimer = null;
 function hud(off) { document.body.classList.toggle('ch-hud-off', off); }
 function wireHud() {

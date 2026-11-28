@@ -76,7 +76,8 @@ function readHash() {
 }
 let hashTimer = null;
 function writeHash() {
-    if (!mapA) return;
+    // the guests' link (#visitors) stays in the address while their sheet is open, so a reload opens it again
+    if (!mapA || (typeof visitorsOn !== 'undefined' && visitorsOn)) return;
     clearTimeout(hashTimer);
     hashTimer = setTimeout(() => {
         const c = mapA.getCenter();

@@ -4,15 +4,14 @@
 
    This file is part 00 of a few numbered parts in assets/js/switzerland/, joined in order into one module by
    layouts/switzerland/list.html (they share one scope; see README.md there). Here: the constants, the shared state,
-   small helpers and the first map's style. Data, all official and free to use with the source named:
-   - swisstopo (wmts.geo.admin.ch): five base maps, hiking trails, slopes over 30°, ski touring and snowshoe routes,
-     glacier extents 1850 to 2016, the old maps of "Journey through time";
-   - swisstopo's vector data, read once into small files of this site: summit names and heights, towns, the border
-     (static/switzerland/peaks.json, towns.json, border.json); the fonts of the labels (vectortiles.geo.admin.ch);
-   - swisstopo (3d.geo.admin.ch): the terrain model for 3D;
-   - swisstopo (api3.geo.admin.ch): place search and elevation profiles;
-   - SLF (aws.slf.ch): today's avalanche bulletin, only when the visitor turns that layer on;
-   - this site: canton outlines (static/switzerland/cantons.json) and the facts of data/switzerland.yaml. */
+   small helpers and the first map's style. Data, each free to use with the source named:
+   - swisstopo: Map (light base map, vectortiles.geo.admin.ch, style copy static/switzerland/lightbase.json), Topo
+     (national map), Aerial, Relief, trails, slopes, ski and snowshoe routes, glaciers, the old maps (wmts.geo.admin.ch);
+     the terrain for 3D (3d.geo.admin.ch); place search, profiles and the nearest stop (api3.geo.admin.ch);
+   - this site's own small files: summits, towns, borders and cantons (static/switzerland/, made by tools/swiss-map/);
+   - only when the visitor turns them on: SLF's avalanche bulletin (aws.slf.ch), MeteoSwiss's stations and radar
+     (data.geo.admin.ch), the temperature and cloud maps (api.open-meteo.com), NASA's snow cover
+     (gibs.earthdata.nasa.gov), the departures from St. Gallen (transport.opendata.ch). */
 const app = document.getElementById('ch-app');
 const $ = (id) => document.getElementById(id);
 const WMTS = 'https://wmts.geo.admin.ch/1.0.0/';
@@ -189,8 +188,8 @@ function styleA() {
     const sources = {
         ...(BASES[base].vector ? LB.sources : { base: rasterSource(base) }),
         cantons: { type: 'geojson', data: app.dataset.cantons },
-        // summits, towns and the border from small files of this site (tools/swiss-map/make_labels.py and make_map.py),
-        // not swisstopo's vector tiles, which carry every road and field and cost megabytes a view
+        // for the aerial photo and the relief: summits, towns and the border from small files of this site
+        // (tools/swiss-map/make_labels.py and make_map.py); Map and Topo write their own
         peaks: { type: 'geojson', data: EMPTY },
         towns: { type: 'geojson', data: EMPTY },
         border: { type: 'geojson', data: app.dataset.border },
@@ -389,18 +388,22 @@ function peakVisibility() {
     PEAK_LAYERS.forEach((id) => mapA.setLayoutProperty(id, 'visibility', on && !lettered(base) ? 'visible' : 'none'));
     mapA.setLayoutProperty('peaks-hit', 'visibility', on && lettered(base) ? 'visible' : 'none');
 }
-/* the base map: a new raster source under everything else */
 /* the canton and country lines: a light version (about 100 m) from the start, the precise one (about 10 m, about
-   330 KB to download) once the lines are seen from close in, on the aerial photo or the relief */
-let fineState = 0;   // 0 not yet, 1 loading, 2 done
+   400 KB to download) once the lines are seen from close in: on the aerial photo or the relief, or a tapped canton
+   from zoom 12 on Map and Topo (whose own borders are exact) */
+let fineState = 0, tinted = '';   // 0 not yet, 1 loading, 2 done; the tapped canton
 function fineLines() {
-    if (fineState || !mapA || lettered(base) || mapA.getZoom() < 10) return;
+    if (fineState || !mapA) return;
+    const z = mapA.getZoom();
+    if (lettered(base) ? !(tinted && z >= 12) : z < 10) return;
     fineState = 1;
     Promise.all([app.dataset.cantonsFine, app.dataset.borderFine].map((u) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })))
         .then(([c, b]) => { mapA.getSource('cantons').setData(c); mapA.getSource('border').setData(b); fineState = 2; })
         .catch(() => { fineState = 0; });
 }
 function hiCanton(code) {
+    tinted = code || '';
+    if (tinted) fineLines();
     ['canton-tint', 'canton-hi'].forEach((id) => mapA.getLayer(id) && mapA.setFilter(id, ['==', ['get', 'code'], code || '']));
 }
 function airportZoom() {
@@ -432,7 +435,7 @@ function setBase(key) {
     writeHash();
 }
 
-/* The modes: 3D (with the sun inside it), Then and now and Profile. Only one at a time: turning one on turns the others
+/* The modes: 3D, Then and now and Route (mode 'profile'). Only one at a time: turning one on turns the others
    off, so 3D is never mixed with an old flat map or a profile. Each mode registers how to tell it is on and how to
    turn it off. */
 const modes = {};
@@ -442,9 +445,9 @@ function only(id) {
 }
 /* Which tools go together. A tool that would make a poor pair with the mode that is on is greyed out (its tooltip
    says why), instead of switching that mode off behind the visitor's back:
-   3D (and the sun inside it): no Then and now, and the aerial photo only;
+   3D: no Then and now, and the aerial photo only;
    Then and now: no 3D, no sun, no profile, no layers (part 30, lockLayers);
-   Profile: no Then and now. The profile and the layers go with 3D. */
+   Route: no Then and now. The route and the layers go with 3D. */
 function dis(id, off, why) {
     const b = $(id);
     if (!b) return;
@@ -473,6 +476,8 @@ function sheet(id, open) {
         const b = $(s + '-btn');
         b.setAttribute('aria-expanded', String(on));
     });
+    // a sheet closed by opening another one comes back full size next time
+    document.querySelectorAll('.ch-small').forEach((p) => { if (p.hidden) p.classList.remove('ch-small'); });
     // the visitors' pins and area go with their sheet
     if (visitorsOn && $('ch-visitors') && $('ch-visitors').hidden) showVisitors(false);
 }

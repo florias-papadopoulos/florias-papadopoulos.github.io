@@ -1,9 +1,7 @@
-/* Part 20: 3D (the Sun feature was removed on 2026-11-28; its code is kept in __NotOnline/switzerland-sun). 3D: swisstopo's terrain model (quantized mesh, 3d.geo.admin.ch) turned into MapLibre
-   terrain by this site's terrain worker (terrain-worker.js, with HERE's decoder from static/engines). The sun: for a chosen day and
-   time, the sun's position over the map's centre (the usual astronomical formulas, as in the SunCalc library) lights
-   the slopes from that direction and height (a hillshade layer). It shows which slopes face the sun; it does not cast
-   the shadows of one mountain onto another. swisstopo's terrain covers Switzerland and a narrow strip around it (tiles
-   elsewhere answer 403), so it is asked for only there; beyond, the map lies flat at 300 m. */
+/* Part 20: 3D. swisstopo's terrain model (quantized mesh, 3d.geo.admin.ch) turned into MapLibre terrain by this
+   site's terrain worker (terrain-worker.js, with HERE's decoder from static/engines). swisstopo's terrain covers
+   Switzerland and a narrow strip around it (tiles elsewhere answer 403); beyond, the map lies flat at 300 m. (The Sun
+   feature was removed on 2026-11-28; its code is kept in __NotOnline/switzerland-sun.) */
 let terrainLoading = null, pending3D = false;
 function terrainSource() {
     if (terrainSpec) return Promise.resolve(terrainSpec);

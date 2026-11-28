@@ -3,21 +3,24 @@
      rain rate in mm/h, in HDF5 files on the Swiss grid (LV95). jsfive (static/engines, public domain) reads them; each
      cell is placed on the web map through the Swiss grid formulas (part 00) and drawn into a picture laid on the
      map. The last hour can be played.
-   - Temperature and cloud cover now: MeteoSwiss's forecast model ICON-CH1 (about 1 km) for the current quarter
-     hour, through Open-Meteo (free for non-commercial use, CC BY 4.0, one request for a grid of about 500 points),
-     smoothed between the points by the page. A model estimate, not a measurement; the sheet says so. */
+   - Temperature and cloud cover now: MeteoSwiss's forecast model ICON-CH1 for the current quarter hour, through
+     Open-Meteo (free for non-commercial use, CC BY 4.0). The page asks for a grid of points about 20 km apart (about
+     200 points, which Open-Meteo counts as 200 calls; kept for 15 minutes in this tab) and smooths between them, so
+     valleys and summits in between are averaged. A model estimate, not a measurement; the sheet says so. */
 const RADAR = 'https://data.geo.admin.ch/ch.meteoschweiz.ogd-radar-precip/';
 const RADAR_STAC = 'https://data.geo.admin.ch/api/stac/v1/collections/ch.meteoschweiz.ogd-radar-precip/items/';
-const RAIN_STEPS = [[0.1, [158, 202, 225]], [0.5, [107, 174, 214]], [1, [49, 130, 189]], [2, [49, 163, 84]], [5, [253, 216, 53]],
-                    [10, [251, 140, 0]], [20, [229, 57, 53]], [50, [142, 36, 170]]];
-let h5 = null, rainFrames = [], rainIdx = -1, rainGrid = null, rainTimer = null, rainBusy = false;
+const RAIN_STEPS = [[0.1, [92, 170, 255]], [0.5, [40, 120, 245]], [1, [0, 80, 220]], [2, [0, 165, 70]], [5, [255, 205, 0]],
+                    [10, [255, 125, 0]], [20, [225, 25, 25]], [50, [155, 0, 185]]];
+let h5 = null, rainFrames = [], rainIdx = -1, rainGrid = null, rainTimer = null, rainBusy = false, rainWant = -1, rainListed = 0;
 const rainCache = new Map();   // frame name -> object URL of its picture
 
 /* the output picture: a Web Mercator rectangle around the radar's grid, and for each of its pixels the radar cell */
 function rainGeometry(where) {
     const lons = [where.UL_lon, where.LL_lon, where.UR_lon, where.LR_lon].map(Number), lats = [where.UL_lat, where.LL_lat, where.UR_lat, where.LR_lat].map(Number);
     const w = Math.min(...lons), e = Math.max(...lons), s = Math.min(...lats), n = Math.max(...lats);
-    const W = 900, yN = mercY(n), yS = mercY(s), H = Math.round(W * (yS - yN) / ((e - w) / 360));
+    // a file that does not describe the Swiss radar grid is not drawn
+    if (!(w > 1 && e < 18 && s > 42 && n < 51 && e > w && n > s) || !(+where.xsize > 0 && +where.xsize <= 2000 && +where.ysize > 0 && +where.ysize <= 2000)) throw new Error('grid');
+    const W = 900, yN = mercY(n), yS = mercY(s), H = Math.min(2000, Math.round(W * (yS - yN) / ((e - w) / 360)));
     // the grid's top left corner on the Swiss grid (whole kilometres)
     const ul = toLV95(Number(where.UL_lon), Number(where.UL_lat));
     const E0 = Math.round(ul[0] / 1000) * 1000, N0 = Math.round(ul[1] / 1000) * 1000;
@@ -41,6 +44,7 @@ async function rainPicture(name) {
     const f = new h5.File(await res.arrayBuffer(), name);
     if (!rainGrid) rainGrid = rainGeometry(f.get('where').attrs);
     const v = f.get('dataset1/data1/data').value, g = rainGrid;
+    if (!v || v.length !== Number(f.get('where').attrs.xsize) * Number(f.get('where').attrs.ysize)) throw new Error('size');
     const c = document.createElement('canvas');
     c.width = g.W; c.height = g.H;
     const ctx = c.getContext('2d'), img = ctx.createImageData(g.W, g.H), d = img.data;
@@ -51,7 +55,7 @@ async function rainPicture(name) {
         if (!(mm >= 0.1)) continue;
         let col = RAIN_STEPS[0][1];
         for (const [t, rgb] of RAIN_STEPS) { if (mm >= t) col = rgb; }
-        d[k * 4] = col[0]; d[k * 4 + 1] = col[1]; d[k * 4 + 2] = col[2]; d[k * 4 + 3] = 215;
+        d[k * 4] = col[0]; d[k * 4 + 1] = col[1]; d[k * 4 + 2] = col[2]; d[k * 4 + 3] = 235;
     }
     ctx.putImageData(img, 0, 0);
     const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'));
@@ -74,7 +78,9 @@ function rainFolder(name) {
 async function rainList() {
     const day = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
     const now = new Date(), names = [];
-    for (const d of [new Date(now - 86400000), now]) {
+    // today's list first; yesterday's (about 300 KB) only when today has fewer than 13 pictures, just after midnight UTC
+    for (const d of [now, new Date(now - 86400000)]) {
+        if (d !== now && names.length >= 13) break;
         try {
             const r = await fetch(RADAR_STAC + day(d) + '-ch', { credentials: 'omit', referrerPolicy: 'no-referrer' });
             if (!r.ok) continue;
@@ -85,14 +91,15 @@ async function rainList() {
     return names.sort((a, b) => rainTime(a) - rainTime(b)).slice(-13);
 }
 async function rainShow(i) {
-    if (rainBusy || !rainFrames.length) return;
+    if (!rainFrames.length) return;
+    if (rainBusy) { rainWant = i; return; }   // shown once the picture being made is ready
     rainBusy = true;
     try {
         const name = rainFrames[i], url = await rainPicture(name);
         if (!mapA.getSource('rain')) {
             mapA.addSource('rain', { type: 'image', url, coordinates: rainGrid.coords });
             mapA.addLayer({ id: 'rain', type: 'raster', source: 'rain', layout: { visibility: layerOn.rain ? 'visible' : 'none' },
-                            paint: { 'raster-opacity': 0.85, 'raster-fade-duration': 0, 'raster-resampling': 'nearest' } }, 'avalanche');
+                            paint: { 'raster-opacity': 1, 'raster-fade-duration': 0, 'raster-resampling': 'nearest' } }, 'avalanche');
         } else mapA.getSource('rain').updateImage({ url, coordinates: rainGrid.coords });
         rainIdx = i;
         $('ch-rain-time').textContent = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit' }).format(rainTime(name));
@@ -101,15 +108,20 @@ async function rainShow(i) {
         $('ch-rain-state').textContent = 'The radar picture could not be loaded right now.';
     }
     rainBusy = false;
+    if (rainWant >= 0) { const w = rainWant; rainWant = -1; if (w !== rainIdx) rainShow(w); }
 }
 async function rainOn() {
     const state = $('ch-rain-state');
-    if (rainFrames.length) return;
+    // the pictures already made are kept; the list is asked again when it is more than 10 minutes old
+    if (rainFrames.length && Date.now() - rainListed < 600000) return;
     state.textContent = 'Loading the radar…';
     try {
         if (!h5) h5 = await import(app.dataset.jsfive);
         rainFrames = await rainList();
         if (!rainFrames.length) throw new Error('none');
+        rainListed = Date.now();
+        // pictures that fell out of the last hour are let go
+        [...rainCache.keys()].forEach((k) => { if (!rainFrames.includes(k)) { URL.revokeObjectURL(rainCache.get(k)); rainCache.delete(k); } });
         const s = $('ch-rain-slider');
         s.max = String(rainFrames.length - 1);
         await rainShow(rainFrames.length - 1);
@@ -126,33 +138,46 @@ function rainPlay() {
     let i = rainIdx >= rainFrames.length - 1 ? 0 : rainIdx + 1;
     rainShow(i);
     rainTimer = setInterval(() => {
-        if (rainBusy) return;
+        if (rainBusy || document.hidden) return;
         i = i >= rainFrames.length - 1 ? 0 : i + 1;
         rainShow(i);
     }, 700);
 }
 
 /* ---------- temperature and cloud cover now (model) ---------- */
-const FIELD_BOX = [5.85, 45.75, 10.65, 47.85], FIELD_STEP = 0.15;
-let field = null, fieldLoading = null;
+const FIELD_BOX = [5.85, 45.75, 10.65, 47.85], FIELD_STEP = 0.25;
+let field = null, fieldLoading = null, fieldAt = 0;
 function fieldGrid() {
     const lats = [], lons = [];
     const nx = Math.round((FIELD_BOX[2] - FIELD_BOX[0]) / FIELD_STEP) + 1, ny = Math.round((FIELD_BOX[3] - FIELD_BOX[1]) / FIELD_STEP) + 1;
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { lats.push((FIELD_BOX[1] + j * FIELD_STEP).toFixed(3)); lons.push((FIELD_BOX[0] + i * FIELD_STEP).toFixed(3)); }
     return { nx, ny, lats, lons };
 }
+const FIELD_KEY = 'ch-field-v1';
 async function loadField() {
-    if (field) return field;
+    if (field && Date.now() - fieldAt < 900000) return field;
+    if (field) { field = null; fieldLoading = null; }
     if (!fieldLoading) fieldLoading = (async () => {
         const g = fieldGrid();
+        // kept 15 minutes in this tab, so turning the map on again does not ask Open-Meteo again
+        try {
+            const c = JSON.parse(sessionStorage.getItem(FIELD_KEY) || 'null');
+            if (c && Date.now() - c.at < 900000 && c.t.length === g.nx * g.ny) {
+                field = { ...g, t: Float32Array.from(c.t), c: Float32Array.from(c.c), time: c.time }; fieldAt = c.at;
+                return field;
+            }
+        } catch (e) { /* no storage */ }
         const body = new URLSearchParams({ latitude: g.lats.join(','), longitude: g.lons.join(','), current: 'temperature_2m,cloud_cover', models: 'meteoswiss_icon_ch1' });
         const res = await fetch('https://api.open-meteo.com/v1/forecast', { method: 'POST', body, credentials: 'omit', referrerPolicy: 'no-referrer' });
+        if (res.status === 429) throw new Error('busy');
         if (!res.ok) throw new Error(res.status);
         const d = await res.json();
         if (!Array.isArray(d) || d.length !== g.nx * g.ny) throw new Error('shape');
         const t = new Float32Array(d.length), c = new Float32Array(d.length);
         d.forEach((p, k) => { const cur = (p && p.current) || {}; t[k] = Number(cur.temperature_2m); c[k] = Number(cur.cloud_cover); });
         field = { ...g, t, c, time: d[0] && d[0].current && d[0].current.time };
+        fieldAt = Date.now();
+        try { sessionStorage.setItem(FIELD_KEY, JSON.stringify({ at: fieldAt, t: Array.from(t), c: Array.from(c), time: field.time })); } catch (e) { /* no storage */ }
         return field;
     })().catch((e) => { fieldLoading = null; throw e; });
     return fieldLoading;
@@ -196,19 +221,26 @@ async function fieldOn(kind) {
     const state = $('ch-' + kind + '-state');
     state.textContent = 'Loading…';
     try {
-        await loadField();
+        const f = await loadField();
         const id = 'field-' + kind;
-        if (!mapA.getSource(id)) {
+        if (fieldDrawn[kind] !== f) {
             const url = await fieldPicture(kind), [w, s, e, n] = FIELD_BOX;
+            fieldDrawn[kind] = f;
+            // checked again after the wait: a quick off and on must not add the map twice
+            if (mapA.getSource(id)) { mapA.getSource(id).updateImage({ url, coordinates: [[w, n], [e, n], [e, s], [w, s]] }); return fieldNote(state); }
             mapA.addSource(id, { type: 'image', url, coordinates: [[w, n], [e, n], [e, s], [w, s]] });
             mapA.addLayer({ id, type: 'raster', source: id, layout: { visibility: layerOn[kind] ? 'visible' : 'none' },
                             paint: { 'raster-opacity': kind === 'temp' ? 0.75 : 0.9, 'raster-fade-duration': 0 } }, 'avalanche');
         }
-        const at = field.time ? new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit' }).format(new Date(field.time + 'Z')) : '';
-        state.textContent = 'MeteoSwiss model ICON-CH1 via Open-Meteo, for ' + at + '. An estimate from the model, not a measurement.';
+        fieldNote(state);
     } catch (e) {
-        state.textContent = 'Could not be loaded right now.';
+        state.textContent = e && e.message === 'busy' ? 'Open-Meteo is busy for this connection: try again in a minute.' : 'Could not be loaded right now.';
     }
+}
+const fieldDrawn = {};
+function fieldNote(state) {
+    const at = field && field.time ? new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit' }).format(new Date(field.time + 'Z')) : '';
+    state.textContent = 'MeteoSwiss model ICON-CH1 via Open-Meteo, for ' + at + ', points about 20 km apart. An estimate from the model, not a measurement.';
 }
 function wireWeather() {
     const btn = $('ch-weather-btn'), panel = $('ch-weather');

@@ -27,7 +27,7 @@ function setProfile(on) {
 modes.profile = { on: () => mode === 'profile', off: () => setProfile(false) };
 
 function profileAdd(ll) {
-    if (profilePts.length >= 40) { toast('A profile can have at most 40 points.'); return; }
+    if (profilePts.length >= 40) { toast('A route can have at most 40 points.'); return; }
     profilePts.push([ll.lng, ll.lat]);
     fetchProfile();
 }
@@ -89,6 +89,9 @@ function renderProfile() {
     stats.textContent = '';
     $('ch-pf-undo').disabled = !profilePts.length;
     $('ch-pf-clear').disabled = !profilePts.length;
+    // the chart takes room only once there is something to draw: before that the panel is just the hint and buttons
+    svg.toggleAttribute('hidden', !profileData);
+    stats.hidden = !profileData;
     if (!profileData) {
         if (profilePts.length < 2) state.textContent = profilePts.length ? 'Add one more point.' : 'Tap the map to start a route.';
         return;

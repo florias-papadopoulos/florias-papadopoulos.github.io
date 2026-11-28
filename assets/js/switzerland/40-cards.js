@@ -1,9 +1,11 @@
 /* Part 40: what a tap on the map shows. A tool that takes the map's taps (the profile) comes first; then a summit,
-   an avalanche region (when that layer is on), and last the canton under the tap. */
-function card(build) {
+   a weather station, an avalanche region (when that layer is on), and last the canton under the tap. */
+/* fit: the card as wide as its words (a canton's), not the usual fixed width */
+function card(build, fit) {
     const body = $('ch-card-body');
     body.textContent = '';
     build(body);
+    $('ch-card').classList.toggle('ch-card-fit', !!fit);
     $('ch-card').hidden = false;
 }
 function closeCard() {
@@ -80,13 +82,13 @@ function onClick(e) {
         card((b) => { b.append(el('p', 'ch-card-kind', 'Airport ' + p.code), el('h2', null, p.name)); });
         return;
     }
-    if (layerOn.avalanche && avalanche) {
-        const a = mapA.queryRenderedFeatures(e.point, { layers: ['avalanche'] });
-        if (a.length && avalancheCard(a[0].properties.i)) { hiCanton(''); return; }
-    }
     if (layerOn.weather && wx) {
         const w = mapA.queryRenderedFeatures(e.point, { layers: visible(['wx-dots']) });
         if (w.length) { hiCanton(''); weatherCard(w[0].properties); return; }
+    }
+    if (layerOn.avalanche && avalanche) {
+        const a = mapA.queryRenderedFeatures(e.point, { layers: ['avalanche'] });
+        if (a.length && avalancheCard(a[0].properties.i)) { hiCanton(''); return; }
     }
     const c = cantonAt(e.point);
     if (!c) { closeCard(); return; }
@@ -97,7 +99,7 @@ function onClick(e) {
         b.append(el('p', 'ch-card-kind', 'Canton'), el('h2', null, pr.name));
         const bits = [f.capital, f.languages].filter(Boolean).map(String);
         b.appendChild(el('p', 'ch-card-line', bits.join(' · ')));
-    });
+    }, true);
 }
 function cantonAt(point) {
     const hits = mapA.queryRenderedFeatures(point, { layers: ['canton-fill'] });

@@ -12,7 +12,7 @@
    do not use the name of the copyright holder to endorse derived products); the software is provided "as is",
    without any warranty. */
 let decode = null, available = null, template = '', version = '1.0.0', bounds = null, SIZE = 256, FALLBACK = 300;
-const meshes = new Map();   // url -> Promise<mesh | null>, the most recent 400 kept
+const meshes = new Map();   // url -> Promise<mesh | null>, the most recent 150 kept (phones' memory)
 const aborted = new Set();
 
 function qmTileBounds(z, x, y) {
@@ -70,7 +70,7 @@ function mesh(z, x, y) {
     });
     p.catch(() => meshes.delete(url));
     meshes.set(url, p);
-    if (meshes.size > 400) meshes.delete(meshes.keys().next().value);
+    if (meshes.size > 150) meshes.delete(meshes.keys().next().value);
     return p;
 }
 
@@ -151,6 +151,8 @@ self.onmessage = async (e) => {
     if (m.type === 'abort') { aborted.add(m.id); return; }
     if (m.type === 'init') {
         try {
+            // only this site's decoder and swisstopo's terrain
+            if (new URL(m.decoder).origin !== self.location.origin || String(m.layer).indexOf('https://3d.geo.admin.ch/') !== 0) throw new Error('source');
             decode = (await import(m.decoder)).default;
             const res = await fetch(m.layer, { credentials: 'omit', referrerPolicy: 'no-referrer' });
             if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -177,6 +179,7 @@ self.onmessage = async (e) => {
     if (m.type === 'tile') {
         let out;
         try { out = await tile(m.id, m.z, m.x, m.y); } catch (err) { out = { id: m.id, error: String(err && err.message || err) }; }
+        aborted.delete(m.id);   // an abort that came after the tile was made
         self.postMessage(out, out.bitmap ? [out.bitmap] : out.rgba ? [out.rgba.buffer] : []);
     }
 };

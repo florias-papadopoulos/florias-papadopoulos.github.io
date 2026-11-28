@@ -2,7 +2,7 @@
    swisstopo's own layer descriptions, and the European avalanche danger scale). The avalanche bulletin is fetched
    from SLF only when its entry is first turned on; the glacier entry also offers three glaciers to fly to. */
 const LAYERS = [
-    { id: 'peaks', name: 'Summits', ids: PEAK_LAYERS, on: true, note: 'Name and height in metres (the national map writes them itself). Tap a summit for its card.' },
+    { id: 'peaks', name: 'Summits', ids: PEAK_LAYERS, on: true, minzoom: 9, note: 'Name and height in metres, shown from closer in. Tap a summit for its card.' },
     { id: 'caves', name: 'Big caves', ids: ['caves', 'caves-label'], note: 'The longest cave systems and the caves you can visit. Tap one for its card.' },
     { id: 'trails', name: 'Hiking trails', ids: ['trails'], minzoom: 10, lines: true,
       legend: [['#fdc200', 'Hiking trail (yellow signs, T1)'], ['#ff0000', 'Mountain trail (white-red-white, T2 to T3)'], ['#0000fd', 'Alpine trail (white-blue-white, T4 to T5)']],
@@ -25,7 +25,7 @@ const LAYERS = [
 /* the Weather sheet's entries (parts 60 and 64), built the same way into their own list */
 const WEATHER = [
     { id: 'rain', name: 'Rain radar', ids: ['rain'],
-      legend: [['#9ecae1', 'light'], ['#3182bd', '1 mm/h'], ['#31a354', '2 mm/h'], ['#fdd835', '5 mm/h'], ['#fb8c00', '10 mm/h'], ['#e53935', '20 mm/h and more']] },
+      legend: [['#5caaff', 'light'], ['#0050dc', '1 mm/h'], ['#00a546', '2 mm/h'], ['#ffcd00', '5 mm/h'], ['#ff7d00', '10 mm/h'], ['#e11919', '20 mm/h'], ['#9b00b9', '50 mm/h and more']] },
     { id: 'temp', name: 'Temperature now', ids: ['field-temp'],
       legend: [['#4575b4', '−10 °C'], ['#e0f3f8', '0 °C'], ['#fdae61', '10 °C'], ['#f46d43', '20 °C'], ['#d73027', '30 °C']] },
     { id: 'cloud', name: 'Cloud cover now', ids: ['field-cloud'],
@@ -63,7 +63,7 @@ function setLayer(def, on, opts) {
     $('ch-weather-btn').classList.toggle('ch-has', WEATHER.some((d) => layerOn[d.id]));
 }
 
-/* Then and now and Months show a map of their own: the Layers button is off while they are on, the extra layers are
+/* Then and now shows a map of its own: the Layers button is off while they are on, the extra layers are
    hidden, and they come back as they were afterwards */
 let layersSaved = null;
 function lockLayers(lock) {
@@ -71,14 +71,18 @@ function lockLayers(lock) {
     if (lock && !layersSaved) {
         layersSaved = { ...layerOn };
         ALL_LAYERS().forEach((d) => { if (d.id !== 'peaks' && layerOn[d.id]) setLayer(d, false); });
-        if (!$('ch-layers').hidden) sheet('ch-layers', false);
+        if (!$('ch-layers').hidden || !$('ch-weather').hidden) sheet('ch-layers', false);
         btn.disabled = true;
         btn.title = 'Layers are off in this mode';
+        $('ch-weather-btn').disabled = true;
+        $('ch-weather-btn').title = 'Weather maps are off in this mode';
     } else if (!lock && layersSaved) {
         const saved = layersSaved;
         layersSaved = null;
         btn.disabled = false;
-        btn.title = 'Trails, slopes, glaciers, snow and avalanches';
+        btn.title = 'Summits, caves, trails, slopes, glaciers and avalanches';
+        $('ch-weather-btn').disabled = false;
+        $('ch-weather-btn').title = 'Rain radar, temperature, clouds, weather stations, snow cover';
         ALL_LAYERS().forEach((d) => { if (d.id !== 'peaks' && saved[d.id]) setLayer(d, true, { restore: true }); });
     }
 }

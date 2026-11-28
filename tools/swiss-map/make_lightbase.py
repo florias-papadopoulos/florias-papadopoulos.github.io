@@ -23,7 +23,7 @@ for l in s['layers']:
 # the site's choices (2026-11-28, by the owner): names in normal letters (no capitals); when zoomed out only the
 # cities of 50,000 people or more, plus the tourist towns visitors look for; towns from zoom 9, villages from 11; no
 # country name across the map
-KEEP = ['Lugano', 'Sion', 'Interlaken', 'Zermatt', 'St. Moritz', 'Davos', 'Grindelwald']
+KEEP = ['Lugano', 'Sion', 'Chur', 'Interlaken', 'Zermatt', 'St. Moritz', 'Davos', 'Grindelwald']
 pop = ['to-number', ['get', 'population'], 0]
 kept = []
 for l in layers:

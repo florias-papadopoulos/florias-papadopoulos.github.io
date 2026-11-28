@@ -22,8 +22,11 @@ function visitorsLayers() {
     mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests',
                     paint: { 'circle-radius': ['case', ['has', 'point_count'], 15, 11], 'circle-color': '#d52b1e', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } });
     mapA.addLayer({ id: 'guests-n', type: 'symbol', source: 'guests',
+                    // a bubble: its numbers as a range when they follow each other, otherwise how many places it holds
                     layout: { 'text-field': ['case', ['has', 'point_count'],
-                                             ['concat', ['to-string', ['+', ['get', 'lo'], 1]], '–', ['to-string', ['+', ['get', 'hi'], 1]]], ['get', 'n']], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
+                                             ['case', ['==', ['-', ['get', 'hi'], ['get', 'lo']], ['-', ['get', 'point_count'], 1]],
+                                              ['concat', ['to-string', ['+', ['get', 'lo'], 1]], '–', ['to-string', ['+', ['get', 'hi'], 1]]],
+                                              ['concat', ['to-string', ['get', 'point_count']], ' places']], ['get', 'n']], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
                     paint: { 'text-color': '#ffffff' } });
     mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 9, filter: ['!', ['has', 'point_count']],
                     layout: { 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1.3], 'text-anchor': 'top', 'text-padding': 2 },
@@ -74,7 +77,7 @@ function vTab(t) {
     document.querySelectorAll('.ch-v-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
     document.querySelectorAll('.ch-v-pane').forEach((p) => { p.hidden = p.dataset.tab !== t; });
     clearInterval(depTimer); depTimer = null;
-    if (t === 'now' && visitorsOn) { loadNow(); depTimer = setInterval(loadNow, 60000); }
+    if (t === 'now' && visitorsOn) { loadNow(); depTimer = setInterval(() => { if (!document.hidden) loadNow(); }, 60000); }
 }
 function buildVisitors() {
     const list = $('ch-v-places');
@@ -106,6 +109,11 @@ function buildVisitors() {
     });
 }
 
+/* a train's name as on the departure boards: S-Bahn lines run together (S21), the others with a space (IR 13) */
+function lineName(cat, num) {
+    cat = String(cat || ''); num = String(num || '');
+    return /^(S|SN)$/.test(cat) || !num ? cat + num : cat + ' ' + num;
+}
 /* now: departures and the weather of two stations */
 async function loadNow() {
     const ul = $('ch-v-deps'), st = $('ch-v-deps-state');
@@ -115,12 +123,13 @@ async function loadNow() {
         const d = await res.json();
         ul.textContent = '';
         (Array.isArray(d.stationboard) ? d.stationboard : []).slice(0, 8).forEach((j) => {
-            const s = (j && j.stop) || {}, t = new Date(s.departure);
+            // the timestamp, not the text: Safari cannot read the text's form (+0100 without a colon)
+            const s = (j && j.stop) || {}, t = new Date(Number(s.departureTimestamp) * 1000);
             if (isNaN(t)) return;
             const li = el('li', 'ch-v-dep');
             const hm = t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
             const late = Number(s.delay) > 0 ? ' +' + Math.round(Number(s.delay)) : '';
-            li.append(el('span', 'ch-v-time', hm + late), el('span', 'ch-v-line', String(j.category || '') + String(j.number || '')),
+            li.append(el('span', 'ch-v-time', hm + late), el('span', 'ch-v-line', lineName(j.category, j.number)),
                       el('span', 'ch-v-to', String(j.to || '')), el('span', 'ch-v-pl', s.platform ? 'Pl. ' + String(s.platform) : ''));
             ul.appendChild(li);
         });
