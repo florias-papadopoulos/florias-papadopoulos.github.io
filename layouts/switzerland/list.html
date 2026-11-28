@@ -13,7 +13,7 @@
      data-terrain-worker="{{ (resources.Get "js/switzerland/terrain-worker.js" | minify | fingerprint).RelPermalink }}"
      data-decoder="{{ printf "engines/%s/index.js" $eng.decoder | relURL }}"
      data-cantons="{{ "switzerland/cantons.json" | relURL }}" data-border="{{ "switzerland/border.json" | relURL }}"
-     data-ostwind="{{ "switzerland/ostwind.json" | relURL }}" data-lightbase="{{ "switzerland/lightbase.json" | relURL }}"
+     data-ostwind="{{ "switzerland/ostwind.json" | relURL }}" data-vroutes="{{ "switzerland/visitor-routes.json" | relURL }}" data-lightbase="{{ "switzerland/lightbase.json" | relURL }}"
      data-jsfive="{{ printf "engines/%s/index.mjs" $eng.jsfive | relURL }}"
      data-cantons-fine="{{ "switzerland/cantons-fine.json" | relURL }}" data-border-fine="{{ "switzerland/border-fine.json" | relURL }}"
      data-peaks="{{ "switzerland/peaks.json" | relURL }}" data-towns="{{ "switzerland/towns.json" | relURL }}" data-home="{{ "" | relURL }}">
@@ -106,7 +106,9 @@
             </div>
             <div class="ch-v-pane" data-tab="places" role="tabpanel">
                 <div class="ch-v-kinds" id="ch-v-kinds" role="group" aria-label="Show only"></div>
+                <label class="ch-ly-row ch-v-owrow"><span class="ch-ly-name" id="ch-v-open-name">Open this month</span><input type="checkbox" id="ch-v-open"></label>
                 <label class="ch-ly-row ch-v-owrow"><span class="ch-v-key"></span><span class="ch-ly-name">Ostwind area on the map</span><input type="checkbox" id="ch-v-ostwind"></label>
+                <div id="ch-v-plan"></div>
                 <ol class="ch-v-list" id="ch-v-places"></ol>
             </div>
             <div class="ch-v-pane" data-tab="tickets" role="tabpanel" hidden>

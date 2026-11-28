@@ -3,7 +3,7 @@
    from SLF only when its entry is first turned on; the glacier entry also offers three glaciers to fly to. */
 const LAYERS = [
     { id: 'peaks', name: 'Summits', ids: PEAK_LAYERS, on: true, minzoom: 9, note: 'Name and height in metres, shown from closer in. Tap a summit for its card.' },
-    { id: 'guests', name: 'Visitor places', ids: ['guests-dot', 'guests-n', 'guests-name'], on: true, note: 'The places of the Visitors sheet. Tap one for its card.' },
+    { id: 'guests', name: 'Visitor places', ids: ['guests-dot', 'guests-name'], on: true, note: 'The places of the Visitors sheet. Tap one for its card.' },
     { id: 'caves', name: 'Big caves', ids: ['caves', 'caves-label'], note: 'The longest cave systems and the caves you can visit. Tap one for its card.' },
     { id: 'trails', name: 'Hiking trails', ids: ['trails'], minzoom: 10, lines: true,
       legend: [['#fdc200', 'Hiking trail (yellow signs, T1)'], ['#ff0000', 'Mountain trail (white-red-white, T2 to T3)'], ['#0000fd', 'Alpine trail (white-blue-white, T4 to T5)']],

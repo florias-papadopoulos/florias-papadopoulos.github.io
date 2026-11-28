@@ -266,7 +266,14 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-v-group:first-child { margin-top: 0; }
 .ch-v-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 4px; border: 0; border-radius: 6px; background: none; text-align: left; color: var(--ch-ink); cursor: pointer; }
 .ch-v-btn:hover { background: var(--ch-hover); }
-.ch-v-num { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--ch-red); color: #fff; font-size: 11px; font-weight: 700; }
+.ch-v-pin { flex: none; width: 10px; height: 10px; margin: 0 3px; border-radius: 50%; box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px rgba(15, 23, 42, .18); }
+.ch-v-closed .ch-v-txt strong { color: var(--ch-faint); font-weight: 500; }
+.ch-v-acts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.ch-v-acts .ch-chip { height: 28px; font-size: 12.5px; }
+.ch-v-star[aria-pressed="true"] { border-color: #d4a017; color: #8a6400; }
+.ch-v-planbox { margin: 4px 0 10px; padding: 6px 8px; border: 1px solid var(--ch-line); border-radius: 10px; background: #fffbeb; }
+.ch-v-shared { background: #eff6ff; }
+
 /* one line a place: its name, and its area in grey at the end */
 .ch-v-txt { display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.35; }
 .ch-v-txt strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }

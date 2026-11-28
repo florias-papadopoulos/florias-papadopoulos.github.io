@@ -198,11 +198,15 @@ guests:
       half: "from CHF 29"
       note: "For the day trips beyond Ostwind: trains, buses and most boats in all of Switzerland for one day. The price rises as the passes sell: buy it 1 day to 6 months ahead in the SBB Mobile app."
   tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich, Luzern and the places under \"Day trips further away\" are outside Ostwind."
-  # near: inside the Ostwind area (the 9 am day pass covers the trains and buses); far: a day trip beyond it, with
-  # an extra ticket. Facts in __NotOnline/switzerland-guests/catalogue.md, each with its sources.
+  # St. Gallen is the base. far: beyond the Ostwind area (an extra ticket). mins: the fastest trip from St. Gallen
+  # station (SBB timetable), which groups the list; months: when it is open or doable (none = all year); rain: good
+  # in bad weather; stop: the SBB stop for the card's train button. Facts and sources:
+  # __NotOnline/switzerland-guests/catalogue.md.
   places:
     # ---- near, with the Ostwind pass ----
     - id: abbey
+      mins: 8
+      rain: true
       kinds: [culture]
       name: "Abbey Library"
       area: "St. Gallen"
@@ -215,6 +219,7 @@ guests:
       season: "Daily 10:00 to 17:00 (July to September until 18:00); closed 24 and 25 December"
       link: "https://www.stiftsbezirk.ch/"
     - id: oldtown
+      mins: 8
       kinds: [culture]
       name: "Old town"
       area: "St. Gallen"
@@ -226,6 +231,8 @@ guests:
       season: "All year"
       link: "https://www.st.gallen-bodensee.ch/"
     - id: sternenstadt
+      mins: 10
+      months: [11, 12]
       kinds: [culture, winter]
       name: "Sternenstadt"
       area: "St. Gallen"
@@ -238,6 +245,7 @@ guests:
       season: "26 November to 24 December 2026"
       link: "https://www.sternenstadt.ch/"
     - id: weieren
+      mins: 10
       kinds: [walk, water, winter]
       name: "Drei Weieren to Wenigerweiher"
       area: "St. Gallen"
@@ -250,6 +258,8 @@ guests:
       season: "All year; in winter the paths can be icy, and the Buebenweiher is opened for skating when the ice holds"
       link: "https://www.muehleggbahn.ch/"
     - id: haggen
+      mins: 10
+      stop: "St. Gallen, Oberhofstetten"
       kinds: [walk]
       name: "Menzlen forest and the Haggen bridge"
       area: "St. Gallen"
@@ -261,6 +271,8 @@ guests:
       ostwind: "yes"
       season: "All year; icy in winter, and the bridge sways in the wind"
     - id: wildpark
+      mins: 27
+      stop: "St. Gallen, Sonne"
       kinds: [family, winter]
       name: "Wildpark Peter und Paul"
       area: "St. Gallen"
@@ -273,6 +285,10 @@ guests:
       season: "Open all year, at any time"
       link: "https://www.wildpark-peterundpaul.ch/"
     - id: lerchenfeld
+      mins: 7
+      months: [11, 12, 1, 2, 3]
+      rain: true
+      stop: "St. Gallen, Lerchenfeld"
       kinds: [winter, family]
       name: "Lerchenfeld ice rink"
       area: "St. Gallen"
@@ -285,6 +301,9 @@ guests:
       season: "Until 14 March 2027; times on the website"
       link: "https://sport.stadt.sg.ch/home/eissport/oeffentlicher-eislauf.html"
     - id: saentispark
+      mins: 15
+      rain: true
+      stop: "Abtwil SG, Säntispark"
       kinds: [family, water]
       name: "Säntispark pools"
       area: "St. Gallen"
@@ -297,6 +316,8 @@ guests:
       season: "Daily 09:00 to 22:00; 24 and 31 December until 16:00"
       link: "https://www.saentispark-freizeit.ch/"
     - id: walterzoo
+      mins: 23
+      stop: "Gossau SG, Walter Zoo"
       kinds: [family]
       name: "Walter Zoo"
       area: "Gossau"
@@ -310,6 +331,9 @@ guests:
       know: "Mostly outdoors, with a few warm animal houses"
       link: "https://www.walterzoo.ch/"
     - id: chocolarium
+      mins: 26
+      rain: true
+      stop: "Flawil, Maestrani"
       kinds: [family, culture]
       name: "Maestrani's Chocolarium"
       area: "Flawil"
@@ -323,6 +347,9 @@ guests:
       know: "Chocolate is made only Tuesday to Friday, not on holidays"
       link: "https://www.chocolarium.ch/"
     - id: autobau
+      mins: 33
+      rain: true
+      stop: "Romanshorn"
       kinds: [culture]
       name: "autobau erlebniswelt"
       area: "Romanshorn"
@@ -336,6 +363,8 @@ guests:
       know: "Most weeks it opens only on Sunday"
       link: "https://www.autobau.ch/"
     - id: appenzell
+      mins: 36
+      stop: "Appenzell"
       kinds: [culture]
       name: "Appenzell"
       area: "Appenzell"
@@ -347,6 +376,9 @@ guests:
       season: "All year"
       link: "https://www.appenzell.ch/en/appenzell.html"
     - id: ebenalp
+      mins: 52
+      months: [1, 2, 3, 5, 6, 7, 8, 9, 10, 11]
+      stop: "Wasserauen"
       kinds: [hike, winter]
       name: "Ebenalp, Äscher and Schäfler"
       area: "Appenzell"
@@ -360,6 +392,8 @@ guests:
       season: "Cable car closed until 24 December 2026, 30 March to 27 April and from 22 November 2027; last ride down 17:30 to 19:00 depending on the month. The loop June to October, when the Äscher and Schäfler inns are open"
       link: "https://www.ebenalp.ch/"
     - id: seealpsee
+      mins: 51
+      stop: "Wasserauen"
       kinds: [walk, water, winter]
       name: "Seealpsee"
       area: "Appenzell"
@@ -371,6 +405,9 @@ guests:
       season: "All year; best May to October"
       link: "https://www.appenzell.ch/"
     - id: kronberg
+      mins: 34
+      months: [12, 1, 2]
+      stop: "Jakobsbad"
       kinds: [winter]
       name: "Kronberg sledge run"
       area: "Appenzell"
@@ -383,6 +420,9 @@ guests:
       season: "1 December 2026 to 28 February 2027, only with natural snow; not for small children"
       link: "https://www.kronberg.ch/"
     - id: faelensee
+      mins: 90
+      months: [6, 7, 8, 9, 10]
+      stop: "Frümsen, Rathaus / Staubern"
       kinds: [hike, water]
       name: "Saxer Lücke and Fälensee"
       area: "Appenzell"
@@ -396,6 +436,8 @@ guests:
       season: "Late June to October; the cable car runs daily May to October, the Bollenwees inn mid-May to October"
       link: "https://www.staubern.ch/bergbahn/"
     - id: walensee
+      mins: 70
+      stop: "Murg"
       kinds: [water]
       name: "Walensee and Quinten"
       area: "Lakes"
@@ -408,6 +450,9 @@ guests:
       season: "The crossing to Quinten runs all year"
       link: "https://walenseeschiff.ch/"
     - id: flumserberg
+      mins: 110
+      months: [6, 7, 8, 9, 10]
+      stop: "Unterterzen"
       kinds: [hike]
       name: "Flumserberg 7-peak tour"
       area: "Flumserberg"
@@ -421,6 +466,9 @@ guests:
       season: "Lifts 12 June to 24 October 2027"
       link: "https://www.flumserberg.ch/en/tour/7-Peak-Tour-Flumserberg_23430142"
     - id: pizol
+      mins: 77
+      months: [7, 8, 9, 10]
+      stop: "Wangs, Pizolbahn"
       kinds: [hike, water]
       name: "Pizol five lakes hike"
       area: "Pizol"
@@ -434,6 +482,9 @@ guests:
       season: "July to October (snow can lie until early July); be at the Gaffia chairlift by 16:30"
       link: "https://pizol.com/wanderwege/5-seen-wanderung/"
     - id: batoeni
+      mins: 106
+      months: [7, 8, 9, 10]
+      stop: "Weisstannen, Oberdorf"
       kinds: [hike, water]
       name: "Waterfall Arena Batöni"
       area: "Weisstannental"
@@ -447,6 +498,9 @@ guests:
       season: "July to October, best in July with the snowmelt"
       link: "https://unesco-sardona.ch/en/erlebnis/waterfall-arena-batoeni"
     - id: tamina
+      mins: 75
+      rain: true
+      stop: "Bad Ragaz, Tamina Therme"
       kinds: [water, winter]
       name: "Tamina Therme"
       area: "Bad Ragaz"
@@ -459,6 +513,9 @@ guests:
       season: "All year"
       link: "https://www.taminatherme.ch/"
     - id: taminaschlucht
+      mins: 83
+      months: [5, 6, 7, 8, 9, 10]
+      stop: "Bad Ragaz"
       kinds: [culture, water]
       name: "Tamina gorge and the Old Baths of Pfäfers"
       area: "Bad Ragaz"
@@ -472,6 +529,8 @@ guests:
       know: "Wet in places: good shoes. Pairs well with the Tamina Therme"
       link: "https://www.altes-bad-pfaefers.ch/"
     - id: gutenberg
+      mins: 81
+      stop: "Balzers, Gagoz"
       kinds: [culture]
       name: "Burg Gutenberg"
       area: "Liechtenstein"
@@ -484,6 +543,9 @@ guests:
       season: "Courtyard all year; chapel and rose garden Sundays May to October, 10:00 to 17:00"
       link: "https://www.burg-gutenberg.li/"
     - id: braunwald
+      mins: 106
+      months: [5, 6, 7, 8, 9, 10]
+      stop: "Linthal Braunwaldbahn"
       kinds: [hike, water]
       name: "Braunwald to the Oberblegisee"
       area: "Glarus"
@@ -498,6 +560,8 @@ guests:
       know: "The path down from Brunnenberg is closed (fallen trees): if the cable car does not run, walk back to Braunwald"
       link: "https://www.braunwald.ch/"
     - id: schraehbach
+      mins: 105
+      stop: "Innerthal, Staumauer"
       kinds: [water, walk]
       name: "Schrähbach waterfall and the Wägitalersee"
       area: "Wägital"
@@ -510,6 +574,8 @@ guests:
       season: "All year; most water with the snowmelt or after rain"
       link: "https://www.postauto.ch/fr/offres-de-loisirs/idees-d-excursions/2022/autour-du-waegitalersee"
     - id: bodensee
+      mins: 21
+      stop: "Rorschach"
       kinds: [water]
       name: "Lake Constance"
       area: "Lakes"
@@ -521,6 +587,8 @@ guests:
       season: "Boats from 26 March to 10 October 2027"
       link: "https://www.bodensee-schiffe.ch/"
     - id: stein
+      mins: 84
+      stop: "Stein am Rhein"
       kinds: [culture]
       name: "Stein am Rhein and St. Otmar's island"
       area: "Lakes"
@@ -533,6 +601,8 @@ guests:
       season: "All year"
       link: "https://www.steinamrhein.ch/"
     - id: rheinfall
+      mins: 122
+      stop: "Schloss Laufen am Rheinfall"
       kinds: [water, winter]
       name: "Rhine Falls"
       area: "Lakes"
@@ -546,6 +616,9 @@ guests:
       know: "Arrive at Schloss Laufen, cross the railway bridge on foot to the free north bank and leave from Neuhausen Rheinfall"
       link: "https://www.rheinfall.ch/"
     - id: iwc
+      mins: 124
+      rain: true
+      stop: "Schaffhausen"
       kinds: [culture]
       name: "IWC Museum, Schaffhausen"
       area: "Schaffhausen"
@@ -560,6 +633,10 @@ guests:
       link: "https://www.iwc.com/"
     # ---- far: day trips beyond Ostwind ----
     - id: hoellgrotten
+      mins: 108
+      months: [4, 5, 6, 7, 8, 9, 10]
+      rain: true
+      stop: "Baar, Tobelbrücke-Höllgrotten"
       far: true
       kinds: [culture, family]
       name: "Höllgrotten caves"
@@ -573,6 +650,9 @@ guests:
       season: "Closed in winter; open daily 9:00 to 17:00 from late March or 1 April to 31 October 2027"
       link: "https://www.hoellgrotten.ch/"
     - id: hoelloch
+      mins: 157
+      rain: true
+      stop: "Muotathal, Hölloch"
       far: true
       kinds: [culture, winter]
       name: "Hölloch cave"
@@ -586,6 +666,8 @@ guests:
       season: "All year on set dates; 6 °C inside, bring warm clothes and sturdy shoes"
       link: "https://www.trekking.ch/hoelloch"
     - id: flims
+      mins: 125
+      stop: "Flims Waldhaus, Camping"
       far: true
       kinds: [walk, water]
       name: "Flims: forest lakes, Caumasee and the Rhine Gorge"
@@ -600,6 +682,9 @@ guests:
       season: "May to October (go early: the two small lakes dry out); in winter a groomed path past Il Spir and the Caumasee"
       link: "https://www.flimslaax.com/en/outdoor-activities/mountain-lakes/lake-cauma"
     - id: lenzerheide
+      mins: 134
+      months: [7, 8, 9, 10]
+      stop: "Lenzerheide/Lai, Post"
       far: true
       kinds: [hike, family]
       name: "Lenzerheide to Arosa over the Rothorn"
@@ -614,6 +699,9 @@ guests:
       season: "Lifts daily 25 June to 17 October 2027; last Urdenbahn 16:30"
       link: "https://arosalenzerheide.swiss/"
     - id: davos
+      mins: 152
+      months: [12, 1, 2, 3, 6, 7, 8, 9, 10]
+      stop: "Davos Platz"
       far: true
       kinds: [winter, hike]
       name: "Davos: Schatzalp and Jakobshorn"
@@ -628,6 +716,9 @@ guests:
       season: "Schatzalp funicular 28 November 2026 to 21 March 2027 (sledge run from mid-December, with snow); Jakobshorn summer 12 June to 17 October 2027"
       link: "https://www.davos.ch/"
     - id: joeriseen
+      mins: 170
+      months: [7, 8, 9, 10]
+      stop: "Davos Dorf"
       far: true
       kinds: [hike, water]
       name: "Jöri lakes loop"
@@ -641,6 +732,8 @@ guests:
       season: "July to October; the pass bus ran 27 June to 25 October 2026"
       link: "https://www.graubuenden.ch/de/touren/joeriseen-rundweg"
     - id: mulegns
+      mins: 171
+      stop: "Mulegns, vischnanca"
       far: true
       kinds: [culture]
       name: "White Tower of Mulegns"
@@ -654,6 +747,9 @@ guests:
       season: "All year from the road"
       link: "https://www.tor-alva.ch/de/"
     - id: corvatsch
+      mins: 240
+      months: [7, 8, 9, 10]
+      stop: "Surlej, Corvatschbahn"
       far: true
       kinds: [hike]
       name: "Piz Corvatsch and the high trail to Furtschellas"
@@ -668,6 +764,9 @@ guests:
       season: "Corvatsch 19 June and Furtschellas 26 June to 22 October 2027; last ride down at Furtschellas 17:05"
       link: "https://www.corvatsch-diavolezza.ch/"
     - id: meiringen
+      mins: 219
+      months: [5, 6, 7, 8, 9, 10]
+      stop: "Meiringen"
       far: true
       kinds: [water, culture]
       name: "Aare Gorge and Reichenbach Falls"
@@ -682,6 +781,8 @@ guests:
       season: "Best 6 May to 3 October 2027, when both are open; closed in winter (the museum opens weekend afternoons)"
       link: "https://www.aareschlucht.ch/"
     - id: bellinzona
+      mins: 209
+      stop: "Bellinzona"
       far: true
       kinds: [culture]
       name: "Castles of Bellinzona"
@@ -695,6 +796,8 @@ guests:
       season: "Summer daily 10:00 to 18:00; in winter (until 18 March 2027) only Castelgrande is fully open, 10:30 to 16:00; closed 25 December"
       link: "https://fortezzabellinzona.ch/en/visit/"
     - id: madonnasasso
+      mins: 250
+      stop: "Locarno"
       far: true
       kinds: [culture, winter]
       name: "Madonna del Sasso, Locarno"
@@ -708,6 +811,9 @@ guests:
       season: "Church daily 7:00 to 18:30, all year; the funicular stops for about three weeks in November"
       link: "https://www.ascona-locarno.com/"
     - id: salvatore
+      mins: 225
+      months: [4, 5, 6, 7, 8, 9, 10]
+      stop: "Paradiso"
       far: true
       kinds: [walk, culture]
       name: "Monte San Salvatore, Lugano"
@@ -722,6 +828,9 @@ guests:
       season: "Funicular closed 9 November 2026 to 12 March 2027; from 13 March daily 9:00 to 18:00 (July and August until 22:30)"
       link: "https://www.montesansalvatore.ch/"
     - id: luenersee
+      mins: 170
+      months: [6, 7, 8, 9, 10]
+      stop: "Bludenz"
       far: true
       kinds: [hike, water]
       name: "Lünersee and the Gafalljoch"

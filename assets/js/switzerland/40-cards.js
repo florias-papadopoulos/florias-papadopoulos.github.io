@@ -4,12 +4,14 @@
 function card(build, fit) {
     const body = $('ch-card-body');
     body.textContent = '';
+    clearVRoute();   // a hike's line belongs to its own card
     build(body);
     $('ch-card').classList.toggle('ch-card-fit', !!fit);
     $('ch-card').hidden = false;
 }
 function closeCard() {
     $('ch-card').hidden = true;
+    clearVRoute();
     if (mapA) hiCanton('');
 }
 function visible(ids) {
