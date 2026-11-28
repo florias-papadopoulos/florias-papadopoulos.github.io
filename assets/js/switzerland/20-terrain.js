@@ -124,6 +124,8 @@ function pad(turn, tilt) {
 function wireTerrain() {
     $('ch-3d').addEventListener('click', () => set3D(!threeD));
     $('ch-pad-left').addEventListener('click', () => pad(-30, 0));
+    // back to the whole country, as the page opens (seen from straight above, facing north; 3D stays on)
+    $('ch-pad-home').addEventListener('click', () => mapA.fitBounds([[5.96, 45.82], [10.49, 47.81]], { padding: 24, pitch: 0, bearing: 0, duration: reduced ? 0 : 1600 }));
     $('ch-pad-right').addEventListener('click', () => pad(30, 0));
     $('ch-pad-up').addEventListener('click', () => pad(0, 12));
     $('ch-pad-down').addEventListener('click', () => pad(0, -12));

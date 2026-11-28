@@ -133,10 +133,10 @@
     <div class="ch-col ch-col-right">
         <div class="ch-panel ch-tools" role="toolbar" aria-label="Map tools">
             <button type="button" class="ch-tool" id="ch-3d" aria-pressed="false" title="Tilt the map and see the mountains in 3D"><span class="ch-tool-icon">3D</span><span class="ch-tool-text">3D</span></button>
-            <button type="button" class="ch-tool" id="ch-time" aria-pressed="false" title="Old maps from 1844 to today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="ch-tool-text">Then and now</span></button>
             <button type="button" class="ch-tool" id="ch-profile" aria-pressed="false" title="Draw a route: its distance, climb and walking time"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l5-8 4 5 3-6 6 9z"/><path d="M3 21h18"/></svg><span class="ch-tool-text">Route</span></button>
-            <button type="button" class="ch-tool" id="ch-weather-btn" aria-expanded="false" aria-controls="ch-weather" title="Rain radar, temperature, clouds, weather stations, snow cover"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 17z"/><path d="M9 20l-.5 1.5M13 20l-.5 1.5"/></svg><span class="ch-tool-text">Weather</span></button>
             <button type="button" class="ch-tool" id="ch-layers-btn" aria-expanded="false" aria-controls="ch-layers" title="Trails, slopes, glaciers, snow and avalanches"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5"/></svg><span class="ch-tool-text">Layers</span></button>
+            <button type="button" class="ch-tool" id="ch-weather-btn" aria-expanded="false" aria-controls="ch-weather" title="Rain radar, temperature, clouds, weather stations, snow cover"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 2A3 3 0 0 0 7 17z"/><path d="M9 20l-.5 1.5M13 20l-.5 1.5"/></svg><span class="ch-tool-text">Weather</span></button>
+            <button type="button" class="ch-tool" id="ch-time" aria-pressed="false" title="Old maps from 1844 to today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="ch-tool-text">Then and now</span></button>
         </div>
         <aside class="ch-panel ch-card" id="ch-card" hidden aria-live="polite">
             <button type="button" class="ch-close" id="ch-card-close" aria-label="Close">×</button>
@@ -161,11 +161,19 @@
         <div class="ch-dock-head"><strong>Route</strong><span id="ch-pf-at" class="ch-dock-info"></span><button type="button" class="ch-close" id="ch-profile-close" aria-label="Close">×</button></div>
         <svg class="ch-pf-svg" id="ch-pf-svg" role="img" aria-label="Elevation profile of the route"></svg>
         <p class="ch-dock-note" id="ch-pf-state" aria-live="polite"></p>
+        <div class="ch-rt-list" id="ch-rt-list" hidden></div>
+        <div class="ch-rt-warn" id="ch-rt-warn" role="status"></div>
         <dl class="ch-pf-stats" id="ch-pf-stats"></dl>
+        <ul class="ch-legend ch-rt-legend" id="ch-rt-legend" hidden>
+            <li><span class="ch-swatch" style="background:#f2c200"></span><span>Hiking trail (T1)</span></li>
+            <li><span class="ch-swatch ch-rt-sw" style="background:#e2001a"></span><span>Mountain trail (T2 to T3)</span></li>
+            <li><span class="ch-swatch ch-rt-sw" style="background:#1f5fbf"></span><span>Alpine route (T4 to T6)</span></li>
+            <li><span class="ch-swatch" style="background:repeating-linear-gradient(90deg,#b91c1c 0 4px,transparent 4px 7px)"></span><span>Closed trail</span></li>
+        </ul>
         <div class="ch-pf-btns">
             <button type="button" class="ch-chip" id="ch-pf-undo">Undo last point</button>
             <button type="button" class="ch-chip" id="ch-pf-clear">Start again</button>
-            <span class="ch-dock-note">Heights: swisstopo. Walking time: DIN 33466 estimate, without breaks.</span>
+            <span class="ch-dock-note">Routes: <a href="https://brouter.de/" target="_blank" rel="noopener noreferrer">BRouter</a>, map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors; grades by its volunteers, check the signs. Closures: ASTRA. Walking time: DIN 33466 estimate, without breaks.</span>
         </div>
     </div>
 
@@ -173,6 +181,7 @@
            in 3D a row to turn and tilt, always zoom, and the compass when the map is turned */}}
     <div class="ch-panel ch-pad maplibregl-ctrl" id="ch-pad" role="group" aria-label="Map controls">
         <div class="ch-pad-row ch-pad-3d" hidden>
+            <button type="button" id="ch-pad-home" title="Back to the whole country" aria-label="Back to the whole country"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.5L12 4l8.5 7.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg></button>
             <button type="button" id="ch-pad-left" title="Turn left" aria-label="Turn left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H5V3"/><path d="M5.5 7A8 8 0 1 1 4 12"/></svg></button>
             <button type="button" id="ch-pad-up" title="Tilt more" aria-label="Tilt more"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
             <button type="button" id="ch-pad-down" title="Tilt less" aria-label="Tilt less"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>

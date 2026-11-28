@@ -307,3 +307,15 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-v-kind:hover { border-color: #b8c0ca; }
 .ch-v-kind[aria-pressed="true"] { border-color: var(--ch-ink); background: var(--ch-hover); }
 .ch-v-dot { width: 10px; height: 10px; border-radius: 50%; }
+/* Route's choices (part 50) */
+.ch-rt-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+.ch-rt-opt { display: grid; gap: 2px; min-width: 120px; padding: 6px 10px; border: 1px solid var(--ch-line); border-radius: 10px; background: #fff; color: var(--ch-ink); text-align: left; font-size: 12px; cursor: pointer; }
+.ch-rt-opt strong { font-size: 13px; }
+.ch-rt-opt[aria-pressed="true"] { border-color: var(--ch-ink); box-shadow: 0 0 0 1px var(--ch-ink) inset; }
+.ch-rt-bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--ch-line); }
+.ch-rt-bar i { display: block; height: 100%; }
+.ch-rt-closed { color: #b91c1c; font-weight: 700; }
+.ch-rt-warn p { margin: 6px 0 0; padding: 6px 8px; border-radius: 8px; background: #fef2f2; color: #7f1d1d; font-size: 12px; line-height: 1.4; }
+.ch-rt-warn:empty { display: none; }
+.ch-rt-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
+.ch-rt-sw { box-shadow: 0 0 0 2px #fff inset, 0 0 0 1px #d5dbe3; }

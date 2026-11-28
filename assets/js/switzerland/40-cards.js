@@ -27,7 +27,13 @@ function hoverCheck(e) {
     mapA.getCanvas().style.cursor = hit ? 'pointer' : '';
 }
 function onClick(e) {
-    if (mode === 'profile') { profileAdd(e.lngLat); return; }
+    if (mode === 'profile') {
+        // a tap on one of the other routes chooses it; anywhere else adds a point
+        const other = routes.length > 1 && mapA.getLayer('rt-other') ? mapA.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: ['rt-other'] }) : [];
+        if (other.length) { selectRoute(other[0].properties.r); return; }
+        profileAdd(e.lngLat);
+        return;
+    }
     const gp = visitorsOn ? mapA.queryRenderedFeatures(e.point, { layers: visible(['guests-dot']) }) : [];
     if (gp.length && gp[0].properties.point_count) {
         // a bubble of several places: zoom in to where they part
