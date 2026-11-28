@@ -372,3 +372,5 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 /* train times never break: 14:05 stays on one line */
 .ch-trip dt, .ch-v-time { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ch-trip div { grid-template-columns: auto 1fr; }
+.ch-v-only { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 6px 8px; border-radius: 8px; background: #fffbeb; font-size: 12.5px; }
+.ch-v-only .ch-chip { height: 26px; font-size: 12px; }

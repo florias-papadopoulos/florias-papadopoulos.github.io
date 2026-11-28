@@ -31,7 +31,8 @@ const V_ORDER = PLACES.map((p, i) => i).sort((a, b) => (Number(PLACES[a].mins) |
 const kindOff = new Set(), groupOff = new Set();   // the kinds and the time groups turned off (some, or all)
 let vRain = false;  // only places good in bad weather
 let vOpen = false;  // only what is open this month
-const shown = (p) => (p.kinds || []).some((k) => !kindOff.has(k)) && !groupOff.has(groupOf(p)) && (!vRain || !!p.rain) && (!vOpen || isOpen(p, thisMonth()));
+let planOnly = null;   // the ids of a plan when only its places are shown (a plan sent as a link opens like this)
+const shown = (p) => planOnly ? planOnly.includes(String(p.id)) : (p.kinds || []).some((k) => !kindOff.has(k)) && !groupOff.has(groupOf(p)) && (!vRain || !!p.rain) && (!vOpen || isOpen(p, thisMonth()));
 const LINES = new Set(PLACES.filter((p) => p.line).map((p) => String(p.id)));   // the places with a drawn path
 function guestFeatures() {
     return PLACES.map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] },
@@ -164,6 +165,7 @@ function savePlan() { try { localStorage.setItem('ch-plan', JSON.stringify(plan)
 function togglePlan(id) {
     plan = plan.includes(id) ? plan.filter((x) => x !== id) : plan.concat(id);
     savePlan();
+    if (planOnly && !sharedPlan) planOnly = plan.length ? plan.slice() : null;
     renderPlan();
     vPlaces();
 }
@@ -184,6 +186,18 @@ function planRows(ul, ids) {
         if (i >= 0) ul.appendChild(placeRow(i));
     });
 }
+function fitPlaces(ids) {
+    let w = 180, s = 90, e = -180, n = -90;
+    ids.forEach((id) => { const p = PLACES[placeIndex(id)]; if (!p) return; w = Math.min(w, +p.lon); e = Math.max(e, +p.lon); s = Math.min(s, +p.lat); n = Math.max(n, +p.lat); });
+    if (w > e) return;
+    closePlace();
+    mapA.fitBounds([[w, s], [e, n]], { padding: cardPad(), maxZoom: 12, bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
+}
+function showOnly(ids) {
+    planOnly = ids && ids.length ? ids.slice() : null;
+    vPlaces();
+    renderPlan();
+}
 function renderPlan() {
     const box = $('ch-v-plan'), n = $('ch-v-plan-n');
     box.textContent = '';
@@ -197,8 +211,8 @@ function renderPlan() {
         const acts = el('div', 'ch-v-acts');
         const save = el('button', 'ch-chip', 'Save to my plan'), no = el('button', 'ch-chip', 'Dismiss');
         save.type = no.type = 'button';
-        save.addEventListener('click', () => { plan = planClean(plan.concat(sharedPlan)); savePlan(); sharedPlan = null; history.replaceState(null, '', location.pathname + '#visitors'); renderPlan(); vPlaces(); toast('Saved in this browser', 2000); });
-        no.addEventListener('click', () => { sharedPlan = null; history.replaceState(null, '', location.pathname + '#visitors'); renderPlan(); });
+        save.addEventListener('click', () => { plan = planClean(plan.concat(sharedPlan)); savePlan(); sharedPlan = null; history.replaceState(null, '', location.pathname + '#visitors'); showOnly(plan); toast('Saved in this browser', 2000); });
+        no.addEventListener('click', () => { sharedPlan = null; history.replaceState(null, '', location.pathname + '#visitors'); showOnly(null); });
         acts.append(save, no);
         sec.append(ul, acts);
         box.appendChild(sec);
@@ -210,16 +224,12 @@ function renderPlan() {
     const ul = el('ol', 'ch-v-list');
     planRows(ul, plan);
     const acts = el('div', 'ch-v-acts');
-    const show = el('button', 'ch-chip', 'Show all on the map'), send = el('button', 'ch-chip', 'Send as a link'), clear = el('button', 'ch-chip', 'Clear');
+    const only = !!planOnly;
+    const show = el('button', 'ch-chip', only ? 'Show all places to add more' : 'Only these on the map'), send = el('button', 'ch-chip', 'Send as a link'), clear = el('button', 'ch-chip', 'Clear');
     show.type = send.type = clear.type = 'button';
-    show.addEventListener('click', () => {
-        let w = 180, s = 90, e = -180, nn = -90;
-        plan.forEach((id) => { const p = PLACES[placeIndex(id)]; w = Math.min(w, +p.lon); e = Math.max(e, +p.lon); s = Math.min(s, +p.lat); nn = Math.max(nn, +p.lat); });
-        closePlace();
-        mapA.fitBounds([[w, s], [e, nn]], { padding: cardPad(), maxZoom: 12, bearing: mapA.getBearing(), duration: reduced ? 0 : 1200 });
-    });
+    show.addEventListener('click', () => { if (only) showOnly(null); else { showOnly(plan); fitPlaces(plan); } });
     send.addEventListener('click', () => shareLink(pageUrl() + '#plan=' + plan.join(','), 'My plan in Switzerland'));
-    clear.addEventListener('click', () => { if (window.confirm('Remove all places from your plan?')) { plan = []; savePlan(); renderPlan(); vPlaces(); } });
+    clear.addEventListener('click', () => { if (window.confirm('Remove all places from your plan?')) { plan = []; savePlan(); showOnly(null); } });
     acts.append(show, send, clear);
     box.append(ul, acts, el('p', 'ch-ly-note', 'Kept in this browser. "Send as a link" opens the same plan for someone else, who can save it too.'));
 }
@@ -416,6 +426,14 @@ function vPlaces() {
     document.querySelectorAll('#ch-v-times .ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(!groupOff.has(Number(b.dataset.group)))));
     const list = $('ch-v-places');
     list.textContent = '';
+    if (planOnly) {
+        const li = el('li', 'ch-v-only');
+        const all = el('button', 'ch-chip', 'Show all');
+        all.type = 'button';
+        all.addEventListener('click', () => showOnly(null));
+        li.append(el('span', null, 'Only the places of a plan. Show all to add more with \u2606.'), all);
+        list.appendChild(li);
+    }
     let group = -1;
     V_ORDER.filter((i) => shown(PLACES[i])).forEach((i) => {
         const g = groupOf(PLACES[i]);
@@ -553,7 +571,7 @@ function wireVisitors() {
     // Links: #visitors/<place> opens that place's card, #plan=<place>,<place> offers a plan someone sent.
     const h = location.hash;
     const one = /^#visitors\/([a-z0-9]{1,24})$/.exec(h), sent = /^#plan=([a-z0-9,]{1,1600})$/.exec(h);
-    if (sent) { sharedPlan = planClean(sent[1].split(',')); renderPlan(); vCurrent = 'plan'; }
+    if (sent) { sharedPlan = planClean(sent[1].split(',')); planOnly = sharedPlan.length ? sharedPlan.slice() : null; renderPlan(); vPlaces(); vCurrent = 'plan'; }
     if (!h || h === '#visitors' || one || sent || /,v$/.test(h)) {
         sheet('ch-visitors', true);
         if (matchMedia('(max-width: 900px)').matches && !one && !sent) panel.classList.add('ch-small');
@@ -563,5 +581,6 @@ function wireVisitors() {
         if (layerOn.guests) visitorsLayers();
         const i = one ? placeIndex(one[1]) : -1;
         if (i >= 0) guestCard(i, true);
+        if (sent && planOnly) fitPlaces(planOnly);
     });
 }
