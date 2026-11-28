@@ -5,9 +5,14 @@
    bottom left, the maps; bottom centre, one dock (year or route); bottom right, MapLibre's corner with the
    controls, the scale and the sources. Phones and tablets (900px and less): the sheets, the card and the docks open
    as one bottom sheet, one at a time (the card first, then a sheet, then a dock), and the maps and controls make room. */
+/* the look (owner's choice, 2026-11-28): old Swiss travel posters: warm paper, deep blue, pine green, the flag red, a
+   serif for names (Fraunces, SIL OFL, static/fonts/fraunces) */
+@font-face { font-family: "Fraunces"; src: url("/fonts/fraunces/fraunces-600-latin.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
 html[data-side="travel"] {
-    --ch-ink: #1f2937; --ch-quiet: #5b6673; --ch-faint: #9aa3ad; --ch-red: #d52b1e; --ch-red-dark: #b91c1c;
-    --ch-tint: #fdecea; --ch-hover: #f1f4f7; --ch-line: #e3e7ec; --ch-card: rgba(255, 255, 255, .95);
+    --ch-ink: #22283a; --ch-quiet: #625d52; --ch-faint: #a39d90; --ch-red: #d52b1e; --ch-red-dark: #b3241a;
+    --ch-tint: #fbe3dd; --ch-hover: #f2ead7; --ch-line: #e5dbc5; --ch-card: rgba(252, 248, 239, .97);
+    --ch-paper: #fcf8ef; --ch-blue: #1f3a68; --ch-green: #3f6b3a; --ch-gold: #e2ad3b;
+    --ch-serif: "Fraunces", Georgia, "Times New Roman", serif;
     --ch-shadow: 0 2px 10px rgba(15, 23, 42, .14), 0 1px 2px rgba(15, 23, 42, .08);
     --ch-edge: 12px; --ch-gap: 10px;
     --ch-bases-w: 236px;   /* the maps panel and its margin */
@@ -26,9 +31,11 @@ html[data-side="travel"] .top-link { display: none; }
 
 /* ---------- panels ---------- */
 .ch-panel { position: absolute; z-index: 5; box-sizing: border-box; background: var(--ch-card); border-radius: 12px; box-shadow: var(--ch-shadow); }
-.ch-sheet, .ch-card, .ch-dock { padding: 12px 14px; background: #fff; }
+.ch-sheet, .ch-card, .ch-dock { padding: 12px 14px; background: var(--ch-paper); }
 .ch-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .ch-app h2 { margin: 0; font-size: 16px; line-height: 1.25; }
+/* names in the poster serif: the sheets' titles, a place's name, a card's title */
+.ch-app :is(.ch-sheet, .ch-card, .ch-dock) h2, .ch-pl-name { font-family: var(--ch-serif); font-weight: 600; letter-spacing: -.005em; color: var(--ch-blue); }
 .ch-close { flex: none; width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--ch-quiet); font-size: 20px; line-height: 1; cursor: pointer; }
 .ch-close:hover { background: var(--ch-hover); color: var(--ch-ink); }
 .ch-app :focus-visible { outline: 2px solid var(--ch-red); outline-offset: 1px; }
@@ -268,7 +275,7 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-v-group:first-child { margin-top: 0; }
 .ch-v-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 4px; border: 0; border-radius: 6px; background: none; text-align: left; color: var(--ch-ink); cursor: pointer; }
 .ch-v-btn:hover { background: var(--ch-hover); }
-.ch-v-pin { flex: none; width: 10px; height: 10px; margin: 0 3px; border-radius: 50%; box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px rgba(15, 23, 42, .18); }
+.ch-v-pin { flex: none; width: 14px; height: 14px; margin: 0 2px; }
 .ch-v-closed .ch-v-txt strong { color: var(--ch-faint); font-weight: 500; }
 .ch-v-acts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
 .ch-v-acts .ch-chip { height: 28px; font-size: 12.5px; }
@@ -281,8 +288,15 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-v-txt strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .ch-v-txt span { flex: none; font-size: 11.5px; color: var(--ch-quiet); }
 .ch-v-owrow { margin: 2px 0 8px; font-size: 13px; }
-.ch-v-ticket { padding: 8px 10px; border: 1px solid var(--ch-line); border-radius: 10px; margin-bottom: 6px; }
-.ch-v-ticket.ch-v-best { border-color: #0d9488; background: #f0fdfa; }
+.ch-v-ticket { padding: 8px 10px; border: 1px solid var(--ch-line); border-radius: 10px; margin-bottom: 6px; background: #fff; }
+/* the day passes as tickets: a coloured head, the price big in a ticket typeface, notches at the sides */
+#ch-v-tickets .ch-v-ticket { position: relative; padding: 0 14px 9px; border: 1px solid #d9cfba; border-radius: 6px; overflow: hidden;
+    background: radial-gradient(circle at 0 52px, var(--ch-paper) 6px, transparent 6.5px), radial-gradient(circle at 100% 52px, var(--ch-paper) 6px, transparent 6.5px), #fff; }
+#ch-v-tickets .ch-v-tname { margin: 0 -14px 6px; padding: 5px 14px; background: var(--ch-blue); color: #fff; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+#ch-v-tickets .ch-v-best .ch-v-tname { background: var(--ch-red); }
+#ch-v-tickets .ch-v-prices { padding-bottom: 6px; border-bottom: 1.5px dashed #d9cfba; }
+#ch-v-tickets .ch-v-prices dd { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 17px; letter-spacing: -.01em; }
+.ch-v-ticket.ch-v-best { border-color: #e7b0a9; }
 .ch-v-ticket p { margin: 4px 0 0; font-size: 12px; line-height: 1.4; color: var(--ch-quiet); }
 .ch-v-key { display: inline-block; width: 14px; height: 10px; margin-right: 4px; vertical-align: -1px; border: 2px dashed #0d9488; background: rgba(13, 148, 136, .12); border-radius: 2px; }
 .ch-v-h { margin: 4px 0 6px; font-size: 13px; }
@@ -317,7 +331,10 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-v-kind { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--ch-line); border-radius: 14px; background: #fff; color: var(--ch-ink); font-size: 12px; font-weight: 600; cursor: pointer; }
 .ch-v-kind:hover { border-color: #b8c0ca; }
 .ch-v-kind[aria-pressed="true"] { border-color: #cfd5dc; }
-.ch-v-dot { width: 10px; height: 10px; border-radius: 50%; }
+.ch-v-dot { width: 13px; height: 13px; flex: none; }
+.ch-picto { width: 13px; height: 13px; flex: none; fill: currentColor; }
+.ch-chip-ic { display: inline-flex; align-items: center; gap: 6px; }
+.ch-chip-ic .ch-picto { width: 14px; height: 14px; }
 /* Route's choices (part 50) */
 .ch-rt-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
 .ch-rt-opt { display: grid; gap: 2px; min-width: 120px; padding: 6px 10px; border: 1px solid var(--ch-line); border-radius: 10px; background: #fff; color: var(--ch-ink); text-align: left; font-size: 12px; cursor: pointer; }
@@ -345,7 +362,8 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-pl-photo { display: block; width: 100%; aspect-ratio: 16 / 7; object-fit: cover; margin: 0 0 10px; border-radius: 10px; background: var(--ch-hover); }
 .ch-pl-kinds { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 32px 2px 0; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ch-quiet); }
 .ch-pl-kinds span { display: inline-flex; align-items: center; gap: 5px; }
-.ch-pl-kinds i { width: 8px; height: 8px; border-radius: 50%; }
+.ch-pl-kinds .ch-picto { width: 12px; height: 12px; }
+.ch-pl-name:focus { outline: none; }
 .ch-pl-name { margin: 0 32px 8px 0; font-size: 19px; line-height: 1.2; }
 .ch-pl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
 .ch-pl-stats li { padding: 6px 9px; border-radius: 8px; background: var(--ch-hover); }
@@ -357,9 +375,8 @@ body.ch-hud-off .ch-col > * { pointer-events: none; }
 .ch-pl-facts dt { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ch-quiet); }
 .ch-pl-facts dd { margin: 2px 0 0; font-size: 13px; line-height: 1.4; }
 .ch-v-kind[aria-pressed="false"] { opacity: .5; }
-.ch-v-kind[aria-pressed="false"] .ch-v-dot { background: #c3c9d1 !important; }
+.ch-v-kind[aria-pressed="false"] .ch-v-dot path { fill: #b9b2a3; }
 .ch-v-kind.ch-v-time { padding: 0 9px; font-weight: 600; }
-.ch-v-rain .ch-v-dot { background: #64748b; }
 .ch-v-rain[aria-pressed="false"] { opacity: 1; }
 .ch-v-rain[aria-pressed="true"] { border-color: #475569; background: #e2e8f0; }
 /* About (part 90): a short note, and the photos on Instagram */

@@ -18,6 +18,16 @@ const PLACES = guests.places || [];
 const kindOf = (p) => (Array.isArray(p.kinds) && p.kinds[0]) || '';
 const kindColour = (id) => { const k = KINDS.find((x) => x.id === id); return k ? String(k.colour) : '#d52b1e'; };
 const placeIndex = (id) => PLACES.findIndex((p) => String(p.id) === id);
+/* the pictograms of the kinds, a rainy day and the train: Maki by Mapbox (CC0, public domain), 15 x 15 */
+const PICTOS = {walk: 'M14,5.75c0.0113-0.6863-0.3798-1.3159-1-1.61C12.9475,3.4906,12.4014,2.9926,11.75,3 c-0.0988,0.0079-0.1962,0.0281-0.29,0.06c-0.0607-0.66-0.6449-1.1458-1.3048-1.0851C9.8965,1.9987,9.6526,2.1058,9.46,2.28l0,0 c0-0.6904-0.5596-1.25-1.25-1.25S6.96,1.5896,6.96,2.28C6.96,2.28,7,2.3,7,2.33C6.4886,1.8913,5.7184,1.9503,5.2797,2.4618 C5.1316,2.6345,5.0347,2.8451,5,3.07C4.8417,3.0195,4.6761,2.9959,4.51,3C3.6816,2.9931,3.0044,3.659,2.9975,4.4874 C2.9958,4.6872,3.0341,4.8852,3.11,5.07C2.3175,5.2915,1.8546,6.1136,2.0761,6.9061C2.2163,7.4078,2.6083,7.7998,3.11,7.94 c0.2533,0.7829,1.0934,1.2123,1.8763,0.959C5.5216,8.7258,5.9137,8.2659,6,7.71C6.183,7.8691,6.4093,7.9701,6.65,8v5L5,14h5l-1.6-1 v-2c0.7381-0.8915,1.6915-1.5799,2.77-2c0.8012,0.1879,1.603-0.3092,1.7909-1.1103C12.9893,7.7686,13.0025,7.6444,13,7.52 c0.0029-0.0533,0.0029-0.1067,0-0.16C13.6202,7.0659,14.0113,6.4363,14,5.75z M8.4,10.26V6.82C8.6703,7.3007,9.1785,7.5987,9.73,7.6 h0.28c0.0156,0.4391,0.2242,0.849,0.57,1.12C9.7643,9.094,9.0251,9.6162,8.4,10.26z', hike: 'm7.5 1c-.3 0-.4.2-.6.4l-5.8 9.5c-.1.1-.1.3-.1.4 0 .5.4.7.7.7h11.6c.4 0 .7-.2.7-.7 0-.2 0-.2-.1-.4l-5.7-9.5c-.2-.2-.4-.4-.7-.4zm0 1.5 3.3 5.5h-.8l-1.5-1.5-1 1.5-1-1.5-1.5 1.5h-.9z', winter: 'M15,4.5C15,5.3284,14.3284,6,13.5,6S12,5.3284,12,4.5S12.6716,3,13.5,3S15,3.6716,15,4.5z M13.72,11.89 c-0.0623-0.1197-0.2083-0.1684-0.33-0.11c-0.6846,0.4194-1.5208,0.5111-2.28,0.25L4.78,8.86L7.5,7.5v-3L9,5.25v3L10.5,9L12,8.25 L10.5,7.5V3l-3-1.5L6,2.25v4.5L3.28,8.11L0.61,6.78C0.4857,6.7192,0.3358,6.7707,0.275,6.895C0.2142,7.0193,0.2657,7.1692,0.39,7.23 l10.5,5.25c0.3156,0.135,0.6568,0.1998,1,0.19c0.5998-0.0103,1.1889-0.161,1.72-0.44c0.1236-0.0615,0.174-0.2116,0.1125-0.3352 C13.7217,11.8932,13.7208,11.8916,13.72,11.89z', family: 'M8.3879,3.8928C8.3879,3.8928,7.6818,5,7,5H4.5C3.8182,5,3.2016,5.4086,2.7273,5.8636L0.5,8C0.231,8.258,0.0072,8.7681,0,9 c-0.0156,0.5,0,1,0,1s1,0,1-1V8.5l1-1h0.5l0.158,0.2892c0,0-0.9535,1.8244-0.9535,3.5289C1.7046,12,2.3864,12,2.3864,12h0.6818 c0,0,0.3409,0,0-0.3409l-0.3409-0.3409C2.7273,10.6364,3.5002,9.6667,4,9c0,0,0.0168,1.1579,0,2c-0.008,0.4096,0.2721,1,0.6818,1 h0.6818c0,0,0.3409,0,0-0.3409l-0.3409-0.3409C4.7105,10.7495,5.5,8.5,5.5,8.5C6.7716,8.5,7,9,8.5,9l0.3636,2.3182 C8.975,12.0282,9.5,12,9.5,12H11c0.3409,0,0.9611-0.3115,0.3409-0.7736L11,11V9c1.2142-0.1722,2-1,2-2h1c0.3214,0,1,0,1-0.5v-1 l-1.7045-1.6818C12.5444,3.0772,12,2.5,11,2.5C9.5469,2.5,8.8636,3.0688,8.3879,3.8928z', culture: 'M7.5,0L1,3.5V4h13V3.5L7.5,0z M2,5v5l-1,1.6V13h13v-1.4L13,10V5H2z M4,6h1v5.5H4V6z M7,6h1v5.5H7V6z M10,6h1 v5.5h-1V6z', water: 'M7.5 14C9.57688 14 12 12.7117 12 9.43241C12 7.20724 8.53844 2.2883 7.5 1C6.57691 2.2883 3 7.09007 3 9.43241C3 12.7117 5.42312 14 7.5 14Z', rain: 'M13 2L1 6V8L2 7.66667V13H12V11H4V7L13 4V2Z', rail: 'M 3 1 C 2.4477 1 2 1.4477 2 2 L 2 10 C 2 10.5523 2.4477 11 3 11 L 12 11 C 12.5523 11 13 10.5523 13 10 L 13 2 C 13 1.4477 12.5523 1 12 1 L 3 1 z M 5.75 1.5 L 5.7597656 1.5 L 9.2597656 1.5 C 9.3978656 1.5 9.5097656 1.6119 9.5097656 1.75 C 9.5097656 1.8881 9.3978656 2 9.2597656 2 L 5.75 2 C 5.6119 2 5.5 1.8881 5.5 1.75 C 5.5 1.6119 5.6119 1.5 5.75 1.5 z M 3.5 3 L 7 3 L 7 7 L 3.5 7 C 3.2239 7 3 6.7761 3 6.5 L 3 3.5 C 3 3.2239 3.2239 3 3.5 3 z M 8 3 L 11.5 3 C 11.7761 3 12 3.2239 12 3.5 L 12 6.5 C 12 6.7761 11.7761 7 11.5 7 L 8 7 L 8 3 z M 5 8 C 5.5523 8 6 8.4477 6 9 C 6 9.5523 5.5523 10 5 10 C 4.4477 10 4 9.5523 4 9 C 4 8.4477 4.4477 8 5 8 z M 10 8 C 10.5523 8 11 8.4477 11 9 C 11 9.5523 10.5523 10 10 10 C 9.4477 10 9 9.5523 9 9 C 9 8.4477 9.4477 8 10 8 z M 10.445312 11.994141 C 10.380597 11.999652 10.314981 12.018581 10.253906 12.050781 C 10.030606 12.168381 9.9302313 12.433922 10.019531 12.669922 L 10.189453 13 L 4.8105469 13 L 4.9394531 12.730469 C 5.0371531 12.472169 4.9067375 12.183637 4.6484375 12.085938 C 4.4124375 11.996738 4.1468969 12.097113 4.0292969 12.320312 L 3.0292969 14.320312 C 3.0080969 14.377912 2.9986 14.4387 3 14.5 C 3 14.7761 3.2239 15 3.5 15 C 3.6802 14.999 3.8450875 14.899434 3.9296875 14.740234 L 3.9296875 14.689453 L 4 14.689453 L 4.3105469 14 L 10.689453 14 L 11 14.689453 L 11 14.740234 C 11.0846 14.899434 11.249488 14.999 11.429688 15 C 11.705787 15 11.929688 14.7761 11.929688 14.5 C 11.949587 14.4212 11.949587 14.338566 11.929688 14.259766 L 10.929688 12.259766 C 10.833163 12.076541 10.639459 11.977608 10.445312 11.994141 z', aerialway: 'M13,5H8V2.6c0.1854-0.1047,0.3325-0.2659,0.42-0.46L13.5,1.5C13.7761,1.5,14,1.2761,14,1s-0.2239-0.5-0.5-0.5L8.28,1.15 C8.0954,0.9037,7.8077,0.7562,7.5,0.75C7.0963,0.752,6.7334,0.9966,6.58,1.37L1.5,2C1.2239,2,1,2.2239,1,2.5S1.2239,3,1.5,3 l5.22-0.65C6.7967,2.4503,6.8917,2.5351,7,2.6V5H2C1.4477,5,1,5.4477,1,6v7c0,0.5523,0.4477,1,1,1h11c0.5523,0,1-0.4477,1-1V6 C14,5.4477,13.5523,5,13,5z M7,11H3V7h4V11z M12,11H8V7h4V11z'};
+function picto(id, colour, cls) {
+    const NS = 'http://www.w3.org/2000/svg', s = document.createElementNS(NS, 'svg'), p = document.createElementNS(NS, 'path');
+    s.setAttribute('viewBox', '0 0 15 15'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('class', 'ch-picto' + (cls ? ' ' + cls : ''));
+    p.setAttribute('d', PICTOS[id] || PICTOS.walk);
+    if (colour) p.setAttribute('fill', colour);
+    s.appendChild(p);
+    return s;
+}
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const thisMonth = () => new Date().getMonth() + 1;
 const isOpen = (p, m) => !Array.isArray(p.months) || p.months.includes(m);
@@ -295,9 +305,8 @@ function guestCard(i, move) {
     }
     const kinds = el('p', 'ch-pl-kinds');
     (p.kinds || []).map((k) => KINDS.find((x) => x.id === k)).filter(Boolean).forEach((k) => {
-        const s = el('span'), dot = el('i');
-        dot.style.background = String(k.colour);
-        s.append(dot, document.createTextNode(String(k.name)));
+        const s = el('span');
+        s.append(picto(String(k.id), String(k.colour)), document.createTextNode(String(k.name)));
         kinds.appendChild(s);
     });
     const h2 = el('h2', 'ch-pl-name', String(p.name));
@@ -315,8 +324,9 @@ function guestCard(i, move) {
     b.appendChild(el('p', 'ch-pl-why', String(p.why || '')));
     const acts = el('div', 'ch-v-acts');
     if (p.stop) {
-        const t = el('button', 'ch-chip', 'Train from St. Gallen');
+        const t = el('button', 'ch-chip ch-chip-ic');
         t.type = 'button';
+        t.append(picto('rail'), document.createTextNode('Train from St. Gallen'));
         t.addEventListener('click', () => showTrip('St. Gallen', String(p.stop), 'To ' + String(p.name)));
         acts.appendChild(t);
     }
@@ -444,8 +454,7 @@ function placeRow(i) {
     const li = el('li', 'ch-v-place' + (isOpen(p, thisMonth()) ? '' : ' ch-v-closed'));
     const btn = el('button', 'ch-v-btn');
     btn.type = 'button';
-    const dot = el('span', 'ch-v-pin');
-    dot.style.background = kindColour(kindOf(p));
+    const dot = picto(kindOf(p), kindColour(kindOf(p)), 'ch-v-pin');
     const txt = el('span', 'ch-v-txt');
     txt.append(el('strong', null, (plan.includes(String(p.id)) ? '★ ' : '') + String(p.name)), el('span', null, fmtMins(p.mins)));
     if (!isOpen(p, thisMonth())) btn.title = 'Not open in ' + MONTHS[thisMonth() - 1];
@@ -492,7 +501,7 @@ function buildVisitors() {
     KINDS.forEach((k) => {
         const b = el('button', 'ch-v-kind');
         b.type = 'button'; b.dataset.kind = String(k.id);
-        const dot = el('span', 'ch-v-dot'); dot.style.background = String(k.colour);
+        const dot = picto(String(k.id), String(k.colour), 'ch-v-dot');
         b.append(dot, el('span', null, String(k.short || k.name)));
         b.title = 'Show or hide: ' + String(k.name);
         b.addEventListener('click', () => { planOnly = null; if (kindOff.has(k.id)) kindOff.delete(k.id); else kindOff.add(k.id); vPlaces(); renderPlan(); });
@@ -500,7 +509,7 @@ function buildVisitors() {
     });
     const rain = el('button', 'ch-v-kind ch-v-rain');
     rain.type = 'button'; rain.dataset.kind = 'rain'; rain.title = 'Only places that are good in bad weather';
-    rain.append(el('span', 'ch-v-dot'), el('span', null, 'Rainy day only'));
+    rain.append(picto('rain', '#475569', 'ch-v-dot'), el('span', null, 'Rainy day only'));
     rain.addEventListener('click', () => { planOnly = null; vRain = !vRain; vPlaces(); renderPlan(); });
     chips.appendChild(rain);
     // the time groups, also on and off
