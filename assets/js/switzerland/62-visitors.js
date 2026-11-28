@@ -4,6 +4,15 @@
    tools/swiss-map/make_ostwind.py), and now: the next departures from St. Gallen (transport.opendata.ch) and the
    weather in St. Gallen and on the Säntis (MeteoSwiss, as part 60). The map moves to the region when it opens. */
 const guests = facts.guests || { places: [], tickets: [] };
+const KINDS = guests.kinds || [];
+const kindOf = (p) => (Array.isArray(p.kinds) && p.kinds[0]) || '';
+const kindColour = (id) => { const k = KINDS.find((x) => x.id === id); return k ? String(k.colour) : '#d52b1e'; };
+let vKind = '';   // the chip chosen in the Places tab ('' = all)
+function guestFeatures() {
+    return (guests.places || []).map((p, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] },
+        properties: { i, n: String(i + 1), name: String(p.name), colour: kindColour(kindOf(p)) } }))
+        .filter((f) => !vKind || ((guests.places[f.properties.i].kinds || []).includes(vKind)));
+}
 let visitorsOn = false, depTimer = null, styleReady = false;
 onLoad.push(() => { styleReady = true; });
 
@@ -17,20 +26,20 @@ function visitorsLayers() {
     // pins that would touch become one bubble ("1–3"); a tap on it zooms in until they part
     mapA.addSource('guests', { type: 'geojson', cluster: true, clusterRadius: 26, clusterMaxZoom: 14,
         clusterProperties: { lo: ['min', ['get', 'i']], hi: ['max', ['get', 'i']] },
-        data: { type: 'FeatureCollection', features: (guests.places || []).map((p, i) => ({
-        type: 'Feature', geometry: { type: 'Point', coordinates: [+p.lon, +p.lat] }, properties: { i, n: String(i + 1), name: String(p.name) } })) } });
+        data: { type: 'FeatureCollection', features: guestFeatures() } });
     mapA.addLayer({ id: 'guests-dot', type: 'circle', source: 'guests',
-                    paint: { 'circle-radius': ['case', ['has', 'point_count'], 15, 11], 'circle-color': '#d52b1e', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } });
+                    paint: { 'circle-radius': ['case', ['has', 'point_count'], 15, 11], 'circle-color': ['case', ['has', 'point_count'], '#374151', ['get', 'colour']],
+                             'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } });
     mapA.addLayer({ id: 'guests-n', type: 'symbol', source: 'guests',
-                    // a bubble: its numbers as a range when they follow each other, otherwise how many places it holds
+                    // a bubble (dark, unlike the coloured pins): its numbers as a range when they follow each other, otherwise how many places it holds
                     layout: { 'text-field': ['case', ['has', 'point_count'],
                                              ['case', ['==', ['-', ['get', 'hi'], ['get', 'lo']], ['-', ['get', 'point_count'], 1]],
                                               ['concat', ['to-string', ['+', ['get', 'lo'], 1]], '–', ['to-string', ['+', ['get', 'hi'], 1]]],
-                                              ['concat', ['to-string', ['get', 'point_count']], ' places']], ['get', 'n']], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
+                                              ['to-string', ['get', 'point_count']]], ['get', 'n']], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 12, 'text-allow-overlap': true, 'text-ignore-placement': true },
                     paint: { 'text-color': '#ffffff' } });
     mapA.addLayer({ id: 'guests-name', type: 'symbol', source: 'guests', minzoom: 9, filter: ['!', ['has', 'point_count']],
                     layout: { 'text-field': ['get', 'name'], 'text-font': ['Frutiger Neue Condensed Bold'], 'text-size': 13, 'text-offset': [0, 1.3], 'text-anchor': 'top', 'text-padding': 2 },
-                    paint: { 'text-color': '#7f1d1d', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
+                    paint: { 'text-color': '#1f2937', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
 }
 function showVisitors(on) {
     // the map's style must be there before layers are added (the link can open the sheet while the map loads)
@@ -53,7 +62,8 @@ function guestCard(i) {
     const p = (guests.places || [])[i];
     if (!p) return false;
     card((b) => {
-        b.append(el('p', 'ch-card-kind', String(p.area || 'Visitors')), el('h2', null, String(p.name)));
+        const kinds = (p.kinds || []).map((id) => KINDS.find((x) => x.id === id)).filter(Boolean).map((k) => String(k.name)).join(' · ');
+        b.append(el('p', 'ch-card-kind', kinds || String(p.area || 'Visitors')), el('h2', null, String(p.name)));
         b.appendChild(el('p', 'ch-card-line', String(p.why || '')));
         const dl = el('dl', 'ch-card-facts ch-card-facts-wide');
         row(dl, 'From St. Gallen', String(p.trip));
@@ -70,6 +80,41 @@ function guestCard(i) {
     return true;
 }
 
+/* the places, grouped by their first kind, in the order of the legend */
+function vPlaces() {
+    document.querySelectorAll('.ch-v-kind').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === vKind)));
+    const list = $('ch-v-places');
+    list.textContent = '';
+    const order = KINDS.map((k) => k.id);
+    const items = (guests.places || []).map((p, i) => ({ p, i }))
+        .filter(({ p }) => !vKind || (p.kinds || []).includes(vKind))
+        .sort((a, b) => order.indexOf(kindOf(a.p)) - order.indexOf(kindOf(b.p)) || a.i - b.i);
+    let group = null;
+    items.forEach(({ p, i }) => {
+        const k = vKind || kindOf(p);
+        if (k !== group) {
+            group = k;
+            const kd = KINDS.find((x) => x.id === k);
+            const h = el('li', 'ch-v-group', kd ? String(kd.name) : '');
+            list.appendChild(h);
+        }
+        const li = el('li', 'ch-v-place');
+        const btn = el('button', 'ch-v-btn');
+        btn.type = 'button';
+        const num = el('span', 'ch-v-num', String(i + 1));
+        num.style.background = kindColour(kindOf(p));
+        const txt = el('span', 'ch-v-txt');
+        txt.append(el('strong', null, String(p.name)), el('span', null, String(p.trip)));
+        btn.append(num, txt);
+        btn.addEventListener('click', () => {
+            mapA.flyTo({ center: [+p.lon, +p.lat], zoom: Math.max(mapA.getZoom(), 12), duration: reduced ? 0 : 1400, essential: true });
+            guestCard(i);
+        });
+        li.appendChild(btn);
+        list.appendChild(li);
+    });
+    if (mapA && mapA.getSource('guests')) mapA.getSource('guests').setData({ type: 'FeatureCollection', features: guestFeatures() });
+}
 /* the sheet's three tabs */
 let vCurrent = 'places';
 function vTab(t) {
@@ -80,23 +125,23 @@ function vTab(t) {
     if (t === 'now' && visitorsOn) { loadNow(); depTimer = setInterval(() => { if (!document.hidden) loadNow(); }, 60000); }
 }
 function buildVisitors() {
-    const list = $('ch-v-places');
-    let area = '';
-    (guests.places || []).forEach((p, i) => {
-        if (p.area !== area) { area = p.area; list.appendChild(el('li', 'ch-v-group', String(area))); }
-        const li = el('li', 'ch-v-place');
-        const btn = el('button', 'ch-v-btn');
-        btn.type = 'button';
-        const num = el('span', 'ch-v-num', String(i + 1));
-        const txt = el('span', 'ch-v-txt');
-        txt.append(el('strong', null, String(p.name)), el('span', null, String(p.trip)));
-        btn.append(num, txt);
-        btn.addEventListener('click', () => {
-            mapA.flyTo({ center: [+p.lon, +p.lat], zoom: Math.max(mapA.getZoom(), 12), duration: reduced ? 0 : 1400, essential: true });
-            guestCard(i);
-        });
-        li.appendChild(btn);
-        list.appendChild(li);
+    // the legend: one chip per kind, which also shows only that kind (tap again for all)
+    const chips = $('ch-v-kinds');
+    KINDS.forEach((k) => {
+        const b = el('button', 'ch-v-kind');
+        b.type = 'button'; b.dataset.kind = String(k.id); b.setAttribute('aria-pressed', 'false');
+        const dot = el('span', 'ch-v-dot'); dot.style.background = String(k.colour);
+        b.append(dot, el('span', null, String(k.short || k.name)));
+        b.title = String(k.name);
+        b.addEventListener('click', () => { vKind = vKind === k.id ? '' : String(k.id); vPlaces(); });
+        chips.appendChild(b);
+    });
+    vPlaces();
+    const al = $('ch-v-arrival');
+    (guests.arrival || []).forEach((a) => {
+        const li = el('li', 'ch-v-ticket');
+        li.append(el('strong', 'ch-v-tname', String(a.name)), el('p', null, String(a.text)));
+        al.appendChild(li);
     });
     const tl = $('ch-v-tickets');
     (guests.tickets || []).forEach((t) => {

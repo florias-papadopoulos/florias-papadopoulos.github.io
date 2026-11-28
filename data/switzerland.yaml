@@ -172,6 +172,17 @@ sources:
 # (travel times: SBB timetable through transport.opendata.ch; prices and seasons: the operators' own sites, with a
 # second source each where one exists; details and URLs in __NotOnline/switzerland-guests/plan.md).
 guests:
+  # the Places tab's legend and filter, and the colour of each place's pin (a place may have several kinds; the first
+  # gives its group and colour). A first proposal, to be corrected by the site's owner.
+  kinds:
+    - { id: summer, name: "Summer hikes", short: "Summer", colour: "#2e8540" }
+    - { id: winter, name: "Winter", short: "Winter", colour: "#2b6cb0" }
+    - { id: culture, name: "Culture and history", short: "Culture", colour: "#7b3fa0" }
+    - { id: water, name: "Lakes and water", short: "Water", colour: "#0d8a8a" }
+  # getting here (SBB timetable through transport.opendata.ch, checked 2026-11-28 for a Tuesday morning)
+  arrival:
+    - name: "From Zürich Airport"
+      text: "Direct trains to St. Gallen (IC 5, IR 13, IC 1), 49 to 61 min, several each hour. Tickets in the SBB Mobile app or at the machines at the airport station."
   region: [8.45, 47.05, 9.75, 47.75]
   tickets:
     - name: "9 am day pass, all zones"
@@ -182,6 +193,7 @@ guests:
   tickets_note: "Buy them in the SBB Mobile app or at a ticket machine. Zürich and Luzern are outside Ostwind: they need a normal SBB ticket."
   places:
     - id: abbey
+      kinds: [culture]
       name: "Abbey Library"
       area: "St. Gallen"
       lon: 9.37639
@@ -193,6 +205,7 @@ guests:
       season: "Daily 10:00 to 17:00 (July to September until 18:00); closed 24 and 25 December"
       link: "https://www.stiftsbezirk.ch/"
     - id: oldtown
+      kinds: [culture]
       name: "Old town"
       area: "St. Gallen"
       lon: 9.37672
@@ -203,6 +216,7 @@ guests:
       season: "All year"
       link: "https://www.st.gallen-bodensee.ch/"
     - id: weieren
+      kinds: [water, winter]
       name: "Drei Weieren"
       area: "St. Gallen"
       lon: 9.39048
@@ -213,6 +227,7 @@ guests:
       season: "All year"
       link: "https://www.muehleggbahn.ch/"
     - id: appenzell
+      kinds: [culture]
       name: "Appenzell"
       area: "Appenzell"
       lon: 9.40953
@@ -223,6 +238,7 @@ guests:
       season: "All year"
       link: "https://www.appenzell.ch/en/appenzell.html"
     - id: ebenalp
+      kinds: [summer]
       name: "Ebenalp and Äscher"
       area: "Appenzell"
       lon: 9.41426
@@ -234,6 +250,7 @@ guests:
       season: "Cable car closed until 24 December 2026 and 30 March to 27 April 2027; the Äscher opens May to October"
       link: "https://www.ebenalp.ch/"
     - id: seealpsee
+      kinds: [summer, winter]
       name: "Seealpsee"
       area: "Appenzell"
       lon: 9.40210
@@ -244,6 +261,7 @@ guests:
       season: "All year; best May to October"
       link: "https://www.appenzell.ch/"
     - id: bodensee
+      kinds: [water]
       name: "Lake Constance"
       area: "Lakes"
       lon: 9.49292
@@ -254,6 +272,7 @@ guests:
       season: "Boats from 26 March to 10 October 2027"
       link: "https://www.bodensee-schiffe.ch/"
     - id: rheinfall
+      kinds: [water]
       name: "Rhine Falls"
       area: "Lakes"
       lon: 8.61570
@@ -265,6 +284,7 @@ guests:
       season: "Rock boat April to October; most water in early summer"
       link: "https://www.rheinfall.ch/"
     - id: stein
+      kinds: [culture]
       name: "Stein am Rhein"
       area: "Lakes"
       lon: 8.85962
@@ -275,6 +295,7 @@ guests:
       season: "All year"
       link: "https://www.steinamrhein.ch/"
     - id: walensee
+      kinds: [summer, water]
       name: "Walensee and Quinten"
       area: "Lakes"
       lon: 9.21601
