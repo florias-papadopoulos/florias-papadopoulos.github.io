@@ -273,12 +273,12 @@ guests:
       mins: 10
       stop: "St. Gallen, Oberhofstetten"
       kinds: [walk]
-      name: "Menzlen forest and the Haggen bridge"
+      name: "Menzlen forest and the Ganggelibrugg"
       area: "St. Gallen"
       lon: 9.33937
       lat: 47.39965
-      why: "A short forest walk over the Menzlen ridge to the Haggenbrücke, the 'Ganggelibrugg': a steel footbridge 355 m long and about 98 m above the Sitter, opened in 1937."
-      trip: "Bus 10 to Oberhofstetten, 10 min; back over the bridge to St. Gallen Haggen station (15 min on foot, then S4 or S81)"
+      why: "A short forest walk over the Menzlen ridge, then across the Haggenbrücke, the 'Ganggelibrugg': a steel footbridge 355 m long and about 98 m above the Sitter, opened in 1937."
+      trip: "Bus 10 to Oberhofstetten, 10 min; back over the bridge to St. Gallen Haggen station (15 min on foot, then S4 or S81), or on to Stein AR and bus 180"
       walk: "About 3 km, 80 m up, 45 min"
       ostwind: "yes"
       season: "All year; icy in winter, and the bridge sways in the wind"

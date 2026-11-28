@@ -5,14 +5,16 @@ Each hike is a list of waypoints (lon, lat), taken from the research in __NotOnl
 (swisstopo names, OSM, the official route descriptions). BRouter (brouter.de, OpenStreetMap data, profile
 hiking-mountain) joins them along the trails, and each stretch keeps its difficulty from OSM's sac_scale, as the
 page's Route tool does: 1 = hiking (T1, yellow), 2 = mountain hiking (T2 to T3), 3 = alpine (T4 and up).
-Run `python3 -I tools/swiss-map/make_visitor_routes.py` (one request at a time, with pauses: a volunteer server).
+Run `python3 -I tools/swiss-map/make_visitor_routes.py [id ...]` (one request at a time, with pauses: a volunteer
+server); with ids, only those hikes are made again and the others in the file are kept.
 The page loads the file only when a hike's card opens; map data (c) OpenStreetMap contributors, ODbL.
 """
 import json, os, time, urllib.request
 
 HIKES = {
     'weieren': [(9.37020, 47.42320), (9.39048, 47.42264), (9.41390, 47.41837), (9.41537, 47.42259)],
-    'haggen': [(9.35953, 47.40758), (9.35208, 47.40758), (9.33937, 47.39965), (9.34089, 47.40115)],
+    # across the Haggenbrücke (the Ganggelibrugg, OSM way 882503350) from its north end to its south end
+    'haggen': [(9.35953, 47.40758), (9.35208, 47.40758), (9.33945, 47.40125), (9.33925, 47.39780)],
     'ebenalp': [(9.41221, 47.28482), (9.41362, 47.28305), (9.39172, 47.27635), (9.41221, 47.28482)],
     'seealpsee': [(9.42761, 47.28693), (9.41414, 47.27245)],
     'faelensee': [(9.45327, 47.26067), (9.42477, 47.24730), (9.42679, 47.25367), (9.45781, 47.27091),
@@ -57,8 +59,14 @@ def metres(a, b):
     return math.hypot(x, y) * 6371000
 
 
+import sys
+ONLY = set(sys.argv[1:])
 features = []
+if ONLY and os.path.exists(OUT):
+    features = [f for f in json.load(open(OUT))['features'] if f['properties']['id'] not in ONLY]
 for hid, pts in HIKES.items():
+    if ONLY and hid not in ONLY:
+        continue
     f = brouter(pts)
     coords = f['geometry']['coordinates']
     ends = []
