@@ -25,7 +25,7 @@ function fmtMins(m) {
     return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + String(m % 60).padStart(2, '0') : '');
 }
 /* the list's groups: how long the trip from St. Gallen station takes */
-const V_GROUPS = [{ max: 20, name: 'In town' }, { max: 60, name: 'Under 1 h' }, { max: 119, name: '1 to 2 h' }, { max: Infinity, name: 'Long day (2 h and more)' }];
+const V_GROUPS = [{ max: 20, name: 'In town' }, { max: 60, name: 'Under 1 hour' }, { max: 119, name: '1 to 2 hours' }, { max: Infinity, name: '2+ hours' }];
 const groupOf = (p) => V_GROUPS.findIndex((g) => (Number(p.mins) || 0) <= g.max);
 const V_ORDER = PLACES.map((p, i) => i).sort((a, b) => (Number(PLACES[a].mins) || 0) - (Number(PLACES[b].mins) || 0) || a - b);
 const kindOff = new Set(), groupOff = new Set();   // the kinds and the time groups turned off (some, or all)
