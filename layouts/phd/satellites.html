@@ -24,6 +24,7 @@
 <article class="tl-page sat-page">
     <header class="sat-head">
         <h1 class="tl-h1">{{ .Title }}</h1>
+        {{- partial "demo-note.html" . }}
         {{- with .Params.lede }}<p class="sat-lede">{{ . | markdownify }}</p>{{ end }}
     </header>
 

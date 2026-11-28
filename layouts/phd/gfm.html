@@ -7,6 +7,7 @@
 <div class="tl-page gfm-page" id="gfm">
     <header class="tl-intro gfm-intro">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        {{- partial "demo-note.html" . }}
         {{- with .Content }}<div class="tl-lede">{{ . }}</div>{{ end }}
     </header>
 

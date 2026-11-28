@@ -10,6 +10,7 @@
 <div class="tl-page sc-page">
     <header class="lab-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        {{- partial "demo-note.html" . }}
         <p class="sc-lede">{{ len $stories }} short stories about the ideas that keep your messages, payments and passwords safe. The cat has a secret for the dog, and the fox sees everything they send. Go step by step with <b>Next</b>; each story ends with something to try.</p>
         <p class="sc-keys">For a class: full screen, then space or the right arrow for the next step, the left arrow to go back.</p>
     </header>

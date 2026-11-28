@@ -6,6 +6,7 @@
 <div class="tl-page sg-page" id="sg">
     <header class="sg-head">
         <h1 class="tl-h1"><span class="tl-h1-text">{{ .Title }}</span></h1>
+        {{- partial "demo-note.html" . }}
         <p class="sg-lede">{{ .Params.lede | default .Params.blurb }} It builds on my Master project <a href="{{ "master/" | relURL }}#signal-protocol">Overview of the Signal Protocol</a>.</p>
     </header>
     <div id="sg-app" class="sg-app"><noscript><p class="sg-say">This demo needs JavaScript.</p></noscript></div>

@@ -6,6 +6,7 @@ lede: "The Signal protocol running in your browser with real keys: watch the rat
 preview: "img/phd/signal.svg"
 weight: 2
 layout: signal
+demo: true   # shows the "Demo, under construction" note (layouts/partials/demo-note.html)
 ---
 
 - **Agreeing a key (X3DH).** Bob publishes an identity key, a signed prekey and a one-time prekey. Alice checks the signature, makes an ephemeral key and combines four Diffie-Hellman results into one shared key. Bob computes the same key from Alice's two public keys. The one-time prekey and the ephemeral key are deleted.

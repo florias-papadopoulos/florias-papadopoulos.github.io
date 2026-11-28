@@ -6,6 +6,7 @@ lede: "Where they are right now: every object of a few public catalogues, from s
 preview: "img/phd/satellites.svg"
 weight: 1
 layout: satellites
+demo: true   # shows the "Demo, under construction" note (layouts/partials/demo-note.html)
 ---
 
 ## What is up there

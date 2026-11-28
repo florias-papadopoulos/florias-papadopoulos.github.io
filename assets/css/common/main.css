@@ -82,4 +82,6 @@ pre:hover .copy-code {
 @media (max-width: 600px) {
     html:not([data-mode="play"]) .main { min-height: calc(100dvh - var(--footer-height) - var(--pn-tab, 0px) - 16px); }
 }
-
+/* a demo page's note under the title (layouts/partials/demo-note.html) */
+.demo-note { margin: 6px 0 14px; padding: 8px 12px; border: 1px solid #f2c94c; border-left-width: 4px; border-radius: 8px; background: #fffbeb; color: #5b4500; font-size: 14px; line-height: 1.45; }
+.demo-note strong { color: #3f2f00; }

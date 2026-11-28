@@ -1,0 +1,5 @@
+{{- /* a page with `demo: true` in its front matter: a short note under the title that it is a demo still being built
+       (styles in assets/css/common/main.css) */ -}}
+{{- if .Params.demo }}
+<p class="demo-note" role="note"><strong>Demo, under construction.</strong> This is a work in progress, not finished or ready for real use: parts may be missing, change or not work yet.</p>
+{{- end }}
